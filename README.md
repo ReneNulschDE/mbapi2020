@@ -43,6 +43,11 @@ None
 
     `attributes: preWarningBrakeLiningWear`
 
+* tirewarninglamp
+
+    `attributes: tirepressureRearLeft, tirepressureRearRight, tirepressureFrontRight, tirepressureFrontLeft, tireMarkerFrontRight, tireMarkerFrontLeft,
+    tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw`
+
 * windowsClosed
   
     `attributes: windowstatusrearleft, windowstatusrearright, windowstatusfrontright, windowstatusfrontleft`

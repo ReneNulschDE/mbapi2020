@@ -2,7 +2,7 @@
 Support for Mercedes cars with Mercedes ME.
 
 For more details about this component, please refer to the documentation at
-https://github.com/ReneNulschDE/mbapipy/
+https://github.com/ReneNulschDE/mbapi2020/
 """
 from homeassistant.components.binary_sensor import BinarySensorEntity
 
@@ -23,19 +23,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     sensors = []
     for car in data.client.cars:
 
-        # tire_warning_field = "tirewarninglamp"
-        # if conf.get(CONF_CARS) is not None:
-        #     for car_conf in conf.get(CONF_CARS):
-        #         if car_conf.get(CONF_CARS_VIN) == car.finorvin:
-        #             tire_warning_field = car_conf.get(
-        #                 CONF_TIRE_WARNING_INDICATOR)
-        #             break
-
         for key, value in sorted(BINARY_SENSORS.items()):
-#            if key == "tirewarninglamp":
-#                value[3] = tire_warning_field
-
-#            if value[5] is None or getattr(car.features, value[5]) is True:
             device = MercedesMEBinarySensor(
                 hass,
                 data,
@@ -64,6 +52,18 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity):
         if self._state == "INACTIVE":
             return False
         if self._state == "ACTIVE":
+            return True
+        if self._state == "0":
+            return False
+        if self._state == "1":
+            return True
+        if self._state == 0:
+            return False
+        if self._state == 1:
+            return True
+        if self._state == False:
+            return False
+        if self._state == True:
             return True
 
         return self._state

@@ -109,7 +109,7 @@ BINARY_SENSORS = {
     "tirewarninglamp": ["Tire Warning",
                         None,
                         "tires",
-                        "OVERWRITTEN_IN_BINARY_SENSOR",
+                        "tirewarninglamp",
                         "value",
                         None,
                         {
@@ -117,16 +117,13 @@ BINARY_SENSORS = {
                             "tirepressureRearRight",
                             "tirepressureFrontRight",
                             "tirepressureFrontLeft",
-                            "tirewarningsrdk",
-                            "tirewarningsprw",
                             "tireMarkerFrontRight",
                             "tireMarkerFrontLeft",
                             "tireMarkerRearLeft",
-                            "tireMarkerRearRight",
-                            "tireWarningRollup",
-                            "tirewarninglamp",
-                            "lastTirepressureTimestamp"}]
-}
+                            "tireMarkerRearRight"
+                            "tirewarningsrdk",
+                            "tirewarningsprw",
+                        }]}
 
 DEVICE_TRACKER = {
     "tracker": ["Device Tracker", None, "location", "positionLong", "value", None,
