@@ -24,7 +24,7 @@ None
 
 ```
 
-# Available components (depended on your own car)
+# Available components (depends on your own car or purchased licenses)
 
 
 ## Binary Sensors
@@ -43,10 +43,20 @@ None
 
     `attributes: preWarningBrakeLiningWear`
 
+* tirewarninglamp
+
+    `attributes: tirepressureRearLeft, tirepressureRearRight, tirepressureFrontRight, tirepressureFrontLeft, tireMarkerFrontRight, tireMarkerFrontLeft,
+    tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw`
+
+
 * windowsClosed
   
     `attributes: windowstatusrearleft, windowstatusrearright, windowstatusfrontright, windowstatusfrontleft`
 
+
+## Device Tracker
+  
+    `attributes: positionHeading`
 
 ## Sensors
 

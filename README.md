@@ -24,7 +24,7 @@ None
 
 ```
 
-# Available components (depended on your own car)
+# Available components (depends on your own car or purchased licenses)
 
 
 ## Binary Sensors
@@ -52,6 +52,10 @@ None
   
     `attributes: windowstatusrearleft, windowstatusrearright, windowstatusfrontright, windowstatusfrontleft`
 
+
+## Device Tracker
+  
+    `attributes: positionHeading`
 
 ## Sensors
 
