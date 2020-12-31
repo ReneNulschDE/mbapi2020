@@ -97,6 +97,10 @@ ELECTRIC_OPTIONS = [
     'soc',
     'showChargingErrorAndDemand',
     'electricconsumptionstart',
+    'ecoElectricBatteryTemperature',
+    'distanceElectricalReset',
+    'distanceElectricalStart',
+    'selectedChargeProgram',
     'ecoElectricBatteryTemperature']
 
 BINARY_SENSOR_OPTIONS = [

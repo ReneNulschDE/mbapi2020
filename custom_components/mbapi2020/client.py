@@ -191,10 +191,9 @@ class Client: # pylint: disable-too-few-public-methods
 
         car.windows = self._get_car_values(
             c, car.finorvin, Windows() if not update_mode else car.windows, WINDOW_OPTIONS, update_mode)
-        # _LOGGER.debug("_get_cars - Feature Check: charging_clima_control:%s ", {car.features.charging_clima_control})
-        # if car.features.charging_clima_control:
-        #     car.electric = self._get_car_values(
-        #         api_result, car.finorvin, Electric(), ELECTRIC_OPTIONS, update_mode)
+
+        car.electric = self._get_car_values(
+            c, car.finorvin, Electric() if not update_mode else car.electric, ELECTRIC_OPTIONS, update_mode)
 
         # _LOGGER.debug("_get_cars - Feature Check: aux_heat:%s ", {car.features.aux_heat})
         # if car.features.aux_heat:

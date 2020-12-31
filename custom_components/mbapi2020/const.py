@@ -161,7 +161,7 @@ SENSORS = {
 
     "rangeElectricKm": ["Range Electric", LENGTH_KILOMETERS,
                         "electric", "rangeelectric",
-                        "value", "charging_clima_control",
+                        "value", None,
                         {
                             "rangeelectric",
                             "rangeElectricKm",
