@@ -11,7 +11,7 @@ IMPORTANT:
 
 * Please login once in the MercedesME IOS or Android app before you install this component.
 
-* Tested Countries: Germany, Finland, Spain, Belgium, UK
+* Tested Countries: BE, DE, ES, FI, NL, UK
 
 ## Configuration
 
@@ -24,7 +24,7 @@ None
 
 ```
 
-# Available components (depends on your own car or purchased licenses)
+## Available components (depends on your own car or purchased licenses)
 
 
 ## Binary Sensors
@@ -45,8 +45,8 @@ None
 
 * tirewarninglamp
 
-    `attributes: tirepressureRearLeft, tirepressureRearRight, tirepressureFrontRight, tirepressureFrontLeft, tireMarkerFrontRight, tireMarkerFrontLeft,
-    tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw`
+    ```attributes: tirepressureRearLeft, tirepressureRearRight, tirepressureFrontRight, tirepressureFrontLeft, tireMarkerFrontRight, tireMarkerFrontLeft,
+    tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw```
 
 * windowsClosed
   
@@ -103,7 +103,7 @@ logger:
 
 # Notes
 
-* Tested Countries: BE, DE, ES, FI, NL, UK, NL
+* Tested Countries: BE, DE, ES, FI, NL, UK
 
 # Open Items
 * Web-Socket reconnect
