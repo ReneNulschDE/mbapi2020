@@ -62,6 +62,11 @@ None
   
   `attributes: distanceReset, distanceStart, averageSpeedReset, averageSpeedStart, distanceZEReset, drivenTimeZEReset, drivenTimeReset, drivenTimeStart, ecoscoretotal, ecoscorefreewhl, ecoscorebonusrange, ecoscoreconst, ecoscoreaccel, gasconsumptionstart, gasconsumptionreset, gasTankRange, gasTankLevel, liquidconsumptionstart, liquidconsumptionreset, liquidRangeSkipIndication, rangeliquid, serviceintervaldays, tanklevelpercent, tankReserveLamp, batteryState, tankLevelAdBlue`
 
+* Range Electric
+
+  `attributes: tbd`
+
+
   
 # Logging
 
@@ -86,4 +91,4 @@ logger:
 
 # Useful links
 
-* [Forum post](https://community.home-assistant.io/t/mercedes-me-component/41911)
+* [Forum post](https://community.home-assistant.io/t/mercedes-me-component/41911/520)
