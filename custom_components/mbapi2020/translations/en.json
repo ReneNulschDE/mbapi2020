@@ -1,0 +1,42 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Component is configured already."
+        },
+        "error": {
+            "cannot_connect": "cannot_connect",
+            "invalid_auth": "invalid_auth",
+            "unknown": "unknown"
+        },
+        "step": {
+            "user": {
+                "description": "Enter your Mercedes ME login account (email adress)",
+                "title": "Set up the Mercedes ME 2020 connection",
+                "data": {
+                    "username": "MB username - email address"
+                }
+            },
+            "pin": {
+                "description": "You have received a PIN code via email. Please enter the PIN code (six numbers)",
+                "title": "Connection setup - PIN",
+                "data": {
+                    "password": "PIN"
+                }
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "country_code": "Country Code",
+                    "locale": "Locale",
+                    "excluded_cars": "VINs excluded (comma-sep)"
+                },
+                "description": "Configure your options. Some changes require a restart of Home Assistant.",
+                "title": "Mercedes ME 2020 Options"
+            }
+        }
+    },
+    "title": "MercedesME 2020"
+}
