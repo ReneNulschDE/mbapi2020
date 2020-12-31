@@ -2,11 +2,11 @@
   "domain": "mbapi2020",
   "name": "MercedesME 2020",
   "config_flow": true,
-  "documentation": "https://www.home-assistant.io/integrations/mbapi2020",
-  "issue_tracker": "https://github.com/ReneNulschDE/mbapi2020_internal/issues",
+  "documentation": "https://github.com/ReneNulschDE/mbapi2020",
+  "issue_tracker": "https://github.com/ReneNulschDE/mbapi2020/issues",
   "requirements": ["requests","protobuf"],
   "dependencies": [],
   "codeowners": [
-    "@renenulsch.de"
+    "@ReneNulschDE"
   ]
 }
