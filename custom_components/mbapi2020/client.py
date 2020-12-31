@@ -13,6 +13,7 @@ from homeassistant.core import (
     callback,
     HomeAssistant
 )
+from homeassistant.helpers.event import async_call_later
 
 from .car import *
 
@@ -153,9 +154,9 @@ class Client: # pylint: disable-too-few-public-methods
         try:
             self._on_dataload_complete = callback_dataload_complete
             await connect()
-        except WebsocketError as err:
+        except (WebsocketError, TypeError) as err:
             LOGGER.error("Error with the websocket connection: %s", err)
-            self._ws_reconnect_delay = min(2 * self._ws_reconnect_delay, 480)
+            self._ws_reconnect_delay = self._ws_reconnect_delay
             async_call_later(self._hass, self._ws_reconnect_delay, connect)
 
     def _build_car(self, c, update_mode):
