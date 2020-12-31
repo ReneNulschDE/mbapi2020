@@ -74,9 +74,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
 
-            # TODO:
-            # - Web Request to initiate the token send
-
             pin = user_input[CONF_PASSWORD]
 
             session = aiohttp_client.async_get_clientsession(self.hass)
