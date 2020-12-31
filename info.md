@@ -1,6 +1,6 @@
 # mercedesme2020
 
-* > :warning: **This is a very early version**
+* > :warning: **This is an very early version**
 
 
 MercedesME platform as a Custom Component for Home Assistant.
@@ -11,7 +11,7 @@ IMPORTANT:
 
 * Please login once in the MercedesME IOS or Android app before you install this component.
 
-* Tested Countries: Germany, Finland
+* Tested Countries: Germany, Finland, Spain, Belgium, UK
 
 ## Configuration
 
@@ -48,7 +48,6 @@ None
     `attributes: tirepressureRearLeft, tirepressureRearRight, tirepressureFrontRight, tirepressureFrontLeft, tireMarkerFrontRight, tireMarkerFrontLeft,
     tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw`
 
-
 * windowsClosed
   
     `attributes: windowstatusrearleft, windowstatusrearright, windowstatusfrontright, windowstatusfrontleft`
@@ -62,7 +61,18 @@ None
 
 * lock
 
-  `attributes: doorStateFrontLeft, doorStateFrontRight, doorStateRearLeft, doorStateRearRight, frontLeftDoorLocked, frontRightDoorLocked, rearLeftDoorLocked, rearRightDoorLocked, frontLeftDoorClosed, frontRightDoorClosed, rearLeftDoorClosed, rearRightDoorClosed, rearRightDoorClosed, doorsClosed, trunkStateRollup, sunroofstatus, fuelLidClosed, engineHoodClosed`
+  `attributes: decklidstatus, doorStatusOverall, doorLockStatusOverall, doorlockstatusgas, doorlockstatusvehicle, doorlockstatusfrontleft,
+               doorlockstatusfrontright, doorlockstatusrearright, doorlockstatusrearleft, doorlockstatusdecklid, doorstatusrearleft, 
+               doorstatusfrontright, doorstatusrearright, doorstatusfrontleft, rooftopstatus, sunroofstatus`
+
+Internal value: doorlockstatusvehicle
+
+Values:
+0: vehicle unlocked
+1: vehicle internal locked
+2: vehicle external locked
+3: vehicle selective unlocked
+
 
 * Fuel Level (%)
 
@@ -77,6 +87,7 @@ None
   `attributes: tbd`
 
 
+  
 # Logging
 
 Set the logging to debug with the following settings in case of problems.
@@ -90,7 +101,7 @@ logger:
 
 # Notes
 
-* Tested countries: DE, FI
+* Tested Countries: BE, DE, ES, FI, NL, UK, NL
 
 # Open Items
 * Web-Socket reconnect

@@ -58,27 +58,23 @@ WINDOW_OPTIONS = [
     "flipWindowStatus"]
 
 DOOR_OPTIONS = [
-    'doorStateFrontLeft',
-    'doorStateFrontRight',
-    'doorStateRearLeft',
-    'doorStateRearRight',
-    'frontLeftDoorLocked',
-    'frontRightDoorLocked',
-    'rearLeftDoorLocked',
-    'rearRightDoorLocked',
-    'frontLeftDoorClosed',
-    'frontRightDoorClosed',
-    'rearLeftDoorClosed',
-    'rearRightDoorClosed',
-    'rearRightDoorClosed',
-    'doorsClosed',
-    'trunkStateRollup',
+    'doorstatusrearleft',
+    'doorstatusfrontright',
+    'doorstatusrearright',
+    'doorstatusfrontleft',
+    'rooftopstatus',
     'sunroofstatus',
-    'vehicleLockState',
-    'doorLockStatusOverall',
-    'chargeCouplerDCLockStatus',
-    'fuelLidClosed',
-    'engineHoodClosed', ]
+    'decklidstatus',
+    'doorStatusOverall',
+    'doorLockStatusOverall'
+    'doorlockstatusgas',
+    'doorlockstatusvehicle',
+    'doorlockstatusfrontleft',
+    'doorlockstatusfrontright',
+    'doorlockstatusrearright',
+    'doorlockstatusrearleft',
+    'doorlockstatusdecklid',
+]
 
 ELECTRIC_OPTIONS = [
     'rangeelectric',
