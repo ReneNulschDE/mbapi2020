@@ -84,7 +84,9 @@ Values:
 
 * Range Electric
 
-  `attributes: tbd`
+  `attributes: rangeelectric, chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, electricconsumptionstart,
+  electricconsumptionreset, endofchargetime, maxrange, selectedChargeProgram, soc`
+
 
 
   
