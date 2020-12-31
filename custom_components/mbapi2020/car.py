@@ -82,26 +82,17 @@ DOOR_OPTIONS = [
 
 ELECTRIC_OPTIONS = [
     'rangeelectric',
-    'rangeElectricKm',
-    'criticalStateOfSoc',
-    'maxrange',
-    'stateOfChargeElectricPercent',
-    'endofchargetime',
-    'criticalStateOfDeparturetimesoc',
-    'warninglowbattery',
-    'electricconsumptionreset',
-    'maxStateOfChargeElectricPercent',
-    'supplybatteryvoltage',
-    'electricChargingStatus',
     'chargingstatus',
-    'soc',
-    'showChargingErrorAndDemand',
-    'electricconsumptionstart',
-    'ecoElectricBatteryTemperature',
     'distanceElectricalReset',
     'distanceElectricalStart',
+    'ecoElectricBatteryTemperature',
+    'electricconsumptionstart',
+    'electricconsumptionreset',
+    'endofchargetime',
+    'maxrange',
     'selectedChargeProgram',
-    'ecoElectricBatteryTemperature']
+    'soc'
+    ]
 
 BINARY_SENSOR_OPTIONS = [
     'warningwashwater',
