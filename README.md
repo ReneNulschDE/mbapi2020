@@ -1,6 +1,6 @@
 # mercedesme2020
 
-* > :warning: **This is an very early version**
+* > :warning: **This is a very early version**
 
 
 MercedesME platform as a Custom Component for Home Assistant.
@@ -11,7 +11,7 @@ IMPORTANT:
 
 * Please login once in the MercedesME IOS or Android app before you install this component.
 
-* Tested Countries: BE, DE, ES, FI, NL, UK
+* Tested Countries: BE, DE, ES, FI, NL, PT, SE, UK
 
 ## Configuration
 
@@ -103,8 +103,7 @@ logger:
 
 # Notes
 
-* Tested Countries: BE, DE, ES, FI, NL, UK
-
+* Tested Countries: BE, DE, ES, FI, NL, PT, SE, UK
 # Open Items
 * Web-Socket reconnect
 * General Error Handling
