@@ -71,76 +71,75 @@ class Client: # pylint: disable-too-few-public-methods
 
             msg_type = data.WhichOneof('msg')
             
-            msg_type_found = False
-
             if (msg_type == "vepUpdate"): #VEPUpdate
                 LOGGER.debug("vepUpdate")
-                msg_type_found = True
+                return
 
             if (msg_type == "vepUpdates"): #VEPUpdatesByVIN
-                msg_type_found = True
-                #LOGGER.debug(f"Data: {MessageToJson(data, preserving_proto_field_name=True)}")
 
                 self._process_vep_updates(data)
 
-                currentSequenceNumber = data.vepUpdates.sequence_number
-                LOGGER.debug(f"vepUpdates Sequence: {currentSequenceNumber}")
-                ackCommand = client_pb2.ClientMessage()
-                ackCommand.acknowledge_vep_updates_by_vin.sequence_number = currentSequenceNumber
-                return ackCommand
+                sequence_number = data.vepUpdates.sequence_number
+                LOGGER.debug(f"vepUpdates Sequence: {sequence_number}")
+                ack_command = client_pb2.ClientMessage()
+                ack_command.acknowledge_vep_updates_by_vin.sequence_number = sequence_number
+                return ack_command
 
             if (msg_type == "debugMessage"): #DebugMessage
-                LOGGER.debug(f"debugMessage - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
-                msg_type_found = True
+                
+                if data.debugMessage:
+                    LOGGER.debug(f"debugMessage - Data: {data.debugMessage.message}")
+
+                    if data.debugMessage.message == "app twin actor has stopped":
+                        LOGGER.info("Websocket connection closed by server try to reconnect.")
+                        async_call_later(self._hass, self._ws_reconnect_delay, connect)
+
+                return
 
             if (msg_type == "service_status_update"):
                 LOGGER.debug(f"service_status_update - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
-                msg_type_found = True
+                return
 
             if (msg_type == "user_data_update"):
                 LOGGER.debug(f"user_data_update - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
-                msg_type_found = True
+                return
 
             if (msg_type == "user_vehicle_auth_changed_update"):
                 LOGGER.debug(f"user_vehicle_auth_changed_update - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
-                msg_type_found = True
+                return
 
             if (msg_type == "user_picture_update"):
                 LOGGER.debug(f"user_picture_update - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
-                msg_type_found = True
+                return
 
             if (msg_type == "user_pin_update"):
                 LOGGER.debug(f"user_pin_update - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
-                msg_type_found = True
+                return
 
             if (msg_type == "vehicle_updated"):
                 LOGGER.debug(f"vehicle_updated - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
-                msg_type_found = True
+                return
 
             if (msg_type == "preferred_dealer_change"):
                 LOGGER.debug(f"preferred_dealer_change - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
-                msg_type_found = True
+                return
 
             if (msg_type == "apptwin_command_status_updates_by_vin"):
                 LOGGER.debug(f"apptwin_command_status_updates_by_vin - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
-                msg_type_found = True
+                return
 
             if (msg_type == "apptwin_pending_command_request"):
                 #LOGGER.debug(f"apptwin_pending_command_request - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
-                msg_type_found = True
+                return
 
             if (msg_type == "assigned_vehicles"):
                 LOGGER.debug("assigned_vehicles")
                 
                 self._process_assigned_vehicles(data)
                 
-                msg_type_found = True
-                #ackCommand = client_pb2.ClientMessage().acknowledge_assigned_vehicles
-                #return ackCommand
+                return
 
-
-            if not msg_type_found:
-                LOGGER.debug(f"Message Type not implemented - {msg_type}")
+            LOGGER.debug(f"Message Type not implemented - {msg_type}")
 
         def on_disconnect():
             """Define a handler to fire when the websocket is disconnected."""
@@ -320,9 +319,9 @@ class Client: # pylint: disable-too-few-public-methods
         Path(path).mkdir(parents=True, exist_ok=True)
 
         if WRITE_DEBUG_OUTPUT:
-            token_file = open(f"{path}/{datatype}{int(round(time.time() * 1000))}" , "wb")
-            token_file.write(data.SerializeToString())
-            token_file.close()
+            f = open(f"{path}/{datatype}{int(round(time.time() * 1000))}" , "wb")
+            f.write(data.SerializeToString())
+            f.close()
 
             self._write_debug_json_output(MessageToJson(data, preserving_proto_field_name=True), datatype)
 
@@ -332,6 +331,6 @@ class Client: # pylint: disable-too-few-public-methods
         Path(path).mkdir(parents=True, exist_ok=True)
 
         if WRITE_DEBUG_OUTPUT:
-            token_file = open(f"{path}/{datatype}{int(round(time.time() * 1000))}.json" , "w")
-            token_file.write(f"{data}")
-            token_file.close()
+            f = open(f"{path}/{datatype}{int(round(time.time() * 1000))}.json" , "w")
+            f.write(f"{data}")
+            f.close()
