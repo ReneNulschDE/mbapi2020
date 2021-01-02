@@ -11,7 +11,7 @@ IMPORTANT:
 
 * Please login once in the MercedesME IOS or Android app before you install this component.
 
-* Tested Countries: BE, DE, ES, FI, NL, PT, SE, UK
+* Tested Countries: BE, DE, ES, FI, IT, NL, NO, PT, SE, UK
 
 ## Configuration
 
@@ -19,8 +19,10 @@ Use the "Add Integration" in Home Assistant and select "MercedesME 2020".
 
 ## Optional configuration values
 
+See Options dialog in the Integration section.
+
 ```
-None
+Excluded Cars: comma-separated list of VINs.
 
 ```
 
@@ -103,7 +105,7 @@ logger:
 
 # Notes
 
-* Tested Countries: BE, DE, ES, FI, NL, PT, SE, UK
+* Tested Countries: BE, DE, ES, FI, IT, NL, NO, PT, SE, UK
 
 # Open Items
 * Web-Socket reconnect

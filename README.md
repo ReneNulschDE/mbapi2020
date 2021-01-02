@@ -11,7 +11,7 @@ IMPORTANT:
 
 * Please login once in the MercedesME IOS or Android app before you install this component.
 
-* Tested Countries: BE, DE, ES, FI, NL, PT, SE, UK
+* Tested Countries: BE, DE, ES, FI, IT, NL, NO, PT, SE, UK
 
 ## Configuration
 
@@ -19,8 +19,10 @@ Use the "Add Integration" in Home Assistant and select "MercedesME 2020".
 
 ## Optional configuration values
 
+See Options dialog in the Integration section.
+
 ```
-None
+Excluded Cars: comma-separated list of VINs.
 
 ```
 
@@ -45,8 +47,7 @@ None
 
 * tirewarninglamp
 
-    ```attributes: tirepressureRearLeft, tirepressureRearRight, tirepressureFrontRight, tirepressureFrontLeft, tireMarkerFrontRight, tireMarkerFrontLeft,
-    tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw```
+    ```attributes: tirepressureRearLeft, tirepressureRearRight, tirepressureFrontRight, tirepressureFrontLeft, tireMarkerFrontRight, tireMarkerFrontLeft,tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw```
 
 * windowsClosed
   
@@ -55,15 +56,13 @@ None
 
 ## Device Tracker
   
-    `attributes: positionHeading`
+    ```attributes: positionHeading```
 
 ## Sensors
 
 * lock
 
-  `attributes: decklidstatus, doorStatusOverall, doorLockStatusOverall, doorlockstatusgas, doorlockstatusvehicle, doorlockstatusfrontleft,
-               doorlockstatusfrontright, doorlockstatusrearright, doorlockstatusrearleft, doorlockstatusdecklid, doorstatusrearleft, 
-               doorstatusfrontright, doorstatusrearright, doorstatusfrontleft, rooftopstatus, sunroofstatus`
+  ```attributes: decklidstatus, doorStatusOverall, doorLockStatusOverall, doorlockstatusgas, doorlockstatusvehicle, doorlockstatusfrontleft,doorlockstatusfrontright, doorlockstatusrearright, doorlockstatusrearleft, doorlockstatusdecklid, doorstatusrearleft, doorstatusfrontright, doorstatusrearright, doorstatusfrontleft, rooftopstatus, sunroofstatus```
 
 Internal value: doorlockstatusvehicle
 
@@ -80,7 +79,7 @@ Values:
 
 * odometer
   
-  `attributes: distanceReset, distanceStart, averageSpeedReset, averageSpeedStart, distanceZEReset, drivenTimeZEReset, drivenTimeReset, drivenTimeStart, ecoscoretotal, ecoscorefreewhl, ecoscorebonusrange, ecoscoreconst, ecoscoreaccel, gasconsumptionstart, gasconsumptionreset, gasTankRange, gasTankLevel, liquidconsumptionstart, liquidconsumptionreset, liquidRangeSkipIndication, rangeliquid, serviceintervaldays, tanklevelpercent, tankReserveLamp, batteryState, tankLevelAdBlue`
+  ```attributes: distanceReset, distanceStart, averageSpeedReset, averageSpeedStart, distanceZEReset, drivenTimeZEReset, drivenTimeReset, drivenTimeStart, ecoscoretotal, ecoscorefreewhl, ecoscorebonusrange, ecoscoreconst, ecoscoreaccel, gasconsumptionstart, gasconsumptionreset, gasTankRange, gasTankLevel, liquidconsumptionstart, liquidconsumptionreset, liquidRangeSkipIndication, rangeliquid, serviceintervaldays, tanklevelpercent, tankReserveLamp, batteryState, tankLevelAdBlue```
 
 * Range Electric
 
@@ -103,7 +102,8 @@ logger:
 
 # Notes
 
-* Tested Countries: BE, DE, ES, FI, NL, PT, SE, UK
+* Tested Countries: BE, DE, ES, FI, IT, NL, NO, PT, SE, UK
+
 # Open Items
 * Web-Socket reconnect
 * General Error Handling
