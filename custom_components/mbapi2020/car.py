@@ -58,15 +58,9 @@ WINDOW_OPTIONS = [
     "flipWindowStatus"]
 
 DOOR_OPTIONS = [
-    'doorstatusrearleft',
-    'doorstatusfrontright',
-    'doorstatusrearright',
-    'doorstatusfrontleft',
-    'rooftopstatus',
-    'sunroofstatus',
     'decklidstatus',
     'doorStatusOverall',
-    'doorLockStatusOverall'
+    'doorLockStatusOverall',
     'doorlockstatusgas',
     'doorlockstatusvehicle',
     'doorlockstatusfrontleft',
@@ -74,6 +68,12 @@ DOOR_OPTIONS = [
     'doorlockstatusrearright',
     'doorlockstatusrearleft',
     'doorlockstatusdecklid',
+    'doorstatusrearleft',
+    'doorstatusfrontright',
+    'doorstatusrearright',
+    'doorstatusfrontleft',
+    'rooftopstatus',
+    'sunroofstatus',
 ]
 
 ELECTRIC_OPTIONS = [
