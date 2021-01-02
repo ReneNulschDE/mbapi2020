@@ -14,6 +14,7 @@ from .const import (
     WEBSOCKET_API_BASE
 )
 from .errors import WebsocketError
+from .oauth import Oauth
 
 DEFAULT_WATCHDOG_TIMEOUT = 900
 
@@ -62,8 +63,8 @@ class Websocket:
 
     def __init__(self, oauth) -> None:
         """Initialize."""
-        self.oauth = oauth
-        self.session: ClientSession() = None
+        self.oauth: Oauth = oauth
+        self.session: ClientSession = None
         self.listening = False
 
     async def connect(self, on_data, on_connect, on_disconnect) -> None:

@@ -31,7 +31,8 @@
                 "data": {
                     "country_code": "Country Code",
                     "locale": "Locale",
-                    "excluded_cars": "VINs excluded (comma-sep)"
+                    "excluded_cars": "VINs excluded (comma-sep)",
+                    "pin": "Security PIN (to be created in mobile app)"
                 },
                 "description": "Configure your options. Some changes require a restart of Home Assistant.",
                 "title": "Mercedes ME 2020 Options"

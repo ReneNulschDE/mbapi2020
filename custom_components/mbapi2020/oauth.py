@@ -30,7 +30,7 @@ PROXIES = {}
 #  'https': SYSTEM_PROXY,
 #}
 
-class oauth: # pylint: disable-too-few-public-methods
+class Oauth: # pylint: disable-too-few-public-methods
     """ define the client. """
     def __init__(
         self,

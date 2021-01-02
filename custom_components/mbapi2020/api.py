@@ -3,8 +3,7 @@ import asyncio
 import logging
 import uuid
 
-from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientError
@@ -13,7 +12,7 @@ from .const import (
     REST_API_BASE
 )
 from .errors import RequestError
-from .oauth import oauth
+from .oauth import Oauth
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,12 +25,12 @@ class API:
 
     def __init__(
         self,
-        oauth: oauth,
+        oauth: Oauth,
         session: Optional[ClientSession] = None,
     ) -> None:
         """Initialize."""
         self._session: ClientSession = session
-        self._oauth: oauth = oauth
+        self._oauth: Oauth = oauth
 
     async def _request(self, method: str, endpoint: str, **kwargs) -> list:
         """Make a request against the API."""

@@ -13,6 +13,11 @@ MERCEDESME_COMPONENTS = [
 ]
 
 
+CONF_LOCALE = "locale"
+CONF_COUNTRY_CODE = "country_code"
+CONF_EXCLUDED_CARS = "excluded_cars"
+CONF_PIN = "pin"
+
 DATA_CLIENT = "data_client"
 
 DOMAIN = "mbapi2020"
@@ -20,6 +25,9 @@ LOGGER = logging.getLogger(__package__)
 
 DEFAULT_CACHE_PATH = "custom_components/mbapi2020/messages"
 DEFAULT_TOKEN_PATH = ".mercedesme-token-cache"
+DEFAULT_LOCALE = "en-GB"
+DEFAULT_COUNTRY_CODE = "EN"
+
 
 
 VERIFY_SSL = True

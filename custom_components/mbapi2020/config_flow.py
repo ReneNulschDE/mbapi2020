@@ -10,13 +10,18 @@ from homeassistant.helpers import aiohttp_client
 import homeassistant.helpers.config_validation as cv
 
 from .const import (  # pylint:disable=unused-import
+    CONF_COUNTRY_CODE,
+    CONF_EXCLUDED_CARS,
+    CONF_LOCALE,
+    CONF_PIN,
     DOMAIN,
     DEFAULT_CACHE_PATH,
+    DEFAULT_LOCALE,
+    DEFAULT_COUNTRY_CODE,
+    VERIFY_SSL
 )
 from .client import Client
 from .errors import MbapiError
-
-verify_ssl = False
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,9 +54,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            session = aiohttp_client.async_get_clientsession(self.hass, verify_ssl)
+            session = aiohttp_client.async_get_clientsession(self.hass, VERIFY_SSL)
 
-            client = Client(session=session, hass=self.hass)
+            config_entry = {}
+            config_entry.setdefault("options", {})
+
+            client = Client(session=session, hass=self.hass, config_entry=config_entry)
             try:
                 result = await client.oauth.request_pin(user_input[CONF_USERNAME])
             except MbapiError as error:
@@ -76,9 +84,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             pin = user_input[CONF_PASSWORD]
 
-            session = aiohttp_client.async_get_clientsession(self.hass)
+            session = aiohttp_client.async_get_clientsession(self.hass, VERIFY_SSL)
 
-            client = Client(session=session, hass=self.hass)
+            config_entry = {}
+            config_entry.setdefault("options", {})
+
+            client = Client(session=session, hass=self.hass, config_entry=config_entry)
             try:
                 result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin)
                 _LOGGER.debug(result)
@@ -93,13 +104,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(step_id="pin", data_schema=SCHEMA_STEP_PIN, errors=errors)
 
-
-# TODO: Options for Locales, excluded Cars, Car renaming
-    # @staticmethod
-    # @callback
-    # def async_get_options_flow(config_entry):
-    #     """Get options flow."""
-    #     return OptionsFlowHandler(config_entry)
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get options flow."""
+        return OptionsFlowHandler(config_entry)
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
@@ -112,16 +121,25 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
-        errors = {}
+        
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        options = self.config_entry.options
+        country_code = options.get(CONF_COUNTRY_CODE, DEFAULT_COUNTRY_CODE)
+        locale = options.get(CONF_LOCALE, DEFAULT_LOCALE)
+        excluded_cars = options.get(CONF_EXCLUDED_CARS, "")
+        pin = options.get(CONF_PIN,"")
 
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    vol.Optional("country_code", default="EN"): str,
-                    vol.Optional("locale", default="de-DE"): str,
-                    vol.Optional("excluded_cars", default=""): str
+                    vol.Optional(CONF_COUNTRY_CODE, default=country_code): str,
+                    vol.Optional(CONF_LOCALE, default=locale): str,
+                    vol.Optional(CONF_EXCLUDED_CARS, default=excluded_cars): str,
+                    vol.Optional(CONF_PIN, default=pin): str
                 }
-            ),
-            errors=errors,
+            )
         )

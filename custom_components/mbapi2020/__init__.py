@@ -40,8 +40,6 @@ from .errors import WebsocketError
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 
-PLATFORMS = ["sensor"]
-
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the MercedesME 2020 component."""
 
@@ -62,6 +60,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         mercedes.client._write_debug_json_output(masterdata, "md")
         for car in masterdata:
 
+            # Car is excluded, we do not add this
+            if car.get('fin') in config_entry.options.get('excluded_cars', ""):
+                continue
+
             dev_reg = await hass.helpers.device_registry.async_get_registry()
             dev_reg.async_get_or_create(
                 config_entry_id=config_entry.entry_id,
@@ -73,6 +75,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 sw_version=car.get('starArchitecture'),
 
             )
+
 
             c = Car()
             c.finorvin = car.get('fin')
@@ -104,7 +107,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
         await asyncio.gather(
             *[
                 hass.config_entries.async_forward_entry_unload(entry, component)
-                for component in PLATFORMS
+                for component in MERCEDESME_COMPONENTS
             ]
         )
     )
@@ -121,7 +124,7 @@ class MercedesMeContext:
         self._config_entry = config_entry
         self._entry_setup_complete = False
         self._hass = hass
-        self.client = Client(hass=hass, session=aiohttp_client.async_get_clientsession(hass))
+        self.client = Client(hass=hass, session=aiohttp_client.async_get_clientsession(hass), config_entry=config_entry)
 
     def on_dataload_complete(self):
         LOGGER.info("Car Load complete - start sensor creation")

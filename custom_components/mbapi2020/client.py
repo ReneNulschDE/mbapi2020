@@ -10,6 +10,7 @@ from typing import Optional
 
 from google.protobuf.json_format import MessageToJson
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import (
     callback,
     HomeAssistant
@@ -20,10 +21,15 @@ from .car import *
 
 from .api import API
 from .errors import WebsocketError
-from .oauth import oauth
+from .oauth import Oauth
 from .websocket import Websocket
 
 from .const import (
+    CONF_COUNTRY_CODE,
+    CONF_EXCLUDED_CARS,
+    CONF_LOCALE,
+    DEFAULT_LOCALE,
+    DEFAULT_COUNTRY_CODE,
     DEFAULT_CACHE_PATH,
     DEFAULT_TOKEN_PATH,
     DEFAULT_SOCKET_MIN_RETRY,
@@ -34,7 +40,7 @@ import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb
 
 LOGGER = logging.getLogger(__name__)
 
-WRITE_DEBUG_OUTPUT = True
+WRITE_DEBUG_OUTPUT = False
 
 class Client: # pylint: disable-too-few-public-methods
     """ define the client. """
@@ -43,8 +49,7 @@ class Client: # pylint: disable-too-few-public-methods
         *,
         session: Optional[ClientSession] = None,
         hass: Optional[HomeAssistant] = None,
-        locale: Optional[str] = "DE",
-        country_code: Optional[str] = "de-DE",
+        config_entry: Optional[ConfigEntry] = None,
         cache_path: Optional[str] = None
     ) -> None:
         self._ws_reconnect_delay = DEFAULT_SOCKET_MIN_RETRY
@@ -53,10 +58,22 @@ class Client: # pylint: disable-too-few-public-methods
         self._dataload_complete_fired = False
         self.__lock = RLock()
         self._debug_save_path = self._hass.config.path(DEFAULT_CACHE_PATH)
-        self.oauth = oauth(session=session, locale=locale, country_code=country_code, cache_path=self._hass.config.path(DEFAULT_TOKEN_PATH))
+        self._config_entry: ConfigEntry = config_entry
+        self._locale: str = DEFAULT_LOCALE
+        self._country_code: str = DEFAULT_COUNTRY_CODE
+        self._excluded_cars: str = ""
+
+        if self._config_entry:
+            if self._config_entry.options:
+                self._country_code = self._config_entry.options.get(CONF_COUNTRY_CODE, DEFAULT_COUNTRY_CODE)
+                self._locale = self._config_entry.options.get(CONF_LOCALE, DEFAULT_LOCALE)
+                self._excluded_cars = self._config_entry.options.get(CONF_EXCLUDED_CARS, "")
+
+        self.oauth: Oauth = Oauth(session=session, locale=self._locale, country_code=self._country_code, cache_path=self._hass.config.path(DEFAULT_TOKEN_PATH))
         self.api: API = API(session=session, oauth=self.oauth)
         self.websocket: Websocket = Websocket(self.oauth)
         self.cars = []
+
 
         LOGGER.debug(self._debug_save_path)
 
@@ -69,7 +86,6 @@ class Client: # pylint: disable-too-few-public-methods
 
         def on_data(data):
             """Define a handler to fire when the data is received."""
-            #LOGGER.debug(f"Data: {MessageToJson(data, preserving_proto_field_name=True)}")
 
             msg_type = data.WhichOneof('msg')
             
@@ -162,6 +178,9 @@ class Client: # pylint: disable-too-few-public-methods
 
     def _build_car(self, c, update_mode):
 
+        if c.get("vin") in self._excluded_cars:
+            LOGGER.debug(f"CAR {c.get('vin')} is excluded.")
+            return
 
         car = next((item for item in self.cars if c.get("vin") == item.finorvin), None)
 
@@ -258,6 +277,10 @@ class Client: # pylint: disable-too-few-public-methods
         cars = js["vepUpdates"]["updates"]
 
         for vin in cars:
+            
+            if vin in self._excluded_cars:
+                continue
+
             c = cars.get(vin)
             if (c.get("full_update") == True):
                 if not c.get("attributes"):
@@ -273,8 +296,6 @@ class Client: # pylint: disable-too-few-public-methods
                     with self.__lock:
                         self._build_car(c, update_mode=True)
 
-
-
         if not self._dataload_complete_fired:
             for car in self.cars:
                 LOGGER.debug(f"_process_vep_updates - {car.finorvin} - {car._entry_setup_complete}")
@@ -288,6 +309,10 @@ class Client: # pylint: disable-too-few-public-methods
 
             with self.__lock:
                 for vin in data.assigned_vehicles.vins:
+
+                    if vin in self._excluded_cars:
+                        continue
+
                     _car = next((car for car in self.cars
                                     if car.finorvin == vin), None)
                     if _car is None:
