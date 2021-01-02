@@ -54,8 +54,9 @@ class oauth: # pylint: disable-too-few-public-methods
         headers = self._get_header()
         return await self._async_request("post", url, data=data, headers=headers )
 
-    def refresh_access_token(self, refresh_token: str):
-        _LOGGER.info(f"start refresh_access_token with refresh_token")
+
+    async def async_refresh_access_token(self, refresh_token: str):
+        _LOGGER.info(f"start async refresh_access_token with refresh_token")
 
         url = f"{LOGIN_BASE_URI}/auth/realms/Daimler/protocol/openid-connect/token"
         data = (
@@ -68,13 +69,14 @@ class oauth: # pylint: disable-too-few-public-methods
         headers['X-AuthMode'] = "KEYCLOAK"
         headers['device-uuid'] = "c9a90349-aa9b-4202-929f-801568132904" #str(uuid.uuid4())
 
-        token_info = self._post_request(url, data=data, headers=headers)
+        token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
         
         token_info = self._add_custom_values_to_token_info(token_info)
         self._save_token_info(token_info)
         self.token = token_info
 
         return token_info
+
 
     async def request_access_token(self, email: str, pin: str):
 
@@ -98,10 +100,11 @@ class oauth: # pylint: disable-too-few-public-methods
 
         return token_info
 
-    def get_cached_token(self):
+
+    async def async_get_cached_token(self):
         """ Gets a cached auth token
         """
-        _LOGGER.debug("start: get_cached_token")
+        _LOGGER.debug("start: async_get_cached_token")
         token_info = None
         if self.cache_path:
             try:
@@ -112,7 +115,7 @@ class oauth: # pylint: disable-too-few-public-methods
 
                 if self.is_token_expired(token_info):
                     _LOGGER.debug("%s - token expired - start refresh", __name__)
-                    token_info = self.refresh_access_token(token_info["refresh_token"])
+                    token_info = await self.async_refresh_access_token(token_info["refresh_token"])
 
             except IOError:
                 pass
@@ -182,27 +185,5 @@ class oauth: # pylint: disable-too-few-public-methods
         finally:
             if not use_running_session:
                 await session.close()
-
-    def _post_request(self, url: str, data: str = "", **kwargs) -> list:
-        """Make a request against the API."""
-
-        kwargs.setdefault("headers", {})
-        kwargs.setdefault("proxies", PROXIES)
-
-        response = requests.post(
-            url, data=data, headers=kwargs["headers"], proxies=kwargs["proxies"], verify=VERIFY_SSL, 
-        )
-
-        if response.status_code != 200:
-            _LOGGER.warning("headers %s", kwargs["headers"])
-            _LOGGER.warning("request %s", response.url)
-            _LOGGER.warning(
-                "couldn't refresh token: code:%s reason:%s",
-                response.status_code,
-                response.reason,
-            )
-            return None
-
-        return response.json()
 
 

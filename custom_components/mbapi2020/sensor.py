@@ -1,3 +1,4 @@
+import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -13,10 +14,10 @@ from . import MercedesMeEntity
 
 from .const import (
     DOMAIN,
-    LOGGER,
     SENSORS
 )
 
+LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Setup the sensor platform."""

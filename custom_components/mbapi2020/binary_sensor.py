@@ -4,15 +4,19 @@ Support for Mercedes cars with Mercedes ME.
 For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
+
+import logging
+
 from homeassistant.components.binary_sensor import BinarySensorEntity
 
 from . import MercedesMeEntity
 
 from .const import (
     DOMAIN,
-    LOGGER,
     BINARY_SENSORS
 )
+
+LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):

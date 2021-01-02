@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import time
 
 from aiohttp import ClientSession
@@ -26,11 +27,12 @@ from .const import (
     DEFAULT_CACHE_PATH,
     DEFAULT_TOKEN_PATH,
     DEFAULT_SOCKET_MIN_RETRY,
-    LOGGER
 )
 
 import custom_components.mbapi2020.proto.client_pb2 as client_pb2
 import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb2
+
+LOGGER = logging.getLogger(__name__)
 
 WRITE_DEBUG_OUTPUT = True
 
@@ -147,7 +149,7 @@ class Client: # pylint: disable-too-few-public-methods
 
         async def connect(timestamp=None):
             """Connect."""
-            self.oauth.get_cached_token()
+            await self.oauth.async_get_cached_token()
             await self.websocket.connect(on_data, on_connect, on_disconnect)
 
         try:
@@ -160,14 +162,8 @@ class Client: # pylint: disable-too-few-public-methods
 
     def _build_car(self, c, update_mode):
 
-        # TODO: Implement Excluded Cars Logic
-        #if vin.get("fin") is None or c.get("fin") in self.excluded_cars:
-        #    continue
 
         car = next((item for item in self.cars if c.get("vin") == item.finorvin), None)
-
-        #car.vehicle_title = c.get("vehicleTitle", None)
-        #car.features = self._get_car_features(car.finorvin)
 
         car.odometer = self._get_car_values(
             c, car.finorvin, Odometer() if not update_mode else car.odometer, ODOMETER_OPTIONS, update_mode)
@@ -177,9 +173,6 @@ class Client: # pylint: disable-too-few-public-methods
 
         car.doors = self._get_car_values(
             c, car.finorvin, Doors() if not update_mode else car.doors, DOOR_OPTIONS, update_mode)
-
-        #if car.features.vehicle_locator:
-        #    car.location = self._get_location(car.finorvin)
 
         car.location = self._get_car_values(
             c, car.finorvin,

@@ -1,5 +1,6 @@
 """Define an object to interact with the REST API."""
 import asyncio
+import logging
 import uuid
 
 from datetime import datetime
@@ -9,11 +10,12 @@ from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientError
 
 from .const import (
-    LOGGER,
     REST_API_BASE
 )
 from .errors import RequestError
 from .oauth import oauth
+
+LOGGER = logging.getLogger(__name__)
 
 DEFAULT_LIMIT: int = 288
 DEFAULT_TIMEOUT: int = 10
@@ -38,7 +40,7 @@ class API:
 
         kwargs.setdefault("headers", {})
 
-        token = self._oauth.get_cached_token()
+        token = await self._oauth.async_get_cached_token()
 
         kwargs["headers"] = {
             "Authorization": token["access_token"],

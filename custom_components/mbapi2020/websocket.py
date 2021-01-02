@@ -1,6 +1,7 @@
 """Define an object to interact with the Websocket API."""
 import aiohttp
 import asyncio
+import logging
 import uuid
 
 from typing import Awaitable, Callable, Optional
@@ -10,12 +11,13 @@ from aiohttp.client_exceptions import ClientConnectionError, ClientOSError
 import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb2
 
 from .const import (
-    LOGGER,
     WEBSOCKET_API_BASE
 )
 from .errors import WebsocketError
 
 DEFAULT_WATCHDOG_TIMEOUT = 900
+
+LOGGER = logging.getLogger(__name__)
 
 class WebsocketWatchdog:
     """Define a watchdog to kick the websocket connection at intervals."""
@@ -62,11 +64,12 @@ class Websocket:
         """Initialize."""
         self.oauth = oauth
         self.session: ClientSession() = None
+        self.listening = False
 
     async def connect(self, on_data, on_connect, on_disconnect) -> None:
         """Connect to the socket."""
 
-        token = self.oauth.get_cached_token()
+        token = await self.oauth.async_get_cached_token()
         headers = {
             "Authorization": token["access_token"],
             "X-SessionId": str(uuid.uuid4()),

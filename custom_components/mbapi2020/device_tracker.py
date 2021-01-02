@@ -1,4 +1,4 @@
-
+import logging
 from typing import Optional
 
 from homeassistant.components.device_tracker import SOURCE_TYPE_GPS
@@ -11,8 +11,9 @@ from . import MercedesMeEntity
 from .const import (
     DEVICE_TRACKER,
     DOMAIN,
-    LOGGER
 )
+
+LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
