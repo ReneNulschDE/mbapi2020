@@ -11,6 +11,8 @@ from aiohttp.client_exceptions import ClientConnectionError, ClientOSError
 import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb2
 
 from .const import (
+    RIS_application_version,
+    RIS_sdk_version,
     WEBSOCKET_API_BASE
 )
 from .errors import WebsocketError
@@ -76,10 +78,10 @@ class Websocket:
             "X-SessionId": str(uuid.uuid4()),
             "X-TrackingId": str(uuid.uuid4()),
             "X-ApplicationName": "mycar-store-ece",
-            "ris-application-version": "1.3.1",
+            "ris-application-version": RIS_application_version,
             "ris-os-name": "android",
             "ris-os-version": "6.0",
-            "ris-sdk-version": "2.10.3",
+            "ris-sdk-version": RIS_sdk_version,
             "X-Locale": "en-US",
             "User-Agent": "okhttp/3.12.2"
         }

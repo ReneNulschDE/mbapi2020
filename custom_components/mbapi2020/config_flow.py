@@ -56,10 +56,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             session = aiohttp_client.async_get_clientsession(self.hass, VERIFY_SSL)
 
-            config_entry = {}
-            config_entry.setdefault("options", {})
-
-            client = Client(session=session, hass=self.hass, config_entry=config_entry)
+            client = Client(session=session, hass=self.hass)
             try:
                 result = await client.oauth.request_pin(user_input[CONF_USERNAME])
             except MbapiError as error:
@@ -86,10 +83,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             session = aiohttp_client.async_get_clientsession(self.hass, VERIFY_SSL)
 
-            config_entry = {}
-            config_entry.setdefault("options", {})
-
-            client = Client(session=session, hass=self.hass, config_entry=config_entry)
+            client = Client(session=session, hass=self.hass)
             try:
                 result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin)
                 _LOGGER.debug(result)

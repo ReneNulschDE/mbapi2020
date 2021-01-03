@@ -40,7 +40,7 @@ import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb
 
 LOGGER = logging.getLogger(__name__)
 
-WRITE_DEBUG_OUTPUT = False
+WRITE_DEBUG_OUTPUT = True
 
 class Client: # pylint: disable-too-few-public-methods
     """ define the client. """
@@ -49,7 +49,7 @@ class Client: # pylint: disable-too-few-public-methods
         *,
         session: Optional[ClientSession] = None,
         hass: Optional[HomeAssistant] = None,
-        config_entry: Optional[ConfigEntry] = None,
+        config_entry = None,
         cache_path: Optional[str] = None
     ) -> None:
         self._ws_reconnect_delay = DEFAULT_SOCKET_MIN_RETRY
@@ -58,7 +58,7 @@ class Client: # pylint: disable-too-few-public-methods
         self._dataload_complete_fired = False
         self.__lock = RLock()
         self._debug_save_path = self._hass.config.path(DEFAULT_CACHE_PATH)
-        self._config_entry: ConfigEntry = config_entry
+        self._config_entry = config_entry
         self._locale: str = DEFAULT_LOCALE
         self._country_code: str = DEFAULT_COUNTRY_CODE
         self._excluded_cars: str = ""
@@ -147,7 +147,7 @@ class Client: # pylint: disable-too-few-public-methods
                 return
 
             if (msg_type == "apptwin_pending_command_request"):
-                #LOGGER.debug(f"apptwin_pending_command_request - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
+                LOGGER.debug(f"apptwin_pending_command_request - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
                 return
 
             if (msg_type == "assigned_vehicles"):

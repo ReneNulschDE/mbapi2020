@@ -14,6 +14,8 @@ import requests
 
 from .errors import RequestError
 from .const import (
+    RIS_application_version,
+    RIS_sdk_version,
     VERIFY_SSL
 )
 
@@ -67,7 +69,7 @@ class Oauth: # pylint: disable-too-few-public-methods
         headers['Content-Type'] = "application/x-www-form-urlencoded"
         headers['Stage'] = "prod"
         headers['X-AuthMode'] = "KEYCLOAK"
-        headers['device-uuid'] = "c9a90349-aa9b-4202-929f-801568132904" #str(uuid.uuid4())
+        headers['device-uuid'] = str(uuid.uuid4())
 
         token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
         
@@ -90,7 +92,7 @@ class Oauth: # pylint: disable-too-few-public-methods
         headers['Content-Type'] = "application/x-www-form-urlencoded"
         headers['Stage'] = "prod"
         headers['X-AuthMode'] = "KEYCLOAK"
-        headers['device-uuid'] = "c9a90349-aa9b-4202-929f-801568132904" #str(uuid.uuid4())
+        headers['device-uuid'] = str(uuid.uuid4())
 
         token_info = await self._async_request("post", url, data=data, headers=headers)
 
@@ -151,10 +153,10 @@ class Oauth: # pylint: disable-too-few-public-methods
             "X-SessionId": str(uuid.uuid4()),                       # "bc667b25-1964-4ff8-98f0-aef3a7f35208",
             "X-TrackingId": str(uuid.uuid4()),                      # "abbc223e-bdb8-4808-b299-8ff800b58816",
             "X-ApplicationName": "mycar-store-ece",
-            "ris-application-version": "1.6.0 (869)",
-            "ris-os-name": "ios",
-            "ris-os-version": "14.2",
-            "ris-sdk-version": "2.24.0",
+            "ris-application-version": RIS_application_version,
+            "ris-os-name": "android",
+            "ris-os-version": "6.0",
+            "ris-sdk-version": RIS_sdk_version,
             "X-Locale": self._locale,
             "User-Agent": "okhttp/3.14.9",
             "Content-Type": "application/json; charset=UTF-8"
