@@ -40,7 +40,7 @@ import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb
 
 LOGGER = logging.getLogger(__name__)
 
-WRITE_DEBUG_OUTPUT = True
+WRITE_DEBUG_OUTPUT = False
 
 class Client: # pylint: disable-too-few-public-methods
     """ define the client. """
