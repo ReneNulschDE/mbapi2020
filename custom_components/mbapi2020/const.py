@@ -168,6 +168,7 @@ SENSORS = {
                         "value", None,
                         {
                             'rangeelectric',
+                            'chargingactive',
                             'chargingstatus',
                             'distanceElectricalReset',
                             'distanceElectricalStart',
@@ -202,10 +203,11 @@ SENSORS = {
     "odometer": ["Odometer", LENGTH_KILOMETERS, "odometer", "odo",
                  "value", None,
                  {
-                     "distanceReset",
-                     "distanceStart",
                      "averageSpeedReset",
                      "averageSpeedStart",
+                     "batteryState",
+                     "distanceReset",
+                     "distanceStart",
                      "distanceZEReset",
                      "drivenTimeZEReset",
                      "drivenTimeReset",
@@ -226,7 +228,6 @@ SENSORS = {
                      "serviceintervaldays",
                      "tanklevelpercent",
                      "tankReserveLamp",
-                     "batteryState",
                      "tankLevelAdBlue"}],
 
     "car_alarm": ["Car Alarm", None, "car_alarm", "carAlarm",
