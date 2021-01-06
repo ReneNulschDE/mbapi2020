@@ -1,22 +1,19 @@
 """Define an object to interact with the REST API."""
-import asyncio
 import json
 import logging
 import time
 import uuid
-from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Optional
+
+import asyncio
 
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientError
 
-import requests
-
 from .errors import RequestError
 from .const import (
-    RIS_application_version,
-    RIS_sdk_version,
-    VERIFY_SSL
+    RIS_APPLICATION_VERSION,
+    RIS_SDK_VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,7 +47,7 @@ class Oauth: # pylint: disable-too-few-public-methods
 
 
     async def request_pin(self, email: str):
-        _LOGGER.info(f"start request pin {email}")
+        _LOGGER.info("start request pin %s", email)
         url = f"{API_BASE_URI}/v1/login"
         data = f'{{"countryCode":"{self._country_code}","emailOrPhoneNumber":"{email}","locale":"{self._locale}"}}'
         headers = self._get_header()
@@ -58,7 +55,7 @@ class Oauth: # pylint: disable-too-few-public-methods
 
 
     async def async_refresh_access_token(self, refresh_token: str):
-        _LOGGER.info(f"start async refresh_access_token with refresh_token")
+        _LOGGER.info("start async refresh_access_token with refresh_token")
 
         url = f"{LOGIN_BASE_URI}/auth/realms/Daimler/protocol/openid-connect/token"
         data = (
@@ -72,7 +69,7 @@ class Oauth: # pylint: disable-too-few-public-methods
         headers['device-uuid'] = str(uuid.uuid4())
 
         token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
-        
+
         token_info = self._add_custom_values_to_token_info(token_info)
         self._save_token_info(token_info)
         self.token = token_info
@@ -150,13 +147,13 @@ class Oauth: # pylint: disable-too-few-public-methods
     def _get_header(self) -> list:
 
         return  {
-            "X-SessionId": str(uuid.uuid4()),                       # "bc667b25-1964-4ff8-98f0-aef3a7f35208",
-            "X-TrackingId": str(uuid.uuid4()),                      # "abbc223e-bdb8-4808-b299-8ff800b58816",
+            "X-SessionId": str(uuid.uuid4()),      # "bc667b25-1964-4ff8-98f0-aef3a7f35208",
+            "X-TrackingId": str(uuid.uuid4()),     # "abbc223e-bdb8-4808-b299-8ff800b58816",
             "X-ApplicationName": "mycar-store-ece",
-            "ris-application-version": RIS_application_version,
+            "ris-application-version": RIS_APPLICATION_VERSION,
             "ris-os-name": "android",
             "ris-os-version": "6.0",
-            "ris-sdk-version": RIS_sdk_version,
+            "ris-sdk-version": RIS_SDK_VERSION,
             "X-Locale": self._locale,
             "User-Agent": "okhttp/3.14.9",
             "Content-Type": "application/json; charset=UTF-8"

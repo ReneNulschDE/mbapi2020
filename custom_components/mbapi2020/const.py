@@ -28,8 +28,8 @@ DEFAULT_TOKEN_PATH = ".mercedesme-token-cache"
 DEFAULT_LOCALE = "en-GB"
 DEFAULT_COUNTRY_CODE = "EN"
 
-RIS_application_version = "1.6.3"
-RIS_sdk_version = "2.30.0"
+RIS_APPLICATION_VERSION = "1.6.3"
+RIS_SDK_VERSION = "2.30.0"
 
 VERIFY_SSL = True
 

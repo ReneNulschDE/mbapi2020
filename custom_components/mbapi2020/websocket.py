@@ -1,21 +1,21 @@
 """Define an object to interact with the Websocket API."""
-import aiohttp
-import asyncio
 import logging
 import uuid
 
 from typing import Awaitable, Callable, Optional
+
+import asyncio
+import aiohttp
 
 from aiohttp.client_exceptions import ClientConnectionError, ClientOSError
 
 import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb2
 
 from .const import (
-    RIS_application_version,
-    RIS_sdk_version,
+    RIS_APPLICATION_VERSION,
+    RIS_SDK_VERSION,
     WEBSOCKET_API_BASE
 )
-from .errors import WebsocketError
 from .oauth import Oauth
 
 DEFAULT_WATCHDOG_TIMEOUT = 900
@@ -45,12 +45,12 @@ class WebsocketWatchdog:
 
     async def on_expire(self):
         """Log and act when the watchdog expires."""
-        _LOGGER.info("Watchdog expired – calling %s", self._action.__name__)
+        LOGGER.info("Watchdog expired – calling %s", self._action.__name__)
         await self._action()
 
     async def trigger(self):
         """Trigger the watchdog."""
-        _LOGGER.info("Watchdog triggered – sleeping for %s seconds", self._timeout)
+        LOGGER.info("Watchdog triggered – sleeping for %s seconds", self._timeout)
 
         if self._timer_task:
             self._timer_task.cancel()
@@ -66,7 +66,6 @@ class Websocket:
     def __init__(self, oauth) -> None:
         """Initialize."""
         self.oauth: Oauth = oauth
-        self.session: ClientSession = None
         self.listening = False
 
     async def connect(self, on_data, on_connect, on_disconnect) -> None:
@@ -78,10 +77,10 @@ class Websocket:
             "X-SessionId": str(uuid.uuid4()),
             "X-TrackingId": str(uuid.uuid4()),
             "X-ApplicationName": "mycar-store-ece",
-            "ris-application-version": RIS_application_version,
+            "ris-application-version": RIS_APPLICATION_VERSION,
             "ris-os-name": "android",
             "ris-os-version": "6.0",
-            "ris-sdk-version": RIS_sdk_version,
+            "ris-sdk-version": RIS_SDK_VERSION,
             "X-Locale": "en-US",
             "User-Agent": "okhttp/3.12.2"
         }
@@ -111,9 +110,3 @@ class Websocket:
     async def disconnect(self) -> None:
         """Disconnect from the socket."""
         self.listening = False
-
-    async def reconnect(self) -> None:
-        """Reconnect the websocket connection."""
-        await self.disconnect()
-        await asyncio.sleep(1)
-        await self.connect()
