@@ -254,7 +254,9 @@ class Client: # pylint: disable-too-few-public-methods
                     curr_status = CarAttribute(
                         value,
                         status,
-                        ts
+                        ts,
+                        distance_unit= curr.get("distance_unit", None),
+                        display_value= curr.get("display_value", None)
                     )
                     setattr(classInstance, option, curr_status)
                 else:

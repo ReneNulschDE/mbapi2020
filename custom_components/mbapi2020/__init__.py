@@ -3,6 +3,8 @@ import asyncio
 
 import voluptuous as vol
 
+from datetime import datetime
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     EVENT_HOMEASSISTANT_STOP,
@@ -130,13 +132,13 @@ class MercedesMeContext:
 
     def __init__(self, hass, config_entry):
         self._config_entry = config_entry
-        self._entry_setup_complete = False
+        self._entry_setup_complete: bool = False
         self._hass = hass
         self.client = Client(hass=hass, session=aiohttp_client.async_get_clientsession(hass), config_entry=config_entry)
 
     def on_dataload_complete(self):
         LOGGER.info("Car Load complete - start sensor creation")
-        
+
         if not self._entry_setup_complete:
             for component in MERCEDESME_COMPONENTS:
                 self._hass.async_create_task(
@@ -144,7 +146,6 @@ class MercedesMeContext:
                         self._config_entry, component
                     )
                 )
-
 
         self._entry_setup_complete = True
 
@@ -242,7 +243,6 @@ class MercedesMeEntity(Entity):
                 self._state = new_state
                 LOGGER.debug("Updated %s %s", self._internal_name, self._state)
 
-
     def _get_car_value(self, feature, object_name, attrib_name, default_value):
         value = None
 
@@ -276,13 +276,18 @@ class MercedesMeEntity(Entity):
         state = {
             "car": self._licenseplate,
             "vin": self._vin,
-            "retrievalstatus": self._get_car_value(
-                self._feature_name,
-                self._object_name,
-                "retrievalstatus",
-                "error"
-            ),
         }
+
+        for item in["display_value", "distance_unit", "retrievalstatus", "timestamp"]:
+            value = self._get_car_value(
+                    self._feature_name,
+                    self._object_name,
+                    item,
+                    None
+                )
+            if value:
+                state[item] = value if item != "timestamp" else datetime.fromtimestamp(int(value))
+
         if self._extended_attributes is not None:
             for attrib in self._extended_attributes:
 

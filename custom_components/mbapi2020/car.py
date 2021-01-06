@@ -78,6 +78,7 @@ DOOR_OPTIONS = [
 
 ELECTRIC_OPTIONS = [
     'rangeelectric',
+    'chargingactive',
     'chargingstatus',
     'distanceElectricalReset',
     'distanceElectricalStart',
@@ -171,24 +172,6 @@ class Car(object):
         self._entry_setup_complete = False
 
 
-class StateOfObject(object):
-    def __init__(self, unit=None, value=None, retrievalstatus=None,
-                 timestamp=None):
-        self.unit = None
-        self.value = None
-        self.timestamp = None
-        if unit is not None:
-            self.retrievalstatus = None
-            self.unit = unit
-
-        if value is not None:
-            self.value = value
-        if retrievalstatus is not None:
-            self.retrievalstatus = retrievalstatus
-        if timestamp is not None:
-            self.timestamp = timestamp
-
-
 class Tires(object):
     def __init__(self):
         self.name = "Tires"
@@ -259,7 +242,9 @@ class Location(object):
 
 
 class CarAttribute(object):
-    def __init__(self, value, retrievalstatus, timestamp):
+    def __init__(self, value, retrievalstatus, timestamp, distance_unit=None, display_value=None):
         self.value = value
         self.retrievalstatus = retrievalstatus
         self.timestamp = timestamp
+        self.distance_unit = distance_unit
+        self.display_value = display_value
