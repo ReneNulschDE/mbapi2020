@@ -30,9 +30,10 @@ from .const import (
     DOMAIN,
     DATA_CLIENT,
     DEFAULT_CACHE_PATH,
+    LOGGER,
     MERCEDESME_COMPONENTS,
-    VERIFY_SSL,
-    LOGGER
+    SERVICE_REFRESH_TOKEN_URL,
+    VERIFY_SSL
 )
 from .car import Car
 from .client import Client
@@ -86,6 +87,13 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         hass.loop.create_task(mercedes.ws_connect())
         hass.data.setdefault(DOMAIN, {})
         hass.data[DOMAIN] = mercedes
+
+        async def refresh_access_token(call) -> None:
+            await mercedes.client.oauth.async_get_cached_token()
+
+        hass.services.async_register(
+            DOMAIN, SERVICE_REFRESH_TOKEN_URL, refresh_access_token
+        )
 
 
 

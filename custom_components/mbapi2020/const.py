@@ -38,6 +38,8 @@ WEBSOCKET_API_BASE = "wss://websocket-prod.risingstars.daimler.com/ws"
 DEFAULT_SOCKET_MIN_RETRY = 15
 
 
+SERVICE_REFRESH_TOKEN_URL = "refresh_access_token"
+
 ATTR_MB_MANUFACTURER = "Mercedes Benz"
 
 BINARY_SENSORS = {
