@@ -225,10 +225,12 @@ SENSORS = {
                      "liquidconsumptionreset",
                      "liquidRangeSkipIndication",
                      "rangeliquid",
+                     "outsideTemperature",
                      "serviceintervaldays",
                      "tanklevelpercent",
                      "tankReserveLamp",
-                     "tankLevelAdBlue"}],
+                     "tankLevelAdBlue",
+                     "vehicleDataConnectionState"}],
 
     "car_alarm": ["Car Alarm", None, "car_alarm", "carAlarm",
                   "value", 'car_alarm',

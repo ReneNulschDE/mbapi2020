@@ -22,12 +22,14 @@ ODOMETER_OPTIONS = [
     "liquidconsumptionstart",
     "liquidconsumptionreset",
     "liquidRangeSkipIndication",
+    "outsideTemperature",
     "rangeliquid",
     "serviceintervaldays",
     "tanklevelpercent",
     "tankReserveLamp",
     "batteryState",
-    "tankLevelAdBlue"]
+    "tankLevelAdBlue",
+    "vehicleDataConnectionState"]
 
 LOCATION_OPTIONS = [
     "positionLat",
