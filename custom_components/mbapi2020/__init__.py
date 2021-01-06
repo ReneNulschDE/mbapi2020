@@ -275,6 +275,7 @@ class MercedesMeEntity(Entity):
 
         state = {
             "car": self._licenseplate,
+            "vin": self._vin,
             "retrievalstatus": self._get_car_value(
                 self._feature_name,
                 self._object_name,
