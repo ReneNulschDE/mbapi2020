@@ -7,11 +7,13 @@ MercedesME platform as a Custom Component for Home Assistant.
 
 IMPORTANT:
 
-* > :warning: **Home Assistant Core V.0.110 or higher required**
-
 * Please login once in the MercedesME IOS or Android app before you install this component.
 
+* Works in Europe only
+
 * Tested Countries: BE, DE, ES, FI, IT, NL, NO, PT, SE, UK
+
+* For US/CA please use this component: https://github.com/ReneNulschDE/mbapipy
 
 ## Configuration
 
