@@ -1,0 +1,43 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Componente già configurato."
+        },
+        "error": {
+            "cannot_connect": "Impossibile connettersi al server.",
+            "invalid_auth": "Autenticazione non valida.",
+            "unknown": "Errore sconosciuto."
+        },
+        "step": {
+            "user": {
+                "description": "Inserisci il tuo Mercedes ME account (indirizzo email)",
+                "title": "Mercedes ME 2020 - Setup",
+                "data": {
+                    "username": "MB username - indirizzo email"
+                }
+            },
+            "pin": {
+                "description": "Hai ricevuto il codice PIN via email. Per favore inserisci il codice PIN (sei numeri)",
+                "title": "Configurazione connessione - PIN",
+                "data": {
+                    "password": "PIN"
+                }
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "country_code": "Codice Nazione",
+                    "locale": "Codice Lingua",
+                    "excluded_cars": "VIN esclusi (separati da virgola)",
+                    "pin": "Security PIN (creato nell'app mobile)"
+                },
+                "description": "Configura le opzioni. Alcuni cambiamenti richiedono il riavvio di Home Assistant.",
+                "title": "Mercedes ME 2020 - Opzioni"
+            }
+        }
+    },
+    "title": "MercedesME 2020"
+}
