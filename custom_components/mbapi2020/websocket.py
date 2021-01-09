@@ -106,17 +106,9 @@ class Websocket:
 
 
     async def _disconnected(self):
-        if self._heartbeat_task is not None:
-            self._heartbeat_task.cancel()
-            try:
-                await self._heartbeat_task
-            except asyncio.CancelledError:
-                pass
-
         self.set_connection_state(STATE_DISCONNECTED)
-        self._heartbeat_task = None
         if not self._is_stopping:
-            asyncio.ensure_future(self.async_connect())
+            asyncio.ensure_future(self.async_connect(self._on_data_received))
 
 
     async def _recv(self):
