@@ -102,10 +102,6 @@ class Client: # pylint: disable-too-few-public-methods
                 if data.debugMessage:
                     LOGGER.debug(f"debugMessage - Data: {data.debugMessage.message}")
 
-                    if data.debugMessage.message == "app twin actor has stopped":
-                        LOGGER.info("Websocket connection closed by server try to reconnect.")
-                        async_call_later(self._hass, self._ws_reconnect_delay, connect)
-
                 return
 
             if (msg_type == "service_status_update"):
