@@ -28,6 +28,7 @@ DEFAULT_TOKEN_PATH = ".mercedesme-token-cache"
 DEFAULT_LOCALE = "en-GB"
 DEFAULT_COUNTRY_CODE = "EN"
 
+
 RIS_APPLICATION_VERSION = "1.6.3"
 RIS_SDK_VERSION = "2.30.0"
 
@@ -35,6 +36,7 @@ VERIFY_SSL = True
 
 REST_API_BASE = "https://bff-prod.risingstars.daimler.com"
 WEBSOCKET_API_BASE = "wss://websocket-prod.risingstars.daimler.com/ws"
+WEBSOCKET_USER_AGENT = "okhttp/3.12.2"
 DEFAULT_SOCKET_MIN_RETRY = 15
 
 

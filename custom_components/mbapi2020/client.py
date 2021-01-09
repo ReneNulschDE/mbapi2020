@@ -71,18 +71,12 @@ class Client: # pylint: disable-too-few-public-methods
 
         self.oauth: Oauth = Oauth(session=session, locale=self._locale, country_code=self._country_code, cache_path=self._hass.config.path(DEFAULT_TOKEN_PATH))
         self.api: API = API(session=session, oauth=self.oauth)
-        self.websocket: Websocket = Websocket(self.oauth)
+        self.websocket: Websocket = Websocket(self._hass, self.oauth)
         self.cars = []
 
 
-        LOGGER.debug(self._debug_save_path)
-
     async def _attempt_connect(self, callback_dataload_complete):
         """Attempt to connect to the socket (retrying later on fail)."""
-
-        def on_connect():
-            """Define a handler to fire when the websocket is connected."""
-            LOGGER.debug("Connected to websocket")
 
         def on_data(data):
             """Define a handler to fire when the data is received."""
@@ -159,22 +153,14 @@ class Client: # pylint: disable-too-few-public-methods
 
             LOGGER.debug(f"Message Type not implemented - {msg_type}")
 
-        def on_disconnect():
-            """Define a handler to fire when the websocket is disconnected."""
-            LOGGER.debug("Disconnected from websocket")
-
-        async def connect(timestamp=None):
-            """Connect."""
-            await self.oauth.async_get_cached_token()
-            await self.websocket.connect(on_data, on_connect, on_disconnect)
-
         try:
             self._on_dataload_complete = callback_dataload_complete
-            await connect()
-        except (WebsocketError, TypeError) as err:
+            await self.websocket.async_connect(on_data)
+        except (WebsocketError) as err:
             LOGGER.error("Error with the websocket connection: %s", err)
             self._ws_reconnect_delay = self._ws_reconnect_delay
-            async_call_later(self._hass, self._ws_reconnect_delay, connect)
+            async_call_later(self._hass, self._ws_reconnect_delay, self.websocket.async_connect(on_data))
+
 
     def _build_car(self, c, update_mode):
 
@@ -269,6 +255,7 @@ class Client: # pylint: disable-too-few-public-methods
 
         return classInstance
 
+
     def _process_vep_updates(self, data):
         LOGGER.debug(f"Start _process_vep_updates")
 
@@ -302,6 +289,7 @@ class Client: # pylint: disable-too-few-public-methods
             for car in self.cars:
                 LOGGER.debug(f"_process_vep_updates - {car.finorvin} - {car._entry_setup_complete}")
 
+
     def _process_assigned_vehicles(self, data):
 
         if not self._dataload_complete_fired:
@@ -332,6 +320,7 @@ class Client: # pylint: disable-too-few-public-methods
                 self._on_dataload_complete()
                 self._dataload_complete_fired = True
 
+
     def _write_debug_output(self, data, datatype):
         LOGGER.debug(f"Start _write_debug_output")
 
@@ -344,6 +333,7 @@ class Client: # pylint: disable-too-few-public-methods
             f.close()
 
             self._write_debug_json_output(MessageToJson(data, preserving_proto_field_name=True), datatype)
+
 
     def _write_debug_json_output(self, data, datatype):
 

@@ -103,11 +103,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         LOGGER.error("Config entry failed: %s", err)
         raise ConfigEntryNotReady from err
 
-    async def _async_disconnect_websocket(*_):
-        await mercedes.ws_disconnect()
-
-    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_disconnect_websocket)
-
     return True
 
 
