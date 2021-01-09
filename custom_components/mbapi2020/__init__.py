@@ -29,12 +29,15 @@ from homeassistant.util import slugify
 
 from .const import (
     ATTR_MB_MANUFACTURER,
+    CONF_VIN,
     DOMAIN,
     DATA_CLIENT,
     DEFAULT_CACHE_PATH,
     LOGGER,
     MERCEDESME_COMPONENTS,
     SERVICE_REFRESH_TOKEN_URL,
+    SERVICE_DOORS_UNLOCK_URL,
+    SERVICE_VIN_SCHEMA,
     VERIFY_SSL
 )
 from .car import Car
@@ -79,12 +82,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             )
 
-
             c = Car()
             c.finorvin = car.get('fin')
             c.licenseplate = car.get('licensePlate', car.get('fin'))
             mercedes.client.cars.append(c)
-
 
         hass.loop.create_task(mercedes.ws_connect())
         hass.data.setdefault(DOMAIN, {})
@@ -93,10 +94,20 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         async def refresh_access_token(call) -> None:
             await mercedes.client.oauth.async_get_cached_token()
 
+        async def doors_unlock(call) -> None:
+            await mercedes.client.oauth.async_get_cached_token()
+            await mercedes.client.doors_unlock(call.data.get(CONF_VIN))
+
+        async def doors_lock(call) -> None:
+            await mercedes.client.oauth.async_get_cached_token()
+            await mercedes.client.doors_lock(call.data.get(CONF_VIN))
+
         hass.services.async_register(
             DOMAIN, SERVICE_REFRESH_TOKEN_URL, refresh_access_token
         )
-
+        hass.services.async_register(
+            DOMAIN, SERVICE_DOORS_UNLOCK_URL, doors_unlock, schema=SERVICE_VIN_SCHEMA
+        )
 
 
     except WebsocketError as err:

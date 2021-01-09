@@ -1,2 +1,9 @@
 refresh_access_token:
   description: Refresh the API access token
+
+doors_unlock:
+  description: "Unlock a car defined by a vin. PIN setup required. See options dialog of the integration."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"

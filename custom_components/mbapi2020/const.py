@@ -1,8 +1,15 @@
 """Constants for the MercedesME 2020 integration."""
 import logging
 
+import voluptuous as vol
+
 from homeassistant.const import (
     LENGTH_KILOMETERS)
+
+from homeassistant.helpers import (
+    config_validation as cv,
+)
+
 
 MERCEDESME_COMPONENTS = [
     "sensor",
@@ -17,6 +24,7 @@ CONF_LOCALE = "locale"
 CONF_COUNTRY_CODE = "country_code"
 CONF_EXCLUDED_CARS = "excluded_cars"
 CONF_PIN = "pin"
+CONF_VIN = "vin"
 
 DATA_CLIENT = "data_client"
 
@@ -41,6 +49,8 @@ DEFAULT_SOCKET_MIN_RETRY = 15
 
 
 SERVICE_REFRESH_TOKEN_URL = "refresh_access_token"
+SERVICE_DOORS_UNLOCK_URL = "doors_unlock"
+SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})
 
 ATTR_MB_MANUFACTURER = "Mercedes Benz"
 

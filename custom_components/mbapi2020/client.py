@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import time
+import uuid
 
 from aiohttp import ClientSession
 from multiprocessing import RLock
@@ -28,6 +29,7 @@ from .const import (
     CONF_COUNTRY_CODE,
     CONF_EXCLUDED_CARS,
     CONF_LOCALE,
+    CONF_PIN,
     DEFAULT_LOCALE,
     DEFAULT_COUNTRY_CODE,
     DEFAULT_CACHE_PATH,
@@ -62,12 +64,14 @@ class Client: # pylint: disable-too-few-public-methods
         self._locale: str = DEFAULT_LOCALE
         self._country_code: str = DEFAULT_COUNTRY_CODE
         self._excluded_cars: str = ""
+        self._pin: str = None
 
         if self._config_entry:
             if self._config_entry.options:
                 self._country_code = self._config_entry.options.get(CONF_COUNTRY_CODE, DEFAULT_COUNTRY_CODE)
                 self._locale = self._config_entry.options.get(CONF_LOCALE, DEFAULT_LOCALE)
                 self._excluded_cars = self._config_entry.options.get(CONF_EXCLUDED_CARS, "")
+                self._pin = self._config_entry.options.get(CONF_PIN, None)
 
         self.oauth: Oauth = Oauth(session=session, locale=self._locale, country_code=self._country_code, cache_path=self._hass.config.path(DEFAULT_TOKEN_PATH))
         self.api: API = API(session=session, oauth=self.oauth)
@@ -134,10 +138,15 @@ class Client: # pylint: disable-too-few-public-methods
 
             if (msg_type == "apptwin_command_status_updates_by_vin"):
                 LOGGER.debug(f"apptwin_command_status_updates_by_vin - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
-                return
+                sequence_number = data.apptwin_command_status_updates_by_vin.sequence_number
+                LOGGER.debug("apptwin_command_status_updates_by_vin: %s", sequence_number)
+                ack_command = client_pb2.ClientMessage()
+                ack_command.acknowledge_apptwin_command_status_update_by_vin.sequence_number = sequence_number
+                return ack_command
+
 
             if (msg_type == "apptwin_pending_command_request"):
-                LOGGER.debug(f"apptwin_pending_command_request - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
+                #LOGGER.debug(f"apptwin_pending_command_request - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
                 return
 
             if (msg_type == "assigned_vehicles"):
@@ -315,6 +324,33 @@ class Client: # pylint: disable-too-few-public-methods
             if load_complete:
                 self._on_dataload_complete()
                 self._dataload_complete_fired = True
+
+
+    async def doors_unlock(self, vin: str):
+        LOGGER.info("Start Doors_unlock for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        if self._pin is None:
+            LOGGER.warn(f"Can't unlock car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
+            return
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.doors_unlock.pin = self._pin
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End Doors_unlock for vin %s", vin)
+
+
+    async def doors_lock(self, vin: str):
+        LOGGER.info("Start Doors_lock for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End Doors_lock for vin %s", vin)
 
 
     def _write_debug_output(self, data, datatype):
