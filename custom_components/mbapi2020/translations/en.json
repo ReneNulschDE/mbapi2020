@@ -39,5 +39,11 @@
             }
         }
     },
+    "system_health": {
+        "info": {
+            "api_endpoint_reachable": "MB API endpoint reachable",
+            "websocket_connection_state": "MB Websocket connection state"
+        }
+    },    
     "title": "MercedesME 2020"
 }

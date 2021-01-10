@@ -53,11 +53,13 @@ class Websocket:
         self._is_stopping = False
         self._on_data_received: Callable[..., Awaitable] = None
         self._connection = None
+        self.connection_state = "unknown"
 
     def set_connection_state(self, state):
         """Change current connection state."""
         signal = f"{DOMAIN}"
         async_dispatcher_send(self._hass, signal, state)
+        self.connection_state = state
 
 
     async def async_connect(self, on_data) -> None:
