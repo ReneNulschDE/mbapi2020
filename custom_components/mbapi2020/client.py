@@ -39,6 +39,7 @@ from .const import (
 
 import custom_components.mbapi2020.proto.client_pb2 as client_pb2
 import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb2
+import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
 
 LOGGER = logging.getLogger(__name__)
 
@@ -348,10 +349,56 @@ class Client: # pylint: disable-too-few-public-methods
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.doors_lock.doors.extend([])
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End Doors_lock for vin %s", vin)
 
+    async def engine_start(self, vin: str):
+        LOGGER.info("Start engine start for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.engine_start.pin = self._pin
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End engine start for vin %s", vin)
+
+    async def engine_stop(self, vin: str):
+        LOGGER.info("Start engine_stop for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        engine_stop = pb2_commands.EngineStop()
+        message.commandRequest.engine_stop.CopyFrom(engine_stop)
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End engine_stop for vin %s", vin)
+
+    async def sunroof_open(self, vin: str):
+        LOGGER.info("Start sunroof_open for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.sunroof_open.pin = self._pin
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End sunroof_open for vin %s", vin)
+
+    async def sunroof_close(self, vin: str):
+        LOGGER.info("Start sunroof_close for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        sunroof_close = pb2_commands.SunroofClose()
+        message.commandRequest.sunroof_close.CopyFrom(sunroof_close)
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End sunroof_close for vin %s", vin)
 
     def _write_debug_output(self, data, datatype):
         LOGGER.debug(f"Start _write_debug_output")

@@ -36,7 +36,12 @@ from .const import (
     LOGGER,
     MERCEDESME_COMPONENTS,
     SERVICE_REFRESH_TOKEN_URL,
+    SERVICE_DOORS_LOCK_URL,
     SERVICE_DOORS_UNLOCK_URL,
+    SERVICE_ENGINE_START,
+    SERVICE_ENGINE_STOP,
+    SERVICE_SUNROOF_CLOSE,
+    SERVICE_SUNROOF_OPEN,
     SERVICE_VIN_SCHEMA,
     VERIFY_SSL
 )
@@ -102,11 +107,42 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.doors_lock(call.data.get(CONF_VIN))
 
+        async def engine_start(call) -> None:
+            await mercedes.client.oauth.async_get_cached_token()
+            await mercedes.client.engine_start(call.data.get(CONF_VIN))
+
+        async def engine_stop(call) -> None:
+            await mercedes.client.oauth.async_get_cached_token()
+            await mercedes.client.engine_stop(call.data.get(CONF_VIN))
+
+        async def sunroof_open(call) -> None:
+            await mercedes.client.oauth.async_get_cached_token()
+            await mercedes.client.sunroof_open(call.data.get(CONF_VIN))
+
+        async def sunroof_close(call) -> None:
+            await mercedes.client.oauth.async_get_cached_token()
+            await mercedes.client.sunroof_close(call.data.get(CONF_VIN))
+
         hass.services.async_register(
             DOMAIN, SERVICE_REFRESH_TOKEN_URL, refresh_access_token
         )
         hass.services.async_register(
+            DOMAIN, SERVICE_DOORS_LOCK_URL, doors_lock, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
             DOMAIN, SERVICE_DOORS_UNLOCK_URL, doors_unlock, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_ENGINE_START, engine_start, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_ENGINE_STOP, engine_stop, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_SUNROOF_OPEN, sunroof_open, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_SUNROOF_CLOSE, sunroof_close, schema=SERVICE_VIN_SCHEMA
         )
 
 

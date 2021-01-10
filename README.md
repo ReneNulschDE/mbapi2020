@@ -1,6 +1,6 @@
 # mercedesme2020
 
-* > :warning: **This is a very early version**
+> :warning: **This is a very early version**
 
 
 MercedesME platform as a Custom Component for Home Assistant.
@@ -11,27 +11,28 @@ IMPORTANT:
 
 * Works in Europe only
 
-* Tested Countries: BE, DE, ES, FI, IT, NL, NO, PT, SE, UK
+* Tested Countries: BE, DE, ES, FI, IT, IR, NL, NO, PT, SE, UK
 
 * For US/CA please use this component: https://github.com/ReneNulschDE/mbapipy
 
-## Configuration
+### Configuration
 
 Use the "Add Integration" in Home Assistant and select "MercedesME 2020".
 
-## Optional configuration values
+### Optional configuration values
 
-See Options dialog in the Integration section.
+See Options dialog in the Integration under Home-Assistant/Configuration/Integration.
 
 ```
 Excluded Cars: comma-separated list of VINs.
-
+PIN: Security PIN to execute special services. Please use your MB mobile app to setup
 ```
 
-## Available components (depends on your own car or purchased licenses)
+## Available components 
+Depends on your own car or purchased Mercedes Benz licenses.
 
 
-## Binary Sensors
+### Binary Sensors
 
 * warningwashwater
   
@@ -41,39 +42,56 @@ Excluded Cars: comma-separated list of VINs.
 
 * warningenginelight
 
-    `attributes: warningbrakefluid, warningwashwater, warningcoolantlevellow, warninglowbattery`
+    ```
+    attributes: 
+    warningbrakefluid, warningwashwater, warningcoolantlevellow, warninglowbattery
+    ```
 
 * parkbrakestatus
 
-    `attributes: preWarningBrakeLiningWear`
+    ```
+    attributes: 
+    preWarningBrakeLiningWear
+    ```
 
 * tirewarninglamp
 
-    ```attributes: tirepressureRearLeft, tirepressureRearRight, tirepressureFrontRight, tirepressureFrontLeft, tireMarkerFrontRight, tireMarkerFrontLeft,tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw```
+    ```
+    attributes: 
+    tirepressureRearLeft, tirepressureRearRight, tirepressureFrontRight, tirepressureFrontLeft, tireMarkerFrontRight, tireMarkerFrontLeft,tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw
+    ```
 
 * windowsClosed
   
-    `attributes: windowstatusrearleft, windowstatusrearright, windowstatusfrontright, windowstatusfrontleft`
+  ```
+  attributes: 
+  windowstatusrearleft, windowstatusrearright, windowstatusfrontright, windowstatusfrontleft
+  ```
 
 
-## Device Tracker
+### Device Tracker
   
-    ```attributes: positionHeading```
+  ```
+  attributes:
+  positionHeading
+  ```
 
-## Sensors
+### Sensors
 
 * lock
 
-  ```attributes: decklidstatus, doorStatusOverall, doorLockStatusOverall, doorlockstatusgas, doorlockstatusvehicle, doorlockstatusfrontleft,doorlockstatusfrontright, doorlockstatusrearright, doorlockstatusrearleft, doorlockstatusdecklid, doorstatusrearleft, doorstatusfrontright, doorstatusrearright, doorstatusfrontleft, rooftopstatus, sunroofstatus```
+  ```
+  attributes: 
+  decklidstatus, doorStatusOverall, doorLockStatusOverall, doorlockstatusgas, doorlockstatusvehicle, doorlockstatusfrontleft,doorlockstatusfrontright, doorlockstatusrearright, doorlockstatusrearleft, doorlockstatusdecklid, doorstatusrearleft, doorstatusfrontright, doorstatusrearright, doorstatusfrontleft, rooftopstatus, sunroofstatus
+  ```
 
-Internal value: doorlockstatusvehicle
+  Internal value: doorlockstatusvehicle
 
-Values:
-0: vehicle unlocked
-1: vehicle internal locked
-2: vehicle external locked
-3: vehicle selective unlocked
-
+  Values:
+  0: vehicle unlocked
+  1: vehicle internal locked
+  2: vehicle external locked
+  3: vehicle selective unlocked
 
 * Fuel Level (%)
 
@@ -81,17 +99,45 @@ Values:
 
 * odometer
   
-  ```attributes: distanceReset, distanceStart, averageSpeedReset, averageSpeedStart, distanceZEReset, drivenTimeZEReset, drivenTimeReset, drivenTimeStart, ecoscoretotal, ecoscorefreewhl, ecoscorebonusrange, ecoscoreconst, ecoscoreaccel, gasconsumptionstart, gasconsumptionreset, gasTankRange, gasTankLevel, liquidconsumptionstart, liquidconsumptionreset, liquidRangeSkipIndication, rangeliquid, serviceintervaldays, tanklevelpercent, tankReserveLamp, batteryState, tankLevelAdBlue```
+  ```
+  attributes: 
+  distanceReset, distanceStart, averageSpeedReset, averageSpeedStart, distanceZEReset, drivenTimeZEReset, drivenTimeReset, drivenTimeStart, ecoscoretotal, ecoscorefreewhl, ecoscorebonusrange, ecoscoreconst, ecoscoreaccel, gasconsumptionstart, gasconsumptionreset, gasTankRange, gasTankLevel, liquidconsumptionstart, liquidconsumptionreset, liquidRangeSkipIndication, rangeliquid, serviceintervaldays, tanklevelpercent, tankReserveLamp, batteryState, tankLevelAdBlue
+  ```
 
 * Range Electric
 
-  `attributes: rangeelectric, chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, electricconsumptionstart,
-  electricconsumptionreset, endofchargetime, maxrange, selectedChargeProgram, soc`
+  ```
+  attributes: 
+  rangeelectric, chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, electricconsumptionstart,
+  electricconsumptionreset, endofchargetime, maxrange, selectedChargeProgram, soc
+  ```
 
 
+### Services
+Some services require that the security PIN is created in your mobile Android/IOS app. Please store the pin to the options-dialog of the integration 
+* refresh_access_token:
+  description: Refresh the API access token
+
+* doors_unlock:
+  description: Unlock a car defined by a vin. PIN required.
+
+* doors_lock:
+  description: Lock a car defined by a vin.
+
+* engine_start:
+  description: Start the engine of a car defined by a vin. PIN required.
+
+* engine_stop:
+  description: Stop the engine of a car defined by a vin.
+
+* sunroof_open:
+  description: Open the sunroof of a car defined by a vin. PIN required.
+
+* sunroof_close:
+  description: Close the sunroof of a car defined by a vin.
 
   
-# Logging
+### Logging
 
 Set the logging to debug with the following settings in case of problems.
 
@@ -102,16 +148,11 @@ logger:
     custom_components.mbapi2020: debug
 ```
 
-# Notes
-
-* Tested Countries: BE, DE, ES, FI, IT, NL, NO, PT, SE, UK
-
-# Open Items
-* Web-Socket reconnect
+### Open Items
 * General Error Handling
-* Add missing Sensors (Lock, Electric, Theft)
-* Add car actions (Open/Close, Climate, ...)
+* Add missing Sensors (Theft)
+* Add more car actions (Climate, ...)
 
-# Useful links
+### Useful links
 
 * [Forum post](https://community.home-assistant.io/t/mercedes-me-component/41911/520)

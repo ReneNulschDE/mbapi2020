@@ -49,7 +49,12 @@ DEFAULT_SOCKET_MIN_RETRY = 15
 
 
 SERVICE_REFRESH_TOKEN_URL = "refresh_access_token"
+SERVICE_DOORS_LOCK_URL = "doors_lock"
 SERVICE_DOORS_UNLOCK_URL = "doors_unlock"
+SERVICE_ENGINE_START = "engine_start"
+SERVICE_ENGINE_STOP = "engine_stop"
+SERVICE_SUNROOF_OPEN = "sunroof_open"
+SERVICE_SUNROOF_CLOSE = "sunroof_close"
 SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})
 
 ATTR_MB_MANUFACTURER = "Mercedes Benz"
