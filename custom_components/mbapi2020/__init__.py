@@ -349,3 +349,19 @@ class MercedesMeEntity(Entity):
             return LENGTH_MILES
         else:
             return self._unit
+
+
+    @property
+    def should_poll(self):
+        return False
+ 
+    def update_callback(self):
+        """Schedule a state update."""
+        self.schedule_update_ha_state(True)
+
+    async def async_added_to_hass(self):
+        """Add callback after being added to hass.
+
+        Show latest data after startup.
+        """
+        self._car.add_update_listener(self.update_callback)

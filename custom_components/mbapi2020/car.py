@@ -172,6 +172,11 @@ class Car(object):
         self.electric = None
         self.car_alarm = None
         self._entry_setup_complete = False
+        self._update_listeners =[] 
+
+    def add_update_listener(self, listener):
+        """Add a listener for update notifications."""
+        self._update_listeners.append(listener)
 
 
 class Tires(object):

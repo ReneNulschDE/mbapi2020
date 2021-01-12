@@ -290,6 +290,14 @@ class Client: # pylint: disable-too-few-public-methods
                 if self._dataload_complete_fired:
                     with self.__lock:
                         self._build_car(c, update_mode=True)
+            
+            if self._dataload_complete_fired:
+                current_car = next(car for car in self.cars
+                                   if car.finorvin == vin)
+                if current_car:
+                    for listener in current_car._update_listeners:
+                        listener()
+
 
         if not self._dataload_complete_fired:
             for car in self.cars:
