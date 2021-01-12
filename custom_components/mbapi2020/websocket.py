@@ -30,6 +30,7 @@ from .oauth import Oauth
 
 HEARTBEAT_INTERVAL = 20
 HEARTBEAT_TIMEOUT = 5
+DEFAULT_WATCHDOG_TIMEOUT = 300
 
 STATE_INIT = "initializing"
 STATE_CONNECTING = "connecting"
@@ -40,6 +41,43 @@ STATE_RECONNECTING = "reconnecting"
 STATE_DISCONNECTED = "disconnected"
 
 LOGGER = logging.getLogger(__name__)
+
+class WebsocketWatchdog:
+    """Define a watchdog to kick the websocket connection at intervals."""
+
+    def __init__(
+        self,
+        action: Callable[..., Awaitable],
+        *,
+        timeout_seconds: int = DEFAULT_WATCHDOG_TIMEOUT,
+    ):
+        """Initialize."""
+        self._action: Callable[..., Awaitable] = action
+        self._loop = asyncio.get_event_loop()
+        self._timer_task: Optional[asyncio.TimerHandle] = None
+        self._timeout: int = timeout_seconds
+
+    def cancel(self):
+        """Cancel the watchdog."""
+        if self._timer_task:
+            self._timer_task.cancel()
+            self._timer_task = None
+
+    async def on_expire(self):
+        """Log and act when the watchdog expires."""
+        LOGGER.info("Watchdog expired – calling %s", self._action.__name__)
+        await self._action()
+
+    async def trigger(self):
+        """Trigger the watchdog."""
+        LOGGER.debug("Watchdog triggered – sleeping for %s seconds", self._timeout)
+
+        if self._timer_task:
+            self._timer_task.cancel()
+
+        self._timer_task = self._loop.call_later(
+            self._timeout, lambda: asyncio.create_task(self.on_expire())
+        )
 
 
 class Websocket:
@@ -53,6 +91,7 @@ class Websocket:
         self._on_data_received: Callable[..., Awaitable] = None
         self._connection = None
         self.connection_state = "unknown"
+        self._watchdog: WebsocketWatchdog = WebsocketWatchdog(self._disconnected)
 
     def set_connection_state(self, state):
         """Change current connection state."""
@@ -69,6 +108,8 @@ class Websocket:
             await self.async_stop()
 
         self._on_data_received = on_data
+
+        await self._watchdog.trigger()
 
         session = async_get_clientsession(self._hass, VERIFY_SSL)
         self.set_connection_state(STATE_CONNECTING)
@@ -96,6 +137,7 @@ class Websocket:
     async def async_stop(self):
         """Close connection."""
         self._is_stopping = True
+        self._watchdog.cancel()
         if self._connection is not None:
             await self._connection.close()
 
@@ -122,6 +164,8 @@ class Websocket:
             except aiohttp.client_exceptions.ClientError as err:
                 LOGGER.error("remote websocket connection closed: %s", err)
                 break
+
+            await self._watchdog.trigger()
 
             if not data:
                 break
