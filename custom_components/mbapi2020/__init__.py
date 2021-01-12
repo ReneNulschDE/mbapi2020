@@ -195,10 +195,6 @@ class MercedesMeContext:
         """Register handlers and connect to the websocket."""
         await self.client._attempt_connect(self.on_dataload_complete)
 
-    async def ws_disconnect(self):
-        """Disconnect from the websocket."""
-        await self.client.websocket.disconnect()
-
 
 class MercedesMeEntity(Entity):
     """Entity class for MercedesMe devices."""

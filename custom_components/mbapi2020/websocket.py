@@ -48,7 +48,6 @@ class Websocket:
     def __init__(self, hass, oauth) -> None:
         """Initialize."""
         self.oauth: Oauth = oauth
-        self.listening = False
         self._hass = hass
         self._is_stopping = False
         self._on_data_received: Callable[..., Awaitable] = None
@@ -116,8 +115,8 @@ class Websocket:
     async def _recv(self):
         while not self._connection.closed:
 
-            self.set_connection_state(STATE_CONNECTED)            
-            
+            self.set_connection_state(STATE_CONNECTED)
+
             try:
                 data = await self._connection.receive()
             except aiohttp.client_exceptions.ClientError as err:
@@ -126,6 +125,12 @@ class Websocket:
 
             if not data:
                 break
+
+            if data.type == aiohttp.WSMsgType.PING:
+                LOGGER.debug("websocket connection PING ")
+
+            if data.type == aiohttp.WSMsgType.PONG:
+                LOGGER.debug("websocket connection PONG ")
 
             if data.type in (
                 aiohttp.WSMsgType.CLOSE,
@@ -151,9 +156,8 @@ class Websocket:
 
             LOGGER.debug("Got notification: %s", message.WhichOneof('msg'))
             ack_message = self._on_data_received(message)
-            if (ack_message):
+            if ack_message:
                 await self.call(ack_message.SerializeToString())
-
 
         await self._disconnected()
 
@@ -180,4 +184,3 @@ class Websocket:
             "X-Locale": "en-US",
             "User-Agent": WEBSOCKET_USER_AGENT
         }
-

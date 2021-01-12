@@ -206,3 +206,8 @@ class MercedesMEDeviceTracker(TrackerEntity):
     def source_type(self):
         """Return the source type, eg gps or router, of the device."""
         return SOURCE_TYPE_GPS
+
+    @property
+    def should_poll(self):
+        return True
+
