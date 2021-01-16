@@ -9,11 +9,9 @@ IMPORTANT:
 
 * Please login once in the MercedesME IOS or Android app before you install this component.
 
-* Works in Europe only
+* Works in Europe only (North America in testing currently)
 
 * Tested Countries: BE, DE, ES, FI, IT, IR, NL, NO, PT, SE, UK
-
-* ~~For US/CA please use this component: https://github.com/ReneNulschDE/mbapipy~~
 
 ### Configuration
 
@@ -116,25 +114,31 @@ Depends on your own car or purchased Mercedes Benz licenses.
 ### Services
 Some services require that the security PIN is created in your mobile Android/IOS app. Please store the pin to the options-dialog of the integration 
 * refresh_access_token:
-  description: Refresh the API access token
+  Refresh the API access token
 
 * doors_unlock:
-  description: Unlock a car defined by a vin. PIN required.
+  Unlock a car defined by a vin. PIN required.
 
 * doors_lock:
-  description: Lock a car defined by a vin.
+  Lock a car defined by a vin.
 
 * engine_start:
-  description: Start the engine of a car defined by a vin. PIN required.
+  Start the engine of a car defined by a vin. PIN required.
 
 * engine_stop:
-  description: Stop the engine of a car defined by a vin.
+  Stop the engine of a car defined by a vin.
+
+* preheat_start:
+  Start the preheating of a zero emission car defined by a vin. PIN required.
+
+* preheat_start:
+  Stop the preheating of a zero emission car defined by a vin. PIN required.
 
 * sunroof_open:
-  description: Open the sunroof of a car defined by a vin. PIN required.
+  Open the sunroof of a car defined by a vin. PIN required.
 
 * sunroof_close:
-  description: Close the sunroof of a car defined by a vin.
+  Close the sunroof of a car defined by a vin.
 
   
 ### Logging

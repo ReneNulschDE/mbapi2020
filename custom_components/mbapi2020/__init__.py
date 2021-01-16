@@ -41,6 +41,8 @@ from .const import (
     SERVICE_DOORS_UNLOCK_URL,
     SERVICE_ENGINE_START,
     SERVICE_ENGINE_STOP,
+    SERVICE_PREHEAT_START,
+    SERVICE_PREHEAT_STOP,
     SERVICE_SUNROOF_CLOSE,
     SERVICE_SUNROOF_OPEN,
     SERVICE_VIN_SCHEMA,
@@ -131,6 +133,14 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.sunroof_close(call.data.get(CONF_VIN))
 
+        async def preheat_start(call) -> None:
+            await mercedes.client.oauth.async_get_cached_token()
+            await mercedes.client.preheat_start(call.data.get(CONF_VIN))
+
+        async def preheat_stop(call) -> None:
+            await mercedes.client.oauth.async_get_cached_token()
+            await mercedes.client.preheat_stop(call.data.get(CONF_VIN))
+
         hass.services.async_register(
             DOMAIN, SERVICE_REFRESH_TOKEN_URL, refresh_access_token
         )
@@ -145,6 +155,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         )
         hass.services.async_register(
             DOMAIN, SERVICE_ENGINE_STOP, engine_stop, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_PREHEAT_START, preheat_start, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_PREHEAT_STOP, preheat_stop, schema=SERVICE_VIN_SCHEMA
         )
         hass.services.async_register(
             DOMAIN, SERVICE_SUNROOF_OPEN, sunroof_open, schema=SERVICE_VIN_SCHEMA

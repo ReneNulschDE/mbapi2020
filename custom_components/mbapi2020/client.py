@@ -410,6 +410,30 @@ class Client: # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End sunroof_close for vin %s", vin)
 
+    async def preheat_start(self, vin: str):
+        LOGGER.info("Start preheat_start for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.zev_preconditioning_start.departure_time = 0
+        message.commandRequest.zev_preconditioning_start.type = pb2_commands.ZEVPreconditioningType.now
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End preheat_start for vin %s", vin)
+
+    async def preheat_stop(self, vin: str):
+        LOGGER.info("Start preheat_stop for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.zev_preconditioning_stop.type = pb2_commands.ZEVPreconditioningType.now
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End preheat_stop for vin %s", vin)
+
+
     def _write_debug_output(self, data, datatype):
         LOGGER.debug(f"Start _write_debug_output")
 

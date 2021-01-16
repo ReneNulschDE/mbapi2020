@@ -60,6 +60,8 @@ SERVICE_ENGINE_START = "engine_start"
 SERVICE_ENGINE_STOP = "engine_stop"
 SERVICE_SUNROOF_OPEN = "sunroof_open"
 SERVICE_SUNROOF_CLOSE = "sunroof_close"
+SERVICE_PREHEAT_START = "preheat_start"
+SERVICE_PREHEAT_STOP = "preheat_stop"
 SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})
 
 ATTR_MB_MANUFACTURER = "Mercedes Benz"

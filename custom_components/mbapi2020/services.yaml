@@ -29,6 +29,20 @@ engine_stop:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
 
+preheat_start:
+  description: "Start the pre-heating of a car defined by a vin."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+
+preheat_stop:
+  description: "Stop the pre-heating of a car defined by a vin."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+
 sunroof_open:
   description: "Open the sunroof of a car defined by a vin."
   fields:
