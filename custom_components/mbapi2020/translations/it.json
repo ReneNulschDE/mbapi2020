@@ -13,7 +13,8 @@
                 "description": "Inserisci il tuo Mercedes ME account (indirizzo email)",
                 "title": "Mercedes ME 2020 - Setup",
                 "data": {
-                    "username": "MB username - indirizzo email"
+                    "username": "MB username - indirizzo email",
+                    "region": "Regione"
                 }
             },
             "pin": {
@@ -39,5 +40,11 @@
             }
         }
     },
+    "system_health": {
+        "info": {
+            "api_endpoint_reachable": "MB API endpoint raggiungibile",
+            "websocket_connection_state": "MB Websocket stato di connessione"
+        }
+    },    
     "title": "MercedesME 2020"
 }
