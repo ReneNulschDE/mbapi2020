@@ -13,7 +13,8 @@
                 "description": "Enter your Mercedes ME login account (email adress)",
                 "title": "Set up the Mercedes ME 2020 connection",
                 "data": {
-                    "username": "MB username - email address"
+                    "username": "MB username - email address",
+                    "region": "Region"
                 }
             },
             "pin": {

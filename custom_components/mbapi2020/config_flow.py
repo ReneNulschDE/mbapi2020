@@ -10,10 +10,12 @@ from homeassistant.helpers import aiohttp_client
 import homeassistant.helpers.config_validation as cv
 
 from .const import (  # pylint:disable=unused-import
+    CONF_ALLOWED_REGIONS,
     CONF_COUNTRY_CODE,
     CONF_EXCLUDED_CARS,
     CONF_LOCALE,
     CONF_PIN,
+    CONF_REGION,
     DOMAIN,
     DEFAULT_CACHE_PATH,
     DEFAULT_LOCALE,
@@ -28,6 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 SCHEMA_STEP_USER = vol.Schema(
     {
         vol.Required(CONF_USERNAME): str,
+        vol.Required(CONF_REGION): vol.In(CONF_ALLOWED_REGIONS)
     }
 )
 
@@ -49,6 +52,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self):
         """Initialize component."""
 
+
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         errors = {}
@@ -56,7 +60,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             session = aiohttp_client.async_get_clientsession(self.hass, VERIFY_SSL)
 
-            client = Client(session=session, hass=self.hass)
+            client = Client(session=session, hass=self.hass, region=user_input[CONF_REGION])
             try:
                 result = await client.oauth.request_pin(user_input[CONF_USERNAME])
             except MbapiError as error:
@@ -83,7 +87,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             session = aiohttp_client.async_get_clientsession(self.hass, VERIFY_SSL)
 
-            client = Client(session=session, hass=self.hass)
+            client = Client(session=session, hass=self.hass, region=self.data[CONF_REGION])
             try:
                 result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin)
                 _LOGGER.debug(result)

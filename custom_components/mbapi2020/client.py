@@ -53,10 +53,12 @@ class Client: # pylint: disable-too-few-public-methods
         session: Optional[ClientSession] = None,
         hass: Optional[HomeAssistant] = None,
         config_entry = None,
-        cache_path: Optional[str] = None
+        cache_path: Optional[str] = None,
+        region: str = None
     ) -> None:
         self._ws_reconnect_delay = DEFAULT_SOCKET_MIN_RETRY
         self._hass = hass
+        self._region = region
         self._on_dataload_complete = None
         self._dataload_complete_fired = False
         self.__lock = RLock()
@@ -74,9 +76,9 @@ class Client: # pylint: disable-too-few-public-methods
                 self._excluded_cars = self._config_entry.options.get(CONF_EXCLUDED_CARS, "")
                 self._pin = self._config_entry.options.get(CONF_PIN, None)
 
-        self.oauth: Oauth = Oauth(session=session, locale=self._locale, country_code=self._country_code, cache_path=self._hass.config.path(DEFAULT_TOKEN_PATH))
-        self.api: API = API(session=session, oauth=self.oauth)
-        self.websocket: Websocket = Websocket(self._hass, self.oauth)
+        self.oauth: Oauth = Oauth(session=session, locale=self._locale, country_code=self._country_code, cache_path=self._hass.config.path(DEFAULT_TOKEN_PATH), region=self._region)
+        self.api: API = API(session=session, oauth=self.oauth, region=self._region)
+        self.websocket: Websocket = Websocket(self._hass, self.oauth, region=self._region)
         self.cars = []
 
 

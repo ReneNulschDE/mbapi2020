@@ -29,6 +29,7 @@ from homeassistant.util import slugify
 
 from .const import (
     ATTR_MB_MANUFACTURER,
+    CONF_REGION,
     CONF_VIN,
     DOMAIN,
     DATA_CLIENT,
@@ -62,9 +63,16 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up MercedesME 2020 from a config entry."""
 
     try:
+
+        # Todo: Find the right way to migrate old configs
+        region = config_entry.data.get(CONF_REGION, None)
+        if region is None:
+            region = "Europe"
+
         mercedes = MercedesMeContext(
             hass,
-            config_entry
+            config_entry,
+            region=region
         )
 
         masterdata = await mercedes.client.api.get_user_info()
@@ -172,11 +180,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 class MercedesMeContext:
 
-    def __init__(self, hass, config_entry):
+    def __init__(self, hass, config_entry, region):
         self._config_entry = config_entry
         self._entry_setup_complete: bool = False
         self._hass = hass
-        self.client = Client(hass=hass, session=aiohttp_client.async_get_clientsession(hass), config_entry=config_entry)
+        self._region = region
+        self.client = Client(hass=hass, session=aiohttp_client.async_get_clientsession(hass), config_entry=config_entry, region=self._region)
 
     def on_dataload_complete(self):
         LOGGER.info("Car Load complete - start sensor creation")

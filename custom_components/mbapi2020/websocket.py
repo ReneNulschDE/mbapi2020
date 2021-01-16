@@ -24,6 +24,7 @@ from .const import (
     RIS_SDK_VERSION,
     VERIFY_SSL,
     WEBSOCKET_API_BASE,
+    WEBSOCKET_API_BASE_NA,
     WEBSOCKET_USER_AGENT
 )
 from .oauth import Oauth
@@ -83,13 +84,14 @@ class WebsocketWatchdog:
 class Websocket:
     """Define the websocket."""
 
-    def __init__(self, hass, oauth) -> None:
+    def __init__(self, hass, oauth, region) -> None:
         """Initialize."""
         self.oauth: Oauth = oauth
         self._hass = hass
         self._is_stopping = False
         self._on_data_received: Callable[..., Awaitable] = None
         self._connection = None
+        self._region = region
         self.connection_state = "unknown"
         self._watchdog: WebsocketWatchdog = WebsocketWatchdog(self._disconnected)
 
@@ -118,14 +120,14 @@ class Websocket:
 
         while True:
             try:
-                LOGGER.info("Connecting to %s", WEBSOCKET_API_BASE)
-                self._connection = await session.ws_connect(WEBSOCKET_API_BASE, headers=headers)
+                LOGGER.info("Connecting to %s", WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA)
+                self._connection = await session.ws_connect(WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA, headers=headers)
             except aiohttp.client_exceptions.ClientError:
-                LOGGER.error("Could not connect to %s, retry in 10 seconds...", WEBSOCKET_API_BASE)
+                LOGGER.error("Could not connect to %s, retry in 10 seconds...", WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA)
                 self.set_connection_state(STATE_RECONNECTING)
                 await asyncio.sleep(10)
             else:
-                LOGGER.info("Connected to mercedes websocket at %s", WEBSOCKET_API_BASE)
+                LOGGER.info("Connected to mercedes websocket at %s", WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA)
                 break
 
 

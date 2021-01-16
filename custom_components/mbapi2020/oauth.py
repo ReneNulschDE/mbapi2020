@@ -12,14 +12,16 @@ from aiohttp.client_exceptions import ClientError
 
 from .errors import RequestError
 from .const import (
+    LOGIN_BASE_URI,
+    LOGIN_BASE_URI_NA,
+    REST_API_BASE,
+    REST_API_BASE_NA,
     RIS_APPLICATION_VERSION,
+    RIS_APPLICATION_VERSION_NA,
     RIS_SDK_VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-API_BASE_URI = "https://bff-prod.risingstars.daimler.com"
-LOGIN_BASE_URI = "https://keycloak.risingstars.daimler.com"
 
 DEFAULT_TIMEOUT = 10
 SYSTEM_PROXY = None
@@ -37,18 +39,20 @@ class Oauth: # pylint: disable-too-few-public-methods
         session: Optional[ClientSession] = None,
         locale: Optional[str] = "DE",
         country_code: Optional[str] = "de-DE",
-        cache_path: Optional[str] = None
+        cache_path: Optional[str] = None,
+        region: str = None
     ) -> None:
         self.token = None
         self._locale = locale
         self._country_code = country_code
         self._session: ClientSession = session
+        self._region: str = region
         self.cache_path = cache_path
 
 
     async def request_pin(self, email: str):
         _LOGGER.info("start request pin %s", email)
-        url = f"{API_BASE_URI}/v1/login"
+        url = f"{REST_API_BASE if self._region == 'Europe' else REST_API_BASE_NA}/v1/login"
         data = f'{{"countryCode":"{self._country_code}","emailOrPhoneNumber":"{email}","locale":"{self._locale}"}}'
         headers = self._get_header()
         return await self._async_request("post", url, data=data, headers=headers )
@@ -57,7 +61,7 @@ class Oauth: # pylint: disable-too-few-public-methods
     async def async_refresh_access_token(self, refresh_token: str):
         _LOGGER.info("start async refresh_access_token with refresh_token")
 
-        url = f"{LOGIN_BASE_URI}/auth/realms/Daimler/protocol/openid-connect/token"
+        url = f"{LOGIN_BASE_URI if self._region == 'Europe' else LOGIN_BASE_URI_NA}/auth/realms/Daimler/protocol/openid-connect/token"
         data = (
             f"client_id=app&grant_type=refresh_token&refresh_token={refresh_token}"
         )
@@ -79,7 +83,7 @@ class Oauth: # pylint: disable-too-few-public-methods
 
     async def request_access_token(self, email: str, pin: str):
 
-        url = f"{LOGIN_BASE_URI}/auth/realms/Daimler/protocol/openid-connect/token"
+        url = f"{LOGIN_BASE_URI if self._region == 'Europe' else LOGIN_BASE_URI_NA}/auth/realms/Daimler/protocol/openid-connect/token"
         data = (
             f"client_id=app&grant_type=password&username={email}&password={pin}"
             "&scope=offline_access"
@@ -150,7 +154,7 @@ class Oauth: # pylint: disable-too-few-public-methods
             "X-SessionId": str(uuid.uuid4()),      # "bc667b25-1964-4ff8-98f0-aef3a7f35208",
             "X-TrackingId": str(uuid.uuid4()),     # "abbc223e-bdb8-4808-b299-8ff800b58816",
             "X-ApplicationName": "mycar-store-ece",
-            "ris-application-version": RIS_APPLICATION_VERSION,
+            "ris-application-version": RIS_APPLICATION_VERSION if self._region == 'Europe' else RIS_APPLICATION_VERSION_NA,
             "ris-os-name": "android",
             "ris-os-version": "6.0",
             "ris-sdk-version": RIS_SDK_VERSION,

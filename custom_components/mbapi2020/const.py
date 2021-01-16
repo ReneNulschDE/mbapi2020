@@ -19,11 +19,12 @@ MERCEDESME_COMPONENTS = [
 #    "switch"
 ]
 
-
+CONF_ALLOWED_REGIONS = ["Europe", "North America"]
 CONF_LOCALE = "locale"
 CONF_COUNTRY_CODE = "country_code"
 CONF_EXCLUDED_CARS = "excluded_cars"
 CONF_PIN = "pin"
+CONF_REGION = "region"
 CONF_VIN = "vin"
 
 DATA_CLIENT = "data_client"
@@ -36,14 +37,18 @@ DEFAULT_TOKEN_PATH = ".mercedesme-token-cache"
 DEFAULT_LOCALE = "en-GB"
 DEFAULT_COUNTRY_CODE = "EN"
 
-
+RIS_APPLICATION_VERSION_NA = "3.0.1"
 RIS_APPLICATION_VERSION = "1.6.3"
 RIS_SDK_VERSION = "2.30.0"
 
 VERIFY_SSL = True
 
+LOGIN_BASE_URI = "https://keycloak.risingstars.daimler.com"
+LOGIN_BASE_URI_NA = "https://keycloak.risingstars-amap.daimler.com"
 REST_API_BASE = "https://bff-prod.risingstars.daimler.com"
+REST_API_BASE_NA = "https://bff-prod.risingstars-amap.daimler.com"
 WEBSOCKET_API_BASE = "wss://websocket-prod.risingstars.daimler.com/ws"
+WEBSOCKET_API_BASE_NA = "wss://websocket-prod.risingstars-amap.daimler.com/ws"
 WEBSOCKET_USER_AGENT = "okhttp/3.12.2"
 DEFAULT_SOCKET_MIN_RETRY = 15
 
