@@ -90,13 +90,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             client = Client(session=session, hass=self.hass, region=self.data[CONF_REGION])
             try:
                 result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin)
-                _LOGGER.debug(result)
             except MbapiError as error:
                 _LOGGER.error(f"Request Token Error: {errors}")
                 errors = error
 
             if not errors:
-                _LOGGER.debug(result)
+                _LOGGER.debug("token received")
                 self.data["token"] = result
                 return self.async_create_entry(title=DOMAIN, data=self.data)
 
