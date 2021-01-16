@@ -88,6 +88,7 @@ ELECTRIC_OPTIONS = [
     'electricconsumptionstart',
     'electricconsumptionreset',
     'endofchargetime',
+    'precondActive',
     'maxrange',
     'selectedChargeProgram',
     'soc'
