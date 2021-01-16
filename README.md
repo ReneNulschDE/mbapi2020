@@ -129,10 +129,10 @@ Some services require that the security PIN is created in your mobile Android/IO
   Stop the engine of a car defined by a vin.
 
 * preheat_start:
-  Start the preheating of a zero emission car defined by a vin. PIN required.
+  Start the preheating of a zero emission car defined by a vin.
 
-* preheat_start:
-  Stop the preheating of a zero emission car defined by a vin. PIN required.
+* preheat_stop:
+  Stop the preheating of a zero emission car defined by a vin.
 
 * sunroof_open:
   Open the sunroof of a car defined by a vin. PIN required.
