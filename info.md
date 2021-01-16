@@ -13,7 +13,7 @@ IMPORTANT:
 
 * Tested Countries: BE, DE, ES, FI, IT, IR, NL, NO, PT, SE, UK
 
-* For US/CA please use this component: https://github.com/ReneNulschDE/mbapipy
+* ~~For US/CA please use this component: https://github.com/ReneNulschDE/mbapipy~~
 
 ### Configuration
 
