@@ -7,12 +7,17 @@ MercedesME platform as a Custom Component for Home Assistant.
 
 IMPORTANT:
 
-* Please login once in the MercedesME IOS or Android app before you install this component.
-
-* Works in Europe only (North America in testing currently)
+* Please login once in the MercedesME IOS or Android app before you install this component. (For North America, the app name is Mercedes Me Connect)
 
 * Tested Countries: BE, DE, ES, FI, IT, IR, NL, NO, PT, SE, UK
 
+* North America: first release (pre-alpha) and for Cars 2019 or newer
+
+### Installation
+* First: This is not a Home Assistant Add-On. It's a custom component.
+* There are two ways to install. First you can download the folder custom_component and copy it into your Home-Assistant config folder. Second option is to install HACS (Home Assistant Custom Component Store) and this repo as a custom repository. (HACS, Integrations, three dots in the upper right corner, ...)
+* [How to install a custom component?](https://www.google.com/search?q=how+to+install+custom+components+home+assistant) 
+* [How to install HACS?](https://hacs.xyz/docs/installation/prerequisites)
 ### Configuration
 
 Use the "Add Integration" in Home Assistant and select "MercedesME 2020".
