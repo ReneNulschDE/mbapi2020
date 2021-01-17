@@ -324,6 +324,7 @@ class Client: # pylint: disable-too-few-public-methods
                     if _car is None:
                         c = Car()
                         c.finorvin = vin
+                        c.licenseplate = vin
                         self.cars.append(c)
             
             load_complete = True
