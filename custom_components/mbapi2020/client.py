@@ -43,6 +43,7 @@ import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
 
 LOGGER = logging.getLogger(__name__)
 
+DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = False
 WRITE_DEBUG_OUTPUT = False
 
 class Client: # pylint: disable-too-few-public-methods
@@ -178,28 +179,31 @@ class Client: # pylint: disable-too-few-public-methods
 
         car = next((item for item in self.cars if c.get("vin") == item.finorvin), None)
 
+        car.messages_received.update("p" if update_mode else "f")
+        car.last_message_received = int(round(time.time() * 1000))
+
         car.odometer = self._get_car_values(
-            c, car.finorvin, Odometer() if not update_mode else car.odometer, ODOMETER_OPTIONS, update_mode)
+            c, car.finorvin, Odometer() if not car.odometer else car.odometer, ODOMETER_OPTIONS, update_mode)
 
         car.tires = self._get_car_values(
-            c, car.finorvin, Tires() if not update_mode else car.tires, TIRE_OPTIONS, update_mode)
+            c, car.finorvin, Tires() if not car.tires else car.tires, TIRE_OPTIONS, update_mode)
 
         car.doors = self._get_car_values(
-            c, car.finorvin, Doors() if not update_mode else car.doors, DOOR_OPTIONS, update_mode)
+            c, car.finorvin, Doors() if not car.doors else car.doors, DOOR_OPTIONS, update_mode)
 
         car.location = self._get_car_values(
             c, car.finorvin,
-            Location() if not update_mode else car.location, LOCATION_OPTIONS, update_mode)
+            Location() if not car.location else car.location, LOCATION_OPTIONS, update_mode)
 
         car.binarysensors = self._get_car_values(
             c, car.finorvin,
-            Binary_Sensors() if not update_mode else car.binarysensors, BINARY_SENSOR_OPTIONS, update_mode)
+            Binary_Sensors() if not car.binarysensors else car.binarysensors, BINARY_SENSOR_OPTIONS, update_mode)
 
         car.windows = self._get_car_values(
-            c, car.finorvin, Windows() if not update_mode else car.windows, WINDOW_OPTIONS, update_mode)
+            c, car.finorvin, Windows() if not car.windows else car.windows, WINDOW_OPTIONS, update_mode)
 
         car.electric = self._get_car_values(
-            c, car.finorvin, Electric() if not update_mode else car.electric, ELECTRIC_OPTIONS, update_mode)
+            c, car.finorvin, Electric() if not car.electric else car.electric, ELECTRIC_OPTIONS, update_mode)
 
         # _LOGGER.debug("_get_cars - Feature Check: aux_heat:%s ", {car.features.aux_heat})
         # if car.features.aux_heat:
@@ -221,7 +225,8 @@ class Client: # pylint: disable-too-few-public-methods
         #     car.car_alarm = self._get_car_values(
         #         api_result, car.finorvin, Car_Alarm(), CAR_ALARM_OPTIONS, update_mode)
 
-        car._entry_setup_complete = True
+        if not update_mode:
+            car._entry_setup_complete = True
         
         self.cars = [car if item.finorvin == car.finorvin else item for item in self.cars]
         
@@ -236,8 +241,8 @@ class Client: # pylint: disable-too-few-public-methods
 
         for option in options:
             if car_detail is not None:
-                if not car_detail["attributes"]:
-                    LOGGER.debug(f"get_car_values {car_id} has incomplete update set - attributes not found %s called")
+                if not car_detail.get("attributes"):
+                    LOGGER.debug(f"get_car_values {car_id} has incomplete update set - attributes not found")
                     return
 
                 curr = car_detail["attributes"].get(option)
@@ -279,19 +284,27 @@ class Client: # pylint: disable-too-few-public-methods
                 continue
 
             c = cars.get(vin)
-            if (c.get("full_update") == True):
-                if not c.get("attributes"):
-                    LOGGER.debug(f"Full Update - without attributes. {vin}")
-                    continue
 
+            if DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY and c.get("full_update", False) == True:
+                c["full_update"] = False
+                LOGGER.debug(f"DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY mode. {vin}")
+
+            if (c.get("full_update") == True):
                 LOGGER.debug(f"Full Update. {vin}")
                 with self.__lock:
                     self._build_car(c, update_mode=False)
             else:
                 LOGGER.debug(f"Partial Update. {vin}")
-                if self._dataload_complete_fired:
-                    with self.__lock:
-                        self._build_car(c, update_mode=True)
+                with self.__lock:
+                    self._build_car(c, update_mode=True)
+                #if self._dataload_complete_fired:
+                #    with self.__lock:
+                #        self._build_car(c, update_mode=True)
+                #else:
+                #    if DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY:
+                #        with self.__lock:
+                #            self._build_car(c, update_mode=True)
+
             
             if self._dataload_complete_fired:
                 current_car = next(car for car in self.cars
@@ -303,7 +316,7 @@ class Client: # pylint: disable-too-few-public-methods
 
         if not self._dataload_complete_fired:
             for car in self.cars:
-                LOGGER.debug(f"_process_vep_updates - {car.finorvin} - {car._entry_setup_complete}")
+                LOGGER.debug(f"_process_vep_updates - {car.finorvin} - complete: {car._entry_setup_complete} - {car.messages_received}")
 
 
     def _process_assigned_vehicles(self, data):
@@ -328,8 +341,14 @@ class Client: # pylint: disable-too-few-public-methods
                         self.cars.append(c)
             
             load_complete = True
+            current_time =  int(round(time.time() * 1000))
             for car in self.cars:
-                LOGGER.debug(f"_process_assigned_vehicles - {car.finorvin} - {car._entry_setup_complete}")
+                LOGGER.debug(f"_process_assigned_vehicles - {car.finorvin} - {car._entry_setup_complete} - {car.messages_received} - {current_time - car.last_message_received} ")
+
+                if car.last_message_received > 0 and current_time - car.last_message_received > 30000:
+                    LOGGER.debug("No Full Update Message received - Force car entry setup complete for car %s", car.finorvin)
+                    car._entry_setup_complete = True
+
                 if not car._entry_setup_complete:
                     load_complete = False
 

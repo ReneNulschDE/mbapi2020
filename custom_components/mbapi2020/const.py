@@ -62,7 +62,10 @@ SERVICE_SUNROOF_OPEN = "sunroof_open"
 SERVICE_SUNROOF_CLOSE = "sunroof_close"
 SERVICE_PREHEAT_START = "preheat_start"
 SERVICE_PREHEAT_STOP = "preheat_stop"
+SERVICE_WINDOWS_OPEN = "windows_open"
+SERVICE_WINDOWS_CLOSE = "windows_close"
 SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})
+
 
 ATTR_MB_MANUFACTURER = "Mercedes Benz"
 
@@ -167,6 +170,11 @@ DEVICE_TRACKER = {
              }]}
 
 SENSORS = {
+#    "car":  ["Car", None, None, None, "last_message_received", None,
+#             {
+#                 'messages_received'
+#             } 
+#    ], 
     "lock": ["Lock", None, "doors", "doorlockstatusvehicle", "value", None,
              {
                 'decklidstatus',

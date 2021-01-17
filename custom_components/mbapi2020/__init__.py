@@ -46,6 +46,8 @@ from .const import (
     SERVICE_SUNROOF_CLOSE,
     SERVICE_SUNROOF_OPEN,
     SERVICE_VIN_SCHEMA,
+    SERVICE_WINDOWS_CLOSE,
+    SERVICE_WINDOWS_OPEN,
     VERIFY_SSL
 )
 from .car import Car
@@ -101,6 +103,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             c.finorvin = car.get('fin')
             c.licenseplate = car.get('licensePlate', car.get('fin'))
             mercedes.client.cars.append(c)
+            LOGGER.debug("Init - car added - %s", c.finorvin)
 
         hass.loop.create_task(mercedes.ws_connect())
         hass.data.setdefault(DOMAIN, {})
@@ -168,6 +171,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         hass.services.async_register(
             DOMAIN, SERVICE_SUNROOF_CLOSE, sunroof_close, schema=SERVICE_VIN_SCHEMA
         )
+        #hass.services.async_register(
+        #    DOMAIN, SERVICE_WINDOWS_OPEN, windows_open, schema=SERVICE_VIN_SCHEMA
+        #)
+        #hass.services.async_register(
+        #    DOMAIN, SERVICE_WINDOWS_CLOSE, windows_close, schema=SERVICE_VIN_SCHEMA
+        #)
 
 
     except WebsocketError as err:
@@ -278,6 +287,9 @@ class MercedesMeEntity(Entity):
         return self._unique_id
 
     def device_retrieval_status(self):
+        if self._sensor_name == "Car":
+            return "VALID"
+
         return self._get_car_value(
             self._feature_name, self._object_name, "retrievalstatus", "error"
         )

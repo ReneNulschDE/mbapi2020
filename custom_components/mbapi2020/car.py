@@ -1,3 +1,4 @@
+import collections
 
 ODOMETER_OPTIONS = [
     "odo",
@@ -158,6 +159,8 @@ class Car(object):
         self.numberofdoors = None
         self.numberofseats = None
         self.vehicle_title = None
+        self.messages_received = collections.Counter(f=0, p=0)
+        self.last_message_received = 0
 
         self.vehicleHealthStatus = None
         self.binarysensors = None

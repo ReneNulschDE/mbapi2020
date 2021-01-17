@@ -29,8 +29,6 @@ from .const import (
 )
 from .oauth import Oauth
 
-HEARTBEAT_INTERVAL = 20
-HEARTBEAT_TIMEOUT = 5
 DEFAULT_WATCHDOG_TIMEOUT = 300
 
 STATE_INIT = "initializing"
@@ -71,7 +69,7 @@ class WebsocketWatchdog:
 
     async def trigger(self):
         """Trigger the watchdog."""
-        LOGGER.debug("Watchdog triggered – sleeping for %s seconds", self._timeout)
+        #LOGGER.debug("Watchdog triggered – sleeping for %s seconds", self._timeout)
 
         if self._timer_task:
             self._timer_task.cancel()
