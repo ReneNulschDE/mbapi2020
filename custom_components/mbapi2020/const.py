@@ -26,6 +26,7 @@ CONF_EXCLUDED_CARS = "excluded_cars"
 CONF_PIN = "pin"
 CONF_REGION = "region"
 CONF_VIN = "vin"
+CONF_TIME = "time"
 
 DATA_CLIENT = "data_client"
 
@@ -61,10 +62,17 @@ SERVICE_ENGINE_STOP = "engine_stop"
 SERVICE_SUNROOF_OPEN = "sunroof_open"
 SERVICE_SUNROOF_CLOSE = "sunroof_close"
 SERVICE_PREHEAT_START = "preheat_start"
+SERVICE_PREHEAT_START_DEPARTURE_TIME = "preheat_start_departure_time"
 SERVICE_PREHEAT_STOP = "preheat_stop"
 SERVICE_WINDOWS_OPEN = "windows_open"
 SERVICE_WINDOWS_CLOSE = "windows_close"
 SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})
+SERVICE_VIN_TIME_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Required(CONF_TIME): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439))
+    }
+)
 
 
 ATTR_MB_MANUFACTURER = "Mercedes Benz"

@@ -459,6 +459,19 @@ class Client: # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End preheat_start for vin %s", vin)
 
+    async def preheat_start_departure_time(self, vin: str, departure_time: int):
+        LOGGER.info("Start preheat_start_departure_time for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.zev_preconditioning_start.departure_time = departure_time
+        message.commandRequest.zev_preconditioning_start.type = pb2_commands.ZEVPreconditioningType.departure
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End preheat_start_departure_time for vin %s", vin)
+
+
     async def preheat_stop(self, vin: str):
         LOGGER.info("Start preheat_stop for vin %s", vin)
         message = client_pb2.ClientMessage()

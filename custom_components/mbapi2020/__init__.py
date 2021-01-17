@@ -31,6 +31,7 @@ from .const import (
     ATTR_MB_MANUFACTURER,
     CONF_REGION,
     CONF_VIN,
+    CONF_TIME,
     DOMAIN,
     DATA_CLIENT,
     DEFAULT_CACHE_PATH,
@@ -42,12 +43,14 @@ from .const import (
     SERVICE_ENGINE_START,
     SERVICE_ENGINE_STOP,
     SERVICE_PREHEAT_START,
+    SERVICE_PREHEAT_START_DEPARTURE_TIME,
     SERVICE_PREHEAT_STOP,
     SERVICE_SUNROOF_CLOSE,
     SERVICE_SUNROOF_OPEN,
-    SERVICE_VIN_SCHEMA,
     SERVICE_WINDOWS_CLOSE,
     SERVICE_WINDOWS_OPEN,
+    SERVICE_VIN_SCHEMA,
+    SERVICE_VIN_TIME_SCHEMA,
     VERIFY_SSL
 )
 from .car import Car
@@ -113,43 +116,36 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             await mercedes.client.oauth.async_get_cached_token()
 
         async def doors_unlock(call) -> None:
-            await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.doors_unlock(call.data.get(CONF_VIN))
 
         async def doors_lock(call) -> None:
-            await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.doors_lock(call.data.get(CONF_VIN))
 
         async def engine_start(call) -> None:
-            await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.engine_start(call.data.get(CONF_VIN))
 
         async def engine_stop(call) -> None:
-            await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.engine_stop(call.data.get(CONF_VIN))
 
         async def sunroof_open(call) -> None:
-            await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.sunroof_open(call.data.get(CONF_VIN))
 
         async def sunroof_close(call) -> None:
-            await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.sunroof_close(call.data.get(CONF_VIN))
 
         async def preheat_start(call) -> None:
-            await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.preheat_start(call.data.get(CONF_VIN))
 
+        async def preheat_start_departure_time(call) -> None:
+            await mercedes.client.preheat_start_departure_time(call.data.get(CONF_VIN), call.data.get(CONF_TIME))
+            
         async def preheat_stop(call) -> None:
-            await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.preheat_stop(call.data.get(CONF_VIN))
 
         async def windows_open(call) -> None:
-            await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.windows_open(call.data.get(CONF_VIN))
 
         async def windows_close(call) -> None:
-            await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.windows_close(call.data.get(CONF_VIN))
 
         hass.services.async_register(
@@ -169,6 +165,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         )
         hass.services.async_register(
             DOMAIN, SERVICE_PREHEAT_START, preheat_start, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_PREHEAT_START_DEPARTURE_TIME, preheat_start_departure_time, schema=SERVICE_VIN_TIME_SCHEMA
         )
         hass.services.async_register(
             DOMAIN, SERVICE_PREHEAT_STOP, preheat_stop, schema=SERVICE_VIN_SCHEMA

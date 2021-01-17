@@ -36,6 +36,16 @@ preheat_start:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
 
+preheat_start_departure_time:
+  description: "Start the pre-heating of a car defined by a vin and a given departure time."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+    time:
+      description: "Departure time in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439"
+      example: "480"
+
 preheat_stop:
   description: "Stop the pre-heating of a car defined by a vin."
   fields:

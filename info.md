@@ -136,6 +136,9 @@ Some services require that the security PIN is created in your mobile Android/IO
 * preheat_start:
   Start the preheating of a zero emission car defined by a vin.
 
+* preheat_start_departure_time:
+  Start the preheating of a zero emission car defined by a vin and the departure time in minutes since midnight
+
 * preheat_stop:
   Stop the preheating of a zero emission car defined by a vin.
 
