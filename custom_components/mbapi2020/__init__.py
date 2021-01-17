@@ -1,5 +1,6 @@
 """The MercedesME 2020 integration."""
 import asyncio
+import time
 
 import voluptuous as vol
 
@@ -58,6 +59,7 @@ from .client import Client
 from .errors import WebsocketError
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
+DEBUG_ADD_FAKE_VIN = False
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the MercedesME 2020 component."""
@@ -105,8 +107,30 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             c = Car()
             c.finorvin = car.get('fin')
             c.licenseplate = car.get('licensePlate', car.get('fin'))
+            c.last_message_received = int(round(time.time() * 1000))
             mercedes.client.cars.append(c)
             LOGGER.debug("Init - car added - %s", c.finorvin)
+
+
+        if DEBUG_ADD_FAKE_VIN:
+            c = Car()
+            c.finorvin = "F123456789"
+            c.licenseplate = "U-DV 1234"
+            c.last_message_received = int(round(time.time() * 1000))
+            mercedes.client.cars.append(c)
+            LOGGER.debug("Init - car added - %s", c.finorvin)
+            dev_reg = await hass.helpers.device_registry.async_get_registry()
+            dev_reg.async_get_or_create(
+                config_entry_id=config_entry.entry_id,
+                connections=set(),
+                identifiers={(DOMAIN, c.finorvin)},
+                manufacturer=ATTR_MB_MANUFACTURER,
+                model="UDV 230 - Ugly Debug Vehicle",
+                name=c.licenseplate,
+                sw_version="DEBUG",
+
+            )
+
 
         hass.loop.create_task(mercedes.ws_connect())
         hass.data.setdefault(DOMAIN, {})
