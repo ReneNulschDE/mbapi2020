@@ -67,21 +67,31 @@ class Client: # pylint: disable-too-few-public-methods
         self._config_entry = config_entry
         self._locale: str = DEFAULT_LOCALE
         self._country_code: str = DEFAULT_COUNTRY_CODE
-        self._excluded_cars: str = ""
-        self._pin: str = None
 
         if self._config_entry:
             if self._config_entry.options:
                 self._country_code = self._config_entry.options.get(CONF_COUNTRY_CODE, DEFAULT_COUNTRY_CODE)
                 self._locale = self._config_entry.options.get(CONF_LOCALE, DEFAULT_LOCALE)
-                self._excluded_cars = self._config_entry.options.get(CONF_EXCLUDED_CARS, "")
-                self._pin = self._config_entry.options.get(CONF_PIN, None)
+                
 
         self.oauth: Oauth = Oauth(session=session, locale=self._locale, country_code=self._country_code, cache_path=self._hass.config.path(DEFAULT_TOKEN_PATH), region=self._region)
         self.api: API = API(session=session, oauth=self.oauth, region=self._region)
         self.websocket: Websocket = Websocket(self._hass, self.oauth, region=self._region)
         self.cars = []
 
+    @property 
+    def pin(self) -> str:
+        if self._config_entry:
+            if self._config_entry.options:
+                return self._config_entry.options.get(CONF_PIN, None)
+        return None
+
+    @property 
+    def excluded_cars(self):
+        if self._config_entry:
+            if self._config_entry.options:
+                return self._config_entry.options.get(CONF_EXCLUDED_CARS, [])
+        return []
 
     async def _attempt_connect(self, callback_dataload_complete):
         """Attempt to connect to the socket (retrying later on fail)."""
@@ -173,7 +183,7 @@ class Client: # pylint: disable-too-few-public-methods
 
     def _build_car(self, c, update_mode):
 
-        if c.get("vin") in self._excluded_cars:
+        if c.get("vin") in self.excluded_cars:
             LOGGER.debug(f"CAR {c.get('vin')} is excluded.")
             return
 
@@ -280,7 +290,7 @@ class Client: # pylint: disable-too-few-public-methods
 
         for vin in cars:
             
-            if vin in self._excluded_cars:
+            if vin in self.excluded_cars:
                 continue
 
             c = cars.get(vin)
@@ -329,7 +339,7 @@ class Client: # pylint: disable-too-few-public-methods
             with self.__lock:
                 for vin in data.assigned_vehicles.vins:
 
-                    if vin in self._excluded_cars:
+                    if vin in self.excluded_cars:
                         continue
 
                     _car = next((car for car in self.cars
@@ -361,13 +371,13 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start Doors_unlock for vin %s", vin)
         message = client_pb2.ClientMessage()
 
-        if self._pin is None:
+        if self.pin is None:
             LOGGER.warn(f"Can't unlock car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
             return
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.doors_unlock.pin = self._pin
+        message.commandRequest.doors_unlock.pin = self.pin
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End Doors_unlock for vin %s", vin)
@@ -388,9 +398,13 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start engine start for vin %s", vin)
         message = client_pb2.ClientMessage()
 
+        if self.pin is None:
+            LOGGER.warn(f"Can't start the car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
+            return
+
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.engine_start.pin = self._pin
+        message.commandRequest.engine_start.pin = self.pin
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End engine start for vin %s", vin)
@@ -411,9 +425,13 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start sunroof_open for vin %s", vin)
         message = client_pb2.ClientMessage()
 
+        if self.pin is None:
+            LOGGER.warn(f"Can't open the sunroof - car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
+            return
+
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.sunroof_open.pin = self._pin
+        message.commandRequest.sunroof_open.pin = self.pin
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End sunroof_open for vin %s", vin)
