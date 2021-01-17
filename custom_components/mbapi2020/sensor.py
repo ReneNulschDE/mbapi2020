@@ -66,7 +66,7 @@ class MercedesMESensor(MercedesMeEntity):
         if self._unit == LENGTH_KILOMETERS and \
            not self._hass.config.units.is_metric:
             return round(
-                distance.convert(self._state, LENGTH_KILOMETERS, LENGTH_MILES))
+                distance.convert(int(self._state), LENGTH_KILOMETERS, LENGTH_MILES))
         else:
             return self._state
 
