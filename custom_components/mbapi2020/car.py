@@ -105,6 +105,7 @@ BINARY_SENSOR_OPTIONS = [
     #'readingLampFrontLeft',
     'warningBrakeLiningWear',
     'warninglowbattery',
+    'starterBatteryState',
     'liquidRangeCritical',
     'tankCapOpenLamp']
 

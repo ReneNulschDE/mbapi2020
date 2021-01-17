@@ -111,15 +111,6 @@ BINARY_SENSORS = {
                                None,
                                None],
 
-
-    "warninglowbattery": ["Low Battery Warning",
-                          None,
-                          "binarysensors",
-                          "warninglowbattery",
-                          "value",
-                          None,
-                          None],
-
     "warningenginelight": ["Engine Light Warning",
                            None,
                            "binarysensors",
@@ -169,7 +160,8 @@ BINARY_SENSORS = {
                             "tireMarkerRearRight"
                             "tirewarningsrdk",
                             "tirewarningsprw",
-                        }]}
+                        }] 
+}
 
 DEVICE_TRACKER = {
     "tracker": ["Device Tracker", None, "location", "positionLong", "value", None,
@@ -289,4 +281,12 @@ SENSORS = {
                       "collisionAlarmTimestamp",
                       "interiorSensor",
                       "carAlarmReason"}],
+
+    "starterBatteryState": ["Starter Battery State",
+                            None,
+                            "binarysensors",
+                            "starterBatteryState",
+                            "value",
+                            None,
+                            {}]
 }

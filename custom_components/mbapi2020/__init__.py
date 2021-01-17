@@ -384,6 +384,8 @@ class MercedesMeEntity(Entity):
             "vin": self._vin,
         }
 
+        state = self.extend_attributes(state)
+
         for item in["display_value", "distance_unit", "retrievalstatus", "timestamp"]:
             value = self._get_car_value(
                     self._feature_name,
@@ -433,3 +435,36 @@ class MercedesMeEntity(Entity):
         Show latest data after startup.
         """
         self._car.add_update_listener(self.update_callback)
+
+    
+    
+    def extend_attributes(self, extended_attributes):
+
+
+        def default_extender(extended_attributes):
+            return extended_attributes
+
+        def starterBatteryState(extended_attributes):
+            extended_attributes["value_short"] = starterBatteryState_Values.get(self._state,["unknown", "unknown"])[0]
+            extended_attributes["value_description"] = starterBatteryState_Values.get(self._state,["unknown", "unknown"])[1]
+            return extended_attributes
+
+
+        attribut_extender ={
+            "starterBatteryState": starterBatteryState
+        } 
+
+        starterBatteryState_Values = {
+            "0" :["green", "Vehicle ok"],
+            "1" :["yellow", "Battery partly charged"],
+            "2" :["red", "Vehicle not available"],
+            "3" :["serviceDisabled", "Remote service disabled"],
+            "4" :["vehicleNotAvalable", "Vehicle no longer available"],
+        } 
+
+        func = attribut_extender.get(self._internal_name, default_extender)
+        return func(extended_attributes)
+
+
+
+   

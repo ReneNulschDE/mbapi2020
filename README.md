@@ -115,6 +115,18 @@ Depends on your own car or purchased Mercedes Benz licenses.
   electricconsumptionreset, endofchargetime, precondActive, maxrange, selectedChargeProgram, soc
   ```
 
+* Starter Battery State
+  ```
+  Internal Name: starterBatteryState
+  
+  Values     Description_short     Description_long
+  "0"        "green"               "Vehicle ok"
+  "1"        "yellow"              "Battery partly charged"
+  "2"        "red"                 "Vehicle not available"
+  "3"        "serviceDisabled"     "Remote service disabled"
+  "4"        "vehicleNotAvalable"  "Vehicle no longer available"],
+  ```
+
 
 ### Services
 Some services require that the security PIN is created in your mobile Android/IOS app. Please store the pin to the options-dialog of the integration 
