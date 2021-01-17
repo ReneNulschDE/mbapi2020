@@ -16,7 +16,7 @@ doors_lock:
       example: "Wxxxxxxxxxxxxxx"
 
 engine_start:
-  description: "Start the engine of a car defined by a vin."
+  description: "Start the engine of a car defined by a vin. PIN setup required. See options dialog of the integration."
   fields:
     vin:
       description: "vin of the car"
@@ -44,7 +44,7 @@ preheat_stop:
       example: "Wxxxxxxxxxxxxxx"
 
 sunroof_open:
-  description: "Open the sunroof of a car defined by a vin."
+  description: "Open the sunroof of a car defined by a vin. PIN setup required. See options dialog of the integration."
   fields:
     vin:
       description: "vin of the car"
@@ -52,6 +52,20 @@ sunroof_open:
 
 sunroof_close:
   description: "Close the sunroof of a car defined by a vin."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+
+windows_open:
+  description: "Open the windows of a car defined by a vin. PIN setup required. See options dialog of the integration."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+
+windows_close:
+  description: "Close the windows of a car defined by a vin."
   fields:
     vin:
       description: "vin of the car"

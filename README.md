@@ -15,7 +15,7 @@ IMPORTANT:
 
 ### Installation
 * First: This is not a Home Assistant Add-On. It's a custom component.
-* There are two ways to install. First you can download the folder custom_component and copy it into your Home-Assistant config folder. Second option is to install HACS (Home Assistant Custom Component Store) and this repo as a custom repository. (HACS, Integrations, three dots in the upper right corner, ...)
+* There are two ways to install. First you can download the folder custom_component and copy it into your Home-Assistant config folder. Second option is to install HACS (Home Assistant Custom Component Store) and add this repo as a custom repository. (HACS, Integrations, three dots in the upper right corner, ...)
 * [How to install a custom component?](https://www.google.com/search?q=how+to+install+custom+components+home+assistant) 
 * [How to install HACS?](https://hacs.xyz/docs/installation/prerequisites)
 ### Configuration
@@ -145,6 +145,11 @@ Some services require that the security PIN is created in your mobile Android/IO
 * sunroof_close:
   Close the sunroof of a car defined by a vin.
 
+* windows_open:
+  Open the windows of a car defined by a vin. PIN required.
+
+* windows_close:
+  Close the windows of a car defined by a vin.
   
 ### Logging
 

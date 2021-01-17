@@ -144,6 +144,14 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             await mercedes.client.oauth.async_get_cached_token()
             await mercedes.client.preheat_stop(call.data.get(CONF_VIN))
 
+        async def windows_open(call) -> None:
+            await mercedes.client.oauth.async_get_cached_token()
+            await mercedes.client.windows_open(call.data.get(CONF_VIN))
+
+        async def windows_close(call) -> None:
+            await mercedes.client.oauth.async_get_cached_token()
+            await mercedes.client.windows_close(call.data.get(CONF_VIN))
+
         hass.services.async_register(
             DOMAIN, SERVICE_REFRESH_TOKEN_URL, refresh_access_token
         )
@@ -171,12 +179,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         hass.services.async_register(
             DOMAIN, SERVICE_SUNROOF_CLOSE, sunroof_close, schema=SERVICE_VIN_SCHEMA
         )
-        #hass.services.async_register(
-        #    DOMAIN, SERVICE_WINDOWS_OPEN, windows_open, schema=SERVICE_VIN_SCHEMA
-        #)
-        #hass.services.async_register(
-        #    DOMAIN, SERVICE_WINDOWS_CLOSE, windows_close, schema=SERVICE_VIN_SCHEMA
-        #)
+        hass.services.async_register(
+            DOMAIN, SERVICE_WINDOWS_OPEN, windows_open, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_WINDOWS_CLOSE, windows_close, schema=SERVICE_VIN_SCHEMA
+        )
 
 
     except WebsocketError as err:

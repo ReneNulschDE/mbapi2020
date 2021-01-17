@@ -382,7 +382,6 @@ class Client: # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End Doors_unlock for vin %s", vin)
 
-
     async def doors_lock(self, vin: str):
         LOGGER.info("Start Doors_lock for vin %s", vin)
         message = client_pb2.ClientMessage()
@@ -471,14 +470,41 @@ class Client: # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End preheat_stop for vin %s", vin)
 
+    async def windows_open(self, vin: str):
+        LOGGER.info("Start windows_open for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        if self.pin is None:
+            LOGGER.warn(f"Can't open the windows - car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
+            return
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.windows_open.pin = self.pin
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End windows_open for vin %s", vin)
+
+    async def windows_close(self, vin: str):
+        LOGGER.info("Start windows_close for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        windows_close = pb2_commands.WindowsClose()
+        message.commandRequest.windows_close.CopyFrom(windows_close)
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End windows_close for vin %s", vin)
 
     def _write_debug_output(self, data, datatype):
-        LOGGER.debug(f"Start _write_debug_output")
-
-        path = self._debug_save_path
-        Path(path).mkdir(parents=True, exist_ok=True)
 
         if WRITE_DEBUG_OUTPUT:
+            LOGGER.debug(f"Start _write_debug_output")
+
+            path = self._debug_save_path
+            Path(path).mkdir(parents=True, exist_ok=True)
+
             f = open(f"{path}/{datatype}{int(round(time.time() * 1000))}" , "wb")
             f.write(data.SerializeToString())
             f.close()
@@ -488,10 +514,10 @@ class Client: # pylint: disable-too-few-public-methods
 
     def _write_debug_json_output(self, data, datatype):
 
-        path = self._debug_save_path
-        Path(path).mkdir(parents=True, exist_ok=True)
-
         if WRITE_DEBUG_OUTPUT:
+            path = self._debug_save_path
+            Path(path).mkdir(parents=True, exist_ok=True)
+
             f = open(f"{path}/{datatype}{int(round(time.time() * 1000))}.json" , "w")
             f.write(f"{data}")
             f.close()
