@@ -107,7 +107,8 @@ BINARY_SENSOR_OPTIONS = [
     'warninglowbattery',
     'starterBatteryState',
     'liquidRangeCritical',
-    'tankCapOpenLamp']
+    'tankCapOpenLamp',
+    'remoteStartActive']
 
 AUX_HEAT_OPTIONS = [
     'auxheatActive',
