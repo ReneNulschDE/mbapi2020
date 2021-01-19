@@ -70,6 +70,10 @@ Depends on your own car or purchased Mercedes Benz licenses.
   attributes: 
   windowstatusrearleft, windowstatusrearright, windowstatusfrontright, windowstatusfrontleft
   ```
+  
+* remoteStartActive
+
+* engineState
 
 
 ### Device Tracker
