@@ -20,7 +20,7 @@ ODOMETER_OPTIONS = [
     "gasconsumptionreset",
     "gasTankRange",
     "gasTankLevel",
-    "gasTankLevelPercent"
+    "gasTankLevelPercent",
     "liquidconsumptionstart",
     "liquidconsumptionreset",
     "liquidRangeSkipIndication",
