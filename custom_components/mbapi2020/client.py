@@ -240,12 +240,10 @@ class Client: # pylint: disable-too-few-public-methods
 
         if not update_mode:
             car._entry_setup_complete = True
-        
+
+        # Nimm jedes car (item) aus self.cars ausser es ist das aktuelle dann nimm car         
         self.cars = [car if item.finorvin == car.finorvin else item for item in self.cars]
         
-        #_car = next((item for item in self.cars if car.finorvin == item.finorvin), None)
-        #if _car is None:                                
-        #    self.cars.append(car)
 
 
     def _get_car_values(self, car_detail, car_id, classInstance, options, update):

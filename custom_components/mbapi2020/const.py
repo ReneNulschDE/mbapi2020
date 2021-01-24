@@ -161,7 +161,7 @@ BINARY_SENSORS = {
                             "tirewarningsrdk",
                             "tirewarningsprw",
                         }],
-    
+
     "remoteStartActive": ["Remote Start Active",
                                None,
                                "binarysensors",
@@ -169,7 +169,7 @@ BINARY_SENSORS = {
                                "value",
                                None,
                                None],
-    
+
     "engineState": ["Engine State",
                                None,
                                "binarysensors",

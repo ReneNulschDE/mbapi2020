@@ -337,17 +337,12 @@ class MercedesMeEntity(Entity):
         """Get the latest data and updates the states."""
         #LOGGER.("Updating %s", self._internal_name)
 
-        self._car = next(car for car in self._data.client.cars
-                         if car.finorvin == self._vin)
+        #self._car = next(car for car in self._data.client.cars
+        #                 if car.finorvin == self._vin)
 
-        new_state = self._get_car_value(
+        self._state = self._get_car_value(
             self._feature_name, self._object_name, self._attrib_name, "error"
         )
-
-        if new_state:
-            if new_state != self._state:
-                self._state = new_state
-                LOGGER.debug("Updated %s %s", self._internal_name, self._state)
 
     def _get_car_value(self, feature, object_name, attrib_name, default_value):
         value = None
@@ -438,7 +433,7 @@ class MercedesMeEntity(Entity):
     @property
     def should_poll(self):
         return False
- 
+
     def update_callback(self):
         """Schedule a state update."""
         self.schedule_update_ha_state(True)
@@ -449,9 +444,9 @@ class MercedesMeEntity(Entity):
         Show latest data after startup.
         """
         self._car.add_update_listener(self.update_callback)
+        self.async_schedule_update_ha_state(True)
 
-    
-    
+
     def extend_attributes(self, extended_attributes):
 
 

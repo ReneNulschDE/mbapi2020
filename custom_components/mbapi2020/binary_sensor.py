@@ -54,6 +54,11 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
     @property
     def is_on(self):
         """Return the state of the binary sensor."""
+
+        if self._state is None:
+            self.update()
+
+        LOGGER.debug("BinarySensor - car: %s - get is_on state for %s current _state %s", self._vin, self._internal_name, self._state)
         if self._state == "INACTIVE":
             return False
         if self._state == "ACTIVE":
@@ -66,9 +71,16 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
             return False
         if self._state == 1:
             return True
+        if self._state == "true":
+            return True
+        if self._state == "false":
+            return False
         if self._state == False:
             return False
         if self._state == True:
             return True
+
+        LOGGER.debug("BinarySensor - car: %s - unknown is_on state for %s current _state %s", self._vin, self._internal_name, self._state)
+
 
         return self._state
