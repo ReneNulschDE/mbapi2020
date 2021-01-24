@@ -160,7 +160,23 @@ BINARY_SENSORS = {
                             "tireMarkerRearRight"
                             "tirewarningsrdk",
                             "tirewarningsprw",
-                        }] 
+                        }],
+    
+    "remoteStartActive": ["Remote Start Active",
+                               None,
+                               "binarysensors",
+                               "remoteStartActive",
+                               "value",
+                               None,
+                               None],
+    
+    "engineState": ["Engine State",
+                               None,
+                               "binarysensors",
+                               "engineState",
+                               "value",
+                               None,
+                               None]
 }
 
 DEVICE_TRACKER = {
