@@ -152,6 +152,9 @@ class Client: # pylint: disable-too-few-public-methods
 
             if (msg_type == "apptwin_command_status_updates_by_vin"):
                 LOGGER.debug(f"apptwin_command_status_updates_by_vin - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
+                
+                self._process_apptwin_command_status_updates_by_vin(data)
+
                 sequence_number = data.apptwin_command_status_updates_by_vin.sequence_number
                 LOGGER.debug("apptwin_command_status_updates_by_vin: %s", sequence_number)
                 ack_command = client_pb2.ClientMessage()
@@ -164,7 +167,7 @@ class Client: # pylint: disable-too-few-public-methods
                 return
 
             if (msg_type == "assigned_vehicles"):
-                LOGGER.debug("assigned_vehicles")
+                #LOGGER.debug("assigned_vehicles")
                 
                 self._process_assigned_vehicles(data)
                 
@@ -379,6 +382,54 @@ class Client: # pylint: disable-too-few-public-methods
             if load_complete:
                 self._on_dataload_complete()
                 self._dataload_complete_fired = True
+
+
+    def _process_apptwin_command_status_updates_by_vin(self, data):
+        LOGGER.debug(f"Start _process_assigned_vehicles")
+
+        # Don't understand the protobuf dict errors --> convert to json 
+        js = json.loads(MessageToJson(data, preserving_proto_field_name=True))
+
+        self._write_debug_output(data, "acr")
+
+        if js["apptwin_command_status_updates_by_vin"]:
+            if js["apptwin_command_status_updates_by_vin"]["updates_by_vin"]:
+                
+                car = list(js["apptwin_command_status_updates_by_vin"]["updates_by_vin"].keys())[0]
+                car = js["apptwin_command_status_updates_by_vin"]["updates_by_vin"][car]
+                vin = car.get("vin", None)
+                if vin:
+                    if car["updates_by_pid"]:
+                        command = list(car["updates_by_pid"].keys())[0]
+                        command = car["updates_by_pid"][command]
+                        if command:
+                            command_type = command.get("type")
+                            command_state = command.get("state")
+                            command_error_code = ""
+                            command_error_message = ""
+                            if command.get("errors"):
+                                for err in command["errors"]:
+                                    command_error_code = err.get("code")
+                                    command_error_message = err.get("message")
+                                    LOGGER.warn("Car action: %s failed. error_code: %s, error_message: %s",
+                                                command_type,
+                                                command_error_code,
+                                                command_error_message)
+                            
+                            current_car = next(car for car in self.cars
+                                   if car.finorvin == vin)
+                            if current_car:
+                                current_car._last_command_type = command_type
+                                current_car._last_command_state = command_state
+                                current_car._last_command_error_code = command_error_code
+                                current_car._last_command_error_message = command_error_message
+                                current_car._last_command_time_stamp = command.get("timestamp_in_ms",0)
+
+                                for listener in current_car._update_listeners:
+                                    listener()
+
+
+
 
 
     async def doors_unlock(self, vin: str):

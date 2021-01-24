@@ -155,6 +155,11 @@ class Car(object):
         self.finorvin = None
         self._messages_received = collections.Counter(f=0, p=0) 
         self._last_message_received = 0
+        self._last_command_type = ""
+        self._last_command_state = ""
+        self._last_command_error_code = ""
+        self._last_command_error_message = ""
+        self._last_command_time_stamp = 0
 
         self.binarysensors = None
         self.tires = None
@@ -188,6 +193,26 @@ class Car(object):
                 None)
 
         return CarAttribute(None, "NOT_RECEIVED", None)
+
+    @property
+    def last_command_type(self):
+        return CarAttribute(
+            self._last_command_type, "VALID", self._last_command_time_stamp)
+
+    @property
+    def last_command_state(self):
+        return CarAttribute(
+            self._last_command_state, "VALID", self._last_command_time_stamp)
+
+    @property
+    def last_command_error_code(self):
+        return CarAttribute(
+            self._last_command_error_code, "VALID", self._last_command_time_stamp)
+
+    @property
+    def last_command_error_message(self):
+        return CarAttribute(
+            self._last_command_error_message, "VALID", self._last_command_time_stamp)
 
 
     def add_update_listener(self, listener):

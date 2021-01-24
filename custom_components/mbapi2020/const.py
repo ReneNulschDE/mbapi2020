@@ -189,7 +189,11 @@ SENSORS = {
     "car":  ["Car", None, None, "full_update_messages_received", "value", None,
              {
                  'partital_update_messages_received',
-                 'last_message_received'
+                 'last_message_received',
+                 'last_command_type',
+                 'last_command_state',
+                 'last_command_error_code',
+                 'last_command_error_message'
              } 
     ], 
     "lock": ["Lock", None, "doors", "doorlockstatusvehicle", "value", None,
