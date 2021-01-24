@@ -70,7 +70,7 @@ Depends on your own car or purchased Mercedes Benz licenses.
   attributes: 
   windowstatusrearleft, windowstatusrearright, windowstatusfrontright, windowstatusfrontleft
   ```
-  
+
 * remoteStartActive
 
 * engineState
@@ -102,7 +102,10 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
 * Fuel Level (%)
 
-  `attributes: tankLevelAdBlue`
+  ```
+  attributes: 
+  tankLevelAdBlue
+  ```
 
 * odometer
   
@@ -129,6 +132,12 @@ Depends on your own car or purchased Mercedes Benz licenses.
   "2"        "red"                 "Vehicle not available"
   "3"        "serviceDisabled"     "Remote service disabled"
   "4"        "vehicleNotAvalable"  "Vehicle no longer available"],
+  ```
+
+* Car
+  ```
+  attributes: 
+  full_update_messages_received, partital_update_messages_received, last_message_received, last_command_type, last_command_state, last_command_error_code, last_command_error_message
   ```
 
 
