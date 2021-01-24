@@ -157,7 +157,7 @@ BINARY_SENSORS = {
                             "tireMarkerFrontRight",
                             "tireMarkerFrontLeft",
                             "tireMarkerRearLeft",
-                            "tireMarkerRearRight"
+                            "tireMarkerRearRight",
                             "tirewarningsrdk",
                             "tirewarningsprw",
                         }],
