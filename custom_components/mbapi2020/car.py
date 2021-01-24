@@ -79,6 +79,7 @@ DOOR_OPTIONS = [
     'doorstatusfrontleft',
     'rooftopstatus',
     'sunroofstatus',
+    'engineHoodStatus'
 ]
 
 ELECTRIC_OPTIONS = [

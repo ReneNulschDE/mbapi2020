@@ -214,6 +214,7 @@ SENSORS = {
                 'doorstatusfrontleft',
                 'rooftopstatus',
                 'sunroofstatus',
+                'engineHoodStatus'
              }],
 
     "rangeElectricKm": ["Range Electric", LENGTH_KILOMETERS,
