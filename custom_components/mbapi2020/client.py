@@ -266,7 +266,15 @@ class Client: # pylint: disable-too-few-public-methods
                         status,
                         ts,
                         distance_unit= curr.get("distance_unit", None),
-                        display_value= curr.get("display_value", None)
+                        display_value= curr.get("display_value", None),
+                        unit = curr.get("distance_unit",
+                            curr.get("ratio_unit",
+                                curr.get("clock_hour_unit",
+                                    curr.get("gas_consumption_unit",
+                                        curr.get("pressure_unit",
+                                            curr.get("electricity_consumption_unit",
+                                                curr.get("distance_unit",
+                                                    curr.get("combustion_consumption_unit", None))))))))
                     )
                     # Set the value only if the timestamp is higher
                     if float(ts) > float(self._get_car_value(classInstance, option, "ts", 0)):

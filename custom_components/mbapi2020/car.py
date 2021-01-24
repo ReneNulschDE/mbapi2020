@@ -291,9 +291,10 @@ class Location(object):
 
 
 class CarAttribute(object):
-    def __init__(self, value, retrievalstatus, timestamp, distance_unit=None, display_value=None):
+    def __init__(self, value, retrievalstatus, timestamp, distance_unit=None, display_value=None, unit=None):
         self.value = value
         self.retrievalstatus = retrievalstatus
         self.timestamp = timestamp
         self.distance_unit = distance_unit
         self.display_value = display_value
+        self.unit = unit

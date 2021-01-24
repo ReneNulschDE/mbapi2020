@@ -391,7 +391,7 @@ class MercedesMeEntity(Entity):
             if value:
                 state["original_value"] = value
 
-        for item in["distance_unit", "retrievalstatus", "timestamp"]:
+        for item in["distance_unit", "retrievalstatus", "timestamp", "unit"]:
             value = self._get_car_value(
                     self._feature_name,
                     self._object_name,
