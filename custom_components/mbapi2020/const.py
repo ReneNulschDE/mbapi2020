@@ -308,5 +308,12 @@ SENSORS = {
                             "starterBatteryState",
                             "value",
                             None,
-                            {}]
+                            {}],
+    "ignitionstate": ["Ignition State",
+                      None,
+                      "odometer",
+                      "ignitionstate",
+                      "value",
+                      None,
+                      {}]
 }

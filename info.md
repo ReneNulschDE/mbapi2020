@@ -134,6 +134,18 @@ Depends on your own car or purchased Mercedes Benz licenses.
   "4"        "vehicleNotAvalable"  "Vehicle no longer available"],
   ```
 
+* Ignition state
+  ```
+  Internal Name: ignitionstate
+
+  Values     Description_short     Description_long
+  "0"        "lock"                "Ignition lock"
+  "1"        "off"                 "Ignition off"
+  "2"        "accessory"           "Ignition accessory"
+  "4"        "on"                  "Ignition on"
+  "5"        "start"               "Ignition start"],
+  ```
+
 * Car
   ```
   attributes: 

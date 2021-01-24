@@ -454,16 +454,29 @@ class MercedesMeEntity(Entity):
             return extended_attributes
 
         def starterBatteryState(extended_attributes):
-            extended_attributes["value_short"] = starterBatteryState_Values.get(self._state,["unknown", "unknown"])[0]
-            extended_attributes["value_description"] = starterBatteryState_Values.get(self._state,["unknown", "unknown"])[1]
+            extended_attributes["value_short"] = starterBatteryState_values.get(self._state,["unknown", "unknown"])[0]
+            extended_attributes["value_description"] = starterBatteryState_values.get(self._state,["unknown", "unknown"])[1]
+            return extended_attributes
+
+        def ignitionstate_state(extended_attributes):
+            extended_attributes["value_short"] = ignitionstate_values.get(self._state,["unknown", "unknown"])[0]
+            extended_attributes["value_description"] = ignitionstate_values.get(self._state,["unknown", "unknown"])[1]
             return extended_attributes
 
 
         attribut_extender ={
-            "starterBatteryState": starterBatteryState
+            "starterBatteryState": starterBatteryState,
+            "ignitionstate": ignitionstate_state
         } 
 
-        starterBatteryState_Values = {
+        ignitionstate_values = {
+            "0" :["lock", "Ignition lock"],
+            "1" :["off", "Ignition off"],
+            "2" :["accessory", "Ignition accessory"],
+            "4" :["on", "Ignition on"],
+            "5" :["start", "Ignition start"],
+        }
+        starterBatteryState_values = {
             "0" :["green", "Vehicle ok"],
             "1" :["yellow", "Battery partly charged"],
             "2" :["red", "Vehicle not available"],

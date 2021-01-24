@@ -31,7 +31,8 @@ ODOMETER_OPTIONS = [
     "tankReserveLamp",
     "batteryState",
     "tankLevelAdBlue",
-    "vehicleDataConnectionState"]
+    "vehicleDataConnectionState",
+    "ignitionstate"]
 
 LOCATION_OPTIONS = [
     "positionLat",
