@@ -4,6 +4,7 @@ from typing import Optional
 from homeassistant.components.device_tracker import SOURCE_TYPE_GPS
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import slugify
 
 from . import MercedesMeEntity
@@ -50,7 +51,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities(sensor_list, True)
 
 
-class MercedesMEDeviceTracker(TrackerEntity):
+class MercedesMEDeviceTracker(TrackerEntity, RestoreEntity):
 
     """A class representing a Mercedes ME device tracker."""
     def __init__(

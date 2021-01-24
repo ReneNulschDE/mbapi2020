@@ -189,8 +189,8 @@ class Client: # pylint: disable-too-few-public-methods
 
         car = next((item for item in self.cars if c.get("vin") == item.finorvin), None)
 
-        car.messages_received.update("p" if update_mode else "f")
-        car.last_message_received = int(round(time.time() * 1000))
+        car._messages_received.update("p" if update_mode else "f")
+        car._last_message_received = int(round(time.time() * 1000))
 
         car.odometer = self._get_car_values(
             c, car.finorvin, Odometer() if not car.odometer else car.odometer, ODOMETER_OPTIONS, update_mode)
@@ -257,9 +257,9 @@ class Client: # pylint: disable-too-few-public-methods
 
                 curr = car_detail["attributes"].get(option)
                 if curr is not None:
-                    value = curr.get("value",curr.get("int_value",curr.get("double_value",curr.get("bool_value",curr.get("nil_value",-1)))))
+                    value = curr.get("value",curr.get("int_value",curr.get("double_value",curr.get("bool_value",-1))))
                     status = curr.get("status", "VALID")
-                    ts = curr.get("timestamp")
+                    ts = curr.get("timestamp", 0)
                     curr_status = CarAttribute(
                         value,
                         status,
@@ -267,7 +267,11 @@ class Client: # pylint: disable-too-few-public-methods
                         distance_unit= curr.get("distance_unit", None),
                         display_value= curr.get("display_value", None)
                     )
-                    setattr(classInstance, option, curr_status)
+                    # Set the value only if the timestamp is higher
+                    if float(ts) > float(self._get_car_value(classInstance, option, "ts", 0)):
+                        setattr(classInstance, option, curr_status)
+                    else:
+                        LOGGER.warn("get_car_values %s older attribute %s data received. ignoring value.", car_id, option)
                 else:
                     # Do not set status for non existing values on partial update
                     if not update:
@@ -277,6 +281,16 @@ class Client: # pylint: disable-too-few-public-methods
                 setattr(classInstance, option, CarAttribute(-1, -1, None))
 
         return classInstance
+
+    def _get_car_value(self, class_instance, object_name, attrib_name, default_value):
+        value = None
+
+        value = getattr(
+                    getattr(class_instance, object_name, default_value),
+                        attrib_name,
+                        default_value,
+        )
+        return value
 
 
     def _process_vep_updates(self, data):
@@ -326,7 +340,7 @@ class Client: # pylint: disable-too-few-public-methods
 
         if not self._dataload_complete_fired:
             for car in self.cars:
-                LOGGER.debug(f"_process_vep_updates - {car.finorvin} - complete: {car._entry_setup_complete} - {car.messages_received}")
+                LOGGER.debug(f"_process_vep_updates - {car.finorvin} - complete: {car._entry_setup_complete} - {car._messages_received}")
 
 
     def _process_assigned_vehicles(self, data):
@@ -353,9 +367,9 @@ class Client: # pylint: disable-too-few-public-methods
             load_complete = True
             current_time =  int(round(time.time() * 1000))
             for car in self.cars:
-                LOGGER.debug(f"_process_assigned_vehicles - {car.finorvin} - {car._entry_setup_complete} - {car.messages_received} - {current_time - car.last_message_received} ")
+                LOGGER.debug(f"_process_assigned_vehicles - {car.finorvin} - {car._entry_setup_complete} - {car._messages_received} - {current_time - car._last_message_received} ")
 
-                if car.last_message_received > 0 and current_time - car.last_message_received > 30000:
+                if car._last_message_received > 0 and current_time - car._last_message_received > 30000:
                     LOGGER.debug("No Full Update Message received - Force car entry setup complete for car %s", car.finorvin)
                     car._entry_setup_complete = True
 

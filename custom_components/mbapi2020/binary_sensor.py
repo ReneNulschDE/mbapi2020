@@ -8,6 +8,7 @@ https://github.com/ReneNulschDE/mbapi2020/
 import logging
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity
 
@@ -47,7 +48,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(sensors, True)
 
 
-class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity):
+class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity):
     """Representation of a Sensor."""
 
     @property

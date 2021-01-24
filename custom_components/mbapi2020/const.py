@@ -186,11 +186,12 @@ DEVICE_TRACKER = {
              }]}
 
 SENSORS = {
-#    "car":  ["Car", None, None, None, "last_message_received", None,
-#             {
-#                 'messages_received'
-#             } 
-#    ], 
+    "car":  ["Car", None, None, "full_update_messages_received", "value", None,
+             {
+                 'partital_update_messages_received',
+                 '_last_message_received'
+             } 
+    ], 
     "lock": ["Lock", None, "doors", "doorlockstatusvehicle", "value", None,
              {
                 'decklidstatus',

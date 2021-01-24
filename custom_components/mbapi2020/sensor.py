@@ -4,6 +4,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_registry import async_get_registry
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from homeassistant.const import (
     LENGTH_KILOMETERS,
@@ -53,7 +54,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 
 
-class MercedesMESensor(MercedesMeEntity):
+class MercedesMESensor(MercedesMeEntity, RestoreEntity):
     """Representation of a Sensor."""
 
     @property
@@ -71,3 +72,12 @@ class MercedesMESensor(MercedesMeEntity):
             return self._state
 
 
+    async def async_added_to_hass(self) -> None:
+        """Call when entity about to be added to Home Assistant."""
+        await super().async_added_to_hass()
+        # __init__ will set self._state to self._initial, only override
+        # if needed.
+        state = await self.async_get_last_state()
+        if state is not None:
+            self._state = state.state
+            #self._config[CONF_INITIAL] = state.attributes.get(ATTR_INITIAL)

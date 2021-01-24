@@ -1,4 +1,5 @@
 import collections
+from datetime import datetime
 
 ODOMETER_OPTIONS = [
     "odo",
@@ -152,25 +153,13 @@ class Car(object):
     def __init__(self):
         self.licenseplate = None
         self.finorvin = None
-        self.salesdesignation = None
-        self.nickname = None
-        self.modelyear = None
-        self.colorname = None
-        self.fueltype = None
-        self.powerhp = None
-        self.powerkw = None
-        self.numberofdoors = None
-        self.numberofseats = None
-        self.vehicle_title = None
-        self.messages_received = collections.Counter(f=0, p=0)
-        self.last_message_received = 0
+        self._messages_received = collections.Counter(f=0, p=0) 
+        self._last_message_received = 0
 
-        self.vehicleHealthStatus = None
         self.binarysensors = None
         self.tires = None
         self.odometer = None
         self.doors = None
-        self.stateofcharge = None
         self.location = None
         self.windows = None
         self.features = None
@@ -180,6 +169,28 @@ class Car(object):
         self.car_alarm = None
         self._entry_setup_complete = False
         self._update_listeners =[] 
+
+    @property
+    def full_update_messages_received(self):
+        return CarAttribute(
+            self._messages_received["f"],
+            "VALID",
+            None)
+
+    @property
+    def partital_update_messages_received(self):
+        return CarAttribute(
+            self._messages_received["p"], "VALID", None)
+
+    @property
+    def last_message_received(self):
+        if self._last_message_received > 0:
+            return CarAttribute(datetime.fromtimestamp(int(self._last_message_received)),
+                "VALID",
+                None)
+
+        return CarAttribute(None, "NOT_RECEIVED", None)
+
 
     def add_update_listener(self, listener):
         """Add a listener for update notifications."""

@@ -107,7 +107,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             c = Car()
             c.finorvin = car.get('fin')
             c.licenseplate = car.get('licensePlate', car.get('fin'))
-            c.last_message_received = int(round(time.time() * 1000))
+            c._last_message_received = int(round(time.time() * 1000))
             mercedes.client.cars.append(c)
             LOGGER.debug("Init - car added - %s", c.finorvin)
 
@@ -116,7 +116,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             c = Car()
             c.finorvin = "F123456789"
             c.licenseplate = "U-DV 1234"
-            c.last_message_received = int(round(time.time() * 1000))
+            c._last_message_received = int(round(time.time() * 1000))
             mercedes.client.cars.append(c)
             LOGGER.debug("Init - car added - %s", c.finorvin)
             dev_reg = await hass.helpers.device_registry.async_get_registry()
