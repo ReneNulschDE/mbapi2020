@@ -64,12 +64,7 @@ class MercedesMESensor(MercedesMeEntity, RestoreEntity):
         if self.device_retrieval_status == "NOT_RECEIVED":
             return "NOT_RECEIVED"
 
-        if self._unit == LENGTH_KILOMETERS and \
-           not self._hass.config.units.is_metric:
-            return round(
-                distance.convert(int(self._state), LENGTH_KILOMETERS, LENGTH_MILES))
-        else:
-            return self._state
+        return self._state
 
 
     async def async_added_to_hass(self) -> None:
@@ -80,4 +75,4 @@ class MercedesMESensor(MercedesMeEntity, RestoreEntity):
         state = await self.async_get_last_state()
         if state is not None:
             self._state = state.state
-            #self._config[CONF_INITIAL] = state.attributes.get(ATTR_INITIAL)
+

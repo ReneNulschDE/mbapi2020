@@ -189,7 +189,7 @@ SENSORS = {
     "car":  ["Car", None, None, "full_update_messages_received", "value", None,
              {
                  'partital_update_messages_received',
-                 '_last_message_received'
+                 'last_message_received'
              } 
     ], 
     "lock": ["Lock", None, "doors", "doorlockstatusvehicle", "value", None,
@@ -214,9 +214,8 @@ SENSORS = {
 
     "rangeElectricKm": ["Range Electric", LENGTH_KILOMETERS,
                         "electric", "rangeelectric",
-                        "value", None,
+                        "display_value", None,
                         {
-                            'rangeelectric',
                             'chargingactive',
                             'chargingstatus',
                             'distanceElectricalReset',
@@ -251,7 +250,7 @@ SENSORS = {
                          }],
 
     "odometer": ["Odometer", LENGTH_KILOMETERS, "odometer", "odo",
-                 "value", None,
+                 "display_value", None,
                  {
                      "averageSpeedReset",
                      "averageSpeedStart",

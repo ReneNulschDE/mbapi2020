@@ -173,9 +173,7 @@ class Car(object):
     @property
     def full_update_messages_received(self):
         return CarAttribute(
-            self._messages_received["f"],
-            "VALID",
-            None)
+            self._messages_received["f"], "VALID", None)
 
     @property
     def partital_update_messages_received(self):
@@ -185,7 +183,7 @@ class Car(object):
     @property
     def last_message_received(self):
         if self._last_message_received > 0:
-            return CarAttribute(datetime.fromtimestamp(int(self._last_message_received)),
+            return CarAttribute(datetime.fromtimestamp(int(round(self._last_message_received / 1000))),
                 "VALID",
                 None)
 

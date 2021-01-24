@@ -282,7 +282,7 @@ class MercedesMeEntity(Entity):
         """Initialize the MercedesMe entity."""
         self._hass = hass
         self._data = data
-        self._state = False
+        self._state = None
         self._name = f"{licenseplate} {sensor_name}"
         self._internal_name = internal_name
         self._internal_unit = unit
@@ -386,7 +386,17 @@ class MercedesMeEntity(Entity):
 
         state = self.extend_attributes(state)
 
-        for item in["display_value", "distance_unit", "retrievalstatus", "timestamp"]:
+        if self._attrib_name == "display_value":
+            value = self._get_car_value(
+                    self._feature_name,
+                    self._object_name,
+                    "value",
+                    None
+                )
+            if value:
+                state["original_value"] = value
+
+        for item in["distance_unit", "retrievalstatus", "timestamp"]:
             value = self._get_car_value(
                     self._feature_name,
                     self._object_name,
@@ -404,8 +414,12 @@ class MercedesMeEntity(Entity):
 
                 if retrievalstatus == "VALID":
                     state[attrib] = self._get_car_value(
-                        self._feature_name, attrib, "value", "error"
+                        self._feature_name, attrib, "display_value", None
                     )
+                    if not state[attrib]:
+                        state[attrib] = self._get_car_value(
+                            self._feature_name, attrib, "value", "error"
+                        )
 
                 if retrievalstatus == "NOT_RECEIVED":
                     state[attrib] = "NOT_RECEIVED"

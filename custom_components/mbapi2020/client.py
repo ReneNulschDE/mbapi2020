@@ -485,7 +485,6 @@ class Client: # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End preheat_start_departure_time for vin %s", vin)
 
-
     async def preheat_stop(self, vin: str):
         LOGGER.info("Start preheat_stop for vin %s", vin)
         message = client_pb2.ClientMessage()
