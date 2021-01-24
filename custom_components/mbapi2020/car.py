@@ -46,7 +46,7 @@ TIRE_OPTIONS = [
     "tirepressureFrontLeft",
     "tirewarninglamp",
     "tirewarningsrdk",
-    "tirewarningsprw"
+    "tirewarningsprw",
     "tireMarkerFrontRight",
     "tireMarkerFrontLeft",
     "tireMarkerRearLeft",
