@@ -52,7 +52,9 @@ from .const import (
     SERVICE_WINDOWS_OPEN,
     SERVICE_VIN_SCHEMA,
     SERVICE_VIN_TIME_SCHEMA,
-    VERIFY_SSL
+    VERIFY_SSL,
+    Sensor_Config_Fields as scf
+
 )
 from .car import Car
 from .client import Client
@@ -269,35 +271,30 @@ class MercedesMeEntity(Entity):
         hass,
         data,
         internal_name,
-        sensor_name,
-        vin,
-        unit,
-        licenseplate,
-        feature_name,
-        object_name,
-        attrib_name,
-        extended_attributes,
-        **kwargs,
+        sensor_config,
+        vin
     ):
         """Initialize the MercedesMe entity."""
         self._hass = hass
         self._data = data
-        self._state = None
-        self._name = f"{licenseplate} {sensor_name}"
-        self._internal_name = internal_name
-        self._internal_unit = unit
-        self._sensor_name = sensor_name
-        self._unit = unit
         self._vin = vin
-        self._feature_name = feature_name
-        self._object_name = object_name
-        self._attrib_name = attrib_name
-        self._licenseplate = licenseplate
-        self._extended_attributes = extended_attributes
-        self._kwargs = kwargs
+        self._internal_name = internal_name
+        self._sensor_config = sensor_config
+
+        self._state = None
+        self._sensor_name = sensor_config[scf.DISPLAY_NAME.value]
+        self._internal_unit = sensor_config[scf.UNIT_OF_MEASUREMENT.value]
+        self._unit = sensor_config[scf.UNIT_OF_MEASUREMENT.value]
+        self._feature_name = sensor_config[scf.OBJECT_NAME.value]
+        self._object_name = sensor_config[scf.ATTRIBUTE_NAME.value]
+        self._attrib_name = sensor_config[scf.VALUE_FIELD_NAME.value]
+        self._extended_attributes = sensor_config[scf.EXTENDED_ATTRIBUTE_LIST.value]
         self._unique_id = slugify(f"{self._vin}_{self._internal_name}")
         self._car = next(car for car in self._data.client.cars
                          if car.finorvin == self._vin)
+
+        self._licenseplate = self._car.licenseplate
+        self._name = f"{self._licenseplate} {self._sensor_name}"
 
 #        conf = hass.data[DOMAIN].config
 #        if conf.get(CONF_CARS) is not None:
@@ -333,42 +330,9 @@ class MercedesMeEntity(Entity):
             "identifiers": {(DOMAIN, self._vin)}
         }
 
-    def update(self):
-        """Get the latest data and updates the states."""
-        #LOGGER.("Updating %s", self._internal_name)
-
-        #self._car = next(car for car in self._data.client.cars
-        #                 if car.finorvin == self._vin)
-
-        self._state = self._get_car_value(
-            self._feature_name, self._object_name, self._attrib_name, "error"
-        )
-
-    def _get_car_value(self, feature, object_name, attrib_name, default_value):
-        value = None
-
-        if object_name:
-            if not feature:
-                value = getattr(
-                    getattr(self._car, object_name, default_value),
-                    attrib_name,
-                    default_value,
-                )
-            else:
-                value = getattr(
-                    getattr(
-                        getattr(self._car, feature, default_value),
-                        object_name,
-                        default_value,
-                    ),
-                    attrib_name,
-                    default_value,
-                )
-
-        else:
-            value = getattr(self._car, attrib_name, default_value)
-
-        return value
+    @ property
+    def device_class(self):
+        return self._sensor_config[scf.DEVICE_CLASS.value] 
 
     @property
     def device_state_attributes(self):
@@ -429,10 +393,47 @@ class MercedesMeEntity(Entity):
         else:
             return self._unit
 
-
     @property
     def should_poll(self):
         return False
+
+
+    def update(self):
+        """Get the latest data and updates the states."""
+        #LOGGER.("Updating %s", self._internal_name)
+
+        #self._car = next(car for car in self._data.client.cars
+        #                 if car.finorvin == self._vin)
+
+        self._state = self._get_car_value(
+            self._feature_name, self._object_name, self._attrib_name, "error"
+        )
+
+    def _get_car_value(self, feature, object_name, attrib_name, default_value):
+        value = None
+
+        if object_name:
+            if not feature:
+                value = getattr(
+                    getattr(self._car, object_name, default_value),
+                    attrib_name,
+                    default_value,
+                )
+            else:
+                value = getattr(
+                    getattr(
+                        getattr(self._car, feature, default_value),
+                        object_name,
+                        default_value,
+                    ),
+                    attrib_name,
+                    default_value,
+                )
+
+        else:
+            value = getattr(self._car, attrib_name, default_value)
+
+        return value
 
     def update_callback(self):
         """Schedule a state update."""
@@ -445,7 +446,6 @@ class MercedesMeEntity(Entity):
         """
         self._car.add_update_listener(self.update_callback)
         self.async_schedule_update_ha_state(True)
-
 
     def extend_attributes(self, extended_attributes):
 

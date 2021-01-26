@@ -30,18 +30,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
         for key, value in sorted(BINARY_SENSORS.items()):
             device = MercedesMEBinarySensor(
-                hass,
-                data,
-                key,
-                value[0],
-                car.finorvin,
-                value[1],
-                car.licenseplate,
-                value[2],
-                value[3],
-                value[4],
-                value[6],
-            )
+                hass=hass,
+                data=data,
+                internal_name = key,
+                sensor_config = value,
+                vin = car.finorvin
+                )
             if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] :
                 sensors.append(device)
 
