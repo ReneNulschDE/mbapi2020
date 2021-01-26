@@ -131,7 +131,7 @@ Depends on your own car or purchased Mercedes Benz licenses.
   "1"        "yellow"              "Battery partly charged"
   "2"        "red"                 "Vehicle not available"
   "3"        "serviceDisabled"     "Remote service disabled"
-  "4"        "vehicleNotAvalable"  "Vehicle no longer available"],
+  "4"        "vehicleNotAvalable"  "Vehicle no longer available"
   ```
 
 * Ignition state
@@ -143,13 +143,18 @@ Depends on your own car or purchased Mercedes Benz licenses.
   "1"        "off"                 "Ignition off"
   "2"        "accessory"           "Ignition accessory"
   "4"        "on"                  "Ignition on"
-  "5"        "start"               "Ignition start"],
+  "5"        "start"               "Ignition start"
   ```
 
 * Car
   ```
   attributes: 
   full_update_messages_received, partital_update_messages_received, last_message_received, last_command_type, last_command_state, last_command_error_code, last_command_error_message
+  ```
+
+* Oil Level in percent
+  ```
+  attributes: 
   ```
 
 
