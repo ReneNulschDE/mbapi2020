@@ -283,7 +283,8 @@ SENSORS = {
                                     'doorstatusfrontleft',
                                     'rooftopstatus',
                                     'sunroofstatus',
-                                    'engineHoodStatus'
+                                    'engineHoodStatus',
+                                    'tankCapOpenLamp'
                                 },
                                 "mdi:car-key",
                                 None,
@@ -432,6 +433,17 @@ SENSORS = {
                                 "mdi:key-wireless",
                                 None,
                                 False],
+
+    "oilLevel":[                "Oil Level",
+                                "%",
+                                "odometer",
+                                "oilLevel",
+                                "value",
+                                None,
+                                {},
+                                "mdi:oil-level",
+                                None,
+                                False ] 
 }
 
 class Sensor_Config_Fields(Enum):

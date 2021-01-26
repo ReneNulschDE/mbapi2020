@@ -394,6 +394,11 @@ class MercedesMeEntity(Entity):
             return self._unit
 
     @property
+    def icon(self):
+        """Return the icon."""
+        return self._sensor_config[scf.ICON.value] 
+
+    @property
     def should_poll(self):
         return False
 
