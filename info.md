@@ -1,7 +1,5 @@
 # mercedesme2020
 
-> :warning: **This is a very early version**
-
 
 MercedesME platform as a Custom Component for Home Assistant.
 
@@ -9,9 +7,9 @@ IMPORTANT:
 
 * Please login once in the MercedesME IOS or Android app before you install this component. (For North America, the app name is Mercedes Me Connect)
 
-* Tested Countries: BE, DE, ES, FI, IT, IR, NL, NO, PT, SE, UK
+* Tested Countries: BE, CA, DE, ES, FI, IT, IR, NL, NO, PT, SE, UK, US
 
-* North America: first release (pre-alpha) and for Cars 2019 or newer
+* North America: For Cars 2019 or newer only
 
 ### Installation
 * First: This is not a Home Assistant Add-On. It's a custom component.
@@ -82,6 +80,12 @@ Depends on your own car or purchased Mercedes Benz licenses.
   attributes:
   positionHeading
   ```
+
+### Locks
+
+* lock
+  PIN setup in MB App is required. If the pin is not set in the integration options then the lock asks for the PIN.
+
 
 ### Sensors
 

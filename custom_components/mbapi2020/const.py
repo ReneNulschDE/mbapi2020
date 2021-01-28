@@ -14,7 +14,7 @@ from homeassistant.helpers import (
 
 MERCEDESME_COMPONENTS = [
     "sensor",
-#    "lock",
+    "lock",
     "binary_sensor",
     "device_tracker",
 #    "switch"
@@ -260,7 +260,7 @@ SENSORS = {
                                 None,
                                 False],
 
-    "lock": [                   "Lock",
+    "lock": [                  "Lock",
                                 None,
                                 "doors",
                                 "doorlockstatusvehicle",
@@ -444,6 +444,19 @@ SENSORS = {
                                 "mdi:oil-level",
                                 None,
                                 False ] 
+}
+
+LOCKS = {
+    "lock": [                   "Lock",
+                                None,
+                                "doors",
+                                "doorLockStatusOverall",
+                                "value",
+                                None,
+                                {},
+                                "mdi:lock",
+                                None,
+                                False]
 }
 
 class Sensor_Config_Fields(Enum):

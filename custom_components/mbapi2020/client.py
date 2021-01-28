@@ -439,19 +439,30 @@ class Client: # pylint: disable-too-few-public-methods
 
 
     async def doors_unlock(self, vin: str):
-        LOGGER.info("Start Doors_unlock for vin %s", vin)
         message = client_pb2.ClientMessage()
 
         if self.pin is None:
             LOGGER.warn(f"Can't unlock car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
             return
 
+        await self.doors_unlock_with_pin(vin, self.pin)
+
+
+    async def doors_unlock_with_pin(self, vin: str, pin: str):
+        LOGGER.info("Start Doors_unlock_with_pin for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        if not pin:
+            LOGGER.warn(f"Can't unlock car {vin}. Pin is required.")
+            return
+
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.doors_unlock.pin = self.pin
+        message.commandRequest.doors_unlock.pin = pin
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End Doors_unlock for vin %s", vin)
+
 
     async def doors_lock(self, vin: str):
         LOGGER.info("Start Doors_lock for vin %s", vin)
