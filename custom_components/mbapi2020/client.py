@@ -218,6 +218,9 @@ class Client: # pylint: disable-too-few-public-methods
         car.electric = self._get_car_values(
             c, car.finorvin, Electric() if not car.electric else car.electric, ELECTRIC_OPTIONS, update_mode)
 
+        car.auxheat = self._get_car_values(
+            c, car.finorvin, Auxheat() if not car.auxheat else car.auxheat, AUX_HEAT_OPTIONS, update_mode)
+
         # _LOGGER.debug("_get_cars - Feature Check: aux_heat:%s ", {car.features.aux_heat})
         # if car.features.aux_heat:
         #     car.auxheat = self._get_car_values(
