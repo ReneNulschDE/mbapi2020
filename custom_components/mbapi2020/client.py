@@ -478,6 +478,30 @@ class Client: # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End Doors_lock for vin %s", vin)
 
+    async def auxheat_start(self, vin: str):
+        LOGGER.info("Start auxheat start for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        auxheat_start = pb2_commands.AuxheatStart()
+        message.commandRequest.auxheat_start.CopyFrom(auxheat_start)
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End auxheat start for vin %s", vin)
+
+    async def auxheat_stop(self, vin: str):
+        LOGGER.info("Start auxheat_stop for vin %s", vin)
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        auxheat_stop = pb2_commands.AuxheatStop()
+        message.commandRequest.auxheat_stop.CopyFrom(auxheat_stop)
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End auxheat_stop for vin %s", vin)
+
     async def engine_start(self, vin: str):
         LOGGER.info("Start engine start for vin %s", vin)
         message = client_pb2.ClientMessage()

@@ -1,6 +1,20 @@
 refresh_access_token:
   description: Refresh the API access token
 
+auxheat_start:
+  description: "Start the auxiliary heating of a car defined by a vin."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+
+auxheat_stop:
+  description: "Stop the auxiliary heating of a car defined by a vin."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+
 doors_unlock:
   description: "Unlock a car defined by a vin. PIN setup required. See options dialog of the integration."
   fields:

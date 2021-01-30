@@ -171,6 +171,12 @@ Some services require that the security PIN is created in your mobile Android/IO
 * refresh_access_token:
   Refresh the API access token
 
+* auxheat_start:
+  Start the auxiliary heating  of a car defined by a vin.
+
+* auxheat_stop:
+  Stop the auxiliary heating  of a car defined by a vin.
+
 * doors_unlock:
   Unlock a car defined by a vin. PIN required.
 

@@ -56,6 +56,8 @@ DEFAULT_SOCKET_MIN_RETRY = 15
 
 
 SERVICE_REFRESH_TOKEN_URL = "refresh_access_token"
+SERVICE_AUXHEAT_START = "auxheat_start"
+SERVICE_AUXHEAT_STOP = "auxheat_stop"
 SERVICE_DOORS_LOCK_URL = "doors_lock"
 SERVICE_DOORS_UNLOCK_URL = "doors_unlock"
 SERVICE_ENGINE_START = "engine_start"

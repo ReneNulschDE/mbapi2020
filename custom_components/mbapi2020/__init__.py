@@ -39,6 +39,8 @@ from .const import (
     LOGGER,
     MERCEDESME_COMPONENTS,
     SERVICE_REFRESH_TOKEN_URL,
+    SERVICE_AUXHEAT_START,
+    SERVICE_AUXHEAT_STOP,
     SERVICE_DOORS_LOCK_URL,
     SERVICE_DOORS_UNLOCK_URL,
     SERVICE_ENGINE_START,
@@ -141,6 +143,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         async def refresh_access_token(call) -> None:
             await mercedes.client.oauth.async_get_cached_token()
 
+        async def auxheat_start(call) -> None:
+            await mercedes.client.auxheat_start(call.data.get(CONF_VIN))
+
+        async def auxheat_stop(call) -> None:
+            await mercedes.client.auxheat_stop(call.data.get(CONF_VIN))
+
         async def doors_unlock(call) -> None:
             await mercedes.client.doors_unlock(call.data.get(CONF_VIN))
 
@@ -164,7 +172,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         async def preheat_start_departure_time(call) -> None:
             await mercedes.client.preheat_start_departure_time(call.data.get(CONF_VIN), call.data.get(CONF_TIME))
-            
+
         async def preheat_stop(call) -> None:
             await mercedes.client.preheat_stop(call.data.get(CONF_VIN))
 
@@ -176,6 +184,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         hass.services.async_register(
             DOMAIN, SERVICE_REFRESH_TOKEN_URL, refresh_access_token
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_AUXHEAT_START, auxheat_start, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_AUXHEAT_STOP, auxheat_stop, schema=SERVICE_VIN_SCHEMA
         )
         hass.services.async_register(
             DOMAIN, SERVICE_DOORS_LOCK_URL, doors_lock, schema=SERVICE_VIN_SCHEMA
