@@ -1,4 +1,7 @@
+
+
 # mercedesme2020
+[![HassFest tests](https://github.com/renenulschde/mbapi2020/workflows/Validate%20with%20hassfest/badge.svg)](https://developers.home-assistant.io/blog/2020/04/16/hassfest)
 
 
 MercedesME platform as a Custom Component for Home Assistant.
@@ -84,6 +87,7 @@ Depends on your own car or purchased Mercedes Benz licenses.
 ### Locks
 
 * lock
+
   PIN setup in MB App is required. If the pin is not set in the integration options then the lock asks for the PIN.
 
 
