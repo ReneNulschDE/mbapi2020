@@ -17,7 +17,7 @@ MERCEDESME_COMPONENTS = [
     "lock",
     "binary_sensor",
     "device_tracker",
-#    "switch"
+    "switch"
 ]
 
 CONF_ALLOWED_REGIONS = ["Europe", "North America"]
@@ -460,6 +460,21 @@ LOCKS = {
                                 None,
                                 False]
 }
+
+SWITCHES = {
+    "auxheat": [                "AuxHeat",
+                                None,
+                                "auxheat",
+                                "auxheatActive",
+                                "value",
+                                None,
+                                {},
+                                None,
+                                "outlet",
+                                False]
+}
+
+
 
 class Sensor_Config_Fields(Enum):
 # "internal_name":[ 0 Display_Name

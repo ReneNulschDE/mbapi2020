@@ -482,10 +482,16 @@ class MercedesMeEntity(Entity):
             extended_attributes["value_description"] = ignitionstate_values.get(self._state,["unknown", "unknown"])[1]
             return extended_attributes
 
+        def auxheatstatus_state(extended_attributes):
+            extended_attributes["value_short"] = auxheatstatus_values.get(self._state,["unknown", "unknown"])[0]
+            extended_attributes["value_description"] = auxheatstatus_values.get(self._state,["unknown", "unknown"])[1]
+            return extended_attributes
+
 
         attribut_extender ={
             "starterBatteryState": starterBatteryState,
-            "ignitionstate": ignitionstate_state
+            "ignitionstate": ignitionstate_state,
+            "auxheatstatus": auxheatstatus_state,
         } 
 
         ignitionstate_values = {
@@ -503,9 +509,15 @@ class MercedesMeEntity(Entity):
             "4" :["vehicleNotAvalable", "Vehicle no longer available"],
         } 
 
+        auxheatstatus_values = {
+            "0" :["inactive", "inactive"],
+            "1" :["normal heating", "normal heating"],
+            "2" :["normal ventilation", "normal ventilation"],
+            "3" :["manual heating", "manual heating"],
+            "4" :["post heating", "post heating"],
+            "5" :["post ventilation", "post ventilation"],
+            "6" :["auto heating", "auto heating"],
+        } 
+
         func = attribut_extender.get(self._internal_name, default_extender)
         return func(extended_attributes)
-
-
-
-   
