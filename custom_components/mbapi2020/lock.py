@@ -72,11 +72,11 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
     @property
     def is_locked(self):
         """Return true if device is locked."""
-        
+
         value = self._get_car_value(self._feature_name , self._object_name, self._attrib_name, None)
         if value and int(value) == 0:
             return True
-            
+
         return False
 
     @property
@@ -87,7 +87,6 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
 
         if pin and pin.strip():
             # Pin is set --> we don't ask for a pin
-            LOGGER.debug(f"PIN :-{pin}-")
             return None
 
         # Pin is set --> we don't ask for a pin
