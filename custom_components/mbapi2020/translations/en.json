@@ -35,7 +35,7 @@
                     "excluded_cars": "VINs excluded (comma-sep)",
                     "pin": "Security PIN (to be created in mobile app) - Enter 0 to delete the value from the configuration"
                 },
-                "description": "Configure your options. Some changes require a restart of Home Assistant.",
+                "description": "Configure your options. Some changes require a restart of Home Assistant. You need to restart HA after PIN change.",
                 "title": "Mercedes ME 2020 Options"
             }
         }

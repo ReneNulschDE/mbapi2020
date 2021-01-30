@@ -69,9 +69,6 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
         else:
             await self._data.client.doors_unlock_with_pin(self._vin, code)
 
-
-
-
     @property
     def is_locked(self):
         """Return true if device is locked."""
@@ -84,7 +81,7 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
 
     @property
     def code_format(self):
-        """Return the required for digit code if the PIN is not set in config_entry."""
+        """Return the required four digit code if the PIN is not set in config_entry."""
 
         pin = self._data.client._config_entry.options.get(CONF_PIN, None)
 
@@ -92,5 +89,5 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
             # Pin is set --> we don't ask for a pin
             return None
 
-        # Pin is set --> we don't ask for a pin
+        # Pin is not set --> we ask for a pin
         return "^\\d{%s}$" % 4
