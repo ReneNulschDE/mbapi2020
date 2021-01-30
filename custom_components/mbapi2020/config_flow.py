@@ -118,8 +118,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
-        
+
         if user_input is not None:
+            if user_input[CONF_PIN] == "0":
+                user_input[CONF_PIN] = ""
             self.options.update(user_input)
             return self.async_create_entry(title="", data=self.options)
 
