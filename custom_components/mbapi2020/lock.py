@@ -6,6 +6,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_registry import async_get_registry
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.const import (
+    ATTR_CODE,
+)
 
 from . import MercedesMeEntity
 
