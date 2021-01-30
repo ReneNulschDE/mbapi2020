@@ -8,5 +8,6 @@
   "dependencies": [],
   "codeowners": [
     "@ReneNulschDE"
-  ]
+  ],
+  "version": "0.4.0"
 }
