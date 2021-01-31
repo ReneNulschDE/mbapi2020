@@ -470,7 +470,7 @@ SWITCHES = {
                                 None,
                                 {},
                                 None,
-                                "outlet",
+                                None,
                                 False]
 }
 
