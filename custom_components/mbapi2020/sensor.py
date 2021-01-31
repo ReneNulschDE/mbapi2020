@@ -33,16 +33,16 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for car in data.client.cars:
 
         for key, value in sorted(SENSORS.items()):
-#            if value[5] is None or getattr(car.features, value[5]) is True:
-            device = MercedesMESensor(
-                hass=hass,
-                data=data,
-                internal_name = key,
-                sensor_config = value,
-                vin = car.finorvin
-                )
-            if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] :
-                sensor_list.append(device)
+            if value[5] is None or getattr(car.features, value[5], False) is not False:
+                device = MercedesMESensor(
+                    hass=hass,
+                    data=data,
+                    internal_name = key,
+                    sensor_config = value,
+                    vin = car.finorvin
+                    )
+                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] :
+                    sensor_list.append(device)
 
     async_add_entities(sensor_list, True)
 

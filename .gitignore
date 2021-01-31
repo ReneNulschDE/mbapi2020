@@ -109,3 +109,4 @@ sec_*.txt
 /custom_components/mbapi2020/messages/a*
 /custom_components/mbapi2020/messages/v*
 /custom_components/mbapi2020/messages/m*
+/custom_components/mbapi2020/messages/c*

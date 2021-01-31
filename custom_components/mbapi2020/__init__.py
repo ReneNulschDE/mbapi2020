@@ -58,7 +58,7 @@ from .const import (
     Sensor_Config_Fields as scf
 
 )
-from .car import Car
+from .car import Car, Features
 from .client import Client
 from .errors import WebsocketError
 
@@ -96,6 +96,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             if car.get('fin') in config_entry.options.get('excluded_cars', ""):
                 continue
 
+            capabilities = await mercedes.client.api.get_car_capabilities_commands(car.get("fin"))
+            mercedes.client._write_debug_json_output(capabilities, "ca")
+
             dev_reg = await hass.helpers.device_registry.async_get_registry()
             dev_reg.async_get_or_create(
                 config_entry_id=config_entry.entry_id,
@@ -108,12 +111,19 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             )
 
-            c = Car()
-            c.finorvin = car.get('fin')
-            c.licenseplate = car.get('licensePlate', car.get('fin'))
-            c._last_message_received = int(round(time.time() * 1000))
-            mercedes.client.cars.append(c)
-            LOGGER.debug("Init - car added - %s", c.finorvin)
+            features = Features()
+
+            for feature in capabilities["commands"]:
+                setattr(features, feature.get("commandName"), feature.get("isAvailable"))
+
+            current_car = Car()
+            current_car.finorvin = car.get('fin')
+            current_car.licenseplate = car.get('licensePlate', car.get('fin'))
+            current_car.features = features
+            current_car._last_message_received = int(round(time.time() * 1000))
+
+            mercedes.client.cars.append(current_car)
+            LOGGER.debug("Init - car added - %s", current_car.finorvin)
 
 
         if DEBUG_ADD_FAKE_VIN:
