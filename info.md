@@ -165,6 +165,24 @@ Depends on your own car or purchased Mercedes Benz licenses.
   attributes: 
   ```
 
+* Aux Heat Status
+  ```
+  Internal Name: auxheatstatus
+
+  Values    Description
+  "0"       inactive
+  "1"       normal heating
+  "2"       normal ventilation
+  "3"       manual heating
+  "4"       post heating
+  "5"       post ventilation
+  "6"       auto heating
+  
+  attributes:
+  auxheattime1, auxheattime2, auxheattime3, auxheattimeselection, auxheatActive, auxheatwarnings, auxheattime2: '00:00'
+
+  ```
+
 
 ### Services
 Some services require that the security PIN is created in your mobile Android/IOS app. Please store the pin to the options-dialog of the integration 
@@ -209,7 +227,12 @@ Some services require that the security PIN is created in your mobile Android/IO
 
 * windows_close:
   Close the windows of a car defined by a vin.
-  
+
+
+### Switches
+
+* AuxHeat - Start/Stop the auxiliary heating of the car
+
 ### Logging
 
 Set the logging to debug with the following settings in case of problems.
@@ -222,9 +245,7 @@ logger:
 ```
 
 ### Open Items
-* General Error Handling
 * Add missing Sensors (Theft)
-* Add more car actions (Climate, ...)
 
 ### Useful links
 
