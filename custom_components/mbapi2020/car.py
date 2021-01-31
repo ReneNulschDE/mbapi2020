@@ -176,7 +176,7 @@ class Car(object):
         self.electric = None
         self.car_alarm = None
         self._entry_setup_complete = False
-        self._update_listeners =[] 
+        self._update_listeners = set() 
 
     @property
     def full_update_messages_received(self):
@@ -220,8 +220,16 @@ class Car(object):
 
     def add_update_listener(self, listener):
         """Add a listener for update notifications."""
-        self._update_listeners.append(listener)
+        self._update_listeners.add(listener)
 
+    def remove_update_callback(self, listener):
+        """Remove a listener for update notifications."""
+        self._update_listeners.discard(listener)
+
+    def publish_updates(self):
+        """Schedule call all registered callbacks."""
+        for callback in self._update_listeners:
+            callback()
 
 class Tires(object):
     def __init__(self):

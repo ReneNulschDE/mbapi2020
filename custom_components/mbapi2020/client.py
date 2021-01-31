@@ -333,21 +333,13 @@ class Client: # pylint: disable-too-few-public-methods
                 LOGGER.debug(f"Partial Update. {vin}")
                 with self.__lock:
                     self._build_car(c, update_mode=True)
-                #if self._dataload_complete_fired:
-                #    with self.__lock:
-                #        self._build_car(c, update_mode=True)
-                #else:
-                #    if DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY:
-                #        with self.__lock:
-                #            self._build_car(c, update_mode=True)
 
             
             if self._dataload_complete_fired:
                 current_car = next(car for car in self.cars
                                    if car.finorvin == vin)
                 if current_car:
-                    for listener in current_car._update_listeners:
-                        listener()
+                    current_car.publish_updates()
 
 
         if not self._dataload_complete_fired:
@@ -434,11 +426,7 @@ class Client: # pylint: disable-too-few-public-methods
                                 current_car._last_command_error_message = command_error_message
                                 current_car._last_command_time_stamp = command.get("timestamp_in_ms",0)
 
-                                for listener in current_car._update_listeners:
-                                    listener()
-
-
-
+                                current_car.publish_updates()
 
 
     async def doors_unlock(self, vin: str):

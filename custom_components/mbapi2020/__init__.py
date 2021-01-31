@@ -245,7 +245,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     )
     if unload_ok:
         if hass.data[DOMAIN]:
-            hass.data[DOMAIN].pop(entry.entry_id)
+            del hass.data[DOMAIN]
 
     return unload_ok
 
@@ -465,6 +465,10 @@ class MercedesMeEntity(Entity):
         """
         self._car.add_update_listener(self.update_callback)
         self.async_schedule_update_ha_state(True)
+
+    async def async_will_remove_from_hass(self):
+        """Entity being removed from hass."""
+        self._car.remove_update_callback(self.update_callback)
 
     def extend_attributes(self, extended_attributes):
 
