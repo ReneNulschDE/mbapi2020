@@ -33,7 +33,9 @@
                     "country_code": "Country Code",
                     "locale": "Locale",
                     "excluded_cars": "VINs excluded (comma-sep)",
-                    "pin": "Security PIN (to be created in mobile app) - Enter 0 to delete the value from the configuration"
+                    "pin": "Security PIN (to be created in mobile app) - Enter 0 to delete the value from the configuration",
+                    "cap_check_disabled": "Disable capabilities check",
+                    "save_files": "DEBUG ONLY: Enable save server messages to the messages folder"
                 },
                 "description": "Configure your options. Some changes require a restart of Home Assistant. You need to restart HA after PIN change.",
                 "title": "Mercedes ME 2020 Options"

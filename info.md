@@ -1,7 +1,7 @@
 
 
 # mercedesme2020
-[![HassFest tests](https://github.com/renenulschde/mbapi2020/workflows/Validate%20with%20hassfest/badge.svg)](https://developers.home-assistant.io/blog/2020/04/16/hassfest)
+[![HassFest tests](https://github.com/renenulschde/mbapi2020/workflows/Validate%20with%20hassfest/badge.svg)](https://developers.home-assistant.io/blog/2020/04/16/hassfest)![Validate with HACS](https://github.com/ReneNulschDE/mbapi2020/workflows/Validate%20with%20HACS/badge.svg)
 
 
 MercedesME platform as a Custom Component for Home Assistant.
@@ -30,6 +30,8 @@ See Options dialog in the Integration under Home-Assistant/Configuration/Integra
 ```
 Excluded Cars: comma-separated list of VINs.
 PIN: Security PIN to execute special services. Please use your MB mobile app to setup
+Disable Capability Check: By default the component checks the capabilities of a car. Active this option to disable the capbility check.
+Debug Save Messages: Enable this option to save all relevant received message into the messages folder of the component
 ```
 
 ## Available components 

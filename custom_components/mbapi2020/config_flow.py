@@ -12,7 +12,9 @@ import homeassistant.helpers.config_validation as cv
 from .const import (  # pylint:disable=unused-import
     CONF_ALLOWED_REGIONS,
     CONF_COUNTRY_CODE,
+    CONF_DEBUG_FILE_SAVE,
     CONF_EXCLUDED_CARS,
+    CONF_FT_DISABLE_CAPABILITY_CHECK,
     CONF_LOCALE,
     CONF_PIN,
     CONF_REGION,
@@ -123,13 +125,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             if user_input[CONF_PIN] == "0":
                 user_input[CONF_PIN] = ""
             self.options.update(user_input)
-            return self.async_create_entry(title="", data=self.options)
+            return self.async_create_entry(title=DOMAIN, data=self.options)
 
         options = self.config_entry.options
         country_code = options.get(CONF_COUNTRY_CODE, DEFAULT_COUNTRY_CODE)
         locale = options.get(CONF_LOCALE, DEFAULT_LOCALE)
         excluded_cars = options.get(CONF_EXCLUDED_CARS, "")
         pin = options.get(CONF_PIN,"")
+        cap_check_disabled = options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
+        save_debug_files = options.get(CONF_DEBUG_FILE_SAVE, False)
 
         return self.async_show_form(
             step_id="init",
@@ -138,7 +142,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(CONF_COUNTRY_CODE, default=country_code): str,
                     vol.Optional(CONF_LOCALE, default=locale): str,
                     vol.Optional(CONF_EXCLUDED_CARS, default=excluded_cars): str,
-                    vol.Optional(CONF_PIN, default=pin): str
+                    vol.Optional(CONF_PIN, default=pin): str,
+                    vol.Optional(CONF_FT_DISABLE_CAPABILITY_CHECK, default=cap_check_disabled): bool,
+                    vol.Optional(CONF_DEBUG_FILE_SAVE, default=save_debug_files): bool
                 }
             )
         )

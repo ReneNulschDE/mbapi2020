@@ -27,7 +27,9 @@ from .websocket import Websocket
 
 from .const import (
     CONF_COUNTRY_CODE,
+    CONF_DEBUG_FILE_SAVE,
     CONF_EXCLUDED_CARS,
+    CONF_FT_DISABLE_CAPABILITY_CHECK,
     CONF_LOCALE,
     CONF_PIN,
     DEFAULT_LOCALE,
@@ -44,7 +46,7 @@ import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
 LOGGER = logging.getLogger(__name__)
 
 DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = False
-WRITE_DEBUG_OUTPUT = False
+
 
 class Client: # pylint: disable-too-few-public-methods
     """ define the client. """
@@ -678,6 +680,9 @@ class Client: # pylint: disable-too-few-public-methods
 
     def is_car_feature_available(self, vin: str, feature: str) -> bool:
 
+        if self._config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False):
+            return True
+
         current_car = next(car for car in self.cars
                             if car.finorvin == vin)
 
@@ -688,7 +693,7 @@ class Client: # pylint: disable-too-few-public-methods
 
     def _write_debug_output(self, data, datatype):
 
-        if WRITE_DEBUG_OUTPUT:
+        if self._config_entry.options.get(CONF_DEBUG_FILE_SAVE, False):
             LOGGER.debug(f"Start _write_debug_output")
 
             path = self._debug_save_path
@@ -703,7 +708,8 @@ class Client: # pylint: disable-too-few-public-methods
 
     def _write_debug_json_output(self, data, datatype):
 
-        if WRITE_DEBUG_OUTPUT:
+        LOGGER.debug(self._config_entry.options)
+        if self._config_entry.options.get(CONF_DEBUG_FILE_SAVE, False):
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
 

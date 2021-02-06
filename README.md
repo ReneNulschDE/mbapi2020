@@ -30,6 +30,8 @@ See Options dialog in the Integration under Home-Assistant/Configuration/Integra
 ```
 Excluded Cars: comma-separated list of VINs.
 PIN: Security PIN to execute special services. Please use your MB mobile app to setup
+Disable Capability Check: By default the component checks the capabilities of a car. Active this option to disable the capbility check.
+Debug Save Messages: Enable this option to save all relevant received message into the messages folder of the component
 ```
 
 ## Available components 
