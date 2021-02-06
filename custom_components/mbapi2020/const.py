@@ -104,7 +104,7 @@ BINARY_SENSORS = {
                                 None,
                                 None,
                                 "mdi:gas-station",
-                                None,
+                                "problem",
                                 False],
 
     "warningbrakefluid": [      "Low Brake Fluid Warning",
@@ -115,7 +115,7 @@ BINARY_SENSORS = {
                                 None,
                                 None,
                                 "mdi:car-brake-alert",
-                                None,
+                                "problem",
                                 False],
 
     "warningwashwater": [       "Low Wash Water Warning",
@@ -126,7 +126,7 @@ BINARY_SENSORS = {
                                 None,
                                 None,
                                 "mdi:wiper-wash",
-                                None,
+                                "problem",
                                 False],
 
     "warningcoolantlevellow": [ "Low Coolant Level Warning",
@@ -137,7 +137,7 @@ BINARY_SENSORS = {
                                 None,
                                 None,
                                 "mdi:oil-level",
-                                None,
+                                "problem",
                                 False],
 
     "warningenginelight": [     "Engine Light Warning",
@@ -153,7 +153,7 @@ BINARY_SENSORS = {
                                     "warninglowbattery"
                                 },
                                 "mdi:engine",
-                                None,
+                                "problem",
                                 False],
 
     "parkbrakestatus": [        "Park Brake Status",
@@ -204,7 +204,7 @@ BINARY_SENSORS = {
                                     "tirewarningsprw",
                                 },
                                 "mdi:car-tire-alert",
-                                None,
+                                "problem",
                                 False],
 
     "remoteStartActive": [      "Remote Start Active",
