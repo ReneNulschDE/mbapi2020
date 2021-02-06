@@ -192,7 +192,7 @@ class Client: # pylint: disable-too-few-public-methods
             LOGGER.debug(f"CAR {c.get('vin')} is excluded.")
             return
 
-        car = next((item for item in self.cars if c.get("vin") == item.finorvin), None)
+        car = self._get_car(c.get("vin"))
 
         car._messages_received.update("p" if update_mode else "f")
         car._last_message_received = int(round(time.time() * 1000))
@@ -338,8 +338,8 @@ class Client: # pylint: disable-too-few-public-methods
 
             
             if self._dataload_complete_fired:
-                current_car = next(car for car in self.cars
-                                   if car.finorvin == vin)
+                current_car = self._get_car(vin)
+
                 if current_car:
                     current_car.publish_updates()
 
@@ -362,8 +362,8 @@ class Client: # pylint: disable-too-few-public-methods
                     if vin in self.excluded_cars:
                         continue
 
-                    _car = next((car for car in self.cars
-                                    if car.finorvin == vin), None)
+                    _car = self._get_car(vin)
+
                     if _car is None:
                         c = Car()
                         c.finorvin = vin
@@ -419,8 +419,8 @@ class Client: # pylint: disable-too-few-public-methods
                                                 command_error_code,
                                                 command_error_message)
                             
-                            current_car = next(car for car in self.cars
-                                   if car.finorvin == vin)
+                            current_car = self._get_car(vin)
+
                             if current_car:
                                 current_car._last_command_type = command_type
                                 current_car._last_command_state = command_state
@@ -683,8 +683,7 @@ class Client: # pylint: disable-too-few-public-methods
         if self._config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False):
             return True
 
-        current_car = next(car for car in self.cars
-                            if car.finorvin == vin)
+        current_car = self._get_car(vin)
 
         if current_car:
             return getattr(current_car.features, feature, False)
@@ -716,3 +715,8 @@ class Client: # pylint: disable-too-few-public-methods
             f = open(f"{path}/{datatype}{int(round(time.time() * 1000))}.json" , "w")
             f.write(f"{data}")
             f.close()
+
+    def _get_car(self, vin: str):
+        for car in self.cars:
+            if car.finorvin == vin:
+                return car        
