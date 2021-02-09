@@ -12,12 +12,18 @@ from aiohttp.client_exceptions import ClientError
 
 from .errors import RequestError
 from .const import (
+    REGION_EUROPE,
+    REGION_NORAM,
+    REGION_APAC,
     LOGIN_BASE_URI,
     LOGIN_BASE_URI_NA,
+    LOGIN_BASE_URI_PA,
     REST_API_BASE,
     REST_API_BASE_NA,
+    REST_API_BASE_PA,
     RIS_APPLICATION_VERSION,
     RIS_APPLICATION_VERSION_NA,
+    RIS_APPLICATION_VERSION_PA,
     RIS_SDK_VERSION,
 )
 
@@ -150,11 +156,9 @@ class Oauth: # pylint: disable-too-few-public-methods
 
     def _get_header(self) -> list:
 
-        return  {
+        header = {
             "X-SessionId": str(uuid.uuid4()),      # "bc667b25-1964-4ff8-98f0-aef3a7f35208",
             "X-TrackingId": str(uuid.uuid4()),     # "abbc223e-bdb8-4808-b299-8ff800b58816",
-            "X-ApplicationName": "mycar-store-ece",
-            "ris-application-version": RIS_APPLICATION_VERSION if self._region == 'Europe' else RIS_APPLICATION_VERSION_NA,
             "ris-os-name": "android",
             "ris-os-version": "6.0",
             "ris-sdk-version": RIS_SDK_VERSION,
@@ -162,6 +166,47 @@ class Oauth: # pylint: disable-too-few-public-methods
             "User-Agent": "okhttp/3.14.9",
             "Content-Type": "application/json; charset=UTF-8"
         }
+
+        header = self._get_region_header(header)
+
+        return header
+
+
+    def _get_region_header(self, header) -> list:
+        
+        if self._region == REGION_EUROPE:
+            header["X-ApplicationName"] = "mycar-store-ece"
+            header["ris-application-version"] = RIS_APPLICATION_VERSION
+
+        if self._region == REGION_NORAM:
+            header["X-ApplicationName"] = "mycar-store-us"
+            header["ris-application-version"] = RIS_APPLICATION_VERSION_NA
+
+        if self._region == REGION_APAC:
+            header["X-ApplicationName"] = "mycar-store-ap"
+            header["ris-application-version"] = RIS_APPLICATION_VERSION_PA
+
+        return header
+
+    def _get_restapi_base_url(self) -> str:
+        if self._region == REGION_EUROPE:
+            return REST_API_BASE
+
+        if self._region == REGION_NORAM:
+            return REST_API_BASE_NA
+
+        if self._region == REGION_APAC:
+            return REST_API_BASE_PA
+
+    def _get_login_base_url(self) -> str:
+        if self._region == REGION_EUROPE:
+            return LOGIN_BASE_URI
+
+        if self._region == REGION_NORAM:
+            return LOGIN_BASE_URI_NA
+
+        if self._region == REGION_APAC:
+            return LOGIN_BASE_URI_PA
 
     async def _async_request(self, method: str,  url: str, data: str = "", **kwargs) -> list:
         """Make a request against the API."""

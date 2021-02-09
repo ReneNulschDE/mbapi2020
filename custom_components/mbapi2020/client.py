@@ -306,7 +306,6 @@ class Client: # pylint: disable-too-few-public-methods
         )
         return value
 
-
     def _process_vep_updates(self, data):
         LOGGER.debug(f"Start _process_vep_updates")
 
@@ -348,7 +347,6 @@ class Client: # pylint: disable-too-few-public-methods
             for car in self.cars:
                 LOGGER.debug(f"_process_vep_updates - {car.finorvin} - complete: {car._entry_setup_complete} - {car._messages_received}")
 
-
     def _process_assigned_vehicles(self, data):
 
         if not self._dataload_complete_fired:
@@ -385,7 +383,6 @@ class Client: # pylint: disable-too-few-public-methods
             if load_complete:
                 self._on_dataload_complete()
                 self._dataload_complete_fired = True
-
 
     def _process_apptwin_command_status_updates_by_vin(self, data):
         LOGGER.debug(f"Start _process_assigned_vehicles")
@@ -430,7 +427,6 @@ class Client: # pylint: disable-too-few-public-methods
 
                                 current_car.publish_updates()
 
-
     async def doors_unlock(self, vin: str):
 
         if not self.is_car_feature_available(vin, "DOORS_UNLOCK"):
@@ -444,7 +440,6 @@ class Client: # pylint: disable-too-few-public-methods
             return
 
         await self.doors_unlock_with_pin(vin, self.pin)
-
 
     async def doors_unlock_with_pin(self, vin: str, pin: str):
         LOGGER.info("Start Doors_unlock_with_pin for vin %s", vin)
@@ -465,7 +460,6 @@ class Client: # pylint: disable-too-few-public-methods
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End Doors_unlock for vin %s", vin)
-
 
     async def doors_lock(self, vin: str):
         LOGGER.info("Start Doors_lock for vin %s", vin)
@@ -677,7 +671,6 @@ class Client: # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End windows_close for vin %s", vin)
 
-
     def is_car_feature_available(self, vin: str, feature: str) -> bool:
 
         if self._config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False):
@@ -703,7 +696,6 @@ class Client: # pylint: disable-too-few-public-methods
             f.close()
 
             self._write_debug_json_output(MessageToJson(data, preserving_proto_field_name=True), datatype)
-
 
     def _write_debug_json_output(self, data, datatype):
 

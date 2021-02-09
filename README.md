@@ -14,6 +14,8 @@ IMPORTANT:
 
 * North America: For Cars 2019 or newer only
 
+* Asia-Pacific support is a very early version
+
 ### Installation
 * First: This is not a Home Assistant Add-On. It's a custom component.
 * There are two ways to install. First you can download the folder custom_component and copy it into your Home-Assistant config folder. Second option is to install HACS (Home Assistant Custom Component Store) and add this repo as a custom repository. (HACS, Integrations, three dots in the upper right corner, ...)

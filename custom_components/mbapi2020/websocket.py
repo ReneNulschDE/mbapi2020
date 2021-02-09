@@ -21,10 +21,16 @@ import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb
 from .const import (
     DOMAIN,
     RIS_APPLICATION_VERSION,
+    RIS_APPLICATION_VERSION_PA,
+    RIS_APPLICATION_VERSION_NA,
     RIS_SDK_VERSION,
+    REGION_EUROPE,
+    REGION_NORAM,
+    REGION_APAC,
     VERIFY_SSL,
     WEBSOCKET_API_BASE,
     WEBSOCKET_API_BASE_NA,
+    WEBSOCKET_API_BASE_PA,
     WEBSOCKET_USER_AGENT
 )
 from .oauth import Oauth
@@ -216,15 +222,33 @@ class Websocket:
 
     async def _websocket_connection_headers(self):
         token = await self.oauth.async_get_cached_token()
-        return {
+        header = {
             "Authorization": token["access_token"],
             "X-SessionId": str(uuid.uuid4()),
             "X-TrackingId": str(uuid.uuid4()),
-            "X-ApplicationName": "mycar-store-ece",
-            "ris-application-version": RIS_APPLICATION_VERSION,
             "ris-os-name": "android",
             "ris-os-version": "6.0",
             "ris-sdk-version": RIS_SDK_VERSION,
             "X-Locale": "en-US",
             "User-Agent": WEBSOCKET_USER_AGENT
         }
+
+        header = self._get_region_header(header)
+        
+        return header
+
+    def _get_region_header(self, header) -> list:
+        
+        if self._region == REGION_EUROPE:
+            header["X-ApplicationName"] = "mycar-store-ece"
+            header["ris-application-version"] = RIS_APPLICATION_VERSION
+
+        if self._region == REGION_NORAM:
+            header["X-ApplicationName"] = "mycar-store-us"
+            header["ris-application-version"] = RIS_APPLICATION_VERSION_NA
+
+        if self._region == REGION_APAC:
+            header["X-ApplicationName"] = "mycar-store-ap"
+            header["ris-application-version"] = RIS_APPLICATION_VERSION_PA
+
+        return header
