@@ -18,7 +18,7 @@ IMPORTANT:
 
 ### Installation
 * First: This is not a Home Assistant Add-On. It's a custom component.
-* There are two ways to install. First you can download the folder custom_component and copy it into your Home-Assistant config folder. Second option is to install HACS (Home Assistant Custom Component Store) and select "MercedesME 2020" from the Integrations catalog. ( Mercedes ME 2020)
+* There are two ways to install. First you can download the folder custom_component and copy it into your Home-Assistant config folder. Second option is to install HACS (Home Assistant Custom Component Store) and select "MercedesME 2020" from the Integrations catalog.
 * [How to install a custom component?](https://www.google.com/search?q=how+to+install+custom+components+home+assistant) 
 * [How to install HACS?](https://hacs.xyz/docs/installation/prerequisites)
 ### Configuration
@@ -32,7 +32,7 @@ See Options dialog in the Integration under Home-Assistant/Configuration/Integra
 ```
 Excluded Cars: comma-separated list of VINs.
 PIN: Security PIN to execute special services. Please use your MB mobile app to setup
-Disable Capability Check: By default the component checks the capabilities of a car. Active this option to disable the capbility check.
+Disable Capability Check: By default the component checks the capabilities of a car. Active this option to disable the capability check.
 Debug Save Messages: Enable this option to save all relevant received message into the messages folder of the component
 ```
 
