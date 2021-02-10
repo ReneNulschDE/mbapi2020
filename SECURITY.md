@@ -4,7 +4,7 @@
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Please send email to [secure-mbapi2020@nulsch.de](mailto:secure-mbapi2020@nulsch.de). 
+Please send an email to [secure-mbapi2020@nulsch.de](mailto:secure-mbapi2020@nulsch.de). 
 
 You should receive a response within 24 hours. If for some reason you do not, please follow up via email and keep in mind this project is the hobby of one person.
 
