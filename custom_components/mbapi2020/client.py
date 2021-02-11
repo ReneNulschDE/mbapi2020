@@ -285,7 +285,7 @@ class Client: # pylint: disable-too-few-public-methods
                     if float(ts) > float(self._get_car_value(classInstance, option, "ts", 0)):
                         setattr(classInstance, option, curr_status)
                     else:
-                        LOGGER.warn("get_car_values %s older attribute %s data received. ignoring value.", car_id, option)
+                        LOGGER.warning("get_car_values %s older attribute %s data received. ignoring value.", car_id, option)
                 else:
                     # Do not set status for non existing values on partial update
                     if not update:
@@ -411,7 +411,7 @@ class Client: # pylint: disable-too-few-public-methods
                                 for err in command["errors"]:
                                     command_error_code = err.get("code")
                                     command_error_message = err.get("message")
-                                    LOGGER.warn("Car action: %s failed. error_code: %s, error_message: %s",
+                                    LOGGER.warning("Car action: %s failed. error_code: %s, error_message: %s",
                                                 command_type,
                                                 command_error_code,
                                                 command_error_message)
@@ -430,13 +430,13 @@ class Client: # pylint: disable-too-few-public-methods
     async def doors_unlock(self, vin: str):
 
         if not self.is_car_feature_available(vin, "DOORS_UNLOCK"):
-            LOGGER.warn(f"Can't unlock car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't unlock car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
 
         if self.pin is None:
-            LOGGER.warn(f"Can't unlock car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
+            LOGGER.warning(f"Can't unlock car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
             return
 
         await self.doors_unlock_with_pin(vin, self.pin)
@@ -445,13 +445,13 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start Doors_unlock_with_pin for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "DOORS_UNLOCK"):
-            LOGGER.warn(f"Can't unlock car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't unlock car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
 
         if not pin:
-            LOGGER.warn(f"Can't unlock car {vin}. Pin is required.")
+            LOGGER.warning(f"Can't unlock car {vin}. Pin is required.")
             return
 
         message.commandRequest.vin = vin
@@ -465,7 +465,7 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start Doors_lock for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "DOORS_LOCK"):
-            LOGGER.warn(f"Can't lock car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't lock car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
@@ -481,7 +481,7 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start auxheat start for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "AUXHEAT_START"):
-            LOGGER.warn(f"Can't start auxheat for car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't start auxheat for car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
@@ -498,7 +498,7 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start auxheat_stop for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "AUXHEAT_STOP"):
-            LOGGER.warn(f"Can't stop auxheat for car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't stop auxheat for car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
@@ -515,13 +515,13 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start engine start for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "ENGINE_START"):
-            LOGGER.warn(f"Can't start engine for car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't start engine for car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
 
         if self.pin is None:
-            LOGGER.warn(f"Can't start the car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
+            LOGGER.warning(f"Can't start the car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
             return
 
         message.commandRequest.vin = vin
@@ -535,7 +535,7 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start engine_stop for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "ENGINE_STOP"):
-            LOGGER.warn(f"Can't stop engine for car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't stop engine for car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
@@ -552,13 +552,13 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start sunroof_open for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "SUNROOF_OPEN"):
-            LOGGER.warn(f"Can't open the sunroof for car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't open the sunroof for car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
 
         if self.pin is None:
-            LOGGER.warn(f"Can't open the sunroof - car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
+            LOGGER.warning(f"Can't open the sunroof - car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
             return
 
         message.commandRequest.vin = vin
@@ -572,7 +572,7 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start sunroof_close for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "SUNROOF_CLOSE"):
-            LOGGER.warn(f"Can't close the sunroof for car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't close the sunroof for car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
@@ -589,7 +589,7 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start preheat_start for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
-            LOGGER.warn(f"Can't start PreCond for car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't start PreCond for car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
@@ -606,7 +606,7 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start preheat_start_departure_time for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
-            LOGGER.warn(f"Can't start PreCond for car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't start PreCond for car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
@@ -623,7 +623,7 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start preheat_stop for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
-            LOGGER.warn(f"Can't stop PreCond for car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't stop PreCond for car {vin}. VIN unknown or feature not availabe for this car.")
             return
         message = client_pb2.ClientMessage()
 
@@ -638,13 +638,13 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start windows_open for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "WINDOWS_OPEN"):
-            LOGGER.warn(f"Can't open the windows for car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't open the windows for car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()
 
         if self.pin is None:
-            LOGGER.warn(f"Can't open the windows - car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
+            LOGGER.warning(f"Can't open the windows - car {vin}. PIN not set. Please set the PIN -> Integration, Options ")
             return
 
         message.commandRequest.vin = vin
@@ -658,7 +658,7 @@ class Client: # pylint: disable-too-few-public-methods
         LOGGER.info("Start windows_close for vin %s", vin)
 
         if not self.is_car_feature_available(vin, "WINDOWS_CLOSE"):
-            LOGGER.warn(f"Can't close the windows for car {vin}. VIN unknown or feature not availabe for this car.")
+            LOGGER.warning(f"Can't close the windows for car {vin}. VIN unknown or feature not availabe for this car.")
             return
 
         message = client_pb2.ClientMessage()

@@ -38,15 +38,9 @@ SCHEMA_STEP_USER = vol.Schema(
 
 SCHEMA_STEP_PIN = vol.Schema({vol.Required(CONF_PASSWORD): str})
 
-SCHEMA_STEP_OPTIONS = vol.Schema(
-    {
-        vol.Required(CONF_PASSWORD): str
-    }
-)
-
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for HVV."""
+    """Handle a config flow for mbapi2020."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
@@ -142,7 +136,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(CONF_COUNTRY_CODE, default=country_code): str,
                     vol.Optional(CONF_LOCALE, default=locale): str,
                     vol.Optional(CONF_EXCLUDED_CARS, default=excluded_cars): str,
-                    vol.Optional(CONF_PIN, default=pin): str,
+                    vol.Optional(CONF_PIN, default=pin): vol.Any(cv.string, None),
                     vol.Optional(CONF_FT_DISABLE_CAPABILITY_CHECK, default=cap_check_disabled): bool,
                     vol.Optional(CONF_DEBUG_FILE_SAVE, default=save_debug_files): bool
                 }
