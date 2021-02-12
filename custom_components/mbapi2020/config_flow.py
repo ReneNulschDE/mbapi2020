@@ -136,7 +136,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(CONF_COUNTRY_CODE, default=country_code): str,
                     vol.Optional(CONF_LOCALE, default=locale): str,
                     vol.Optional(CONF_EXCLUDED_CARS, default=excluded_cars): str,
-                    vol.Optional(CONF_PIN, default=pin): vol.Any(cv.string, None),
+                    vol.Optional(CONF_PIN, default=pin): str,
                     vol.Optional(CONF_FT_DISABLE_CAPABILITY_CHECK, default=cap_check_disabled): bool,
                     vol.Optional(CONF_DEBUG_FILE_SAVE, default=save_debug_files): bool
                 }

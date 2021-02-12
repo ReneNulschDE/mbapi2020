@@ -66,6 +66,7 @@ DEFAULT_SOCKET_MIN_RETRY = 15
 
 
 SERVICE_REFRESH_TOKEN_URL = "refresh_access_token"
+SERVICE_AUXHEAT_CONFIGURE = "auxheat_configure"
 SERVICE_AUXHEAT_START = "auxheat_start"
 SERVICE_AUXHEAT_STOP = "auxheat_stop"
 SERVICE_DOORS_LOCK_URL = "doors_lock"
@@ -85,6 +86,15 @@ SERVICE_VIN_TIME_SCHEMA = vol.Schema(
         vol.Required(CONF_VIN): cv.string,
         vol.Required(CONF_TIME): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439))
     }
+)
+SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Required("time_selection"): vol.All(vol.Coerce(int), vol.Range(min=0, max=3)),
+        vol.Required("time_1"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
+        vol.Required("time_2"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
+        vol.Required("time_3"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439))
+    } 
 )
 
 

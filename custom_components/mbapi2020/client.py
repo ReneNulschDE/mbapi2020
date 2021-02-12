@@ -477,6 +477,29 @@ class Client: # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End Doors_lock for vin %s", vin)
 
+
+    async def auxheat_configure(self, vin: str, time_selection: int, time_1: int, time_2: int, time_3: int):
+        LOGGER.info("Start auxheat_configure for vin %s", vin)
+
+        if not self.is_car_feature_available(vin, "AUXHEAT_START"):
+            LOGGER.warning(f"Can't start auxheat for car {vin}. VIN unknown or feature not availabe for this car.")
+            return
+
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        auxheat_configure = pb2_commands.AuxheatConfigure()
+        auxheat_configure.time_selection = time_selection
+        auxheat_configure.time_1 = time_1
+        auxheat_configure.time_2 = time_2
+        auxheat_configure.time_3 = time_3
+        message.commandRequest.auxheat_configure.CopyFrom(auxheat_configure)
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End auxheat_configure for vin %s", vin)
+
+
     async def auxheat_start(self, vin: str):
         LOGGER.info("Start auxheat start for vin %s", vin)
 

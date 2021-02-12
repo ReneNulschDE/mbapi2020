@@ -39,6 +39,7 @@ from .const import (
     LOGGER,
     MERCEDESME_COMPONENTS,
     SERVICE_REFRESH_TOKEN_URL,
+    SERVICE_AUXHEAT_CONFIGURE,
     SERVICE_AUXHEAT_START,
     SERVICE_AUXHEAT_STOP,
     SERVICE_DOORS_LOCK_URL,
@@ -52,6 +53,7 @@ from .const import (
     SERVICE_SUNROOF_OPEN,
     SERVICE_WINDOWS_CLOSE,
     SERVICE_WINDOWS_OPEN,
+    SERVICE_AUXHEAT_CONFIGURE_SCHEMA,
     SERVICE_VIN_SCHEMA,
     SERVICE_VIN_TIME_SCHEMA,
     VERIFY_SSL,
@@ -153,6 +155,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         async def refresh_access_token(call) -> None:
             await mercedes.client.oauth.async_get_cached_token()
 
+        async def auxheat_configure(call) -> None:
+            await mercedes.client.auxheat_configure(
+                call.data.get(CONF_VIN),
+                call.data.get("time_selection"),
+                call.data.get("time_1"),
+                call.data.get("time_2"),
+                call.data.get("time_3")
+            )
+
         async def auxheat_start(call) -> None:
             await mercedes.client.auxheat_start(call.data.get(CONF_VIN))
 
@@ -194,6 +205,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         hass.services.async_register(
             DOMAIN, SERVICE_REFRESH_TOKEN_URL, refresh_access_token
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_AUXHEAT_CONFIGURE, auxheat_configure, schema=SERVICE_AUXHEAT_CONFIGURE_SCHEMA
         )
         hass.services.async_register(
             DOMAIN, SERVICE_AUXHEAT_START, auxheat_start, schema=SERVICE_VIN_SCHEMA

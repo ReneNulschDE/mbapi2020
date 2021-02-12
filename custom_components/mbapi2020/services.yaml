@@ -1,6 +1,27 @@
 refresh_access_token:
   description: Refresh the API access token
 
+
+auxheat_configure:
+  description: "Command for configuring the auxiliary heating. It is possible to define three daytimes and select one active time."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+    time_selection:
+      description: "The activated auxiliary heating preset time (0=no_selection, 1=time_1, 2=time_2, 3=time_3"
+      example: "0"
+    time_1:
+      description: "Daytime in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439."
+      example: "480"
+    time_2:
+      description: "Daytime in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439."
+      example: "480"
+    time_3:
+      description: "Daytime in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439."
+      example: "480"
+
+
 auxheat_start:
   description: "Start the auxiliary heating of a car defined by a vin."
   fields:
