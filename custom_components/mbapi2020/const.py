@@ -96,6 +96,12 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
         vol.Required("time_3"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439))
     } 
 )
+SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Required("type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1))
+    }
+)
 
 
 ATTR_MB_MANUFACTURER = "Mercedes Benz"

@@ -54,6 +54,7 @@ from .const import (
     SERVICE_WINDOWS_CLOSE,
     SERVICE_WINDOWS_OPEN,
     SERVICE_AUXHEAT_CONFIGURE_SCHEMA,
+    SERVICE_PREHEAT_START_SCHEMA,
     SERVICE_VIN_SCHEMA,
     SERVICE_VIN_TIME_SCHEMA,
     VERIFY_SSL,
@@ -189,7 +190,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             await mercedes.client.sunroof_close(call.data.get(CONF_VIN))
 
         async def preheat_start(call) -> None:
-            await mercedes.client.preheat_start(call.data.get(CONF_VIN))
+            if call.data.get("type", 0) == 0:
+                await mercedes.client.preheat_start(call.data.get(CONF_VIN))
+            else:
+                await mercedes.client.preheat_start_immediate(call.data.get(CONF_VIN))
 
         async def preheat_start_departure_time(call) -> None:
             await mercedes.client.preheat_start_departure_time(call.data.get(CONF_VIN), call.data.get(CONF_TIME))
@@ -228,7 +232,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             DOMAIN, SERVICE_ENGINE_STOP, engine_stop, schema=SERVICE_VIN_SCHEMA
         )
         hass.services.async_register(
-            DOMAIN, SERVICE_PREHEAT_START, preheat_start, schema=SERVICE_VIN_SCHEMA
+            DOMAIN, SERVICE_PREHEAT_START, preheat_start, schema=SERVICE_PREHEAT_START_SCHEMA
         )
         hass.services.async_register(
             DOMAIN, SERVICE_PREHEAT_START_DEPARTURE_TIME, preheat_start_departure_time, schema=SERVICE_VIN_TIME_SCHEMA

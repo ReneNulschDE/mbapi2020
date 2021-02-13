@@ -70,6 +70,9 @@ preheat_start:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+    type:
+      description: "Method that is used to initiate the start process. 0=Now (Default), 1=Immediate - Use Immediate in case your does not support now."
+      example: 0
 
 preheat_start_departure_time:
   description: "Start the pre-heating of a car defined by a vin and a given departure time."
