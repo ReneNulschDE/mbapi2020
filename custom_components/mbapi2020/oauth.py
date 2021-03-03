@@ -56,10 +56,10 @@ class Oauth: # pylint: disable-too-few-public-methods
         self.cache_path = cache_path
 
 
-    async def request_pin(self, email: str):
+    async def request_pin(self, email: str, nonce: str):
         _LOGGER.info("start request pin %s", email)
         url = f"{REST_API_BASE if self._region == 'Europe' else REST_API_BASE_NA}/v1/login"
-        data = f'{{"countryCode":"{self._country_code}","emailOrPhoneNumber":"{email}","locale":"{self._locale}"}}'
+        data = f'{{"countryCode":"{self._country_code}","emailOrPhoneNumber":"{email}","locale":"{self._locale}", "nonce":"{ nonce }"}}'
         headers = self._get_header()
         return await self._async_request("post", url, data=data, headers=headers )
 
@@ -67,15 +67,26 @@ class Oauth: # pylint: disable-too-few-public-methods
     async def async_refresh_access_token(self, refresh_token: str):
         _LOGGER.info("start async refresh_access_token with refresh_token")
 
-        url = f"{LOGIN_BASE_URI if self._region == 'Europe' else LOGIN_BASE_URI_NA}/auth/realms/Daimler/protocol/openid-connect/token"
-        data = (
-            f"client_id=app&grant_type=refresh_token&refresh_token={refresh_token}"
-        )
+       # url = f"{LOGIN_BASE_URI if self._region == 'Europe' else LOGIN_BASE_URI_NA}/auth/realms/Daimler/protocol/openid-connect/token"
+       # data = (
+       #     f"client_id=app&grant_type=refresh_token&refresh_token={refresh_token}"
+       # )
+
+        if self._region == 'Europe': 
+            url = f"{LOGIN_BASE_URI}/as/token.oauth2"
+            data = (
+                f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=refresh_token&refresh_token={refresh_token}"
+            )
+        else:
+            url = f"{LOGIN_BASE_URI_NA}/auth/realms/Daimler/protocol/openid-connect/token"
+            data = (
+                f"client_id=app&grant_type=refresh_token&refresh_token={refresh_token}"
+            )
 
         headers = self._get_header()
         headers['Content-Type'] = "application/x-www-form-urlencoded"
         headers['Stage'] = "prod"
-        headers['X-AuthMode'] = "KEYCLOAK"
+        headers['X-AuthMode'] = f"{'CIAMNG' if self._region == 'Europe' else 'KEYCLOAK'}"
         headers['device-uuid'] = str(uuid.uuid4())
 
         token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
@@ -87,18 +98,26 @@ class Oauth: # pylint: disable-too-few-public-methods
         return token_info
 
 
-    async def request_access_token(self, email: str, pin: str):
+    async def request_access_token(self, email: str, pin: str, nonce: str):
 
-        url = f"{LOGIN_BASE_URI if self._region == 'Europe' else LOGIN_BASE_URI_NA}/auth/realms/Daimler/protocol/openid-connect/token"
-        data = (
-            f"client_id=app&grant_type=password&username={email}&password={pin}"
-            "&scope=offline_access"
-        )
+        if self._region == 'Europe': 
+            url = f"{LOGIN_BASE_URI}/as/token.oauth2"
+            data = (
+                f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=password&username={email}&password={nonce}:{pin}"
+                "&scope=openid phone profile offline_access ciam-uid"
+            )
+        else:
+            url = f"{LOGIN_BASE_URI_NA}/auth/realms/Daimler/protocol/openid-connect/token"
+            data = (
+                f"client_id=app&grant_type=password&username={email}&password={pin}"
+                "&scope=offline_access"
+            )
+
 
         headers = self._get_header()
         headers['Content-Type'] = "application/x-www-form-urlencoded"
         headers['Stage'] = "prod"
-        headers['X-AuthMode'] = "KEYCLOAK"
+        headers['X-AuthMode'] = f"{'CIAMNG' if self._region == 'Europe' else 'KEYCLOAK'}"
         headers['device-uuid'] = str(uuid.uuid4())
 
         token_info = await self._async_request("post", url, data=data, headers=headers)

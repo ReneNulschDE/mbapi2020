@@ -1,5 +1,6 @@
 """Config flow for HVV integration."""
 import logging
+import uuid
 
 import voluptuous as vol
 
@@ -55,10 +56,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             session = aiohttp_client.async_get_clientsession(self.hass, VERIFY_SSL)
+            nonce = str(uuid.uuid4())
+            user_input["nonce"] = nonce 
 
             client = Client(session=session, hass=self.hass, region=user_input[CONF_REGION])
             try:
-                result = await client.oauth.request_pin(user_input[CONF_USERNAME])
+                result = await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
             except MbapiError as error:
                 errors = error                
 
@@ -80,12 +83,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
 
             pin = user_input[CONF_PASSWORD]
-
+            nonce = self.data["nonce"]
             session = aiohttp_client.async_get_clientsession(self.hass, VERIFY_SSL)
 
             client = Client(session=session, hass=self.hass, region=self.data[CONF_REGION])
             try:
-                result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin)
+                result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin, nonce)
             except MbapiError as error:
                 _LOGGER.error(f"Request Token Error: {errors}")
                 errors = error

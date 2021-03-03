@@ -52,7 +52,7 @@ RIS_SDK_VERSION = "2.30.0"
 
 VERIFY_SSL = True
 
-LOGIN_BASE_URI = "https://keycloak.risingstars.daimler.com"
+LOGIN_BASE_URI = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_NA = "https://keycloak.risingstars-amap.daimler.com"
 LOGIN_BASE_URI_PA = "https://keycloak.risingstars-amap.daimler.com"
 REST_API_BASE = "https://bff-prod.risingstars.daimler.com"
