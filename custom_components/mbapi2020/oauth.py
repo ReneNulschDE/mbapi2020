@@ -72,21 +72,15 @@ class Oauth: # pylint: disable-too-few-public-methods
        #     f"client_id=app&grant_type=refresh_token&refresh_token={refresh_token}"
        # )
 
-        if self._region == 'Europe': 
-            url = f"{LOGIN_BASE_URI}/as/token.oauth2"
-            data = (
-                f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=refresh_token&refresh_token={refresh_token}"
-            )
-        else:
-            url = f"{LOGIN_BASE_URI_NA}/auth/realms/Daimler/protocol/openid-connect/token"
-            data = (
-                f"client_id=app&grant_type=refresh_token&refresh_token={refresh_token}"
-            )
+        url = f"{LOGIN_BASE_URI}/as/token.oauth2"
+        data = (
+            f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=refresh_token&refresh_token={refresh_token}"
+        )
 
         headers = self._get_header()
         headers['Content-Type'] = "application/x-www-form-urlencoded"
         headers['Stage'] = "prod"
-        headers['X-AuthMode'] = f"{'CIAMNG' if self._region == 'Europe' else 'KEYCLOAK'}"
+        headers['X-AuthMode'] = "CIAMNG"
         headers['device-uuid'] = str(uuid.uuid4())
 
         token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
@@ -100,24 +94,17 @@ class Oauth: # pylint: disable-too-few-public-methods
 
     async def request_access_token(self, email: str, pin: str, nonce: str):
 
-        if self._region == 'Europe': 
-            url = f"{LOGIN_BASE_URI}/as/token.oauth2"
-            data = (
-                f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=password&username={email}&password={nonce}:{pin}"
-                "&scope=openid phone profile offline_access ciam-uid"
-            )
-        else:
-            url = f"{LOGIN_BASE_URI_NA}/auth/realms/Daimler/protocol/openid-connect/token"
-            data = (
-                f"client_id=app&grant_type=password&username={email}&password={pin}"
-                "&scope=offline_access"
-            )
+        url = f"{LOGIN_BASE_URI}/as/token.oauth2"
+        data = (
+            f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=password&username={email}&password={nonce}:{pin}"
+            "&scope=offline_access"
+        )
 
 
         headers = self._get_header()
         headers['Content-Type'] = "application/x-www-form-urlencoded"
         headers['Stage'] = "prod"
-        headers['X-AuthMode'] = f"{'CIAMNG' if self._region == 'Europe' else 'KEYCLOAK'}"
+        headers['X-AuthMode'] = "CIAMNG"
         headers['device-uuid'] = str(uuid.uuid4())
 
         token_info = await self._async_request("post", url, data=data, headers=headers)
