@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Componente già configurato."
+            "already_configured": "Componente già configurato.",
+            "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
         },
         "error": {
             "cannot_connect": "Impossibile connettersi al server.",
@@ -38,6 +39,10 @@
                 "description": "Configura le opzioni. Alcuni cambiamenti richiedono il riavvio di Home Assistant.",
                 "title": "Mercedes ME 2020 - Opzioni"
             }
+        },
+        "abort": {
+            "already_configured": "Componente già configurato.",
+            "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
         }
     },
     "system_health": {

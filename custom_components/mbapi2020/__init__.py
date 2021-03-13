@@ -6,8 +6,9 @@ import voluptuous as vol
 
 from datetime import datetime
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, SOURCE_REAUTH
 from homeassistant.const import (
+    CONF_USERNAME,
     EVENT_HOMEASSISTANT_STOP,
     LENGTH_KILOMETERS,
     LENGTH_MILES,
@@ -90,6 +91,20 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             config_entry,
             region=region
         )
+
+
+        token_info = await mercedes.client.oauth.async_get_cached_token()
+
+        if token_info is None:
+            LOGGER.error("Authentication failed. Please reauthenticate.")
+            hass.async_create_task(
+                hass.config_entries.flow.async_init(
+                    DOMAIN,
+                    context={"source": SOURCE_REAUTH},
+                    data=config_entry,
+                )
+            )
+            return False            
 
         masterdata = await mercedes.client.api.get_user_info()
         mercedes.client._write_debug_json_output(masterdata, "md")

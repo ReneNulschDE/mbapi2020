@@ -52,6 +52,7 @@ RIS_SDK_VERSION = "2.30.0"
 
 VERIFY_SSL = True
 
+LOGIN_APP_ID_EU = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
 LOGIN_BASE_URI = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_NA = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_PA = "https://id.mercedes-benz.com"

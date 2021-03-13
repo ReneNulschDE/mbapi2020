@@ -5,8 +5,6 @@ import time
 import uuid
 from typing import Optional
 
-import asyncio
-
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientError
 
@@ -15,6 +13,7 @@ from .const import (
     REGION_EUROPE,
     REGION_NORAM,
     REGION_APAC,
+    LOGIN_APP_ID_EU,
     LOGIN_BASE_URI,
     LOGIN_BASE_URI_NA,
     LOGIN_BASE_URI_PA,
@@ -85,9 +84,10 @@ class Oauth: # pylint: disable-too-few-public-methods
 
         token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
 
-        token_info = self._add_custom_values_to_token_info(token_info)
-        self._save_token_info(token_info)
-        self.token = token_info
+        if token_info is not None:
+            token_info = self._add_custom_values_to_token_info(token_info)
+            self._save_token_info(token_info)
+            self.token = token_info
 
         return token_info
 
@@ -109,12 +109,13 @@ class Oauth: # pylint: disable-too-few-public-methods
 
         token_info = await self._async_request("post", url, data=data, headers=headers)
 
-        token_info = self._add_custom_values_to_token_info(token_info)
-        self._save_token_info(token_info)
-        self.token = token_info
+        if token_info is not None:
+            token_info = self._add_custom_values_to_token_info(token_info)
+            self._save_token_info(token_info)
+            self.token = token_info
+            return token_info
 
-        return token_info
-
+        return None
 
     async def async_get_cached_token(self):
         """ Gets a cached auth token
@@ -138,8 +139,11 @@ class Oauth: # pylint: disable-too-few-public-methods
         return token_info
 
     def is_token_expired(self, token_info):
-        now = int(time.time())
-        return token_info["expires_at"] - now < 60
+        if token_info is not None:
+            now = int(time.time())
+            return token_info["expires_at"] - now < 60
+        
+        return True
 
     def _save_token_info(self, token_info):
         _LOGGER.debug("start: _save_token_info to %s", self.cache_path)
@@ -233,11 +237,8 @@ class Oauth: # pylint: disable-too-few-public-methods
                 return await resp.json(content_type=None)
         except ClientError as err:
             _LOGGER.error(f"Error requesting data from {url}: {err}")
-            raise RequestError(f"Error requesting data from {url}: {err}")
         except Exception as e:
             _LOGGER.error(f"Error requesting data from {url}: {e}")
         finally:
             if not use_running_session:
                 await session.close()
-
-

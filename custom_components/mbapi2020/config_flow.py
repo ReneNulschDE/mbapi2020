@@ -5,10 +5,14 @@ import uuid
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_HOST, CONF_OFFSET, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.config_entries import SOURCE_REAUTH
+from homeassistant.const import (
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    CONF_SOURCE
+)
 from homeassistant.core import callback
 from homeassistant.helpers import aiohttp_client
-import homeassistant.helpers.config_validation as cv
 
 from .const import (  # pylint:disable=unused-import
     CONF_ALLOWED_REGIONS,
@@ -20,7 +24,6 @@ from .const import (  # pylint:disable=unused-import
     CONF_PIN,
     CONF_REGION,
     DOMAIN,
-    DEFAULT_CACHE_PATH,
     DEFAULT_LOCALE,
     DEFAULT_COUNTRY_CODE,
     VERIFY_SSL
@@ -48,6 +51,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     def __init__(self):
         """Initialize component."""
+        self._existing_entry = None
+        self.data = None
+        self.reauth_mode = False
 
 
     async def async_step_user(self, user_input=None):
@@ -55,21 +61,27 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
+
+            await self.async_set_unique_id(f"{user_input[CONF_USERNAME]}")
+
+            if not self.reauth_mode:
+                self._abort_if_unique_id_configured()
+
             session = aiohttp_client.async_get_clientsession(self.hass, VERIFY_SSL)
             nonce = str(uuid.uuid4())
-            user_input["nonce"] = nonce 
+            user_input["nonce"] = nonce
 
             client = Client(session=session, hass=self.hass, region=user_input[CONF_REGION])
             try:
                 result = await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
             except MbapiError as error:
-                errors = error                
+                errors = error
 
             if not errors:
                 self.data = user_input
                 return await self.async_step_pin()
             else:
-                _LOGGER.error(f"Request Pin Error: {errors}")
+                _LOGGER.error("Request Pin Error: %s", errors)
 
         return self.async_show_form(
             step_id="user", data_schema=SCHEMA_STEP_USER, errors= "Error unknow" #errors
@@ -88,17 +100,36 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             client = Client(session=session, hass=self.hass, region=self.data[CONF_REGION])
             try:
-                result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin, nonce)
+                result = await client.oauth.request_access_token(
+                    self.data[CONF_USERNAME], pin, nonce)
             except MbapiError as error:
-                _LOGGER.error(f"Request Token Error: {errors}")
+                _LOGGER.error("Request Token Error: %s", errors)
                 errors = error
 
             if not errors:
                 _LOGGER.debug("token received")
                 self.data["token"] = result
+
+                if self.reauth_mode:
+                    self.hass.async_create_task(
+                        self.hass.config_entries.async_reload(self._existing_entry.entry_id)
+                    )
+                    return self.async_abort(reason="reauth_successful")
+
                 return self.async_create_entry(title=DOMAIN, data=self.data)
 
         return self.async_show_form(step_id="pin", data_schema=SCHEMA_STEP_PIN, errors=errors)
+
+
+    async def async_step_reauth(self, user_input=None):
+        """Get new tokens for a config entry that can't authenticate."""
+
+        self.reauth_mode = True
+        self._existing_entry = user_input
+
+        return self.async_show_form(
+            step_id="user", data_schema=SCHEMA_STEP_USER, errors= "Error unknow" #errors
+        )
 
     @staticmethod
     @callback
