@@ -8,19 +8,50 @@ auxheat_configure:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
     time_selection:
       description: "The activated auxiliary heating preset time (0=no_selection, 1=time_1, 2=time_2, 3=time_3"
       example: "0"
+      default: 0
+      selector:
+        select:
+          options:
+            - "0"
+            - "1"
+            - "2"
+            - "3"
     time_1:
       description: "Daytime in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439."
       example: "480"
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 1439
+          step: 1
+          mode: slider
     time_2:
       description: "Daytime in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439."
       example: "480"
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 1439
+          step: 1
+          mode: slider
     time_3:
       description: "Daytime in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439."
       example: "480"
-
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 1439
+          step: 1
+          mode: slider
 
 auxheat_start:
   description: "Start the auxiliary heating of a car defined by a vin."
@@ -28,6 +59,9 @@ auxheat_start:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
 
 auxheat_stop:
   description: "Stop the auxiliary heating of a car defined by a vin."
@@ -35,6 +69,9 @@ auxheat_stop:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
 
 doors_unlock:
   description: "Unlock a car defined by a vin. PIN setup required. See options dialog of the integration."
@@ -42,6 +79,9 @@ doors_unlock:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
 
 doors_lock:
   description: "Lock a car defined by a vin."
@@ -49,6 +89,9 @@ doors_lock:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
 
 engine_start:
   description: "Start the engine of a car defined by a vin. PIN setup required. See options dialog of the integration."
@@ -56,6 +99,9 @@ engine_start:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
 
 engine_stop:
   description: "Stop the engine of a car defined by a vin."
@@ -63,6 +109,10 @@ engine_stop:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
+
 
 preheat_start:
   description: "Start the pre-heating of a car defined by a vin."
@@ -70,9 +120,18 @@ preheat_start:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
     type:
       description: "Method that is used to initiate the start process. 0=Now (Default), 1=Immediate - Use Immediate in case your does not support now."
+      default: 0
       example: 0
+      selector:
+        select:
+          options:
+            - "0"
+            - "1"
 
 preheat_start_departure_time:
   description: "Start the pre-heating of a car defined by a vin and a given departure time."
@@ -80,9 +139,19 @@ preheat_start_departure_time:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
     time:
       description: "Departure time in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439"
       example: "480"
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 1439
+          step: 1
+          mode: slider      
 
 preheat_stop:
   description: "Stop the pre-heating of a car defined by a vin."
@@ -90,6 +159,9 @@ preheat_stop:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
 
 sunroof_open:
   description: "Open the sunroof of a car defined by a vin. PIN setup required. See options dialog of the integration."
@@ -97,6 +169,9 @@ sunroof_open:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
 
 sunroof_close:
   description: "Close the sunroof of a car defined by a vin."
@@ -104,6 +179,9 @@ sunroof_close:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
 
 windows_open:
   description: "Open the windows of a car defined by a vin. PIN setup required. See options dialog of the integration."
@@ -111,6 +189,9 @@ windows_open:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
 
 windows_close:
   description: "Close the windows of a car defined by a vin."
@@ -118,3 +199,6 @@ windows_close:
     vin:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
