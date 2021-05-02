@@ -13,6 +13,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from . import MercedesMeEntity
 
 from .const import (
+    CONF_FT_DISABLE_CAPABILITY_CHECK,
     DOMAIN,
     BINARY_SENSORS
 )
@@ -29,7 +30,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for car in data.client.cars:
 
         for key, value in sorted(BINARY_SENSORS.items()):
-            if value[5] is None or getattr(car.features, value[5], False) is not False:
+            if (value[5] is None or 
+                    entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False or
+                    getattr(car.features, value[5], False) is True):
                 device = MercedesMEBinarySensor(
                     hass=hass,
                     data=data,
