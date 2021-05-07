@@ -2,6 +2,7 @@
 import json
 import logging
 import time
+import urllib.parse
 import uuid
 from typing import Optional
 
@@ -95,8 +96,9 @@ class Oauth: # pylint: disable-too-few-public-methods
     async def request_access_token(self, email: str, pin: str, nonce: str):
 
         url = f"{LOGIN_BASE_URI}/as/token.oauth2"
+        encoded_email = urllib.parse.quote_plus(email, safe='@')
         data = (
-            f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=password&username={email}&password={nonce}:{pin}"
+            f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=password&username={encoded_email}&password={nonce}:{pin}"
             "&scope=offline_access"
         )
 
