@@ -335,6 +335,7 @@ SENSORS = {
                                     'electricconsumptionreset',
                                     'endofchargetime',
                                     'precondActive',
+                                    'precondNow',
                                     'maxrange',
                                     'selectedChargeProgram',
                                     'soc'

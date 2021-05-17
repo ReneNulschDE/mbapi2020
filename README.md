@@ -131,7 +131,7 @@ Depends on your own car or purchased Mercedes Benz licenses.
   ```
   attributes: 
   rangeelectric, chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, electricconsumptionstart,
-  electricconsumptionreset, endofchargetime, precondActive, maxrange, selectedChargeProgram, soc
+  electricconsumptionreset, endofchargetime, precondActive, precondNow, maxrange, selectedChargeProgram, soc
   ```
 
 * Starter Battery State
