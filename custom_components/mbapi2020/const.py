@@ -74,6 +74,7 @@ SERVICE_DOORS_LOCK_URL = "doors_lock"
 SERVICE_DOORS_UNLOCK_URL = "doors_unlock"
 SERVICE_ENGINE_START = "engine_start"
 SERVICE_ENGINE_STOP = "engine_stop"
+SERVICE_SEND_ROUTE = "send_route"
 SERVICE_SUNROOF_OPEN = "sunroof_open"
 SERVICE_SUNROOF_CLOSE = "sunroof_close"
 SERVICE_PREHEAT_START = "preheat_start"
@@ -102,6 +103,17 @@ SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
         vol.Required(CONF_VIN): cv.string,
         vol.Required("type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1))
     }
+)
+SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Required("title"): cv.string,
+        vol.Required("latitude"): cv.latitude,
+        vol.Required("longitude"): cv.longitude,
+        vol.Required("city"): cv.string,
+        vol.Required("postcode"): cv.string,
+        vol.Required("street"): cv.string,
+    } 
 )
 
 

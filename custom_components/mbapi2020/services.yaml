@@ -202,3 +202,49 @@ windows_close:
       required: True
       selector:
         text:
+
+send_route:
+  description: "Sends a route to the car. (Single location only)"
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
+    title:
+      description: "title of the route"
+      example: "Brandenburger Tor"
+      required: True
+      selector:
+        text:
+    latitude:
+      description: "Latitude of the location"
+      example: "52.5162746"
+      required: True
+      selector:
+        text:
+    longitude:
+      description: "Longitude of the location"
+      example: "13.3755154"
+      required: True
+      selector:
+        text:
+    city:
+      description: "City name of the location"
+      example: "Berlin"
+      required: True
+      selector:
+        text:
+    postcode:
+      description: "Postcode of the location"
+      example: "10117"
+      required: True
+      selector:
+        text:
+    street:
+      description: "Streetname of the location"
+      example: "Pariser Platz"
+      required: True
+      selector:
+        text:

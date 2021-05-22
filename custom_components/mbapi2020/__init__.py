@@ -47,6 +47,7 @@ from .const import (
     SERVICE_DOORS_UNLOCK_URL,
     SERVICE_ENGINE_START,
     SERVICE_ENGINE_STOP,
+    SERVICE_SEND_ROUTE,
     SERVICE_PREHEAT_START,
     SERVICE_PREHEAT_START_DEPARTURE_TIME,
     SERVICE_PREHEAT_STOP,
@@ -56,6 +57,7 @@ from .const import (
     SERVICE_WINDOWS_OPEN,
     SERVICE_AUXHEAT_CONFIGURE_SCHEMA,
     SERVICE_PREHEAT_START_SCHEMA,
+    SERVICE_SEND_ROUTE_SCHEMA,
     SERVICE_VIN_SCHEMA,
     SERVICE_VIN_TIME_SCHEMA,
     VERIFY_SSL,
@@ -222,6 +224,17 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         async def windows_close(call) -> None:
             await mercedes.client.windows_close(call.data.get(CONF_VIN))
 
+        async def send_route_to_car(call) -> None:
+            await mercedes.client.send_route_to_car(
+                call.data.get(CONF_VIN),
+                call.data.get("title"),
+                call.data.get("latitude"),
+                call.data.get("longitude"),
+                call.data.get("city"),
+                call.data.get("postcode"),
+                call.data.get("street"),
+            )
+
         hass.services.async_register(
             DOMAIN, SERVICE_REFRESH_TOKEN_URL, refresh_access_token
         )
@@ -254,6 +267,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         )
         hass.services.async_register(
             DOMAIN, SERVICE_PREHEAT_STOP, preheat_stop, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_SEND_ROUTE, send_route_to_car, schema=SERVICE_SEND_ROUTE_SCHEMA
         )
         hass.services.async_register(
             DOMAIN, SERVICE_SUNROOF_OPEN, sunroof_open, schema=SERVICE_VIN_SCHEMA

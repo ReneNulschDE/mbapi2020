@@ -477,7 +477,6 @@ class Client: # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End Doors_lock for vin %s", vin)
 
-
     async def auxheat_configure(self, vin: str, time_selection: int, time_1: int, time_2: int, time_3: int):
         LOGGER.info("Start auxheat_configure for vin %s", vin)
 
@@ -498,7 +497,6 @@ class Client: # pylint: disable-too-few-public-methods
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End auxheat_configure for vin %s", vin)
-
 
     async def auxheat_start(self, vin: str):
         LOGGER.info("Start auxheat start for vin %s", vin)
@@ -570,6 +568,13 @@ class Client: # pylint: disable-too-few-public-methods
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End engine_stop for vin %s", vin)
+
+    async def send_route_to_car(self, vin: str, title: str, latitude: float, longitude: float, city: str, postcode: str, street: str):
+        LOGGER.info("Start send_route_to_car for vin %s", vin)
+
+        await self.api.send_route_to_car(vin, title, latitude, longitude, city, postcode, street)
+
+        LOGGER.info("End send_route_to_car for vin %s", vin)
 
     async def sunroof_open(self, vin: str):
         LOGGER.info("Start sunroof_open for vin %s", vin)

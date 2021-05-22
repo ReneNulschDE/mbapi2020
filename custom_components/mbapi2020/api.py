@@ -1,5 +1,6 @@
 """Define an object to interact with the REST API."""
 import asyncio
+import json
 import logging
 import uuid
 
@@ -49,13 +50,14 @@ class API:
             "X-SessionId": str(uuid.uuid4()),
             "X-TrackingId": str(uuid.uuid4()),
             "X-ApplicationName": "mycar-store-ece",
-            "X-AuthMode": "KEYCLOAK",
+            "X-AuthMode": "CIAMNG",
             "ris-application-version": "1.3.1",
             "ris-os-name": "android",
             "ris-os-version": "6.0",
             "ris-sdk-version": "2.10.3",
             "X-Locale": "en-US",
-            "User-Agent": "okhttp/3.12.2"
+            "User-Agent": "okhttp/3.12.2",
+            "Content-Type": "application/json; charset=UTF-8"
         }
 
         use_running_session = self._session and not self._session.closed
@@ -66,6 +68,7 @@ class API:
             session = ClientSession(timeout=ClientTimeout(total=DEFAULT_TIMEOUT))
 
         try:
+            #async with session.request(method, url, proxy=proxy, ssl=False, **kwargs) as resp:
             async with session.request(method, url, **kwargs) as resp:
                 resp.raise_for_status()
                 return await resp.json(content_type=None)
@@ -82,3 +85,19 @@ class API:
     async def get_car_capabilities_commands(self, vin:str) -> list:
         return await self._request("get", f"/v1/vehicle/{vin}/capabilities/commands")
 
+    async def send_route_to_car(self, vin: str, title: str, latitude: float, longitude: float, city: str, postcode: str, street: str):
+        data = {
+            "routeTitle":title,
+            "routeType":"singlePOI",
+            "waypoints":[
+                {
+                    "city":city,
+                    "latitude":latitude,
+                    "longitude":longitude,
+                    "postalCode":postcode,
+                    "street":street,
+                    "title":title
+                }]
+            }
+        
+        return await self._request("post", f"/v1/vehicle/{vin}/route", data=json.dumps(data))
