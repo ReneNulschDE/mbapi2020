@@ -5,7 +5,7 @@ import logging
 import voluptuous as vol
 
 from homeassistant.const import (
-    LENGTH_KILOMETERS)
+    LENGTH_KILOMETERS, PERCENTAGE)
 
 from homeassistant.helpers import (
     config_validation as cv,
@@ -355,6 +355,17 @@ SENSORS = {
                                 "mdi:ev-station",
                                 None,
                                 False],
+    "soc":                  ["State of Charge",
+                             PERCENTAGE,
+                             "electric",
+                             "soc",
+                             "value",
+                             None,
+                             {},
+                             "mdi:ev-station",
+                             None,
+                             False],
+
 
     "auxheatstatus": [          "Auxheat Status",
                                 None,
