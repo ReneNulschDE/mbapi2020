@@ -246,9 +246,9 @@ class Client: # pylint: disable-too-few-public-methods
         if not update_mode:
             car._entry_setup_complete = True
 
-        # Nimm jedes car (item) aus self.cars ausser es ist das aktuelle dann nimm car         
+        # Nimm jedes car (item) aus self.cars ausser es ist das aktuelle dann nimm car
         self.cars = [car if item.finorvin == car.finorvin else item for item in self.cars]
-        
+
 
 
     def _get_car_values(self, car_detail, car_id, classInstance, options, update):
@@ -311,12 +311,12 @@ class Client: # pylint: disable-too-few-public-methods
 
         self._write_debug_output(data, "vep")
 
-        # Don't understand the protobuf dict errors --> convert to json 
+        # Don't understand the protobuf dict errors --> convert to json
         js = json.loads(MessageToJson(data, preserving_proto_field_name=True))
         cars = js["vepUpdates"]["updates"]
 
         for vin in cars:
-            
+
             if vin in self.excluded_cars:
                 continue
 
@@ -326,7 +326,7 @@ class Client: # pylint: disable-too-few-public-methods
                 c["full_update"] = False
                 LOGGER.debug(f"DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY mode. {vin}")
 
-            if (c.get("full_update") == True):
+            if c.get("full_update") == True:
                 LOGGER.debug(f"Full Update. {vin}")
                 with self.__lock:
                     self._build_car(c, update_mode=False)
@@ -335,7 +335,6 @@ class Client: # pylint: disable-too-few-public-methods
                 with self.__lock:
                     self._build_car(c, update_mode=True)
 
-            
             if self._dataload_complete_fired:
                 current_car = self._get_car(vin)
 
@@ -367,7 +366,7 @@ class Client: # pylint: disable-too-few-public-methods
                         c.finorvin = vin
                         c.licenseplate = vin
                         self.cars.append(c)
-            
+
             load_complete = True
             current_time =  int(round(time.time() * 1000))
             for car in self.cars:
@@ -387,14 +386,14 @@ class Client: # pylint: disable-too-few-public-methods
     def _process_apptwin_command_status_updates_by_vin(self, data):
         LOGGER.debug(f"Start _process_assigned_vehicles")
 
-        # Don't understand the protobuf dict errors --> convert to json 
+        # Don't understand the protobuf dict errors --> convert to json
         js = json.loads(MessageToJson(data, preserving_proto_field_name=True))
 
         self._write_debug_output(data, "acr")
 
         if js["apptwin_command_status_updates_by_vin"]:
             if js["apptwin_command_status_updates_by_vin"]["updates_by_vin"]:
-                
+
                 car = list(js["apptwin_command_status_updates_by_vin"]["updates_by_vin"].keys())[0]
                 car = js["apptwin_command_status_updates_by_vin"]["updates_by_vin"][car]
                 vin = car.get("vin", None)
@@ -415,7 +414,7 @@ class Client: # pylint: disable-too-few-public-methods
                                                 command_type,
                                                 command_error_code,
                                                 command_error_message)
-                            
+
                             current_car = self._get_car(vin)
 
                             if current_car:
@@ -575,6 +574,23 @@ class Client: # pylint: disable-too-few-public-methods
         await self.api.send_route_to_car(vin, title, latitude, longitude, city, postcode, street)
 
         LOGGER.info("End send_route_to_car for vin %s", vin)
+
+    async def sigpos_start(self, vin: str):
+        LOGGER.info("Start sigpos_start for vin %s", vin)
+
+        #if not self.is_car_feature_available(vin, "SUNROOF_OPEN"):
+        #    LOGGER.warning(f"Can't open the sunroof for car {vin}. VIN unknown or feature not availabe for this car.")
+        #    return
+
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.sigpos_start.light_type = 1
+        message.commandRequest.sigpos_start.sigpos_type = 0
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End sigpos_start for vin %s", vin)
 
     async def sunroof_open(self, vin: str):
         LOGGER.info("Start sunroof_open for vin %s", vin)

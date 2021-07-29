@@ -47,6 +47,7 @@ from .const import (
     SERVICE_DOORS_UNLOCK_URL,
     SERVICE_ENGINE_START,
     SERVICE_ENGINE_STOP,
+    SERVICE_SIGPOS_START,
     SERVICE_SEND_ROUTE,
     SERVICE_PREHEAT_START,
     SERVICE_PREHEAT_START_DEPARTURE_TIME,
@@ -200,6 +201,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         async def engine_stop(call) -> None:
             await mercedes.client.engine_stop(call.data.get(CONF_VIN))
 
+        async def sigpos_start(call) -> None:
+            await mercedes.client.sigpos_start(call.data.get(CONF_VIN))
+
         async def sunroof_open(call) -> None:
             await mercedes.client.sunroof_open(call.data.get(CONF_VIN))
 
@@ -270,6 +274,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         )
         hass.services.async_register(
             DOMAIN, SERVICE_SEND_ROUTE, send_route_to_car, schema=SERVICE_SEND_ROUTE_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_SIGPOS_START, sigpos_start, schema=SERVICE_VIN_SCHEMA
         )
         hass.services.async_register(
             DOMAIN, SERVICE_SUNROOF_OPEN, sunroof_open, schema=SERVICE_VIN_SCHEMA
