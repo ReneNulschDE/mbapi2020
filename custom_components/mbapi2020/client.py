@@ -578,9 +578,9 @@ class Client: # pylint: disable-too-few-public-methods
     async def sigpos_start(self, vin: str):
         LOGGER.info("Start sigpos_start for vin %s", vin)
 
-        #if not self.is_car_feature_available(vin, "SUNROOF_OPEN"):
-        #    LOGGER.warning(f"Can't open the sunroof for car {vin}. VIN unknown or feature not availabe for this car.")
-        #    return
+        if not self.is_car_feature_available(vin, "SIGPOS_START"):
+            LOGGER.warning(f"Can't start signaling for car {vin}. VIN unknown or feature not availabe for this car.")
+            return
 
         message = client_pb2.ClientMessage()
 
