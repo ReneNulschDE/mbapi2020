@@ -351,7 +351,8 @@ SENSORS = {
                                     'precondNow',
                                     'maxrange',
                                     'selectedChargeProgram',
-                                    'soc'
+                                    'soc',
+                                    'chargingPower'
                                 },
                                 "mdi:ev-station",
                                 None,

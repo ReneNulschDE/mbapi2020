@@ -87,6 +87,7 @@ ELECTRIC_OPTIONS = [
     'rangeelectric',
     'chargingactive',
     'chargingstatus',
+    'chargingPower',
     'distanceElectricalReset',
     'distanceElectricalStart',
     'ecoElectricBatteryTemperature',
