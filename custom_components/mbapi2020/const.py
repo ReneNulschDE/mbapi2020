@@ -240,6 +240,10 @@ BINARY_SENSORS = {
                                     "tireMarkerRearRight",
                                     "tirewarningsrdk",
                                     "tirewarningsprw",
+                                    "tireTemperatureRearLeft",
+                                    "tireTemperatureFrontRight",
+                                    "tireTemperatureRearRight",
+                                    "tireTemperatureFrontLeft"
                                 },
                                 "mdi:car-tire-alert",
                                 "problem",

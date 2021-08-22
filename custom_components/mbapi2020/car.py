@@ -53,7 +53,11 @@ TIRE_OPTIONS = [
     "tireMarkerRearLeft",
     "tireMarkerRearRight",
     "tireWarningRollup",
-    "lastTirepressureTimestamp"]
+    "lastTirepressureTimestamp",
+    "tireTemperatureRearLeft",
+    "tireTemperatureFrontRight",
+    "tireTemperatureRearRight",
+    "tireTemperatureFrontLeft"]
 
 WINDOW_OPTIONS = [
     "windowstatusrearleft",
