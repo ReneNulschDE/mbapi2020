@@ -531,6 +531,24 @@ class Client: # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End auxheat_stop for vin %s", vin)
 
+    async def battery_max_soc_configure(self, vin: str, max_soc: int):
+        LOGGER.info("Start battery_max_soc_configure to %s for vin %s", max_soc, vin)
+
+        if not self.is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE"):
+            LOGGER.warning(f"Can't configure battery_max_soc for car {vin}. VIN unknown or feature not availabe for this car.")
+            return
+
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        charge_program_config = pb2_commands.ChargeProgramConfigure()
+        charge_program_config.max_soc.value = max_soc
+        message.commandRequest.charge_program_configure.CopyFrom(charge_program_config)
+        
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End battery_max_soc_configure for vin %s", vin)
+
     async def engine_start(self, vin: str):
         LOGGER.info("Start engine start for vin %s", vin)
 

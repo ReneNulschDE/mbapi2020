@@ -70,6 +70,7 @@ SERVICE_REFRESH_TOKEN_URL = "refresh_access_token"
 SERVICE_AUXHEAT_CONFIGURE = "auxheat_configure"
 SERVICE_AUXHEAT_START = "auxheat_start"
 SERVICE_AUXHEAT_STOP = "auxheat_stop"
+SERVICE_BATTERY_MAX_SOC_CONFIGURE = "battery_max_soc_configure"
 SERVICE_DOORS_LOCK_URL = "doors_lock"
 SERVICE_DOORS_UNLOCK_URL = "doors_unlock"
 SERVICE_ENGINE_START = "engine_start"
@@ -114,6 +115,12 @@ SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
         vol.Required("city"): cv.string,
         vol.Required("postcode"): cv.string,
         vol.Required("street"): cv.string,
+    } 
+)
+SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100]))
     } 
 )
 
@@ -367,7 +374,11 @@ SENSORS = {
                              "soc",
                              "value",
                              None,
-                             {},
+                             {
+                                'maxSocLowerLimit',
+                                'maxSoc',
+                                'chargingPower'
+                             },
                              "mdi:ev-station",
                              None,
                              False],

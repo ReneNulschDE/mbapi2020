@@ -43,6 +43,7 @@ from .const import (
     SERVICE_AUXHEAT_CONFIGURE,
     SERVICE_AUXHEAT_START,
     SERVICE_AUXHEAT_STOP,
+    SERVICE_BATTERY_MAX_SOC_CONFIGURE,
     SERVICE_DOORS_LOCK_URL,
     SERVICE_DOORS_UNLOCK_URL,
     SERVICE_ENGINE_START,
@@ -57,6 +58,7 @@ from .const import (
     SERVICE_WINDOWS_CLOSE,
     SERVICE_WINDOWS_OPEN,
     SERVICE_AUXHEAT_CONFIGURE_SCHEMA,
+    SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA,
     SERVICE_PREHEAT_START_SCHEMA,
     SERVICE_SEND_ROUTE_SCHEMA,
     SERVICE_VIN_SCHEMA,
@@ -239,6 +241,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 call.data.get("street"),
             )
 
+        async def battery_max_soc_configure(call) -> None:
+            await mercedes.client.battery_max_soc_configure(
+                call.data.get(CONF_VIN),
+                call.data.get("max_soc")
+            )
+
         hass.services.async_register(
             DOMAIN, SERVICE_REFRESH_TOKEN_URL, refresh_access_token
         )
@@ -250,6 +258,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         )
         hass.services.async_register(
             DOMAIN, SERVICE_AUXHEAT_STOP, auxheat_stop, schema=SERVICE_VIN_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_BATTERY_MAX_SOC_CONFIGURE, battery_max_soc_configure, schema=SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA
         )
         hass.services.async_register(
             DOMAIN, SERVICE_DOORS_LOCK_URL, doors_lock, schema=SERVICE_VIN_SCHEMA

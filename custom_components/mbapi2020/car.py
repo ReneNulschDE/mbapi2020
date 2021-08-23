@@ -101,6 +101,8 @@ ELECTRIC_OPTIONS = [
     'precondActive',
     'precondNow',
     'maxrange',
+    'maxSocLowerLimit',
+    'maxSoc',
     'selectedChargeProgram',
     'soc'
     ]

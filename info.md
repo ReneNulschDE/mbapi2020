@@ -202,10 +202,13 @@ Some services require that the security PIN is created in your mobile Android/IO
   Refresh the API access token
 
 * auxheat_start:
-  Start the auxiliary heating  of a car defined by a vin.
+  Start the auxiliary heating of a car defined by a vin.
 
 * auxheat_stop:
-  Stop the auxiliary heating  of a car defined by a vin.
+  Stop the auxiliary heating of a car defined by a vin.
+
+* battery_max_soc_configure:
+  Configure the maximum value for the state of charge of the HV battery of a car defined by a vin.
 
 * doors_unlock:
   Unlock a car defined by a vin. PIN required.
