@@ -152,6 +152,9 @@ Depends on your own car or purchased Mercedes Benz licenses.
   Internal Name: soc
 
   State of charge (SoC) is the level of charge of an electric battery relative to its capacity. The units of SoC are percentage points (0% = empty; 100% = full). 
+
+  attributes: 
+  maxSocLowerLimit, maxSoc, chargingPower
   ```
 
 * Ignition state
