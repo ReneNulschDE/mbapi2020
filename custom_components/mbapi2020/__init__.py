@@ -188,7 +188,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             for car in masterdata:
                 if car.get('fin') == vin:
                     car_found = True
-            if not car_found:
+            if not car_found or vin in config_entry.options.get('excluded_cars', ""):
                 LOGGER.info("Removing car from device registry: %s, %s", device_entry.name, vin)
                 dev_reg.async_remove_device(device_entry.id)
 
