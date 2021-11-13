@@ -20,6 +20,10 @@ from homeassistant.helpers import (
     config_validation as cv,
     discovery
 )
+from homeassistant.helpers.device_registry import (
+    async_entries_for_config_entry,
+    async_get,
+)
 from homeassistant.helpers.discovery import async_load_platform
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
@@ -113,6 +117,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         masterdata = await mercedes.client.api.get_user_info()
         mercedes.client._write_debug_json_output(masterdata, "md")
+
+        dev_reg = await hass.helpers.device_registry.async_get_registry()
+
         for car in masterdata:
 
             # Car is excluded, we do not add this
@@ -122,7 +129,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             capabilities = await mercedes.client.api.get_car_capabilities_commands(car.get("fin"))
             mercedes.client._write_debug_json_output(capabilities, "ca")
 
-            dev_reg = await hass.helpers.device_registry.async_get_registry()
             dev_reg.async_get_or_create(
                 config_entry_id=config_entry.entry_id,
                 connections=set(),
@@ -172,6 +178,20 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         hass.loop.create_task(mercedes.ws_connect())
         hass.data.setdefault(DOMAIN, {})
         hass.data[DOMAIN] = mercedes
+
+        # Remove old cars from device_registry
+        device_list = async_entries_for_config_entry(dev_reg, config_entry.entry_id)
+        for device_entry in device_list:
+            LOGGER.debug("Remove check: %s, %s", device_entry.id, list(device_entry.identifiers)[0][1])
+            vin = list(device_entry.identifiers)[0][1]
+            car_found = False
+            for car in masterdata:
+                if car.get('fin') == vin:
+                    car_found = True
+            if not car_found:
+                LOGGER.info("Removing car from device registry: %s, %s", device_entry.name, vin)
+                dev_reg.async_remove_device(device_entry.id)
+
 
         async def refresh_access_token(call) -> None:
             await mercedes.client.oauth.async_get_cached_token()
@@ -387,13 +407,13 @@ class MercedesMeEntity(Entity):
         self._licenseplate = self._car.licenseplate
         self._name = f"{self._licenseplate} {self._sensor_name}"
 
-#        conf = hass.data[DOMAIN].config
-#        if conf.get(CONF_CARS) is not None:
-#            for car_conf in conf.get(CONF_CARS):
-#                if car_conf.get(CONF_CARS_VIN) == vin:
-#                    custom_car_name = car_conf.get(CONF_NAME)
-#                    if custom_car_name != "_notset_":
-#                        self._name = f"{custom_car_name} {sensor_name}".strip()
+        #        conf = hass.data[DOMAIN].config
+        #        if conf.get(CONF_CARS) is not None:
+        #            for car_conf in conf.get(CONF_CARS):
+        #                if car_conf.get(CONF_CARS_VIN) == vin:
+        #                    custom_car_name = car_conf.get(CONF_NAME)
+        #                    if custom_car_name != "_notset_":
+        #                        self._name = f"{custom_car_name} {sensor_name}".strip()
 
     @property
     def name(self):

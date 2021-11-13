@@ -9,6 +9,6 @@
   "codeowners": [
     "@ReneNulschDE"
   ],
-  "version": "0.5.11",
+  "version": "0.5.12",
   "iot_class": "cloud_push"
 }
