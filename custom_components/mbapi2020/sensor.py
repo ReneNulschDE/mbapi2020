@@ -1,15 +1,12 @@
+"""
+Sensor support for Mercedes cars with Mercedes ME.
+
+For more details about this component, please refer to the documentation at
+https://github.com/ReneNulschDE/mbapi2020/
+"""
 import logging
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.entity_registry import async_get_registry
 from homeassistant.helpers.restore_state import RestoreEntity
-
-from homeassistant.const import (
-    LENGTH_KILOMETERS,
-    LENGTH_MILES)
-from homeassistant.util import distance
 
 from . import MercedesMeEntity
 
@@ -34,7 +31,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for car in data.client.cars:
 
         for key, value in sorted(SENSORS.items()):
-            if (value[5] is None or 
+            if (value[5] is None or
                     entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False or
                     getattr(car.features, value[5], False) is True):
                 device = MercedesMESensor(
@@ -59,7 +56,7 @@ class MercedesMESensor(MercedesMeEntity, RestoreEntity):
     def state(self):
         """Return the state of the sensor."""
 
-        if self.device_retrieval_status == "NOT_RECEIVED":
+        if self.device_retrieval_status() == "NOT_RECEIVED":
             return "NOT_RECEIVED"
 
         return self._state
@@ -73,4 +70,3 @@ class MercedesMESensor(MercedesMeEntity, RestoreEntity):
         state = await self.async_get_last_state()
         if state is not None:
             self._state = state.state
-

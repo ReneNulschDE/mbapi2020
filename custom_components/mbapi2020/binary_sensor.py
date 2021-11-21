@@ -15,13 +15,14 @@ from . import MercedesMeEntity
 from .const import (
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     DOMAIN,
-    BINARY_SENSORS
+    BinarySensors
 )
 
 LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
+    """Set up integration from a config entry."""
 
     data = hass.data[DOMAIN]
 #    conf = hass.data[DOMAIN].config
@@ -29,8 +30,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
     sensors = []
     for car in data.client.cars:
 
-        for key, value in sorted(BINARY_SENSORS.items()):
-            if (value[5] is None or 
+        for key, value in sorted(BinarySensors.items()):
+            if (value[5] is None or
                     entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False or
                     getattr(car.features, value[5], False) is True):
                 device = MercedesMEBinarySensor(
@@ -56,7 +57,7 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
         if self._state is None:
             self.update()
 
-        LOGGER.debug("BinarySensor - car: %s - get is_on state for %s current _state %s", self._vin, self._internal_name, self._state)
+        #LOGGER.debug("BinarySensor - car: %s - get is_on state for %s current _state %s", self._vin, self._internal_name, self._state)
         if self._state == "INACTIVE":
             return False
         if self._state == "ACTIVE":
@@ -73,12 +74,12 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
             return True
         if self._state == "false":
             return False
-        if self._state == False:
+        if self._state is False:
             return False
-        if self._state == True:
+        if self._state is True:
             return True
 
-        LOGGER.debug("BinarySensor - car: %s - unknown is_on state for %s current _state %s", self._vin, self._internal_name, self._state)
+        #LOGGER.debug("BinarySensor - car: %s - unknown is_on state for %s current _state %s", self._vin, self._internal_name, self._state)
 
 
         return self._state

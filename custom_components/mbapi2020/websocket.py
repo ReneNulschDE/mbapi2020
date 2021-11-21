@@ -7,8 +7,6 @@ from typing import Awaitable, Callable, Optional
 import asyncio
 import aiohttp
 
-from aiohttp.client_exceptions import ClientConnectionError, ClientOSError
-
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
@@ -30,7 +28,6 @@ from .const import (
     VERIFY_SSL,
     WEBSOCKET_API_BASE,
     WEBSOCKET_API_BASE_NA,
-    WEBSOCKET_API_BASE_PA,
     WEBSOCKET_USER_AGENT
 )
 from .oauth import Oauth
@@ -234,11 +231,11 @@ class Websocket:
         }
 
         header = self._get_region_header(header)
-        
+
         return header
 
     def _get_region_header(self, header) -> list:
-        
+
         if self._region == REGION_EUROPE:
             header["X-ApplicationName"] = "mycar-store-ece"
             header["ris-application-version"] = RIS_APPLICATION_VERSION
