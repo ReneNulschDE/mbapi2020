@@ -338,7 +338,7 @@ SENSORS = {
                                 "mdi:car",
                                 None,
                                 False,
-                                None],
+                                "diagnostic"],
 
     "lock": [                  "Lock",
                                 None,
