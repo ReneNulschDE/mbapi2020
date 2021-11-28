@@ -168,14 +168,13 @@ class Oauth: # pylint: disable-too-few-public-methods
         response.
         """
         token_info["expires_at"] = int(time.time()) + token_info["expires_in"]
-        # token_info["scope"] = self.OAUTH_SCOPE
         return token_info
 
     def _get_header(self) -> list:
 
         header = {
-            "X-SessionId": str(uuid.uuid4()),      # "bc667b25-1964-4ff8-98f0-aef3a7f35208",
-            "X-TrackingId": str(uuid.uuid4()),     # "abbc223e-bdb8-4808-b299-8ff800b58816",
+            "X-SessionId": str(uuid.uuid4()),
+            "X-TrackingId": str(uuid.uuid4()),
             "ris-os-name": "android",
             "ris-os-version": "6.0",
             "ris-sdk-version": RIS_SDK_VERSION,
