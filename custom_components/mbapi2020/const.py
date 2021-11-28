@@ -98,7 +98,7 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
         vol.Required("time_1"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_2"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_3"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439))
-    }
+    } 
 )
 SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
     {
@@ -115,13 +115,13 @@ SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
         vol.Required("city"): cv.string,
         vol.Required("postcode"): cv.string,
         vol.Required("street"): cv.string,
-    }
+    } 
 )
 SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
         vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100]))
-    }
+    } 
 )
 
 
@@ -137,10 +137,9 @@ ATTR_MB_MANUFACTURER = "Mercedes Benz"
 #                   7 icon
 #                   8 device_class
 #                   9 invert boolean value - Default: False
-#                   10 entity_category
-# ]
+# ] 
 
-BinarySensors = {
+BINARY_SENSORS = {
 
     "liquidRangeCritical":[     "Liquid Range Critical",
                                 None,
@@ -151,8 +150,7 @@ BinarySensors = {
                                 None,
                                 "mdi:gas-station",
                                 "problem",
-                                False,
-                                None],
+                                False],
 
     "warningbrakefluid": [      "Low Brake Fluid Warning",
                                 None,
@@ -163,8 +161,7 @@ BinarySensors = {
                                 None,
                                 "mdi:car-brake-alert",
                                 "problem",
-                                False,
-                                None],
+                                False],
 
     "warningwashwater": [       "Low Wash Water Warning",
                                 None,
@@ -175,8 +172,7 @@ BinarySensors = {
                                 None,
                                 "mdi:wiper-wash",
                                 "problem",
-                                False,
-                                None],
+                                False],
 
     "warningcoolantlevellow": [ "Low Coolant Level Warning",
                                 None,
@@ -187,8 +183,7 @@ BinarySensors = {
                                 None,
                                 "mdi:oil-level",
                                 "problem",
-                                False,
-                                None],
+                                False],
 
     "warningenginelight": [     "Engine Light Warning",
                                 None,
@@ -204,8 +199,7 @@ BinarySensors = {
                                 },
                                 "mdi:engine",
                                 "problem",
-                                False,
-                                None],
+                                False],
 
     "parkbrakestatus": [        "Park Brake Status",
                                 None,
@@ -218,8 +212,7 @@ BinarySensors = {
                                 },
                                 "mdi:car-brake-parking",
                                 None,
-                                True,
-                                None],
+                                True],
 
     "windowStatusOverall": [    "Windows Closed",
                                 None,
@@ -235,8 +228,7 @@ BinarySensors = {
                                 },
                                 "mdi:car-door",
                                 None,
-                                False,
-                                None],
+                                False],
 
     "tirewarninglamp": [        "Tire Warning",
                                 None,
@@ -262,8 +254,7 @@ BinarySensors = {
                                 },
                                 "mdi:car-tire-alert",
                                 "problem",
-                                False,
-                                None],
+                                False],
 
     "remoteStartActive": [      "Remote Start Active",
                                 None,
@@ -274,8 +265,7 @@ BinarySensors = {
                                 None,
                                 "mdi:engine-outline",
                                 None,
-                                False,
-                                None],
+                                False],
 
     "engineState": [            "Engine State",
                                 None,
@@ -286,8 +276,7 @@ BinarySensors = {
                                 None,
                                 "mdi:engine",
                                 None,
-                                False,
-                                None]
+                                False]
 }
 
 DEVICE_TRACKER = {
@@ -302,33 +291,18 @@ DEVICE_TRACKER = {
                                 },
                                 None,
                                 None,
-                                False,
-                                None]
+                                False]
 }
 
 SENSORS = {
-    "rcp_features":  [          "RCP Features",
-                                None,
-                                "rcp_options",
-                                "rcp_supported",
-                                "value",
-                                None,
-                                {
-                                    "rcp_supported_settings"
-                                },
-                                "mdi:car",
-                                None,
-                                False,
-                                "diagnostic"],
-
     "car":  [                   "Car",
                                 None,
                                 None,
-                                "full_updatemessages_received",
+                                "full_update_messages_received",
                                 "value",
                                 None,
                                 {
-                                    'partital_updatemessages_received',
+                                    'partital_update_messages_received',
                                     'last_message_received',
                                     'last_command_type',
                                     'last_command_state',
@@ -337,8 +311,7 @@ SENSORS = {
                                 },
                                 "mdi:car",
                                 None,
-                                False,
-                                "diagnostic"],
+                                False],
 
     "lock": [                  "Lock",
                                 None,
@@ -368,8 +341,7 @@ SENSORS = {
                                 },
                                 "mdi:car-key",
                                 None,
-                                False,
-                                None],
+                                False],
 
     "rangeElectricKm": [        "Range Electric",
                                 LENGTH_KILOMETERS,
@@ -395,8 +367,7 @@ SENSORS = {
                                 },
                                 "mdi:ev-station",
                                 None,
-                                False,
-                                None],
+                                False],
     "soc":                  ["State of Charge",
                              PERCENTAGE,
                              "electric",
@@ -410,8 +381,7 @@ SENSORS = {
                              },
                              "mdi:ev-station",
                              None,
-                             False,
-                                None],
+                             False],
 
 
     "auxheatstatus": [          "Auxheat Status",
@@ -432,12 +402,11 @@ SENSORS = {
                                 },
                                 "mdi:radiator",
                                 None,
-                                False,
-                                None],
+                                False],
 
-    "tanklevelpercent": [       "Fuel Level",
-                                "%",
-                                "odometer",
+    "tanklevelpercent": [       "Fuel Level", 
+                                "%", 
+                                "odometer", 
                                 "tanklevelpercent",
                                 "value",
                                 None,
@@ -447,8 +416,7 @@ SENSORS = {
                                 },
                                 "mdi:gas-station",
                                 None,
-                                False,
-                                None],
+                                False],
 
     "odometer": [               "Odometer",
                                 LENGTH_KILOMETERS,
@@ -488,12 +456,11 @@ SENSORS = {
                                 },
                                 "mdi:car-cruise-control",
                                 None,
-                                False,
-                                None],
+                                False],
 
-    "CarAlarm": [              "Car Alarm",
+    "car_alarm": [              "Car Alarm",
                                 None,
-                                "caralarm",
+                                "car_alarm",
                                 "carAlarm",
                                 "value",
                                 None,
@@ -513,8 +480,7 @@ SENSORS = {
                                     "carAlarmReason"},
                                 "mdi:alarm-light",
                                 None,
-                                False,
-                                None],
+                                False],
 
     "starterBatteryState": [    "Starter Battery State",
                                 None,
@@ -525,8 +491,7 @@ SENSORS = {
                                 {},
                                 "mdi:car-battery",
                                 None,
-                                False,
-                                None],
+                                False],
 
     "ignitionstate": [          "Ignition State",
                                 None,
@@ -537,8 +502,7 @@ SENSORS = {
                                 {},
                                 "mdi:key-wireless",
                                 None,
-                                False,
-                                None],
+                                False],
 
     "oilLevel":[                "Oil Level",
                                 "%",
@@ -549,8 +513,7 @@ SENSORS = {
                                 {},
                                 "mdi:oil-level",
                                 None,
-                                False,
-                                None ]
+                                False ] 
 }
 
 LOCKS = {
@@ -563,8 +526,7 @@ LOCKS = {
                                 {},
                                 "mdi:lock",
                                 None,
-                                False,
-                                None]
+                                False]
 }
 
 SWITCHES = {
@@ -577,15 +539,12 @@ SWITCHES = {
                                 {},
                                 None,
                                 None,
-                                False,
-                                None]
+                                False]
 }
 
 
 
-class SensorConfigFields(Enum):
-    """Representation of a Sensor."""
-
+class Sensor_Config_Fields(Enum):
 # "internal_name":[ 0 Display_Name
 #                   1 unit_of_measurement,
 #                   2 object in car.py
@@ -596,8 +555,7 @@ class SensorConfigFields(Enum):
 #                   7 icon
 #                   8 device_class
 #                   9 invert boolean value - Default: False
-#                   10 entity_category - Defaul: None
-# ]
+# ] 
     DISPLAY_NAME = 0
     UNIT_OF_MEASUREMENT = 1
     OBJECT_NAME = 2
@@ -605,7 +563,6 @@ class SensorConfigFields(Enum):
     VALUE_FIELD_NAME = 4
     CAPABILITIES_LIST = 5
     EXTENDED_ATTRIBUTE_LIST = 6
-    ICON = 7
+    ICON = 7 
     DEVICE_CLASS = 8
     FLIP_RESULT = 9
-    ENTITY_CATEGORY = 10

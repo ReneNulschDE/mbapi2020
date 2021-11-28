@@ -9,10 +9,12 @@ from typing import Optional
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientError
 
+from .errors import RequestError
 from .const import (
     REGION_EUROPE,
     REGION_NORAM,
     REGION_APAC,
+    LOGIN_APP_ID_EU,
     LOGIN_BASE_URI,
     LOGIN_BASE_URI_NA,
     LOGIN_BASE_URI_PA,
@@ -84,6 +86,8 @@ class Oauth: # pylint: disable-too-few-public-methods
         token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
 
         if token_info is not None:
+            if "refresh_token" not in token_info:
+                token_info["refresh_token"] = refresh_token
             token_info = self._add_custom_values_to_token_info(token_info)
             self._save_token_info(token_info)
             self.token = token_info
@@ -97,7 +101,7 @@ class Oauth: # pylint: disable-too-few-public-methods
         encoded_email = urllib.parse.quote_plus(email, safe='@')
         data = (
             f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=password&username={encoded_email}&password={nonce}:{pin}"
-            "&scope=openid email phone profile offline_access ciam-uid"
+            "&scope=offline_access"
         )
 
 
@@ -131,6 +135,9 @@ class Oauth: # pylint: disable-too-few-public-methods
 
                 if self.is_token_expired(token_info):
                     _LOGGER.debug("%s - token expired - start refresh", __name__)
+                    if "refresh_token" not in token_info:
+                        _LOGGER.warn("Refresh Token is missing - reauth required")
+                        return None
                     token_info = await self.async_refresh_access_token(token_info["refresh_token"])
 
             except IOError:
@@ -142,7 +149,7 @@ class Oauth: # pylint: disable-too-few-public-methods
         if token_info is not None:
             now = int(time.time())
             return token_info["expires_at"] - now < 60
-
+        
         return True
 
     def _save_token_info(self, token_info):
@@ -183,7 +190,7 @@ class Oauth: # pylint: disable-too-few-public-methods
 
 
     def _get_region_header(self, header) -> list:
-
+        
         if self._region == REGION_EUROPE:
             header["X-ApplicationName"] = "mycar-store-ece"
             header["ris-application-version"] = RIS_APPLICATION_VERSION
@@ -236,9 +243,9 @@ class Oauth: # pylint: disable-too-few-public-methods
                 resp.raise_for_status()
                 return await resp.json(content_type=None)
         except ClientError as err:
-            _LOGGER.error("Error requesting data from %s: %s", url, err)
+            _LOGGER.error(f"Error requesting data from {url}: {err}")
         except Exception as e:
-            _LOGGER.error("Error requesting data from %s: %s", url, e)
+            _LOGGER.error(f"Error requesting data from {url}: {e}")
         finally:
             if not use_running_session:
                 await session.close()

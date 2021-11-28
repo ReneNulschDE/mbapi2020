@@ -1,4 +1,3 @@
-"""Define the objects to store care data."""
 import collections
 from datetime import datetime
 
@@ -139,12 +138,12 @@ PRE_COND_OPTIONS = [
     'preconditionState',
     'precondimmediate']
 
-RemoteStart_OPTIONS = [
+REMOTE_START_OPTIONS = [
     'remoteEngine',
     'remoteStartEndtime',
     'remoteStartTemperature']
 
-CarAlarm_OPTIONS = [
+CAR_ALARM_OPTIONS = [
     'lastTheftWarning',
     'towSensor',
     'theftSystemArmed',
@@ -165,7 +164,7 @@ class Car(object):
     def __init__(self):
         self.licenseplate = None
         self.finorvin = None
-        self.messages_received = collections.Counter(f=0, p=0)
+        self._messages_received = collections.Counter(f=0, p=0) 
         self._last_message_received = 0
         self._last_command_type = ""
         self._last_command_state = ""
@@ -180,23 +179,22 @@ class Car(object):
         self.location = None
         self.windows = None
         self.features = None
-        self.rcp_options = None
         self.auxheat = None
         self.precond = None
         self.electric = None
-        self.caralarm = None
-        self.entry_setup_complete = False
-        self._update_listeners = set()
+        self.car_alarm = None
+        self._entry_setup_complete = False
+        self._update_listeners = set() 
 
     @property
-    def full_updatemessages_received(self):
+    def full_update_messages_received(self):
         return CarAttribute(
-            self.messages_received["f"], "VALID", None)
+            self._messages_received["f"], "VALID", None)
 
     @property
-    def partital_updatemessages_received(self):
+    def partital_update_messages_received(self):
         return CarAttribute(
-            self.messages_received["p"], "VALID", None)
+            self._messages_received["p"], "VALID", None)
 
     @property
     def last_message_received(self):
@@ -210,22 +208,22 @@ class Car(object):
     @property
     def last_command_type(self):
         return CarAttribute(
-            self._last_command_type, "VALID", self.last_command_time_stamp)
+            self._last_command_type, "VALID", self._last_command_time_stamp)
 
     @property
     def last_command_state(self):
         return CarAttribute(
-            self._last_command_state, "VALID", self.last_command_time_stamp)
+            self._last_command_state, "VALID", self._last_command_time_stamp)
 
     @property
     def last_command_error_code(self):
         return CarAttribute(
-            self._last_command_error_code, "VALID", self.last_command_time_stamp)
+            self._last_command_error_code, "VALID", self._last_command_time_stamp)
 
     @property
     def last_command_error_message(self):
         return CarAttribute(
-            self._last_command_error_message, "VALID", self.last_command_time_stamp)
+            self._last_command_error_message, "VALID", self._last_command_time_stamp)
 
 
     def add_update_listener(self, listener):
@@ -256,11 +254,6 @@ class Features(object):
         self.name = "Features"
 
 
-class RcpOptions():
-    def __init__(self):
-        self.name = "RCP_Options"
-
-
 class Windows(object):
     def __init__(self):
         self.name = "Windows"
@@ -286,19 +279,19 @@ class Precond(object):
         self.name = "Precond"
 
 
-class BinarySensors(object):
+class Binary_Sensors(object):
     def __init__(self):
-        self.name = "BinarySensors"
+        self.name = "Binary_Sensors"
 
 
-class RemoteStart(object):
+class Remote_Start(object):
     def __init__(self):
-        self.name = "RemoteStart"
+        self.name = "Remote_Start"
 
 
-class CarAlarm(object):
+class Car_Alarm(object):
     def __init__(self):
-        self.name = "CarAlarm"
+        self.name = "Car_Alarm"
 
 
 class Location(object):

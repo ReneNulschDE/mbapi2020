@@ -1,23 +1,36 @@
 """The MercedesME 2020 integration."""
 import asyncio
-from datetime import datetime
 import time
 
-import aiohttp
 import voluptuous as vol
 
+from datetime import datetime
 
 from homeassistant.config_entries import ConfigEntry, SOURCE_REAUTH
 from homeassistant.const import (
+    CONF_USERNAME,
+    EVENT_HOMEASSISTANT_STOP,
     LENGTH_KILOMETERS,
     LENGTH_MILES,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import aiohttp_client
-from homeassistant.helpers.device_registry import async_entries_for_config_entry
+from homeassistant.helpers import (
+    aiohttp_client,
+    config_validation as cv,
+    discovery
+)
+from homeassistant.helpers.device_registry import (
+    async_entries_for_config_entry,
+    async_get,
+)
+from homeassistant.helpers.discovery import async_load_platform
+from homeassistant.helpers.dispatcher import (
+    async_dispatcher_connect,
+    async_dispatcher_send,
+)
 from homeassistant.helpers.entity import Entity
-from homeassistant.components import system_health
+from homeassistant.helpers.event import async_call_later
 from homeassistant.util import slugify
 
 from .const import (
@@ -26,7 +39,8 @@ from .const import (
     CONF_VIN,
     CONF_TIME,
     DOMAIN,
-    LOGIN_BASE_URI,
+    DATA_CLIENT,
+    DEFAULT_CACHE_PATH,
     LOGGER,
     MERCEDESME_COMPONENTS,
     SERVICE_REFRESH_TOKEN_URL,
@@ -53,10 +67,11 @@ from .const import (
     SERVICE_SEND_ROUTE_SCHEMA,
     SERVICE_VIN_SCHEMA,
     SERVICE_VIN_TIME_SCHEMA,
-    SensorConfigFields as scf
+    VERIFY_SSL,
+    Sensor_Config_Fields as scf
 
 )
-from .car import Car, CarAttribute, Features, RcpOptions
+from .car import Car, Features
 from .client import Client
 from .errors import WebsocketError
 
@@ -75,11 +90,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     try:
 
-        #Find the right way to migrate old configs
+        # Todo: Find the right way to migrate old configs
         region = config_entry.data.get(CONF_REGION, None)
         if region is None:
             region = "Europe"
-
 
         mercedes = MercedesMeContext(
             hass,
@@ -88,12 +102,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         )
 
 
-        try:
-            token_info = await mercedes.client.oauth.async_get_cached_token()
-        except aiohttp.ClientError as err:
-            LOGGER.debug("Can not connect to MB OAuth API %s. Will try again.", LOGIN_BASE_URI)
-            raise ConfigEntryNotReady from err
-
+        token_info = await mercedes.client.oauth.async_get_cached_token()
 
         if token_info is None:
             LOGGER.error("Authentication failed. Please reauthenticate.")
@@ -104,10 +113,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                     data=config_entry,
                 )
             )
-            return False
+            return False            
 
         masterdata = await mercedes.client.api.get_user_info()
-        mercedes.client.write_debug_json_output(masterdata, "md")
+        mercedes.client._write_debug_json_output(masterdata, "md")
 
         dev_reg = await hass.helpers.device_registry.async_get_registry()
 
@@ -118,7 +127,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 continue
 
             capabilities = await mercedes.client.api.get_car_capabilities_commands(car.get("fin"))
-            mercedes.client.write_debug_json_output(capabilities, "ca")
+            mercedes.client._write_debug_json_output(capabilities, "ca")
 
             dev_reg.async_get_or_create(
                 config_entry_id=config_entry.entry_id,
@@ -136,24 +145,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             for feature in capabilities["commands"]:
                 setattr(features, feature.get("commandName"), feature.get("isAvailable"))
 
-            rcp_options = RcpOptions()
-            rcp_supported = await mercedes.client.api.is_car_rcp_supported(car.get("fin"))
-            LOGGER.debug("RCP supported for car %s: %s", car.get("fin"), rcp_supported)
-            setattr(rcp_options, "rcp_supported", CarAttribute(rcp_supported, "VALID", 0))
-            if rcp_supported:
-                rcp_supported_settings = await mercedes.client.api.get_car_rcp_supported_settings(car.get("fin"))
-                if rcp_supported_settings:
-                    if rcp_supported_settings.get("data"):
-                        if rcp_supported_settings.get("data").get("attributes"):
-                            if rcp_supported_settings.get("data").get("attributes").get("supportedSettings"):
-                                LOGGER.debug("RCP supported settings: %s", str(rcp_supported_settings.get("data").get("attributes").get("supportedSettings")))
-                                setattr(rcp_options, "rcp_supported_settings", CarAttribute(rcp_supported_settings.get("data").get("attributes").get("supportedSettings"), "VALID", 0))
-
             current_car = Car()
             current_car.finorvin = car.get('fin')
             current_car.licenseplate = car.get('licensePlate', car.get('fin'))
             current_car.features = features
-            current_car.rcp_options = rcp_options
             current_car._last_message_received = int(round(time.time() * 1000))
 
             mercedes.client.cars.append(current_car)
@@ -161,20 +156,20 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
 
         if DEBUG_ADD_FAKE_VIN:
-            debug_car = Car()
-            debug_car.finorvin = "F123456789"
-            debug_car.licenseplate = "U-DV 1234"
-            debug_car._last_message_received = int(round(time.time() * 1000))
-            mercedes.client.cars.append(debug_car)
-            LOGGER.debug("Init - car added - %s", debug_car.finorvin)
+            c = Car()
+            c.finorvin = "F123456789"
+            c.licenseplate = "U-DV 1234"
+            c._last_message_received = int(round(time.time() * 1000))
+            mercedes.client.cars.append(c)
+            LOGGER.debug("Init - car added - %s", c.finorvin)
             dev_reg = await hass.helpers.device_registry.async_get_registry()
             dev_reg.async_get_or_create(
                 config_entry_id=config_entry.entry_id,
                 connections=set(),
-                identifiers={(DOMAIN, debug_car.finorvin)},
+                identifiers={(DOMAIN, c.finorvin)},
                 manufacturer=ATTR_MB_MANUFACTURER,
                 model="UDV 230 - Ugly Debug Vehicle",
-                name=debug_car.licenseplate,
+                name=c.licenseplate,
                 sw_version="DEBUG",
 
             )
@@ -327,9 +322,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             DOMAIN, SERVICE_WINDOWS_CLOSE, windows_close, schema=SERVICE_VIN_SCHEMA
         )
 
-    except aiohttp.ClientError as err:
-        LOGGER.warn("Can't connect to MB APIs; Retrying in background")
-        raise ConfigEntryNotReady from err
+
     except WebsocketError as err:
         LOGGER.error("Config entry failed: %s", err)
         raise ConfigEntryNotReady from err
@@ -355,10 +348,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 
 class MercedesMeContext:
-    """Context class for MercedesMe connections."""
+
     def __init__(self, hass, config_entry, region):
-        self.config_entry = config_entry
-        self.entry_setup_complete: bool = False
+        self._config_entry = config_entry
+        self._entry_setup_complete: bool = False
         self._hass = hass
         self._region = region
         self.client = Client(hass=hass, session=aiohttp_client.async_get_clientsession(hass), config_entry=config_entry, region=self._region)
@@ -366,19 +359,19 @@ class MercedesMeContext:
     def on_dataload_complete(self):
         LOGGER.info("Car Load complete - start sensor creation")
 
-        if not self.entry_setup_complete:
+        if not self._entry_setup_complete:
             for component in MERCEDESME_COMPONENTS:
                 self._hass.async_create_task(
                     self._hass.config_entries.async_forward_entry_setup(
-                        self.config_entry, component
+                        self._config_entry, component
                     )
                 )
 
-        self.entry_setup_complete = True
+        self._entry_setup_complete = True
 
     async def ws_connect(self):
         """Register handlers and connect to the websocket."""
-        await self.client.attempt_connect(self.on_dataload_complete)
+        await self.client._attempt_connect(self.on_dataload_complete)
 
 
 class MercedesMeEntity(Entity):
@@ -431,11 +424,6 @@ class MercedesMeEntity(Entity):
     def unique_id(self) -> str:
         """Return the name of the sensor."""
         return self._unique_id
-
-    @property
-    def entity_category(self) -> str:
-        """Return the entity_category of the sensor."""
-        return self._sensor_config[scf.ENTITY_CATEGORY.value]
 
     def device_retrieval_status(self):
         if self._sensor_name == "Car":
@@ -519,7 +507,7 @@ class MercedesMeEntity(Entity):
     @property
     def icon(self):
         """Return the icon."""
-        return self._sensor_config[scf.ICON.value]
+        return self._sensor_config[scf.ICON.value] 
 
     @property
     def should_poll(self):
@@ -605,7 +593,7 @@ class MercedesMeEntity(Entity):
             "starterBatteryState": starterBatteryState,
             "ignitionstate": ignitionstate_state,
             "auxheatstatus": auxheatstatus_state,
-        }
+        } 
 
         ignitionstate_values = {
             "0" :["lock", "Ignition lock"],
@@ -620,7 +608,7 @@ class MercedesMeEntity(Entity):
             "2" :["red", "Vehicle not available"],
             "3" :["serviceDisabled", "Remote service disabled"],
             "4" :["vehicleNotAvalable", "Vehicle no longer available"],
-        }
+        } 
 
         auxheatstatus_values = {
             "0" :["inactive", "inactive"],
@@ -630,7 +618,7 @@ class MercedesMeEntity(Entity):
             "4" :["post heating", "post heating"],
             "5" :["post ventilation", "post ventilation"],
             "6" :["auto heating", "auto heating"],
-        }
+        } 
 
         func = attribut_extender.get(self._internal_name, default_extender)
         return func(extended_attributes)

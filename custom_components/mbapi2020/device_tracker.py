@@ -1,15 +1,11 @@
-"""
-Device Tracker support for Mercedes cars with Mercedes ME.
-
-For more details about this component, please refer to the documentation at
-https://github.com/ReneNulschDE/mbapi2020/
-"""
 import logging
 from typing import Optional
 
 from homeassistant.components.device_tracker import SOURCE_TYPE_GPS
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util import slugify
 
 from . import MercedesMeEntity
 
@@ -51,7 +47,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 
 class MercedesMEDeviceTracker(MercedesMeEntity, TrackerEntity, RestoreEntity):
-    """Representation of a Sensor."""
 
     @property
     def latitude(self) -> Optional[float]:
@@ -73,3 +68,4 @@ class MercedesMEDeviceTracker(MercedesMeEntity, TrackerEntity, RestoreEntity):
     @ property
     def device_class(self):
         return None
+
