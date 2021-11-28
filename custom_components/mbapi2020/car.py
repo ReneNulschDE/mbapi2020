@@ -1,3 +1,4 @@
+"""Define the objects to store care data."""
 import collections
 from datetime import datetime
 
@@ -138,12 +139,12 @@ PRE_COND_OPTIONS = [
     'preconditionState',
     'precondimmediate']
 
-REMOTE_START_OPTIONS = [
+RemoteStart_OPTIONS = [
     'remoteEngine',
     'remoteStartEndtime',
     'remoteStartTemperature']
 
-CAR_ALARM_OPTIONS = [
+CarAlarm_OPTIONS = [
     'lastTheftWarning',
     'towSensor',
     'theftSystemArmed',
@@ -161,10 +162,11 @@ CAR_ALARM_OPTIONS = [
 
 
 class Car(object):
+    """ Car class, stores the car values at runtime """
     def __init__(self):
         self.licenseplate = None
         self.finorvin = None
-        self._messages_received = collections.Counter(f=0, p=0) 
+        self.messages_received = collections.Counter(f=0, p=0)
         self._last_message_received = 0
         self._last_command_type = ""
         self._last_command_state = ""
@@ -179,22 +181,23 @@ class Car(object):
         self.location = None
         self.windows = None
         self.features = None
+        self.rcp_options = None
         self.auxheat = None
         self.precond = None
         self.electric = None
-        self.car_alarm = None
-        self._entry_setup_complete = False
-        self._update_listeners = set() 
+        self.caralarm = None
+        self.entry_setup_complete = False
+        self._update_listeners = set()
 
     @property
-    def full_update_messages_received(self):
+    def full_updatemessages_received(self):
         return CarAttribute(
-            self._messages_received["f"], "VALID", None)
+            self.messages_received["f"], "VALID", None)
 
     @property
-    def partital_update_messages_received(self):
+    def partital_updatemessages_received(self):
         return CarAttribute(
-            self._messages_received["p"], "VALID", None)
+            self.messages_received["p"], "VALID", None)
 
     @property
     def last_message_received(self):
@@ -239,62 +242,80 @@ class Car(object):
         for callback in self._update_listeners:
             callback()
 
-class Tires(object):
+class Tires():
+    """ Stores the Tires values at runtime """
     def __init__(self):
         self.name = "Tires"
 
 
-class Odometer(object):
+class Odometer():
+    """ Stores the Odometer values at runtime """
     def __init__(self):
         self.name = "Odometer"
 
 
-class Features(object):
+class Features():
+    """ Stores the Features values at runtime """
     def __init__(self):
         self.name = "Features"
 
 
-class Windows(object):
+class RcpOptions():
+    """ Stores the RcpOptions values at runtime """
+    def __init__(self):
+        self.name = "RCP_Options"
+
+
+class Windows():
+    """ Stores the Windows values at runtime """
     def __init__(self):
         self.name = "Windows"
 
 
-class Doors(object):
+class Doors():
+    """ Stores the Doors values at runtime """
     def __init__(self):
         self.name = "Doors"
 
 
-class Electric(object):
+class Electric():
+    """ Stores the Electric values at runtime """
     def __init__(self):
         self.name = "Electric"
 
 
-class Auxheat(object):
+class Auxheat():
+    """ Stores the Auxheat values at runtime """
     def __init__(self):
         self.name = "Auxheat"
 
 
-class Precond(object):
+class Precond():
+    """ Stores the Precond values at runtime """
     def __init__(self):
         self.name = "Precond"
 
 
-class Binary_Sensors(object):
+class BinarySensors():
+    """ Stores the BinarySensors values at runtime """
     def __init__(self):
-        self.name = "Binary_Sensors"
+        self.name = "BinarySensors"
 
 
-class Remote_Start(object):
+class RemoteStart():
+    """ Stores the RemoteStart values at runtime """
     def __init__(self):
-        self.name = "Remote_Start"
+        self.name = "RemoteStart"
 
 
-class Car_Alarm(object):
+class CarAlarm():
+    """ Stores the Odometer values at runtime """
     def __init__(self):
-        self.name = "Car_Alarm"
+        self.name = "CarAlarm"
 
 
-class Location(object):
+class Location():
+    """ Stores the Location values at runtime """
     def __init__(self, latitude=None, longitude=None, heading=None):
         self.name = "Location"
         self.latitude = None
@@ -308,7 +329,8 @@ class Location(object):
             self.heading = heading
 
 
-class CarAttribute(object):
+class CarAttribute():
+    """ Stores the CarAttribute values at runtime """
     def __init__(self, value, retrievalstatus, timestamp, distance_unit=None, display_value=None, unit=None):
         self.value = value
         self.retrievalstatus = retrievalstatus

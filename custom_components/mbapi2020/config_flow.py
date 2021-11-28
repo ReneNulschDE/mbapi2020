@@ -5,11 +5,9 @@ import uuid
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.config_entries import SOURCE_REAUTH
 from homeassistant.const import (
     CONF_PASSWORD,
     CONF_USERNAME,
-    CONF_SOURCE
 )
 from homeassistant.core import callback
 from homeassistant.helpers import aiohttp_client
@@ -73,15 +71,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             client = Client(session=session, hass=self.hass, region=user_input[CONF_REGION])
             try:
-                result = await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
+                await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
             except MbapiError as error:
                 errors = error
 
             if not errors:
                 self.data = user_input
                 return await self.async_step_pin()
-            else:
-                _LOGGER.error("Request Pin Error: %s", errors)
+
+            _LOGGER.error("Request Pin Error: %s", errors)
 
         return self.async_show_form(
             step_id="user", data_schema=SCHEMA_STEP_USER, errors= "Error unknow" #errors

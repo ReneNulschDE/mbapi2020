@@ -9,12 +9,10 @@ from typing import Optional
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientError
 
-from .errors import RequestError
 from .const import (
     REGION_EUROPE,
     REGION_NORAM,
     REGION_APAC,
-    LOGIN_APP_ID_EU,
     LOGIN_BASE_URI,
     LOGIN_BASE_URI_NA,
     LOGIN_BASE_URI_PA,
@@ -101,7 +99,7 @@ class Oauth: # pylint: disable-too-few-public-methods
         encoded_email = urllib.parse.quote_plus(email, safe='@')
         data = (
             f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=password&username={encoded_email}&password={nonce}:{pin}"
-            "&scope=offline_access"
+            "&scope=openid email phone profile offline_access ciam-uid"
         )
 
 
@@ -136,7 +134,7 @@ class Oauth: # pylint: disable-too-few-public-methods
                 if self.is_token_expired(token_info):
                     _LOGGER.debug("%s - token expired - start refresh", __name__)
                     if "refresh_token" not in token_info:
-                        _LOGGER.warn("Refresh Token is missing - reauth required")
+                        _LOGGER.warning("Refresh Token is missing - reauth required")
                         return None
                     token_info = await self.async_refresh_access_token(token_info["refresh_token"])
 
@@ -145,24 +143,26 @@ class Oauth: # pylint: disable-too-few-public-methods
         self.token = token_info
         return token_info
 
-    def is_token_expired(self, token_info):
+    @classmethod
+    def is_token_expired(cls, token_info):
         if token_info is not None:
             now = int(time.time())
             return token_info["expires_at"] - now < 60
-        
+
         return True
 
     def _save_token_info(self, token_info):
         _LOGGER.debug("start: _save_token_info to %s", self.cache_path)
         if self.cache_path:
             try:
-                token_file = open(self.cache_path, "w")
-                token_file.write(json.dumps(token_info))
-                token_file.close()
+                with open(self.cache_path, "w") as token_file:
+                    token_file.write(json.dumps(token_info))
+                    token_file.close()
             except IOError:
-                _LOGGER.warning("couldn't write token cache to %s", self.cache_path)
+                _LOGGER.error("couldn't write token cache to %s", self.cache_path)
 
-    def _add_custom_values_to_token_info(self, token_info):
+    @classmethod
+    def _add_custom_values_to_token_info(cls, token_info):
         """
         Store some values that aren't directly provided by a Web API
         response.
@@ -190,7 +190,7 @@ class Oauth: # pylint: disable-too-few-public-methods
 
 
     def _get_region_header(self, header) -> list:
-        
+
         if self._region == REGION_EUROPE:
             header["X-ApplicationName"] = "mycar-store-ece"
             header["ris-application-version"] = RIS_APPLICATION_VERSION
@@ -206,24 +206,22 @@ class Oauth: # pylint: disable-too-few-public-methods
         return header
 
     def _get_restapi_base_url(self) -> str:
-        if self._region == REGION_EUROPE:
-            return REST_API_BASE
-
         if self._region == REGION_NORAM:
             return REST_API_BASE_NA
 
         if self._region == REGION_APAC:
             return REST_API_BASE_PA
 
-    def _get_login_base_url(self) -> str:
-        if self._region == REGION_EUROPE:
-            return LOGIN_BASE_URI
+        return REST_API_BASE
 
+    def _get_login_base_url(self) -> str:
         if self._region == REGION_NORAM:
             return LOGIN_BASE_URI_NA
 
         if self._region == REGION_APAC:
             return LOGIN_BASE_URI_PA
+
+        return LOGIN_BASE_URI
 
     async def _async_request(self, method: str,  url: str, data: str = "", **kwargs) -> list:
         """Make a request against the API."""
@@ -243,9 +241,9 @@ class Oauth: # pylint: disable-too-few-public-methods
                 resp.raise_for_status()
                 return await resp.json(content_type=None)
         except ClientError as err:
-            _LOGGER.error(f"Error requesting data from {url}: {err}")
-        except Exception as e:
-            _LOGGER.error(f"Error requesting data from {url}: {e}")
+            _LOGGER.error("Error requesting data from %s: %s", url, err)
+        except Exception as exc:
+            _LOGGER.error("Error requesting data from %s: %s", url, exc)
         finally:
             if not use_running_session:
                 await session.close()
