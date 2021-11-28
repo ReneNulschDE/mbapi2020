@@ -84,8 +84,6 @@ class Oauth: # pylint: disable-too-few-public-methods
         token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
 
         if token_info is not None:
-            if "refresh_token" not in token_info:
-                token_info["refresh_token"] = refresh_token
             token_info = self._add_custom_values_to_token_info(token_info)
             self._save_token_info(token_info)
             self.token = token_info
@@ -133,9 +131,6 @@ class Oauth: # pylint: disable-too-few-public-methods
 
                 if self.is_token_expired(token_info):
                     _LOGGER.debug("%s - token expired - start refresh", __name__)
-                    if "refresh_token" not in token_info:
-                        _LOGGER.warn("Refresh Token is missing - reauth required")
-                        return None
                     token_info = await self.async_refresh_access_token(token_info["refresh_token"])
 
             except IOError:
