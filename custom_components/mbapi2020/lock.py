@@ -1,14 +1,14 @@
+"""
+Lock Support for Mercedes cars with Mercedes ME.
+
+For more details about this component, please refer to the documentation at
+https://github.com/ReneNulschDE/mbapi2020/
+"""
 import logging
 
 from homeassistant.components.lock import LockEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.entity_registry import async_get_registry
 from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.const import (
-    ATTR_CODE,
-)
+from homeassistant.const import ATTR_CODE
 
 from . import MercedesMeEntity
 
@@ -16,8 +16,7 @@ from .const import (
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     CONF_PIN,
     DOMAIN,
-    LOCKS,
-    Sensor_Config_Fields as scf
+    LOCKS
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -26,7 +25,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     """Setup the sensor platform."""
 
     data = hass.data[DOMAIN]
-    
+
     if not data.client.cars:
         LOGGER.info("No Cars found.")
         return
@@ -35,7 +34,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for car in data.client.cars:
 
         for key, value in sorted(LOCKS.items()):
-            if (value[5] is None or 
+            if (value[5] is None or
                     entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False or
                     getattr(car.features, value[5], False) is True):
                 device = MercedesMELock(
@@ -62,7 +61,7 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
     async def async_unlock(self, **kwargs):
         """Unlock the device."""
         code = kwargs.get(ATTR_CODE, None)
-        pin = self._data.client._config_entry.options.get(CONF_PIN, None)
+        pin = self._data.client.config_entry.options.get(CONF_PIN, None)
 
         if pin and pin.strip():
             await self._data.client.doors_unlock_with_pin(self._vin, pin)
@@ -86,11 +85,11 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
     def code_format(self):
         """Return the required four digit code if the PIN is not set in config_entry."""
 
-        pin = self._data.client._config_entry.options.get(CONF_PIN, None)
+        pin = self._data.client.config_entry.options.get(CONF_PIN, None)
 
         if pin and pin.strip():
             # Pin is set --> we don't ask for a pin
             return None
 
         # Pin is not set --> we ask for a pin
-        return "^\\d{%s}$" % 4
+        return "^\\d{4}$"
