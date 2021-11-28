@@ -131,7 +131,7 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
   ```
   attributes: 
-  rangeelectric, chargingstatus, chargingPower, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, 
+  rangeelectric, chargingstatus, chargingPower, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature,
   electricconsumptionstart, electricconsumptionreset, endofchargetime, precondActive, precondNow, maxrange, selectedChargeProgram, soc
   ```
 
@@ -155,6 +155,7 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
   attributes: 
   maxSocLowerLimit, maxSoc, chargingPower
+
   ```
 
 * Ignition state
@@ -167,12 +168,6 @@ Depends on your own car or purchased Mercedes Benz licenses.
   "2"        "accessory"           "Ignition accessory"
   "4"        "on"                  "Ignition on"
   "5"        "start"               "Ignition start"
-  ```
-
-* Car
-  ```
-  attributes: 
-  full_update_messages_received, partital_update_messages_received, last_message_received, last_command_type, last_command_state, last_command_error_code, last_command_error_message
   ```
 
 * Oil Level in percent
@@ -198,7 +193,22 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
   ```
 
+### Diagnostic Sensors 
+[Diagnostic sensors](https://www.home-assistant.io/blog/2021/11/03/release-202111/#entity-categorization) are hidden by default, check the devices page to see the current values
 
+* Car
+  ```
+  attributes: 
+  full_update_messages_received, partital_update_messages_received, last_message_received, last_command_type, last_command_state, last_command_error_code, last_command_error_message
+  ```
+
+* RCP_Features
+
+  Sensor shows true if extended configuration like interior lighting is available. This feature requires a reauthentication in case you used a version <0.6 before (We need some more permissions...). Shows False in case reauthentication has not happened or the feature is not available for your car.
+  ```
+  attributes: 
+  rcp_supported_settings (List of all remote configuration options, I'll implement them step by step as services or buttons)
+  ```
 ### Services
 Some services require that the security PIN is created in your mobile Android/IOS app. Please store the pin to the options-dialog of the integration 
 * refresh_access_token:
