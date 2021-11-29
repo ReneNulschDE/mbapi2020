@@ -1,4 +1,4 @@
-"""Config flow for HVV integration."""
+"""Config flow for mbapi2020 integration."""
 import logging
 import uuid
 
@@ -79,10 +79,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.data = user_input
                 return await self.async_step_pin()
 
-            _LOGGER.error("Request Pin Error: %s", errors)
+            _LOGGER.error("Request PIN error: %s", errors)
 
         return self.async_show_form(
-            step_id="user", data_schema=SCHEMA_STEP_USER, errors= "Error unknow" #errors
+            step_id="user", data_schema=SCHEMA_STEP_USER, errors= "Unknown error" #errors
         )
 
     async def async_step_pin(self, user_input=None):
@@ -101,11 +101,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 result = await client.oauth.request_access_token(
                     self.data[CONF_USERNAME], pin, nonce)
             except MbapiError as error:
-                _LOGGER.error("Request Token Error: %s", errors)
+                _LOGGER.error("Request token error: %s", errors)
                 errors = error
 
             if not errors:
-                _LOGGER.debug("token received")
+                _LOGGER.debug("Token received")
                 self.data["token"] = result
 
                 if self.reauth_mode:
@@ -126,7 +126,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._existing_entry = user_input
 
         return self.async_show_form(
-            step_id="user", data_schema=SCHEMA_STEP_USER, errors= "Error unknow" #errors
+            step_id="user", data_schema=SCHEMA_STEP_USER, errors= "Unknown error" #errors
         )
 
     @staticmethod
