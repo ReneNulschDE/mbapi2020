@@ -55,7 +55,7 @@ class Oauth: # pylint: disable-too-few-public-methods
 
 
     async def request_pin(self, email: str, nonce: str):
-        _LOGGER.info("start request pin %s", email)
+        _LOGGER.info("Start request PIN %s", email)
         url = f"{REST_API_BASE if self._region == 'Europe' else REST_API_BASE_NA}/v1/login"
         data = f'{{"countryCode":"{self._country_code}","emailOrPhoneNumber":"{email}","locale":"{self._locale}", "nonce":"{ nonce }"}}'
         headers = self._get_header()
@@ -63,7 +63,7 @@ class Oauth: # pylint: disable-too-few-public-methods
 
 
     async def async_refresh_access_token(self, refresh_token: str):
-        _LOGGER.info("start async refresh_access_token with refresh_token")
+        _LOGGER.info("Start async_refresh_access_token() with refresh_token")
 
        # url = f"{LOGIN_BASE_URI if self._region == 'Europe' else LOGIN_BASE_URI_NA}/auth/realms/Daimler/protocol/openid-connect/token"
        # data = (
@@ -122,7 +122,7 @@ class Oauth: # pylint: disable-too-few-public-methods
     async def async_get_cached_token(self):
         """ Gets a cached auth token
         """
-        _LOGGER.debug("start: async_get_cached_token")
+        _LOGGER.debug("Start async_get_cached_token()")
         token_info = None
         if self.cache_path:
             try:
@@ -132,9 +132,9 @@ class Oauth: # pylint: disable-too-few-public-methods
                 token_info = json.loads(token_info_string)
 
                 if self.is_token_expired(token_info):
-                    _LOGGER.debug("%s - token expired - start refresh", __name__)
+                    _LOGGER.debug("%s token expired -> start refresh", __name__)
                     if "refresh_token" not in token_info:
-                        _LOGGER.warning("Refresh Token is missing - reauth required")
+                        _LOGGER.warning("Refresh token is missing - reauth required")
                         return None
                     token_info = await self.async_refresh_access_token(token_info["refresh_token"])
 
@@ -152,14 +152,14 @@ class Oauth: # pylint: disable-too-few-public-methods
         return True
 
     def _save_token_info(self, token_info):
-        _LOGGER.debug("start: _save_token_info to %s", self.cache_path)
+        _LOGGER.debug("Start _save_token_info() to %s", self.cache_path)
         if self.cache_path:
             try:
                 with open(self.cache_path, "w") as token_file:
                     token_file.write(json.dumps(token_info))
                     token_file.close()
             except IOError:
-                _LOGGER.error("couldn't write token cache to %s", self.cache_path)
+                _LOGGER.error("Couldn't write token cache to %s", self.cache_path)
 
     @classmethod
     def _add_custom_values_to_token_info(cls, token_info):
