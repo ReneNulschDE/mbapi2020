@@ -10,7 +10,7 @@ IMPORTANT:
 
 * Please login once in the MercedesME IOS or Android app before you install this component. (For North America, the app name is Mercedes Me Connect)
 
-* Tested Countries: AU, BE, CA, DE, ES, FI, IT, IR, NL, NO, PT, SE, UK, US
+* Tested Countries: AU, BE, CA, DE, DK, ES, FI, FR, IT, IR, NL, NO, PT, SE, UK, US
 
 * North America: For Cars 2019 or newer only
 
