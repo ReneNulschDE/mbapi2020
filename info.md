@@ -25,6 +25,8 @@ IMPORTANT:
 
 Use the "Add Integration" in Home Assistant and select "MercedesME 2020".
 
+Use your MB-login email address. Your will receive a 6-digit code via email (valid for 15min).
+
 ### Optional configuration values
 
 See Options dialog in the Integration under Home-Assistant/Configuration/Integration.
