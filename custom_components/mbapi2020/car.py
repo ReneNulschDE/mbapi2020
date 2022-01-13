@@ -166,6 +166,7 @@ class Car(object):
     def __init__(self):
         self.licenseplate = None
         self.finorvin = None
+        self._is_owner = False
         self.messages_received = collections.Counter(f=0, p=0)
         self._last_message_received = 0
         self._last_command_type = ""
@@ -188,6 +189,11 @@ class Car(object):
         self.caralarm = None
         self.entry_setup_complete = False
         self._update_listeners = set()
+
+    @property
+    def is_owner(self):
+        return CarAttribute(
+            self._is_owner, "VALID", None)
 
     @property
     def full_updatemessages_received(self):

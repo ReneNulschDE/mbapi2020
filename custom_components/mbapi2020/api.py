@@ -1,6 +1,7 @@
 """Define an object to interact with the REST API."""
 import json
 import logging
+import traceback
 import uuid
 
 from typing import Optional
@@ -77,7 +78,7 @@ class API:
             #async with session.request(method, url, proxy=proxy, ssl=False, **kwargs) as resp:
             if 'url' in kwargs:
                 async with session.request(method, **kwargs) as resp:
-                    resp.raise_for_status()
+                    #resp.raise_for_status()
                     return await resp.json(content_type=None)
             else:
                 async with session.request(method, url, **kwargs) as resp:
@@ -85,14 +86,17 @@ class API:
                     return await resp.json(content_type=None)
 
         except ClientError as err:
+            LOGGER.debug(traceback.format_exc())
             raise ClientError from err
+        except Exception:
+            LOGGER.debug(traceback.format_exc())
         finally:
             if not use_running_session:
                 await session.close()
 
     async def get_user_info(self) -> list:
         """Get all devices associated with an API key."""
-        return await self._request("get", "/v1/vehicle/self/masterdata")
+        return await self._request("get", "/v2/vehicles")
 
     async def get_car_capabilities_commands(self, vin:str) -> list:
         """Get all car capabilities associated with an vin."""
@@ -101,12 +105,14 @@ class API:
     async def get_car_rcp_supported_settings(self, vin: str) -> list:
         """Get all supported car rcp options associated"""
         url = f"https://rcp-rs.query.api.dvb.corpinter.net/api/v1/vehicles/{vin}/settings"
+        LOGGER.debug("get_car_rcp_supported_settings: %s", url)
         return await self._request("get", "", url=url, rcp_headers=True)
 
     async def get_car_rcp_settings(self, vin: str, setting: str) -> list:
         """Get all rcp setting for a car """
         url = f"https://rcp-rs.query.api.dvb.corpinter.net/api/v1/vehicles/{vin}/settings/{setting}"
-        return await self._request("get", "", url=url, add_headers=False)
+        LOGGER.debug("get_car_rcp_settings: %s", url)
+        return await self._request("get", "", url=url, rcp_headers=True)
 
     async def send_route_to_car(self, vin: str, title: str, latitude: float, longitude: float, city: str, postcode: str, street: str):
         """Send route to car associated by vin"""

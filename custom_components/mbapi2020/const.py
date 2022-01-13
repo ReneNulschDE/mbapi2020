@@ -5,7 +5,9 @@ import logging
 import voluptuous as vol
 
 from homeassistant.const import (
-    LENGTH_KILOMETERS, PERCENTAGE)
+    LENGTH_KILOMETERS,
+    PERCENTAGE,
+    Platform)
 
 from homeassistant.helpers import (
     config_validation as cv,
@@ -13,11 +15,11 @@ from homeassistant.helpers import (
 
 
 MERCEDESME_COMPONENTS = [
-    "sensor",
-    "lock",
-    "binary_sensor",
-    "device_tracker",
-    "switch"
+    Platform.SENSOR,
+    Platform.LOCK,
+    Platform.BINARY_SENSOR,
+    Platform.DEVICE_TRACKER,
+    Platform.SWITCH
 ]
 
 REGION_EUROPE = "Europe"
@@ -333,7 +335,8 @@ SENSORS = {
                                     'last_command_type',
                                     'last_command_state',
                                     'last_command_error_code',
-                                    'last_command_error_message'
+                                    'last_command_error_message',
+                                    'is_owner'
                                 },
                                 "mdi:car",
                                 None,

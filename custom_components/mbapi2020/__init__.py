@@ -111,7 +111,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         dev_reg = await hass.helpers.device_registry.async_get_registry()
 
-        for car in masterdata:
+        for car in masterdata.get("assignedVehicles"):
 
             # Car is excluded, we do not add this
             if car.get('fin') in config_entry.options.get('excluded_cars', ""):
@@ -140,14 +140,21 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             rcp_supported = await mercedes.client.api.is_car_rcp_supported(car.get("fin"))
             LOGGER.debug("RCP supported for car %s: %s", car.get("fin"), rcp_supported)
             setattr(rcp_options, "rcp_supported", CarAttribute(rcp_supported, "VALID", 0))
+            rcp_supported = False
             if rcp_supported:
                 rcp_supported_settings = await mercedes.client.api.get_car_rcp_supported_settings(car.get("fin"))
                 if rcp_supported_settings:
+                    mercedes.client.write_debug_json_output(rcp_supported_settings, "rcs")
                     if rcp_supported_settings.get("data"):
                         if rcp_supported_settings.get("data").get("attributes"):
                             if rcp_supported_settings.get("data").get("attributes").get("supportedSettings"):
                                 LOGGER.debug("RCP supported settings: %s", str(rcp_supported_settings.get("data").get("attributes").get("supportedSettings")))
                                 setattr(rcp_options, "rcp_supported_settings", CarAttribute(rcp_supported_settings.get("data").get("attributes").get("supportedSettings"), "VALID", 0))
+
+                                for setting in rcp_supported_settings.get("data").get("attributes").get("supportedSettings"):
+                                    setting_result = await mercedes.client.api.get_car_rcp_settings(car.get("fin"), setting)
+                                    if setting_result is not None:
+                                        mercedes.client.write_debug_json_output(setting_result, f"rcs_{setting}")
 
             current_car = Car()
             current_car.finorvin = car.get('fin')
@@ -155,6 +162,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             current_car.features = features
             current_car.rcp_options = rcp_options
             current_car._last_message_received = int(round(time.time() * 1000))
+            current_car._is_owner = car.get('isOwner')
 
             mercedes.client.cars.append(current_car)
             LOGGER.debug("Init - car added - %s", current_car.finorvin)
@@ -190,7 +198,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             LOGGER.debug("Remove check: %s, %s", device_entry.id, list(device_entry.identifiers)[0][1])
             vin = list(device_entry.identifiers)[0][1]
             car_found = False
-            for car in masterdata:
+            for car in masterdata.get("assignedVehicles"):
                 if car.get('fin') == vin:
                     car_found = True
             if not car_found or vin in config_entry.options.get('excluded_cars', ""):
