@@ -80,7 +80,7 @@ class API:
 
     async def get_user_info(self) -> list:
         """Get all devices associated with an API key."""
-        return await self._request("get", "/v1/vehicle/self/masterdata")
+        return await self._request("get", "/v2/vehicles")
 
     async def get_car_capabilities_commands(self, vin:str) -> list:
         return await self._request("get", f"/v1/vehicle/{vin}/capabilities/commands")

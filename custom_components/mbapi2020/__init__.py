@@ -120,7 +120,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         dev_reg = await hass.helpers.device_registry.async_get_registry()
 
-        for car in masterdata:
+        for car in masterdata.get("assignedVehicles"):
 
             # Car is excluded, we do not add this
             if car.get('fin') in config_entry.options.get('excluded_cars', ""):
@@ -185,7 +185,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             LOGGER.debug("Remove check: %s, %s", device_entry.id, list(device_entry.identifiers)[0][1])
             vin = list(device_entry.identifiers)[0][1]
             car_found = False
-            for car in masterdata:
+            for car in masterdata.get("assignedVehicles"):
                 if car.get('fin') == vin:
                     car_found = True
             if not car_found or vin in config_entry.options.get('excluded_cars', ""):
