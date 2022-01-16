@@ -309,6 +309,17 @@ DEVICE_TRACKER = {
 }
 
 SENSORS = {
+    "chargingpower":  [         "Charging Power",
+                                "kWh",
+                                "electric",
+                                "chargingPower",
+                                "value",
+                                None,
+                                {},
+                                "mdi:ev-station",
+                                "energy",
+                                False,
+                                None],
     "rcp_features":  [          "RCP Features",
                                 None,
                                 "rcp_options",
