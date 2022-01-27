@@ -180,6 +180,7 @@ class Client: # pylint: disable-too-few-public-methods
 
             if msg_type == "apptwin_pending_command_request":
                 #LOGGER.debug(f"apptwin_pending_command_request - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
+                self._process_assigned_vehicles(data)
                 return
 
             if msg_type == "assigned_vehicles":
