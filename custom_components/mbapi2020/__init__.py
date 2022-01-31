@@ -81,13 +81,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             region = "Europe"
 
 
-        dev_reg = await hass.helpers.device_registry.async_get_registry()
-
         mercedes = MercedesMeContext(
             hass,
             config_entry,
-            region = region,
-            dev_reg = dev_reg
+            region = region
         )
 
 
@@ -110,6 +107,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         masterdata = await mercedes.client.api.get_user_info()
         mercedes.client.write_debug_json_output(masterdata, "md")
+
+        dev_reg = await hass.helpers.device_registry.async_get_registry()
 
         for car in masterdata.get("assignedVehicles"):
 
@@ -351,29 +350,26 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 class MercedesMeContext:
     """Context class for MercedesMe connections."""
-    def __init__(self, hass, config_entry, region, dev_reg):
+    def __init__(self, hass, config_entry, region):
         self.config_entry = config_entry
         self.entry_setup_complete: bool = False
         self._hass = hass
         self._region = region
-        self.dev_reg = dev_reg
         self.client = Client(hass=hass, session=aiohttp_client.async_get_clientsession(hass), config_entry=config_entry, region=self._region)
 
     def on_dataload_complete(self):
-        LOGGER.info("Car Load complete - cleanup device registry")
-
         # Remove old cars from device_registry
-        device_list = async_entries_for_config_entry(self.dev_reg, self.config_entry.entry_id)
-        for device_entry in device_list:
-            LOGGER.debug("Remove check: %s, %s", device_entry.id, list(device_entry.identifiers)[0][1])
-            vin = list(device_entry.identifiers)[0][1]
-            car_found = False
-            for car in self.client.cars:
-                if car.finorvin == vin:
-                    car_found = True
-            if not car_found or vin in self.config_entry.options.get('excluded_cars', ""):
-                LOGGER.info("Removing car from device registry: %s, %s", device_entry.name, vin)
-                self.dev_reg.async_remove_device(device_entry.id)
+        # device_list = async_entries_for_config_entry(self.dev_reg, self.config_entry.entry_id)
+        #for device_entry in device_list:
+        #    LOGGER.debug("Remove check: %s, %s", device_entry.id, list(device_entry.identifiers)[0][1])
+        #    vin = list(device_entry.identifiers)[0][1]
+        #    car_found = False
+        #    for car in self.client.cars:
+        #        if car.finorvin == vin:
+        #            car_found = True
+        #    if not car_found or vin in self.config_entry.options.get('excluded_cars', ""):
+        #        LOGGER.info("Removing car from device registry: %s, %s", device_entry.name, vin)
+        #        self.dev_reg.async_remove_device(device_entry.id)
 
         LOGGER.info("Car Load complete - start sensor creation")
         if not self.entry_setup_complete:
