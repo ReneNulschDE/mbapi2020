@@ -310,7 +310,7 @@ DEVICE_TRACKER = {
 
 SENSORS = {
     "chargingpower":  [         "Charging Power",
-                                "kWh",
+                                "kW",
                                 "electric",
                                 "chargingPower",
                                 "value",
