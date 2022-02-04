@@ -1,1 +1,1 @@
-protobuf==3.14.0
+protobuf==3.19.1,<4
