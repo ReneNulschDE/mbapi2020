@@ -1,0 +1,13 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  reviewers:
+  - ReneNulschDE
+  assignees:
+  - ReneNulschDE
+  labels:
+  - dependencies
