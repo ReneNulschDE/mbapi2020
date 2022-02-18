@@ -317,7 +317,7 @@ SENSORS = {
                                 None,
                                 {},
                                 "mdi:ev-station",
-                                "energy",
+                                "power",
                                 False,
                                 None],
     "rcp_features":  [          "RCP Features",
