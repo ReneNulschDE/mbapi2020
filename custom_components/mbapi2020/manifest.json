@@ -4,11 +4,11 @@
   "config_flow": true,
   "documentation": "https://github.com/ReneNulschDE/mbapi2020",
   "issue_tracker": "https://github.com/ReneNulschDE/mbapi2020/issues",
-  "requirements": ["protobuf==3.19.1"],
+  "requirements": ["protobuf>=3.19.1"],
   "dependencies": [],
   "codeowners": [
     "@ReneNulschDE"
   ],
-  "version": "0.6.2",
+  "version": "0.6.4",
   "iot_class": "cloud_push"
 }
