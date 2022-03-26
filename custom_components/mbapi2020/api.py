@@ -51,18 +51,18 @@ class API:
                 "X-TrackingId": str(uuid.uuid4()),
                 "X-ApplicationName": "mycar-store-ece",
                 "X-AuthMode": "CIAMNG",
-                "ris-application-version": "1.3.1",
+                "ris-application-version": "1.19.0 (1361)",
                 "ris-os-name": "android",
-                "ris-os-version": "6.0",
-                "ris-sdk-version": "2.10.3",
+                "ris-os-version": "15.3.1",
+                "ris-sdk-version": "2.62.0",
                 "X-Locale": "en-US",
-                "User-Agent": "okhttp/3.12.2",
+                "User-Agent": "MyCar/1.19.0 (com.daimler.ris.mercedesme.ece.ios; build:1361; iOS 15.3.1) Alamofire/5.4.0",
                 "Content-Type": "application/json; charset=UTF-8"
             }
         else:
             kwargs["headers"] = {
                 "Authorization": f"Bearer {token['access_token']}",
-                "User-Agent": "MyCar/1.17.0 (com.daimler.ris.mercedesme.ece.ios; build:1241; iOS 15.0.2) Alamofire/5.4.0",
+                "User-Agent": "MyCar/1.19.0 (com.daimler.ris.mercedesme.ece.ios; build:1361; iOS 15.3.1) Alamofire/5.4.0",
                 "Accept-Language": "de-DE;q=1.0, en-DE;q=0.9"
             }
 
@@ -139,7 +139,7 @@ class API:
 
         headers = {
             "Authorization": f"Bearer {token['access_token']}",
-            "User-Agent": "MyCar/1.17.0 (com.daimler.ris.mercedesme.ece.ios; build:1241; iOS 15.0.2) Alamofire/5.4.0",
+            "User-Agent": "MyCar/1.19.0 (com.daimler.ris.mercedesme.ece.ios; build:1361; iOS 15.3.1) Alamofire/5.4.0",
             "Accept-Language": "de-DE;q=1.0, en-DE;q=0.9"
         }
 

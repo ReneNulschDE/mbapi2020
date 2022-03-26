@@ -3,7 +3,7 @@ import json
 import logging
 import time
 import uuid
-from multiprocessing import RLock
+import threading
 from pathlib import Path
 from typing import Optional
 
@@ -14,6 +14,7 @@ from google.protobuf.json_format import MessageToJson
 from homeassistant.core import (
     HomeAssistant
 )
+from homeassistant.helpers import system_info
 from homeassistant.helpers.event import async_call_later
 
 import custom_components.mbapi2020.proto.client_pb2 as client_pb2
@@ -80,7 +81,9 @@ class Client: # pylint: disable-too-few-public-methods
         self._region = region
         self._on_dataload_complete = None
         self._dataload_complete_fired = False
-        self.__lock = RLock()
+        self._disable_rlock = self.is_wsl_environment()
+        if not self._disable_rlock:
+            self.__lock = threading.RLock()
         self._debug_save_path = self._hass.config.path(DEFAULT_CACHE_PATH)
         self.config_entry = config_entry
         self._locale: str = DEFAULT_LOCALE
@@ -341,11 +344,18 @@ class Client: # pylint: disable-too-few-public-methods
 
             if current_car.get("full_update") is True:
                 LOGGER.debug("Full Update. %s", vin)
-                with self.__lock:
+                if not self._disable_rlock:
+                    with self.__lock:
+                        self._build_car(current_car, update_mode=False)
+                else:
                     self._build_car(current_car, update_mode=False)
+
             else:
                 LOGGER.debug("Partial Update. %s", vin)
-                with self.__lock:
+                if not self._disable_rlock:
+                    with self.__lock:
+                        self._build_car(current_car, update_mode=True)
+                else:
                     self._build_car(current_car, update_mode=True)
 
             if self._dataload_complete_fired:
@@ -366,7 +376,21 @@ class Client: # pylint: disable-too-few-public-methods
 
             #self._write_debug_output(data, "asv")
 
-            with self.__lock:
+            if not self._disable_rlock:
+                with self.__lock:
+                    for vin in data.assigned_vehicles.vins:
+
+                        if vin in self.excluded_cars:
+                            continue
+
+                        _car = self._get_car(vin)
+
+                        if _car is None:
+                            current_car = Car()
+                            current_car.finorvin = vin
+                            current_car.licenseplate = vin
+                            self.cars.append(current_car)
+            else:
                 for vin in data.assigned_vehicles.vins:
 
                     if vin in self.excluded_cars:
@@ -802,3 +826,7 @@ class Client: # pylint: disable-too-few-public-methods
         for car in self.cars:
             if car.finorvin == vin:
                 return car
+
+    async def is_wsl_environment(self):
+        info = await system_info.async_get_system_info(self._hass)
+        return "WSL" in info.get("os_version")
