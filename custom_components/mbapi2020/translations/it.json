@@ -50,6 +50,5 @@
             "api_endpoint_reachable": "MB API endpoint raggiungibile",
             "websocket_connection_state": "MB Websocket stato di connessione"
         }
-    },    
-    "title": "MercedesME 2020"
+    }
 }
