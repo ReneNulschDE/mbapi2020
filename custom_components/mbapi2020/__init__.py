@@ -16,7 +16,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.device_registry import async_entries_for_config_entry
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import (
+    Entity,
+    EntityCategory
+)
 from homeassistant.components import system_health
 from homeassistant.util import slugify
 
@@ -439,8 +442,13 @@ class MercedesMeEntity(Entity):
         return self._unique_id
 
     @property
-    def entity_category(self) -> str:
+    def entity_category(self):
         """Return the entity_category of the sensor."""
+        if not self._sensor_config[scf.ENTITY_CATEGORY.value] is None:
+            if self._sensor_config[scf.ENTITY_CATEGORY.value] == "diagnostic":
+                return EntityCategory.DIAGNOSTIC
+            if self._sensor_config[scf.ENTITY_CATEGORY.value] == "config":
+                return EntityCategory.CONFIG
         return self._sensor_config[scf.ENTITY_CATEGORY.value]
 
     def device_retrieval_status(self):
