@@ -449,7 +449,7 @@ class MercedesMeEntity(Entity):
                 return EntityCategory.DIAGNOSTIC
             if self._sensor_config[scf.ENTITY_CATEGORY.value] == "config":
                 return EntityCategory.CONFIG
-        return self._sensor_config[scf.ENTITY_CATEGORY.value]
+        return None
 
     def device_retrieval_status(self):
         if self._sensor_name == "Car":
