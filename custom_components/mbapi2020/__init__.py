@@ -90,6 +90,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             region = region
         )
 
+        await mercedes.client.set_rlock_mode()
 
         try:
             token_info = await mercedes.client.oauth.async_get_cached_token()

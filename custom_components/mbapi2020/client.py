@@ -81,12 +81,8 @@ class Client: # pylint: disable-too-few-public-methods
         self._region = region
         self._on_dataload_complete = None
         self._dataload_complete_fired = False
-        self._disable_rlock = self.is_wsl_environment()
-        if not self._disable_rlock:
-            LOGGER.info("WSL not detected - running in rlock mode")
-            self.__lock = threading.RLock()
-        else:
-            LOGGER.info("WSL detected - rlock mode disabled")
+        self._disable_rlock = False
+        self.__lock = None
         self._debug_save_path = self._hass.config.path(DEFAULT_CACHE_PATH)
         self.config_entry = config_entry
         self._locale: str = DEFAULT_LOCALE
@@ -830,6 +826,16 @@ class Client: # pylint: disable-too-few-public-methods
             if car.finorvin == vin:
                 return car
 
-    async def is_wsl_environment(self):
+    async def set_rlock_mode(self):
         info = await system_info.async_get_system_info(self._hass)
-        return "WSL" in info.get("os_version")
+
+        if not "WSL" in info.get("os_version"):
+            self._disable_rlock = False
+            self.__lock = threading.RLock()
+            LOGGER.info("WSL not detected - running in rlock mode")
+        else:
+            self._disable_rlock = True
+            self.__lock = None
+            LOGGER.info("WSL detected - rlock mode disabled")
+
+        return info
