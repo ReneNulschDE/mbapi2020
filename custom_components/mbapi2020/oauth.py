@@ -241,6 +241,7 @@ class Oauth: # pylint: disable-too-few-public-methods
                 return await resp.json(content_type=None)
         except ClientError as err:
             _LOGGER.error("Error requesting data from %s: %s", url, err)
+            raise err
         except Exception as exc:
             _LOGGER.error("Error requesting data from %s: %s", url, exc)
         finally:
