@@ -240,10 +240,10 @@ class Oauth: # pylint: disable-too-few-public-methods
                 resp.raise_for_status()
                 return await resp.json(content_type=None)
         except ClientError as err:
-            _LOGGER.error("Error requesting data from %s: %s", url, err)
+            _LOGGER.error("ClientError requesting data from %s: %s", url, err)
             raise err
         except Exception as exc:
-            _LOGGER.error("Error requesting data from %s: %s", url, exc)
+            _LOGGER.error("Unexpected Error requesting data from %s: %s", url, exc)
         finally:
             if not use_running_session:
                 await session.close()
