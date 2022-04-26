@@ -10,7 +10,7 @@ IMPORTANT:
 
 * Please login once in the MercedesME IOS or Android app before you install this component. (For North America, the app name is Mercedes Me Connect)
 
-* Tested Countries: AU, BE, CA, DE, DK, ES, FI, FR, IT, IR, NL, NO, PT, SE, UK, US
+* Tested Countries: AT, AU, BE, CA, CH, DE, DK, ES, FI, FR, IT, IR, NL, NO, PT, SE, UK, US
 
 * North America: For Cars 2019 or newer only
 
@@ -34,7 +34,7 @@ See Options dialog in the Integration under Home-Assistant/Configuration/Integra
 ```
 Excluded Cars: comma-separated list of VINs.
 PIN: Security PIN to execute special services. Please use your MB mobile app to setup
-Disable Capability Check: By default the component checks the capabilities of a car. Active this option to disable the capability check.
+Disable Capability Check: By default the component checks the capabilities of a car. Active this option to disable the capability check. (For North America)
 Debug Save Messages: Enable this option to save all relevant received message into the messages folder of the component
 ```
 
