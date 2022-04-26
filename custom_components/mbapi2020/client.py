@@ -812,7 +812,7 @@ class Client: # pylint: disable-too-few-public-methods
 
     def write_debug_json_output(self, data, datatype):
 
-        LOGGER.debug(self.config_entry.options)
+        #LOGGER.debug(self.config_entry.options)
         if self.config_entry.options.get(CONF_DEBUG_FILE_SAVE, False):
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
