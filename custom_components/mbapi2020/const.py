@@ -587,7 +587,7 @@ SWITCHES = {
                                 "auxheat",
                                 "auxheatActive",
                                 "value",
-                                None,
+                                "AUXHEAT_START",
                                 {},
                                 None,
                                 None,

@@ -33,7 +33,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
         for key, value in sorted(SWITCHES.items()):
             if (value[5] is None or
-                    entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False or
+                    entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is True or
                     getattr(car.features, value[5], False) is True):
                 device = MercedesMESwitch(
                     hass=hass,
@@ -42,6 +42,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                     sensor_config = value,
                     vin = car.finorvin
                     )
+                LOGGER.info("Created Switch for car %s - feature %s check: %s", car.finorvin, value[5] ,getattr(car.features, value[5]))
                 sensor_list.append(device)
 
     async_add_entities(sensor_list, True)
