@@ -15,7 +15,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client
-from homeassistant.helpers.device_registry import async_entries_for_config_entry
+import homeassistant.helpers.device_registry as dr
 from homeassistant.helpers.entity import (
     Entity,
     EntityCategory
@@ -112,7 +112,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         masterdata = await mercedes.client.api.get_user_info()
         mercedes.client.write_debug_json_output(masterdata, "md")
 
-        dev_reg = await hass.helpers.device_registry.async_get_registry()
+        dev_reg = dr.async_get(hass)
 
         for car in masterdata.get("assignedVehicles"):
 
@@ -178,7 +178,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             debug_car._last_message_received = int(round(time.time() * 1000))
             mercedes.client.cars.append(debug_car)
             LOGGER.debug("Init - car added - %s", debug_car.finorvin)
-            dev_reg = await hass.helpers.device_registry.async_get_registry()
+            dev_reg = dr.async_get(hass)
             dev_reg.async_get_or_create(
                 config_entry_id=config_entry.entry_id,
                 connections=set(),
