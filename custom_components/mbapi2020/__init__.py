@@ -162,6 +162,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             current_car = Car()
             current_car.finorvin = car.get('fin')
             current_car.licenseplate = car.get('licensePlate', car.get('fin'))
+            if not current_car.licenseplate.strip():
+                current_car.licenseplate = car.get('fin')
             current_car.features = features
             current_car.rcp_options = rcp_options
             current_car._last_message_received = int(round(time.time() * 1000))
