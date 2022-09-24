@@ -8,7 +8,6 @@ from homeassistant.const import (
     LENGTH_KILOMETERS,
     PERCENTAGE,
     SPEED_KILOMETERS_PER_HOUR,
-    TIME_MINUTES,
     Platform,
 )
 
@@ -509,7 +508,7 @@ SENSORS = {
         None,
     ],
     "averageSpeedStart": [
-        "Average Speed Start",
+        "Average speed start",
         SPEED_KILOMETERS_PER_HOUR,
         "odometer",
         "averageSpeedStart",
@@ -522,7 +521,7 @@ SENSORS = {
         None,
     ],
     "averageSpeedReset": [
-        "Average Speed Reset",
+        "Average speed reset",
         SPEED_KILOMETERS_PER_HOUR,
         "odometer",
         "averageSpeedReset",
@@ -640,7 +639,7 @@ SENSORS = {
     ],
     "liquidconsumptionstart": [
         "Liquid consumption start",
-        "l",
+        "l/100km",
         "odometer",
         "liquidconsumptionstart",
         "display_value",
@@ -653,7 +652,7 @@ SENSORS = {
     ],
     "liquidconsumptionreset": [
         "Liquid consumption reset",
-        "l",
+        "l/100km",
         "odometer",
         "liquidconsumptionreset",
         "display_value",
@@ -665,7 +664,7 @@ SENSORS = {
         None,
     ],
     "rangeliquid": [
-        "range liquid",
+        "Range liquid",
         LENGTH_KILOMETERS,
         "odometer",
         "rangeliquid",
