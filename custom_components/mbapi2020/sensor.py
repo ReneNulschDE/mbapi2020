@@ -5,12 +5,11 @@ For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
 import logging
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
 
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity
-
 from .const import (
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     DOMAIN,
@@ -67,7 +66,6 @@ class MercedesMESensor(MercedesMeEntity, RestoreEntity, SensorEntity):
     @property
     def state_class(self):
         """Return the state class."""
-        LOGGER.debug("Stateclass %s", self._sensor_config[scf.STATE_CLASS.value])
         return self._sensor_config[scf.STATE_CLASS.value]
 
     async def async_added_to_hass(self) -> None:
