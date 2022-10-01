@@ -5,6 +5,7 @@ For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
 import logging
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 
 from homeassistant.helpers.restore_state import RestoreEntity
 
@@ -13,10 +14,12 @@ from . import MercedesMeEntity
 from .const import (
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     DOMAIN,
-    SENSORS
+    SENSORS,
+    SensorConfigFields as scf,
 )
 
 LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Setup the sensor platform."""
@@ -31,25 +34,25 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for car in data.client.cars:
 
         for key, value in sorted(SENSORS.items()):
-            if (value[5] is None or
-                    entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False or
-                    getattr(car.features, value[5], False) is True):
+            if (
+                value[5] is None
+                or entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False
+                or getattr(car.features, value[5], False) is True
+            ):
                 device = MercedesMESensor(
                     hass=hass,
                     data=data,
-                    internal_name = key,
-                    sensor_config = value,
-                    vin = car.finorvin
-                    )
-                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] :
+                    internal_name=key,
+                    sensor_config=value,
+                    vin=car.finorvin,
+                )
+                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]:
                     sensor_list.append(device)
 
     async_add_entities(sensor_list, True)
 
 
-
-
-class MercedesMESensor(MercedesMeEntity, RestoreEntity):
+class MercedesMESensor(MercedesMeEntity, RestoreEntity, SensorEntity):
     """Representation of a Sensor."""
 
     @property
@@ -61,6 +64,11 @@ class MercedesMESensor(MercedesMeEntity, RestoreEntity):
 
         return self._state
 
+    @property
+    def state_class(self):
+        """Return the state class."""
+        LOGGER.debug("Stateclass %s", self._sensor_config[scf.STATE_CLASS.value])
+        return self._sensor_config[scf.STATE_CLASS.value]
 
     async def async_added_to_hass(self) -> None:
         """Call when entity about to be added to Home Assistant."""
