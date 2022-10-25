@@ -21,6 +21,7 @@ from homeassistant.helpers.entity import (
     EntityCategory
 )
 from homeassistant.components import system_health
+from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
 from homeassistant.util import slugify
 
 from .const import (
@@ -528,7 +529,7 @@ class MercedesMeEntity(Entity):
     def unit_of_measurement(self):
         """Return the unit of measurement."""
         if self._unit == LENGTH_KILOMETERS and \
-           not self._hass.config.units.is_metric:
+           self._hass.config.units is US_CUSTOMARY_SYSTEM:
             return LENGTH_MILES
         else:
             return self._unit
