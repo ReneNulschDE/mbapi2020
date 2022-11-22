@@ -175,8 +175,8 @@ class Oauth: # pylint: disable-too-few-public-methods
         header = {
             "X-SessionId": str(uuid.uuid4()),
             "X-TrackingId": str(uuid.uuid4()),
-            "ris-os-name": "android",
-            "ris-os-version": "6.0",
+            "ris-os-name": "ios",
+            "ris-os-version": "16.1",
             "ris-sdk-version": RIS_SDK_VERSION,
             "X-Locale": self._locale,
             "User-Agent": "okhttp/3.14.9",
