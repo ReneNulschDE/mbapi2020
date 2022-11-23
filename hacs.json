@@ -1,5 +1,4 @@
 {
     "name": "MercedesME 2020",
-    "domains": ["lock", "sensor", "device_tracker", "binary_sensor", "switch"],
-    "iot_class": "Cloud Pull"
+    "homeassistant": "2022.11.0"
 }
