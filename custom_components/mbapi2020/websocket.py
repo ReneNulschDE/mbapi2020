@@ -94,6 +94,7 @@ class Websocket:
         self._connection = None
         self._region = region
         self.connection_state = "unknown"
+        self.is_connecting = False
         self._watchdog: WebsocketWatchdog = WebsocketWatchdog(self._disconnected)
 
     def set_connection_state(self, state):
@@ -105,6 +106,9 @@ class Websocket:
 
     async def async_connect(self, on_data) -> None:
         """Connect to the socket."""
+        
+        if self.is_connecting: 
+            return
 
         async def _async_stop_handler(event):
             """Stop when Home Assistant is shutting down."""
@@ -121,6 +125,7 @@ class Websocket:
 
         while True:
             try:
+                self.is_connecting = True
                 LOGGER.info("Connecting to %s", WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA)
                 self._connection = await session.ws_connect(WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA, headers=headers)
             except aiohttp.client_exceptions.ClientError:
@@ -128,6 +133,7 @@ class Websocket:
                 self.set_connection_state(STATE_RECONNECTING)
                 await asyncio.sleep(10)
             else:
+                self.is_connecting = False
                 LOGGER.info("Connected to mercedes websocket at %s", WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA)
                 break
 
