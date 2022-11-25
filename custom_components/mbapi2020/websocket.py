@@ -106,8 +106,8 @@ class Websocket:
 
     async def async_connect(self, on_data) -> None:
         """Connect to the socket."""
-        
-        if self.is_connecting: 
+
+        if self.is_connecting:
             return
 
         async def _async_stop_handler(event):
