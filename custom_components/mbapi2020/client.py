@@ -190,6 +190,11 @@ class Client: # pylint: disable-too-few-public-methods
                 self._process_assigned_vehicles(data)
                 return
 
+            if msg_type == "service_status_updates":
+                LOGGER.debug(f"service_status_updates - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
+                self._write_debug_output(data, "ssu")
+                return
+
             LOGGER.debug("Message Type not implemented: %s", msg_type)
 
         try:
