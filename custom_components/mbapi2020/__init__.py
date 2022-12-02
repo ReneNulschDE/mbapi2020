@@ -121,6 +121,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             vin = car.get('vin')
             if vin is None:
                 vin = car.get('fin')
+                LOGGER.debug("VIN not found in masterdata. Used FIN %s instead.", vin)
 
             # Car is excluded, we do not add this
             if vin in config_entry.options.get('excluded_cars', ""):
