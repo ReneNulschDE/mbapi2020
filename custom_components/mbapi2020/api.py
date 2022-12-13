@@ -133,6 +133,11 @@ class API:
 
         return await self._request("post", f"/v1/vehicle/{vin}/route", data=json.dumps(data))
 
+    async def get_car_geofencing_violations(self, vin: str) -> list:
+        """Get all geofencing violations for a car """
+        url = f"https://bff.emea-prod.mobilesdk.mercedes-benz.com/v1/geofencing/vehicles/{vin}/fences/violations"
+        LOGGER.debug("get_car_geofencing_violations: %s", url)
+        return await self._request("get", "", url=url, rcp_headers=False)
 
     async def is_car_rcp_supported(self, vin: str) -> list:
         """return if is car rcp supported"""
