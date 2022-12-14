@@ -49,8 +49,8 @@ DEFAULT_COUNTRY_CODE = "EN"
 
 RIS_APPLICATION_VERSION_NA = "3.26.1"
 RIS_APPLICATION_VERSION_PA = "1.26.1"
-RIS_APPLICATION_VERSION = "1.26.1 (1697)"
-RIS_SDK_VERSION = "2.82.0"
+RIS_APPLICATION_VERSION = "1.27.0"
+RIS_SDK_VERSION = "2.82.2"
 
 VERIFY_SSL = True
 
@@ -58,12 +58,12 @@ LOGIN_APP_ID_EU = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
 LOGIN_BASE_URI = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_NA = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_PA = "https://id.mercedes-benz.com"
-REST_API_BASE = "https://bff-prod.risingstars.daimler.com"
-REST_API_BASE_NA = "https://bff-prod.risingstars-amap.daimler.com"
-REST_API_BASE_PA = "https://bff-prod.risingstars-amap.daimler.com"
-WEBSOCKET_API_BASE = "wss://websocket-prod.risingstars.daimler.com/ws"
-WEBSOCKET_API_BASE_NA = "wss://websocket-prod.risingstars-amap.daimler.com/ws"
-WEBSOCKET_API_BASE_PA = "wss://websocket-prod.risingstars-amap.daimler.com/ws"
+REST_API_BASE = "https://bff.emea-prod.mobilesdk.mercedes-benz.com"
+REST_API_BASE_NA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
+REST_API_BASE_PA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
+WEBSOCKET_API_BASE = "wss://websocket.emea-prod.mobilesdk.mercedes-benz.com/ws"
+WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
+WEBSOCKET_API_BASE_PA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
 WEBSOCKET_USER_AGENT = "okhttp/3.12.2"
 DEFAULT_SOCKET_MIN_RETRY = 15
 

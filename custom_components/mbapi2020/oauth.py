@@ -65,21 +65,17 @@ class Oauth: # pylint: disable-too-few-public-methods
     async def async_refresh_access_token(self, refresh_token: str):
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
 
-       # url = f"{LOGIN_BASE_URI if self._region == 'Europe' else LOGIN_BASE_URI_NA}/auth/realms/Daimler/protocol/openid-connect/token"
-       # data = (
-       #     f"client_id=app&grant_type=refresh_token&refresh_token={refresh_token}"
-       # )
-
         url = f"{LOGIN_BASE_URI}/as/token.oauth2"
         data = (
-            f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=refresh_token&refresh_token={refresh_token}"
+            #f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=refresh_token&refresh_token={refresh_token}"
+            f"grant_type=refresh_token&refresh_token={refresh_token}"
         )
 
         headers = self._get_header()
         headers['Content-Type'] = "application/x-www-form-urlencoded"
         headers['Stage'] = "prod"
-        headers['X-AuthMode'] = "CIAMNG"
-        headers['device-uuid'] = str(uuid.uuid4())
+        headers['X-Device-Id'] = str(uuid.uuid4())
+        headers['X-Request-Id'] = str(uuid.uuid4())
 
         token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
 
@@ -106,8 +102,8 @@ class Oauth: # pylint: disable-too-few-public-methods
         headers = self._get_header()
         headers['Content-Type'] = "application/x-www-form-urlencoded"
         headers['Stage'] = "prod"
-        headers['X-AuthMode'] = "CIAMNG"
-        headers['device-uuid'] = str(uuid.uuid4())
+        headers['X-Device-Id'] = str(uuid.uuid4())
+        headers['X-Request-Id'] = str(uuid.uuid4())
 
         token_info = await self._async_request("post", url, data=data, headers=headers)
 
@@ -175,11 +171,11 @@ class Oauth: # pylint: disable-too-few-public-methods
         header = {
             "X-SessionId": str(uuid.uuid4()),
             "X-TrackingId": str(uuid.uuid4()),
-            "ris-os-name": "ios",
-            "ris-os-version": "16.1",
+            "ris-os-name": "android",
+            "ris-os-version": "8.0.0",
             "ris-sdk-version": RIS_SDK_VERSION,
             "X-Locale": self._locale,
-            "User-Agent": "okhttp/3.14.9",
+            "User-Agent": "mycar-store-ece v1.27.0, android 8.0.0, SDK 2.84.2",
             "Content-Type": "application/json; charset=UTF-8"
         }
 
