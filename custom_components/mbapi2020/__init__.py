@@ -346,6 +346,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
+    LOGGER.debug("Start unload component.")
     unload_ok = all(
         await asyncio.gather(
             *[
@@ -357,6 +358,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     if unload_ok:
         if hass.data[DOMAIN]:
             del hass.data[DOMAIN]
+    else:
+        LOGGER.debug("unload not successful.")
+
 
     return unload_ok
 
