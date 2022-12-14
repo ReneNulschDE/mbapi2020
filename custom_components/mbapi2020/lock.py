@@ -65,6 +65,7 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
 
         if pin and pin.strip():
             await self._data.client.doors_unlock_with_pin(self._vin, pin)
+            return
 
         if code is None:
             LOGGER.error("Code required but none provided")
