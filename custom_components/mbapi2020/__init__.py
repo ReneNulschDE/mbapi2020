@@ -413,7 +413,8 @@ class MercedesMeEntity(Entity):
         data,
         internal_name,
         sensor_config,
-        vin
+        vin,
+        is_poll_sensor: bool = False
     ):
         """Initialize the MercedesMe entity."""
         self._hass = hass
@@ -421,6 +422,7 @@ class MercedesMeEntity(Entity):
         self._vin = vin
         self._internal_name = internal_name
         self._sensor_config = sensor_config
+        self._is_poll_sensor = is_poll_sensor
 
         self._state = None
         self._sensor_name = sensor_config[scf.DISPLAY_NAME.value]
@@ -551,7 +553,7 @@ class MercedesMeEntity(Entity):
 
     @property
     def should_poll(self):
-        return False
+        return self._is_poll_sensor
 
 
     def update(self):
