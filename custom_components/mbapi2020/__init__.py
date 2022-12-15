@@ -179,6 +179,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             mercedes.client.cars.append(current_car)
             LOGGER.debug("Init - car added - %s", current_car.finorvin)
 
+        await mercedes.client.update_poll_states()
 
         if DEBUG_ADD_FAKE_VIN:
             debug_car = Car()

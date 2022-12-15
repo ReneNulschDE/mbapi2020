@@ -122,6 +122,17 @@ Depends on your own car or purchased Mercedes Benz licenses.
   tankLevelAdBlue
   ```
 
+* Geofencing Violation
+
+  ```
+  attributes: 
+  Last_event_zone
+  ```
+  
+  Values:
+  ENTER
+  LEAVE
+
 * odometer
   
   ```

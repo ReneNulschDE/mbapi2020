@@ -36,7 +36,7 @@ class API:
         self._oauth: Oauth = oauth
         self._region = region
 
-    async def _request(self, method: str, endpoint: str, rcp_headers: bool = False,  **kwargs) -> list:
+    async def _request(self, method: str, endpoint: str, rcp_headers: bool = False, ignore_errors: bool = False, **kwargs) -> list:
         """Make a request against the API."""
 
         url = f"{REST_API_BASE if self._region == 'Europe' else REST_API_BASE_NA}{endpoint}"
@@ -88,7 +88,10 @@ class API:
 
         except ClientError as err:
             LOGGER.debug(traceback.format_exc())
-            raise ClientError from err
+            if not ignore_errors:
+                raise ClientError from err
+            else:
+                return None
         except Exception:
             LOGGER.debug(traceback.format_exc())
         finally:
@@ -137,7 +140,7 @@ class API:
         """Get all geofencing violations for a car """
         url = f"/v1/geofencing/vehicles/{vin}/fences/violations"
         LOGGER.debug("get_car_geofencing_violations: %s", url)
-        return await self._request("get", url, rcp_headers=False)
+        return await self._request("get", url, rcp_headers=False, ignore_errors=True)
 
     async def is_car_rcp_supported(self, vin: str) -> list:
         """return if is car rcp supported"""

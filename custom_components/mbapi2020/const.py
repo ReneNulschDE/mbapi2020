@@ -595,6 +595,19 @@ SWITCHES = {
                                 None]
 }
 
+SENSORS_POLL = {
+    "geofencing_violation":  [  "Geofencing Violation",
+                                "",
+                                "geofence_events",
+                                "last_event_type",
+                                "value",
+                                None,
+                                {"last_event_zone"},
+                                "mdi:map-marker-radius",
+                                None,
+                                False,
+                                None]
+}
 
 
 class SensorConfigFields(Enum):
