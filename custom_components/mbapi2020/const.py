@@ -19,7 +19,7 @@ MERCEDESME_COMPONENTS = [
     Platform.LOCK,
     Platform.BINARY_SENSOR,
     Platform.DEVICE_TRACKER,
-    Platform.SWITCH
+    Platform.SWITCH,
 ]
 
 REGION_EUROPE = "Europe"
@@ -90,7 +90,7 @@ SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})
 SERVICE_VIN_TIME_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required(CONF_TIME): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439))
+        vol.Required(CONF_TIME): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
     }
 )
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
@@ -99,7 +99,7 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
         vol.Required("time_selection"): vol.All(vol.Coerce(int), vol.Range(min=0, max=3)),
         vol.Required("time_1"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_2"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
-        vol.Required("time_3"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439))
+        vol.Required("time_3"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
     }
 )
 SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
