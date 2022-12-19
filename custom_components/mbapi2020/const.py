@@ -441,7 +441,6 @@ SENSORS = {
         None,
         False,
         None,
-        None,
     ],
     "electricconsumptionstart": [
         "Electric consumption start",
@@ -476,7 +475,11 @@ SENSORS = {
         "soc",
         "value",
         None,
-        {"maxSocLowerLimit", "maxSoc", "chargingPower"},
+        {
+            'maxSocLowerLimit',
+            'maxSoc',
+            'chargingPower',
+        },
         "mdi:ev-station",
         None,
         False,
@@ -525,19 +528,34 @@ SENSORS = {
         "display_value",
         None,
         {
+            "averageSpeedReset",
+            "averageSpeedStart",
             "batteryState",
+            "distanceReset",
+            "distanceStart",
+            "distanceZEReset",
             "drivenTimeZEReset",
             "drivenTimeReset",
             "drivenTimeStart",
+            "ecoscoretotal",
+            "ecoscorefreewhl",
+            "ecoscorebonusrange",
+            "ecoscoreconst",
+            "ecoscoreaccel",
             "gasconsumptionstart",
             "gasconsumptionreset",
             "gasTankRange",
             "gasTankLevel",
+            "liquidconsumptionstart",
+            "liquidconsumptionreset",
+            "liquidRangeSkipIndication",
+            "rangeliquid",
             "outsideTemperature",
             "serviceintervaldays",
+            "tanklevelpercent",
             "tankReserveLamp",
             "tankLevelAdBlue",
-            "vehicleDataConnectionState",
+            "vehicleDataConnectionState"
         },
         "mdi:car-cruise-control",
         None,
@@ -794,7 +812,7 @@ LOCKS = {
         None,
         False,
         None,
-    ]
+    ],
 }
 
 SWITCHES = {
@@ -810,21 +828,23 @@ SWITCHES = {
         None,
         False,
         None,
-    ]
+    ],
 }
 
 SENSORS_POLL = {
-    "geofencing_violation":  [  "Geofencing Violation",
-                                "",
-                                "geofence_events",
-                                "last_event_type",
-                                "value",
-                                None,
-                                {"last_event_zone"},
-                                "mdi:map-marker-radius",
-                                None,
-                                False,
-                                None]
+    "geofencing_violation": [
+        "Geofencing Violation",
+        "",
+        "geofence_events",
+        "last_event_type",
+        "value",
+        None,
+        {"last_event_zone"},
+        "mdi:map-marker-radius",
+        None,
+        False,
+        None,
+    ],
 }
 
 class SensorConfigFields(Enum):
