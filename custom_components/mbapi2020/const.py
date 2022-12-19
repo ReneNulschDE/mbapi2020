@@ -144,17 +144,19 @@ ATTR_MB_MANUFACTURER = "Mercedes Benz"
 
 BinarySensors = {
 
-    "liquidRangeCritical":[     "Liquid Range Critical",
-                                None,
-                                "binarysensors",
-                                "liquidRangeCritical",
-                                "value",
-                                None,
-                                None,
-                                "mdi:gas-station",
-                                "problem",
-                                False,
-                                None],
+    "liquidRangeCritical":[
+        "Liquid Range Critical",
+        None,
+        "binarysensors",
+        "liquidRangeCritical",
+        "value",
+        None,
+        None,
+        "mdi:gas-station",
+        "problem",
+        False,
+        None
+    ],
 
     "warningbrakefluid": [      "Low Brake Fluid Warning",
                                 None,
