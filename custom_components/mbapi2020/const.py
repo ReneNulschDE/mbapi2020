@@ -158,17 +158,19 @@ BinarySensors = {
         None
     ],
 
-    "warningbrakefluid": [      "Low Brake Fluid Warning",
-                                None,
-                                "binarysensors",
-                                "warningbrakefluid",
-                                "value",
-                                None,
-                                None,
-                                "mdi:car-brake-alert",
-                                "problem",
-                                False,
-                                None],
+    "warningbrakefluid": [
+        "Low Brake Fluid Warning",
+        None,
+        "binarysensors",
+        "warningbrakefluid",
+        "value",
+        None,
+        None,
+        "mdi:car-brake-alert",
+        "problem",
+        False,
+        None
+    ],
 
     "warningwashwater": [       "Low Wash Water Warning",
                                 None,
