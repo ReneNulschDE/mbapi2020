@@ -144,7 +144,7 @@ ATTR_MB_MANUFACTURER = "Mercedes Benz"
 
 BinarySensors = {
 
-    "liquidRangeCritical":[
+    "liquidRangeCritical": [
         "Liquid Range Critical",
         None,
         "binarysensors",
