@@ -26,6 +26,7 @@ from .car import (
     CarAttribute,
     Doors,
     Electric,
+    GeofenceEvents,
     Location,
     Odometer,
     Tires,
@@ -188,6 +189,11 @@ class Client: # pylint: disable-too-few-public-methods
             if msg_type == "assigned_vehicles":
                 #LOGGER.debug("assigned_vehicles")
                 self._process_assigned_vehicles(data)
+                return
+
+            if msg_type == "service_status_updates":
+                LOGGER.debug(f"service_status_updates - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
+                self._write_debug_output(data, "ssu")
                 return
 
             LOGGER.debug("Message Type not implemented: %s", msg_type)
@@ -839,3 +845,31 @@ class Client: # pylint: disable-too-few-public-methods
             LOGGER.info("WSL detected - rlock mode disabled")
 
         return info
+
+    async def update_poll_states(self, vin: str = None):
+
+        LOGGER.debug("start update_poll_states")
+        for car in self.cars:
+
+            if car.geofence_events is None:
+                car.geofence_events = GeofenceEvents()
+
+            if not vin is None:
+                if not car.finorvin == vin:
+                    continue
+
+            geofencing_violotions = await self.api.get_car_geofencing_violations(car.finorvin)
+            if geofencing_violotions:
+                if len(geofencing_violotions) > 0:
+                    car.geofence_events.last_event_type = CarAttribute(
+                        geofencing_violotions[-1].get("type"),
+                        "VALID",
+                        geofencing_violotions[-1].get("time"))
+                    car.geofence_events.last_event_timestamp = CarAttribute(
+                        geofencing_violotions[-1].get("time"),
+                        "VALID",
+                        geofencing_violotions[-1].get("time"))
+                    car.geofence_events.last_event_zone = CarAttribute(
+                        geofencing_violotions[-1].get("snapshot").get("name"),
+                        "VALID",
+                        geofencing_violotions[-1].get("time"))

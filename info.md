@@ -1,7 +1,7 @@
 
 
 # mercedesme2020
-[![HassFest tests](https://github.com/renenulschde/mbapi2020/workflows/Validate%20with%20hassfest/badge.svg)](https://developers.home-assistant.io/blog/2020/04/16/hassfest)![Validate with HACS](https://github.com/ReneNulschDE/mbapi2020/workflows/Validate%20with%20HACS/badge.svg)
+![HassFest tests](https://github.com/renenulschde/mbapi2020/workflows/Validate%20with%20hassfest/badge.svg) ![Validate with HACS](https://github.com/ReneNulschDE/mbapi2020/workflows/Validate%20with%20HACS/badge.svg)
 
 
 MercedesME platform as a Custom Component for Home Assistant.
@@ -21,11 +21,10 @@ IMPORTANT:
 * There are two ways to install. First you can download the folder custom_component and copy it into your Home-Assistant config folder. Second option is to install HACS (Home Assistant Custom Component Store) and select "MercedesME 2020" from the Integrations catalog.
 * [How to install a custom component?](https://www.google.com/search?q=how+to+install+custom+components+home+assistant) 
 * [How to install HACS?](https://hacs.xyz/docs/installation/prerequisites)
-### Configuration
-
-Use the "Add Integration" in Home Assistant and select "MercedesME 2020".
-
-Use your MB-login email address. Your will receive a 6-digit code via email (valid for 15min).
+* Restart HA after the installation
+* Make sure that you refresh your browser window too
+* Use the "Add Integration" in Home Assistant, Settings, Devices & Services and select "MercedesME 2020".
+* Use your MB-login email address. Your will receive a 6-digit code via email (valid for 15min).
 
 ### Optional configuration values
 
@@ -121,6 +120,17 @@ Depends on your own car or purchased Mercedes Benz licenses.
   attributes: 
   tankLevelAdBlue
   ```
+
+* Geofencing Violation
+
+  ```
+  attributes: 
+  Last_event_zone
+  ```
+  
+  Values:
+  ENTER
+  LEAVE
 
 * odometer
   
@@ -282,6 +292,9 @@ logger:
 
 ### Open Items
 * Add missing Sensors (Theft)
+
+### Backup and Restore
+* In case of problems after a restore of Home Assistant, please make delete the file .mercedesme-token-cache in your HA-config folder and restart HA
 
 ### Useful links
 

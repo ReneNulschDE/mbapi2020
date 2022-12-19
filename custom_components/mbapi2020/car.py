@@ -160,6 +160,12 @@ CarAlarm_OPTIONS = [
     'interiorSensor',
     'carAlarmReason']
 
+GeofenceEvents_OPTIONS = [
+    'last_event_zone',
+    'last_event_timestamp',
+    'last_event_type'
+]
+
 
 class Car(object):
     """ Car class, stores the car values at runtime """
@@ -187,6 +193,7 @@ class Car(object):
         self.precond = None
         self.electric = None
         self.caralarm = None
+        self.geofence_events = None
         self.entry_setup_complete = False
         self._update_listeners = set()
 
@@ -334,6 +341,11 @@ class Location():
         if heading is not None:
             self.heading = heading
 
+class GeofenceEvents():
+    """ Stores the geofence violation values at runtime """
+    def __init__(self):
+        self.name = "GeofenceEvents"
+        self.events = []
 
 class CarAttribute():
     """ Stores the CarAttribute values at runtime """

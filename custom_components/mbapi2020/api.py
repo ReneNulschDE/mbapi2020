@@ -11,7 +11,8 @@ from aiohttp.client_exceptions import ClientError
 
 from .const import (
     REST_API_BASE,
-    REST_API_BASE_NA
+    REST_API_BASE_NA,
+    RIS_APPLICATION_VERSION
 )
 from .oauth import Oauth
 
@@ -35,7 +36,7 @@ class API:
         self._oauth: Oauth = oauth
         self._region = region
 
-    async def _request(self, method: str, endpoint: str, rcp_headers: bool = False,  **kwargs) -> list:
+    async def _request(self, method: str, endpoint: str, rcp_headers: bool = False, ignore_errors: bool = False, **kwargs) -> list:
         """Make a request against the API."""
 
         url = f"{REST_API_BASE if self._region == 'Europe' else REST_API_BASE_NA}{endpoint}"
@@ -51,18 +52,18 @@ class API:
                 "X-TrackingId": str(uuid.uuid4()),
                 "X-ApplicationName": "mycar-store-ece",
                 "X-AuthMode": "CIAMNG",
-                "ris-application-version": "1.19.0 (1361)",
-                "ris-os-name": "android",
+                "ris-application-version": RIS_APPLICATION_VERSION,
+                "ris-os-name": "ios",
                 "ris-os-version": "15.3.1",
-                "ris-sdk-version": "2.62.0",
+                "ris-sdk-version": "2.82.0",
                 "X-Locale": "en-US",
-                "User-Agent": "MyCar/1.19.0 (com.daimler.ris.mercedesme.ece.ios; build:1361; iOS 15.3.1) Alamofire/5.4.0",
+                "User-Agent": "MyCar/1.26.1 (com.daimler.ris.mercedesme.ece.ios; build:1697; iOS 16.1.0) Alamofire/5.4.0",
                 "Content-Type": "application/json; charset=UTF-8"
             }
         else:
             kwargs["headers"] = {
                 "Authorization": f"Bearer {token['access_token']}",
-                "User-Agent": "MyCar/1.19.0 (com.daimler.ris.mercedesme.ece.ios; build:1361; iOS 15.3.1) Alamofire/5.4.0",
+                "User-Agent": "MyCar/1.26.1 (com.daimler.ris.mercedesme.ece.ios; build:1697; iOS 16.1.0) Alamofire/5.4.0",
                 "Accept-Language": "de-DE;q=1.0, en-DE;q=0.9"
             }
 
@@ -87,7 +88,10 @@ class API:
 
         except ClientError as err:
             LOGGER.debug(traceback.format_exc())
-            raise ClientError from err
+            if not ignore_errors:
+                raise ClientError from err
+            else:
+                return None
         except Exception:
             LOGGER.debug(traceback.format_exc())
         finally:
@@ -132,6 +136,11 @@ class API:
 
         return await self._request("post", f"/v1/vehicle/{vin}/route", data=json.dumps(data))
 
+    async def get_car_geofencing_violations(self, vin: str) -> list:
+        """Get all geofencing violations for a car """
+        url = f"/v1/geofencing/vehicles/{vin}/fences/violations"
+        LOGGER.debug("get_car_geofencing_violations: %s", url)
+        return await self._request("get", url, rcp_headers=False, ignore_errors=True)
 
     async def is_car_rcp_supported(self, vin: str) -> list:
         """return if is car rcp supported"""
@@ -139,8 +148,7 @@ class API:
 
         headers = {
             "Authorization": f"Bearer {token['access_token']}",
-            "User-Agent": "MyCar/1.19.0 (com.daimler.ris.mercedesme.ece.ios; build:1361; iOS 15.3.1) Alamofire/5.4.0",
-            "Accept-Language": "de-DE;q=1.0, en-DE;q=0.9"
+            "User-Agent": "MyCar/1.26.1 (com.daimler.ris.mercedesme.ece.ios; build:1697; iOS 16.1.0) Alamofire/5.4.0"
         }
 
         url = f"https://psag.query.api.dvb.corpinter.net/api/app/v2/vehicles/{vin}/profileInformation"

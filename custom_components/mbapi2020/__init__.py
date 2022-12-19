@@ -1,6 +1,6 @@
 """The MercedesME 2020 integration."""
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 import aiohttp
@@ -20,7 +20,9 @@ from homeassistant.helpers.entity import (
     Entity,
     EntityCategory
 )
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.components import system_health
+from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
 from homeassistant.util import slugify
 
 from .const import (
@@ -116,20 +118,26 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         for car in masterdata.get("assignedVehicles"):
 
+            # Check if the car has a separate VIN key, if not, use the FIN.
+            vin = car.get('vin')
+            if vin is None:
+                vin = car.get('fin')
+                LOGGER.debug("VIN not found in masterdata. Used FIN %s instead.", vin)
+
             # Car is excluded, we do not add this
-            if car.get('fin') in config_entry.options.get('excluded_cars', ""):
+            if vin in config_entry.options.get('excluded_cars', ""):
                 continue
 
-            capabilities = await mercedes.client.api.get_car_capabilities_commands(car.get("fin"))
+            capabilities = await mercedes.client.api.get_car_capabilities_commands(vin)
             mercedes.client.write_debug_json_output(capabilities, "ca")
 
             dev_reg.async_get_or_create(
                 config_entry_id=config_entry.entry_id,
                 connections=set(),
-                identifiers={(DOMAIN, car.get('fin'))},
+                identifiers={(DOMAIN, vin)},
                 manufacturer=ATTR_MB_MANUFACTURER,
                 model=car.get('salesRelatedInformation').get('baumuster').get('baumusterDescription'),
-                name=car.get('licensePlate', car.get('fin')),
+                name=car.get('licensePlate', vin),
                 sw_version=car.get('starArchitecture'),
 
             )
@@ -140,12 +148,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 setattr(features, feature.get("commandName"), feature.get("isAvailable"))
 
             rcp_options = RcpOptions()
-            rcp_supported = await mercedes.client.api.is_car_rcp_supported(car.get("fin"))
-            LOGGER.debug("RCP supported for car %s: %s", car.get("fin"), rcp_supported)
+            rcp_supported = await mercedes.client.api.is_car_rcp_supported(vin)
+            LOGGER.debug("RCP supported for car %s: %s", vin, rcp_supported)
             setattr(rcp_options, "rcp_supported", CarAttribute(rcp_supported, "VALID", 0))
             rcp_supported = False
             if rcp_supported:
-                rcp_supported_settings = await mercedes.client.api.get_car_rcp_supported_settings(car.get("fin"))
+                rcp_supported_settings = await mercedes.client.api.get_car_rcp_supported_settings(vin)
                 if rcp_supported_settings:
                     mercedes.client.write_debug_json_output(rcp_supported_settings, "rcs")
                     if rcp_supported_settings.get("data"):
@@ -155,15 +163,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                                 setattr(rcp_options, "rcp_supported_settings", CarAttribute(rcp_supported_settings.get("data").get("attributes").get("supportedSettings"), "VALID", 0))
 
                                 for setting in rcp_supported_settings.get("data").get("attributes").get("supportedSettings"):
-                                    setting_result = await mercedes.client.api.get_car_rcp_settings(car.get("fin"), setting)
+                                    setting_result = await mercedes.client.api.get_car_rcp_settings(vin, setting)
                                     if setting_result is not None:
                                         mercedes.client.write_debug_json_output(setting_result, f"rcs_{setting}")
 
             current_car = Car()
-            current_car.finorvin = car.get('fin')
-            current_car.licenseplate = car.get('licensePlate', car.get('fin'))
+            current_car.finorvin = vin
+            current_car.licenseplate = car.get('licensePlate', vin)
             if not current_car.licenseplate.strip():
-                current_car.licenseplate = car.get('fin')
+                current_car.licenseplate = vin
             current_car.features = features
             current_car.rcp_options = rcp_options
             current_car._last_message_received = int(round(time.time() * 1000))
@@ -172,6 +180,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             mercedes.client.cars.append(current_car)
             LOGGER.debug("Init - car added - %s", current_car.finorvin)
 
+        handle = await mercedes.client.update_poll_states()
 
         if DEBUG_ADD_FAKE_VIN:
             debug_car = Car()
@@ -339,6 +348,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
+    LOGGER.debug("Start unload component.")
     unload_ok = all(
         await asyncio.gather(
             *[
@@ -350,6 +360,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     if unload_ok:
         if hass.data[DOMAIN]:
             del hass.data[DOMAIN]
+    else:
+        LOGGER.debug("unload not successful.")
+
 
     return unload_ok
 
@@ -402,7 +415,8 @@ class MercedesMeEntity(Entity):
         data,
         internal_name,
         sensor_config,
-        vin
+        vin,
+        is_poll_sensor: bool = False
     ):
         """Initialize the MercedesMe entity."""
         self._hass = hass
@@ -410,6 +424,7 @@ class MercedesMeEntity(Entity):
         self._vin = vin
         self._internal_name = internal_name
         self._sensor_config = sensor_config
+        self._is_poll_sensor = is_poll_sensor
 
         self._state = None
         self._sensor_name = sensor_config[scf.DISPLAY_NAME.value]
@@ -528,7 +543,7 @@ class MercedesMeEntity(Entity):
     def unit_of_measurement(self):
         """Return the unit of measurement."""
         if self._unit == LENGTH_KILOMETERS and \
-           not self._hass.config.units.is_metric:
+           self._hass.config.units is US_CUSTOMARY_SYSTEM:
             return LENGTH_MILES
         else:
             return self._unit
@@ -540,7 +555,7 @@ class MercedesMeEntity(Entity):
 
     @property
     def should_poll(self):
-        return False
+        return self._is_poll_sensor
 
 
     def update(self):

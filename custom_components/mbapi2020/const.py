@@ -7,8 +7,8 @@ import voluptuous as vol
 from homeassistant.const import (
     LENGTH_KILOMETERS,
     PERCENTAGE,
-    SPEED_KILOMETERS_PER_HOUR,
     Platform,
+    SPEED_KILOMETERS_PER_HOUR
 )
 
 from homeassistant.helpers import (
@@ -49,10 +49,10 @@ DEFAULT_TOKEN_PATH = ".mercedesme-token-cache"
 DEFAULT_LOCALE = "en-GB"
 DEFAULT_COUNTRY_CODE = "EN"
 
-RIS_APPLICATION_VERSION_NA = "3.0.1"
-RIS_APPLICATION_VERSION_PA = "1.6.2"
-RIS_APPLICATION_VERSION = "1.19.0 (1361)"
-RIS_SDK_VERSION = "2.62.0"
+RIS_APPLICATION_VERSION_NA = "3.26.1"
+RIS_APPLICATION_VERSION_PA = "1.26.1"
+RIS_APPLICATION_VERSION = "1.27.0"
+RIS_SDK_VERSION = "2.82.2"
 
 VERIFY_SSL = True
 
@@ -60,12 +60,12 @@ LOGIN_APP_ID_EU = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
 LOGIN_BASE_URI = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_NA = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_PA = "https://id.mercedes-benz.com"
-REST_API_BASE = "https://bff-prod.risingstars.daimler.com"
-REST_API_BASE_NA = "https://bff-prod.risingstars-amap.daimler.com"
-REST_API_BASE_PA = "https://bff-prod.risingstars-amap.daimler.com"
-WEBSOCKET_API_BASE = "wss://websocket-prod.risingstars.daimler.com/ws"
-WEBSOCKET_API_BASE_NA = "wss://websocket-prod.risingstars-amap.daimler.com/ws"
-WEBSOCKET_API_BASE_PA = "wss://websocket-prod.risingstars-amap.daimler.com/ws"
+REST_API_BASE = "https://bff.emea-prod.mobilesdk.mercedes-benz.com"
+REST_API_BASE_NA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
+REST_API_BASE_PA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
+WEBSOCKET_API_BASE = "wss://websocket.emea-prod.mobilesdk.mercedes-benz.com/ws"
+WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
+WEBSOCKET_API_BASE_PA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
 WEBSOCKET_USER_AGENT = "okhttp/3.12.2"
 DEFAULT_SOCKET_MIN_RETRY = 15
 
@@ -151,6 +151,7 @@ ATTR_MB_MANUFACTURER = "Mercedes Benz"
 # ]
 
 BinarySensors = {
+
     "liquidRangeCritical": [
         "Liquid Range Critical",
         None,
@@ -164,6 +165,7 @@ BinarySensors = {
         False,
         None,
     ],
+
     "warningbrakefluid": [
         "Low Brake Fluid Warning",
         None,
@@ -177,6 +179,7 @@ BinarySensors = {
         False,
         None,
     ],
+
     "warningwashwater": [
         "Low Wash Water Warning",
         None,
@@ -190,6 +193,7 @@ BinarySensors = {
         False,
         None,
     ],
+
     "warningcoolantlevellow": [
         "Low Coolant Level Warning",
         None,
@@ -203,6 +207,7 @@ BinarySensors = {
         False,
         None,
     ],
+
     "warningenginelight": [
         "Engine Light Warning",
         None,
@@ -221,6 +226,7 @@ BinarySensors = {
         False,
         None,
     ],
+
     "parkbrakestatus": [
         "Park Brake Status",
         None,
@@ -234,6 +240,7 @@ BinarySensors = {
         True,
         None,
     ],
+
     "windowStatusOverall": [
         "Windows Closed",
         None,
@@ -252,6 +259,7 @@ BinarySensors = {
         False,
         None,
     ],
+
     "tirewarninglamp": [
         "Tire Warning",
         None,
@@ -280,6 +288,7 @@ BinarySensors = {
         False,
         None,
     ],
+
     "remoteStartActive": [
         "Remote Start Active",
         None,
@@ -293,6 +302,7 @@ BinarySensors = {
         False,
         None,
     ],
+
     "engineState": [
         "Engine State",
         None,
@@ -803,6 +813,19 @@ SWITCHES = {
     ]
 }
 
+SENSORS_POLL = {
+    "geofencing_violation":  [  "Geofencing Violation",
+                                "",
+                                "geofence_events",
+                                "last_event_type",
+                                "value",
+                                None,
+                                {"last_event_zone"},
+                                "mdi:map-marker-radius",
+                                None,
+                                False,
+                                None]
+}
 
 class SensorConfigFields(Enum):
     """Representation of a Sensor."""
