@@ -7,7 +7,9 @@ import voluptuous as vol
 from homeassistant.const import (
     LENGTH_KILOMETERS,
     PERCENTAGE,
-    Platform)
+    Platform,
+    SPEED_KILOMETERS_PER_HOUR
+)
 
 from homeassistant.helpers import (
     config_validation as cv,
@@ -105,7 +107,9 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
 SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1))
+        vol.Required("type", default=0): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),
     }
 )
 SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
@@ -122,7 +126,9 @@ SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
 SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100]))
+        vol.Required("max_soc", default=100): vol.All(
+            vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])
+        ),
     }
 )
 
@@ -155,7 +161,7 @@ BinarySensors = {
         "mdi:gas-station",
         "problem",
         False,
-        None
+        None,
     ],
 
     "warningbrakefluid": [
@@ -169,131 +175,147 @@ BinarySensors = {
         "mdi:car-brake-alert",
         "problem",
         False,
-        None
+        None,
     ],
 
-    "warningwashwater": [       "Low Wash Water Warning",
-                                None,
-                                "binarysensors",
-                                "warningwashwater",
-                                "value",
-                                None,
-                                None,
-                                "mdi:wiper-wash",
-                                "problem",
-                                False,
-                                None],
+    "warningwashwater": [
+        "Low Wash Water Warning",
+        None,
+        "binarysensors",
+        "warningwashwater",
+        "value",
+        None,
+        None,
+        "mdi:wiper-wash",
+        "problem",
+        False,
+        None,
+    ],
 
-    "warningcoolantlevellow": [ "Low Coolant Level Warning",
-                                None,
-                                "binarysensors",
-                                "warningcoolantlevellow",
-                                "value",
-                                None,
-                                None,
-                                "mdi:oil-level",
-                                "problem",
-                                False,
-                                None],
+    "warningcoolantlevellow": [
+        "Low Coolant Level Warning",
+        None,
+        "binarysensors",
+        "warningcoolantlevellow",
+        "value",
+        None,
+        None,
+        "mdi:oil-level",
+        "problem",
+        False,
+        None,
+    ],
 
-    "warningenginelight": [     "Engine Light Warning",
-                                None,
-                                "binarysensors",
-                                "warningenginelight",
-                                "value",
-                                None,
-                                {
-                                    "warningbrakefluid",
-                                    "warningwashwater",
-                                    "warningcoolantlevellow",
-                                    "warninglowbattery"
-                                },
-                                "mdi:engine",
-                                "problem",
-                                False,
-                                None],
+    "warningenginelight": [
+        "Engine Light Warning",
+        None,
+        "binarysensors",
+        "warningenginelight",
+        "value",
+        None,
+        {
+            "warningbrakefluid",
+            "warningwashwater",
+            "warningcoolantlevellow",
+            "warninglowbattery"
+        },
+        "mdi:engine",
+        "problem",
+        False,
+        None,
+    ],
 
-    "parkbrakestatus": [        "Park Brake Status",
-                                None,
-                                "binarysensors",
-                                "parkbrakestatus",
-                                "value",
-                                None,
-                                {
-                                    "preWarningBrakeLiningWear"
-                                },
-                                "mdi:car-brake-parking",
-                                None,
-                                True,
-                                None],
+    "parkbrakestatus": [
+        "Park Brake Status",
+        None,
+        "binarysensors",
+        "parkbrakestatus",
+        "value",
+        None,
+        {
+            "preWarningBrakeLiningWear"
+        },
+        "mdi:car-brake-parking",
+        None,
+        True,
+        None,
+    ],
 
-    "windowStatusOverall": [    "Windows Closed",
-                                None,
-                                "windows",
-                                "windowStatusOverall",
-                                "value",
-                                None,
-                                {
-                                    "windowstatusrearleft",
-                                    "windowstatusrearright",
-                                    "windowstatusfrontright",
-                                    "windowstatusfrontleft"
-                                },
-                                "mdi:car-door",
-                                None,
-                                False,
-                                None],
+    "windowStatusOverall": [
+        "Windows Closed",
+        None,
+        "windows",
+        "windowStatusOverall",
+        "value",
+        None,
+        {
+            "windowstatusrearleft",
+            "windowstatusrearright",
+            "windowstatusfrontright",
+            "windowstatusfrontleft"
+        },
+        "mdi:car-door",
+        None,
+        False,
+        None,
+    ],
 
-    "tirewarninglamp": [        "Tire Warning",
-                                None,
-                                "tires",
-                                "tirewarninglamp",
-                                "value",
-                                None,
-                                {
-                                    "tirepressureRearLeft",
-                                    "tirepressureRearRight",
-                                    "tirepressureFrontRight",
-                                    "tirepressureFrontLeft",
-                                    "tireMarkerFrontRight",
-                                    "tireMarkerFrontLeft",
-                                    "tireMarkerRearLeft",
-                                    "tireMarkerRearRight",
-                                    "tirewarningsrdk",
-                                    "tirewarningsprw",
-                                    "tireTemperatureRearLeft",
-                                    "tireTemperatureFrontRight",
-                                    "tireTemperatureRearRight",
-                                    "tireTemperatureFrontLeft"
-                                },
-                                "mdi:car-tire-alert",
-                                "problem",
-                                False,
-                                None],
+    "tirewarninglamp": [
+        "Tire Warning",
+        None,
+        "tires",
+        "tirewarninglamp",
+        "value",
+        None,
+        {
+            "tirepressureRearLeft",
+            "tirepressureRearRight",
+            "tirepressureFrontRight",
+            "tirepressureFrontLeft",
+            "tireMarkerFrontRight",
+            "tireMarkerFrontLeft",
+            "tireMarkerRearLeft",
+            "tireMarkerRearRight",
+            "tirewarningsrdk",
+            "tirewarningsprw",
+            "tireTemperatureRearLeft",
+            "tireTemperatureFrontRight",
+            "tireTemperatureRearRight",
+            "tireTemperatureFrontLeft"
+        },
+        "mdi:car-tire-alert",
+        "problem",
+        False,
+        None,
+    ],
 
-    "remoteStartActive": [      "Remote Start Active",
-                                None,
-                                "binarysensors",
-                                "remoteStartActive",
-                                "value",
-                                None,
-                                None,
-                                "mdi:engine-outline",
-                                None,
-                                False,
-                                None],
+    "remoteStartActive": [
+        "Remote Start Active",
+        None,
+        "binarysensors",
+        "remoteStartActive",
+        "value",
+        None,
+        None,
+        "mdi:engine-outline",
+        None,
+        False,
+        None,
+    ],
 
-    "engineState": [            "Engine State",
-                                None,
-                                "binarysensors",
-                                "engineState",
-                                "value",
-                                None,
-                                None,
-                                "mdi:engine",
-                                None,
-                                False,
-                                None]
+    "engineState": [
+        "Engine State",
+        None,
+        "binarysensors",
+        "engineState",
+        "value",
+        None,
+        None,
+        "mdi:engine",
+        None,
+        False,
+        None,
+    ],
 }
 
 DEVICE_TRACKER = {
