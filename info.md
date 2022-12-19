@@ -294,7 +294,7 @@ logger:
 * Add missing Sensors (Theft)
 
 ### Backup and Restore
-* In case of problems after a restore of Home Assistant, please make delete the file .mercedesme-token-cache in your HA-config folder and restart HA
+* In case of problems after a restore of Home Assistant, please delete the file .mercedesme-token-cache in your HA-config folder and restart HA
 
 ### Useful links
 
