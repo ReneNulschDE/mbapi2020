@@ -1,6 +1,6 @@
 """The MercedesME 2020 integration."""
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 import aiohttp
@@ -20,6 +20,7 @@ from homeassistant.helpers.entity import (
     Entity,
     EntityCategory
 )
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.components import system_health
 from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
 from homeassistant.util import slugify
@@ -179,7 +180,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             mercedes.client.cars.append(current_car)
             LOGGER.debug("Init - car added - %s", current_car.finorvin)
 
-        await mercedes.client.update_poll_states()
+        handle = await mercedes.client.update_poll_states()
 
         if DEBUG_ADD_FAKE_VIN:
             debug_car = Car()
