@@ -22,7 +22,11 @@ from .const import (
     RIS_APPLICATION_VERSION,
     RIS_APPLICATION_VERSION_NA,
     RIS_APPLICATION_VERSION_PA,
+    RIS_OS_VERSION,
+    RIS_OS_NAME,
     RIS_SDK_VERSION,
+    WEBSOCKET_USER_AGENT,
+    X_APPLICATIONNAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -30,7 +34,7 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_TIMEOUT = 10
 SYSTEM_PROXY = None
 PROXIES = {}
-#SYSTEM_PROXY = "http://localhost:8080"
+#SYSTEM_PROXY = "http://192.168.178.61:8080"
 #PROXIES = {
 #  'https': SYSTEM_PROXY,
 #}
@@ -57,7 +61,7 @@ class Oauth: # pylint: disable-too-few-public-methods
     async def request_pin(self, email: str, nonce: str):
         _LOGGER.info("Start request PIN %s", email)
         url = f"{REST_API_BASE if self._region == 'Europe' else REST_API_BASE_NA}/v1/login"
-        data = f'{{"countryCode":"{self._country_code}","emailOrPhoneNumber":"{email}","locale":"{self._locale}", "nonce":"{ nonce }"}}'
+        data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{self._country_code}", "nonce" : "{nonce}"}}'
         headers = self._get_header()
         return await self._async_request("post", url, data=data, headers=headers )
 
@@ -73,7 +77,6 @@ class Oauth: # pylint: disable-too-few-public-methods
 
         headers = self._get_header()
         headers['Content-Type'] = "application/x-www-form-urlencoded"
-        headers['Stage'] = "prod"
         headers['X-Device-Id'] = str(uuid.uuid4())
         headers['X-Request-Id'] = str(uuid.uuid4())
 
@@ -169,14 +172,14 @@ class Oauth: # pylint: disable-too-few-public-methods
     def _get_header(self) -> list:
 
         header = {
-            "X-SessionId": str(uuid.uuid4()),
-            "X-TrackingId": str(uuid.uuid4()),
-            "ris-os-name": "android",
-            "ris-os-version": "8.0.0",
-            "ris-sdk-version": RIS_SDK_VERSION,
+            "Ris-Os-Version": RIS_OS_VERSION,
+            "X-Trackingid": str(uuid.uuid4()),
+            "Ris-Os-Name": RIS_OS_NAME,
+            "X-Sessionid": str(uuid.uuid4()),
+            "Ris-Sdk-Version": RIS_SDK_VERSION,
+            "User-Agent": WEBSOCKET_USER_AGENT,
             "X-Locale": self._locale,
-            "User-Agent": "mycar-store-ece v1.27.0, android 8.0.0, SDK 2.84.2",
-            "Content-Type": "application/json; charset=UTF-8"
+            "Content-Type": "application/json",
         }
 
         header = self._get_region_header(header)
@@ -187,16 +190,16 @@ class Oauth: # pylint: disable-too-few-public-methods
     def _get_region_header(self, header) -> list:
 
         if self._region == REGION_EUROPE:
-            header["X-ApplicationName"] = "mycar-store-ece"
-            header["ris-application-version"] = RIS_APPLICATION_VERSION
+            header["X-Applicationname"] = "mycar-store-ece"
+            header["Ris-Application-Version"] = RIS_APPLICATION_VERSION
 
         if self._region == REGION_NORAM:
-            header["X-ApplicationName"] = "mycar-store-us"
-            header["ris-application-version"] = RIS_APPLICATION_VERSION_NA
+            header["X-Applicationname"] = "mycar-store-us"
+            header["Ris-Application-Version"] = RIS_APPLICATION_VERSION_NA
 
         if self._region == REGION_APAC:
-            header["X-ApplicationName"] = "mycar-store-ap"
-            header["ris-application-version"] = RIS_APPLICATION_VERSION_PA
+            header["X-Applicationname"] = "mycar-store-ap"
+            header["Ris-Application-Version"] = RIS_APPLICATION_VERSION_PA
 
         return header
 
@@ -233,6 +236,7 @@ class Oauth: # pylint: disable-too-few-public-methods
 
         try:
             async with session.request(method, url, data=data, **kwargs) as resp:
+                #_LOGGER.warning("ClientError requesting data from %s: %s", url, resp.json)
                 resp.raise_for_status()
                 return await resp.json(content_type=None)
         except ClientError as err:
