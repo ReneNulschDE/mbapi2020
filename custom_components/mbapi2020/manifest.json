@@ -10,5 +10,6 @@
     "@ReneNulschDE"
   ],
   "version": "0.7.2",
-  "iot_class": "cloud_push"
+  "iot_class": "cloud_push",
+  "integration_type": "hub"
 }
