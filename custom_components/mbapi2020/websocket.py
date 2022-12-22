@@ -22,13 +22,16 @@ from .const import (
     RIS_APPLICATION_VERSION_PA,
     RIS_APPLICATION_VERSION_NA,
     RIS_SDK_VERSION,
+    RIS_OS_VERSION,
+    RIS_OS_NAME,
     REGION_EUROPE,
     REGION_NORAM,
     REGION_APAC,
     VERIFY_SSL,
     WEBSOCKET_API_BASE,
     WEBSOCKET_API_BASE_NA,
-    WEBSOCKET_USER_AGENT
+    WEBSOCKET_USER_AGENT,
+    WEBSOCKET_USER_AGENT_PA
 )
 from .oauth import Oauth
 
@@ -229,8 +232,8 @@ class Websocket:
             "Authorization": token["access_token"],
             "X-SessionId": str(uuid.uuid4()),
             "X-TrackingId": str(uuid.uuid4()),
-            "ris-os-name": "android",
-            "ris-os-version": "6.0",
+            "ris-os-name": RIS_OS_NAME,
+            "ris-os-version": RIS_OS_VERSION,
             "ris-sdk-version": RIS_SDK_VERSION,
             "X-Locale": "en-US",
             "User-Agent": WEBSOCKET_USER_AGENT
@@ -253,5 +256,6 @@ class Websocket:
         if self._region == REGION_APAC:
             header["X-ApplicationName"] = "mycar-store-ap"
             header["ris-application-version"] = RIS_APPLICATION_VERSION_PA
+            header["User-Agent"] = WEBSOCKET_USER_AGENT_PA 
 
         return header
