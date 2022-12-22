@@ -26,6 +26,7 @@ from .const import (
     RIS_OS_NAME,
     RIS_SDK_VERSION,
     WEBSOCKET_USER_AGENT,
+    WEBSOCKET_USER_AGENT_PA,
     X_APPLICATIONNAME,
 )
 
@@ -172,13 +173,13 @@ class Oauth: # pylint: disable-too-few-public-methods
     def _get_header(self) -> list:
 
         header = {
-            "Ris-Os-Version": RIS_OS_VERSION,
-            "X-Trackingid": str(uuid.uuid4()),
             "Ris-Os-Name": RIS_OS_NAME,
-            "X-Sessionid": str(uuid.uuid4()),
+            "Ris-Os-Version": RIS_OS_VERSION,
             "Ris-Sdk-Version": RIS_SDK_VERSION,
-            "User-Agent": WEBSOCKET_USER_AGENT,
             "X-Locale": self._locale,
+            "X-Trackingid": str(uuid.uuid4()),
+            "X-Sessionid": str(uuid.uuid4()),
+            "User-Agent": WEBSOCKET_USER_AGENT,
             "Content-Type": "application/json",
         }
 
@@ -200,6 +201,7 @@ class Oauth: # pylint: disable-too-few-public-methods
         if self._region == REGION_APAC:
             header["X-Applicationname"] = "mycar-store-ap"
             header["Ris-Application-Version"] = RIS_APPLICATION_VERSION_PA
+            header["User-Agent"] = WEBSOCKET_USER_AGENT_PA
 
         return header
 

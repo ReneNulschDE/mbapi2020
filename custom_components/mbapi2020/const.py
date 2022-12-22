@@ -50,7 +50,7 @@ DEFAULT_LOCALE = "en-GB"
 DEFAULT_COUNTRY_CODE = "EN"
 
 RIS_APPLICATION_VERSION_NA = "3.26.1"
-RIS_APPLICATION_VERSION_PA = "1.26.1"
+RIS_APPLICATION_VERSION_PA = "1.27.0"
 RIS_APPLICATION_VERSION = "1.27.0 (1719)"
 RIS_SDK_VERSION = "2.84.0"
 RIS_OS_VERSION = "16.3"
@@ -70,6 +70,7 @@ WEBSOCKET_API_BASE = "wss://websocket.emea-prod.mobilesdk.mercedes-benz.com/ws"
 WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
 WEBSOCKET_API_BASE_PA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
 WEBSOCKET_USER_AGENT = "MyCar/1.27.0 (com.daimler.ris.mercedesme.ece.ios; build:1719; iOS 16.3.0) Alamofire/5.4.0"
+WEBSOCKET_USER_AGENT_PA = "mycar-store-ap v1.27.0, android 8.0.0, SDK 2.84.3"
 DEFAULT_SOCKET_MIN_RETRY = 15
 
 
