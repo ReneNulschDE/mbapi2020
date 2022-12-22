@@ -128,8 +128,17 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             if vin in config_entry.options.get('excluded_cars', ""):
                 continue
 
-            capabilities = await mercedes.client.api.get_car_capabilities_commands(vin)
-            mercedes.client.write_debug_json_output(capabilities, "ca")
+            features = Features()
+
+            try:
+                capabilities = await mercedes.client.api.get_car_capabilities_commands(vin)
+                mercedes.client.write_debug_json_output(capabilities, "ca")
+                for feature in capabilities["commands"]:
+                    setattr(features, feature.get("commandName"), feature.get("isAvailable"))
+            except aiohttp.ClientError:
+                # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
+                # We just ignore the capabilities
+                LOGGER.info("Capabilities not available for the car with VIN %s. Make sure you disable the capability check in the option of this component.", vin)
 
             dev_reg.async_get_or_create(
                 config_entry_id=config_entry.entry_id,
@@ -139,13 +148,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 model=car.get('salesRelatedInformation').get('baumuster').get('baumusterDescription'),
                 name=car.get('licensePlate', vin),
                 sw_version=car.get('starArchitecture'),
-
             )
-
-            features = Features()
-
-            for feature in capabilities["commands"]:
-                setattr(features, feature.get("commandName"), feature.get("isAvailable"))
 
             rcp_options = RcpOptions()
             rcp_supported = await mercedes.client.api.is_car_rcp_supported(vin)
