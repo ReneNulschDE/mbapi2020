@@ -9,7 +9,7 @@
   "codeowners": [
     "@ReneNulschDE"
   ],
-  "version": "0.7.4",
+  "version": "0.7.5",
   "iot_class": "cloud_push",
   "integration_type": "hub"
 }
