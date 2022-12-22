@@ -142,7 +142,6 @@ class API:
     async def get_car_geofencing_violations(self, vin: str) -> list:
         """Get all geofencing violations for a car """
         url = f"/v1/geofencing/vehicles/{vin}/fences/violations"
-        LOGGER.debug("get_car_geofencing_violations: %s", url)
         return await self._request("get", url, rcp_headers=False, ignore_errors=True)
 
     async def is_car_rcp_supported(self, vin: str) -> list:
