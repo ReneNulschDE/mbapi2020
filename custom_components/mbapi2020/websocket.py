@@ -256,6 +256,6 @@ class Websocket:
         if self._region == REGION_APAC:
             header["X-ApplicationName"] = "mycar-store-ap"
             header["ris-application-version"] = RIS_APPLICATION_VERSION_PA
-            header["User-Agent"] = WEBSOCKET_USER_AGENT_PA 
+            header["User-Agent"] = WEBSOCKET_USER_AGENT_PA
 
         return header
