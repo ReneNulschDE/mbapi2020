@@ -11,5 +11,6 @@
   ],
   "version": "0.7.5",
   "iot_class": "cloud_push",
-  "integration_type": "hub"
+  "integration_type": "hub",
+  "loggers": ["mbapi2020"]
 }
