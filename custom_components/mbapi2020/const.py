@@ -16,6 +16,10 @@ from homeassistant.helpers import (
     config_validation as cv,
 )
 
+from homeassistant.components.sensor import (
+    STATE_CLASS_MEASUREMENT,
+    STATE_CLASS_TOTAL_INCREASING,
+)
 
 MERCEDESME_COMPONENTS = [
     Platform.SENSOR,
@@ -500,14 +504,13 @@ SENSORS = {
         None,
         {
             'maxSocLowerLimit',
-            'maxSoc',
-            'chargingPower',
+            'maxSoc'
         },
         "mdi:ev-station",
         DEVICE_CLASS_BATTERY,
         False,
         None,
-        None,
+        STATE_CLASS_MEASUREMENT,
     ],
     "auxheatstatus": [
         "Auxheat Status",
