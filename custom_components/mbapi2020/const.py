@@ -5,6 +5,7 @@ import logging
 import voluptuous as vol
 
 from homeassistant.const import (
+    DEVICE_CLASS_BATTERY,
     LENGTH_KILOMETERS,
     PERCENTAGE,
     Platform,
@@ -168,6 +169,7 @@ BinarySensors = {
         "problem",
         False,
         None,
+        None,
     ],
 
     "warningbrakefluid": [
@@ -181,6 +183,7 @@ BinarySensors = {
         "mdi:car-brake-alert",
         "problem",
         False,
+        None,
         None,
     ],
 
@@ -196,6 +199,7 @@ BinarySensors = {
         "problem",
         False,
         None,
+        None,
     ],
 
     "warningcoolantlevellow": [
@@ -209,6 +213,7 @@ BinarySensors = {
         "mdi:oil-level",
         "problem",
         False,
+        None,
         None,
     ],
 
@@ -229,6 +234,7 @@ BinarySensors = {
         "problem",
         False,
         None,
+        None,
     ],
 
     "parkbrakestatus": [
@@ -242,6 +248,7 @@ BinarySensors = {
         "mdi:car-brake-parking",
         None,
         True,
+        None,
         None,
     ],
 
@@ -261,6 +268,7 @@ BinarySensors = {
         "mdi:car-door",
         None,
         False,
+        None,
         None,
     ],
 
@@ -291,6 +299,7 @@ BinarySensors = {
         "problem",
         False,
         None,
+        None,
     ],
 
     "remoteStartActive": [
@@ -305,6 +314,7 @@ BinarySensors = {
         None,
         False,
         None,
+        None,
     ],
 
     "engineState": [
@@ -318,6 +328,7 @@ BinarySensors = {
         "mdi:engine",
         None,
         False,
+        None,
         None,
     ],
 }
@@ -335,6 +346,7 @@ DEVICE_TRACKER = {
         None,
         False,
         None,
+        None,
     ]
 }
 
@@ -351,6 +363,7 @@ SENSORS = {
         "power",
         False,
         None,
+        None,
     ],
     "rcp_features": [
         "RCP Features",
@@ -364,6 +377,7 @@ SENSORS = {
         None,
         False,
         "diagnostic",
+        None,
     ],
     "car": [
         "Car",
@@ -385,6 +399,7 @@ SENSORS = {
         None,
         False,
         "diagnostic",
+        None,
     ],
     "lock": [
         "Lock",
@@ -417,6 +432,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "rangeElectricKm": [
         "Range Electric",
@@ -445,6 +461,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "electricconsumptionstart": [
         "Electric consumption start",
@@ -458,6 +475,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "electricconsumptionreset": [
         "Electric consumption reset",
@@ -470,6 +488,7 @@ SENSORS = {
         "mdi:ev-station",
         None,
         False,
+        None,
         None,
     ],
     "soc": [
@@ -485,8 +504,9 @@ SENSORS = {
             'chargingPower',
         },
         "mdi:ev-station",
-        None,
+        DEVICE_CLASS_BATTERY,
         False,
+        None,
         None,
     ],
     "auxheatstatus": [
@@ -510,6 +530,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "tanklevelpercent": [
         "Fuel Level",
@@ -522,6 +543,7 @@ SENSORS = {
         "mdi:gas-station",
         None,
         False,
+        None,
         None,
     ],
     "odometer": [
@@ -565,6 +587,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "averageSpeedStart": [
         "Average speed start",
@@ -577,6 +600,7 @@ SENSORS = {
         "mdi:car-cruise-control",
         None,
         False,
+        None,
         None,
     ],
     "averageSpeedReset": [
@@ -591,6 +615,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "distanceReset": [
         "Distance reset",
@@ -603,6 +628,7 @@ SENSORS = {
         "mdi:map-marker-distance",
         None,
         False,
+        None,
         None,
     ],
     "distanceStart": [
@@ -617,6 +643,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "distanceZEReset": [
         "Distance zero-emission reset",
@@ -629,6 +656,7 @@ SENSORS = {
         "mdi:map-marker-distance",
         None,
         False,
+        None,
         None,
     ],
     "ecoscoretotal": [
@@ -643,6 +671,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "ecoscorefreewhl": [
         "Eco score free wheel",
@@ -655,6 +684,7 @@ SENSORS = {
         "mdi:leaf",
         None,
         False,
+        None,
         None,
     ],
     "ecoscorebonusrange": [
@@ -669,6 +699,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "ecoscoreconst": [
         "Eco score constant",
@@ -681,6 +712,7 @@ SENSORS = {
         "mdi:leaf",
         None,
         False,
+        None,
         None,
     ],
     "ecoscoreaccel": [
@@ -695,6 +727,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "liquidconsumptionstart": [
         "Liquid consumption start",
@@ -707,6 +740,7 @@ SENSORS = {
         "mdi:fuel",
         None,
         False,
+        None,
         None,
     ],
     "liquidconsumptionreset": [
@@ -721,6 +755,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "rangeliquid": [
         "Range liquid",
@@ -733,6 +768,7 @@ SENSORS = {
         "mdi:gas-station",
         None,
         False,
+        None,
         None,
     ],
     "CarAlarm": [
@@ -761,6 +797,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "starterBatteryState": [
         "Starter Battery State",
@@ -773,6 +810,7 @@ SENSORS = {
         "mdi:car-battery",
         None,
         False,
+        None,
         None,
     ],
     "ignitionstate": [
@@ -787,6 +825,7 @@ SENSORS = {
         None,
         False,
         None,
+        None,
     ],
     "oilLevel": [
         "Oil Level",
@@ -799,6 +838,7 @@ SENSORS = {
         "mdi:oil-level",
         None,
         False,
+        None,
         None,
     ],
 }
@@ -816,6 +856,7 @@ LOCKS = {
         None,
         False,
         None,
+        None,
     ],
 }
 
@@ -831,6 +872,7 @@ SWITCHES = {
         None,
         None,
         False,
+        None,
         None,
     ],
 }
@@ -848,6 +890,7 @@ SENSORS_POLL = {
         None,
         False,
         None,
+        None,
     ],
 }
 
@@ -864,7 +907,8 @@ class SensorConfigFields(Enum):
     #                   7 icon
     #                   8 device_class
     #                   9 invert boolean value - Default: False
-    #                   10 entity_category - Defaul: None
+    #                   10 entity_category - Default: None
+    #                   11 state_class - Default: None
     # ]
     DISPLAY_NAME = 0
     UNIT_OF_MEASUREMENT = 1
@@ -877,3 +921,4 @@ class SensorConfigFields(Enum):
     DEVICE_CLASS = 8
     FLIP_RESULT = 9
     ENTITY_CATEGORY = 10
+    STATE_CLASS = 11
