@@ -635,7 +635,6 @@ class MercedesMeEntity(Entity):
             extended_attributes["value_description"] = auxheatstatus_values.get(self._state,["unknown", "unknown"])[1]
             return extended_attributes
 
-
         attribut_extender ={
             "starterBatteryState": starterBatteryState,
             "ignitionstate": ignitionstate_state,

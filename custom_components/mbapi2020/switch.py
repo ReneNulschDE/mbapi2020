@@ -4,7 +4,6 @@ Switch support for Mercedes cars with Mercedes ME.
 For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
-import logging
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -14,10 +13,9 @@ from . import MercedesMeEntity
 from .const import (
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     DOMAIN,
-    SWITCHES
+    SWITCHES,
+    LOGGER
 )
-
-LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Setup the sensor platform."""

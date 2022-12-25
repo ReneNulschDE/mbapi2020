@@ -4,7 +4,6 @@ Lock Support for Mercedes cars with Mercedes ME.
 For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
-import logging
 
 from homeassistant.components.lock import LockEntity
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -16,10 +15,9 @@ from .const import (
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     CONF_PIN,
     DOMAIN,
-    LOCKS
+    LOCKS,
+    LOGGER,
 )
-
-LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Setup the sensor platform."""

@@ -5,8 +5,6 @@ For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
 
-import logging
-
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.helpers.restore_state import RestoreEntity
 
@@ -15,17 +13,19 @@ from . import MercedesMeEntity
 from .const import (
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     DOMAIN,
-    BinarySensors
+    BinarySensors,
+    LOGGER
 )
-
-LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up integration from a config entry."""
 
     data = hass.data[DOMAIN]
-#    conf = hass.data[DOMAIN].config
+
+    if not data.client.cars:
+        LOGGER.info("No Cars found.")
+        return
 
     sensors = []
     for car in data.client.cars:
@@ -57,7 +57,6 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
         if self._state is None:
             self.update()
 
-        #LOGGER.debug("BinarySensor - car: %s - get is_on state for %s current _state %s", self._vin, self._internal_name, self._state)
         if self._state == "INACTIVE":
             return False
         if self._state == "ACTIVE":
@@ -78,8 +77,5 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
             return False
         if self._state is True:
             return True
-
-        #LOGGER.debug("BinarySensor - car: %s - unknown is_on state for %s current _state %s", self._vin, self._internal_name, self._state)
-
 
         return self._state
