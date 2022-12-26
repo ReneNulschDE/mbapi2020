@@ -128,6 +128,13 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             if vin in config_entry.options.get('excluded_cars', ""):
                 continue
 
+            try:
+                car_capabilities = await mercedes.client.api.get_car_capabilities(vin)
+                mercedes.client.write_debug_json_output(car_capabilities, "cai")
+            except aiohttp.ClientError:
+                # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
+                LOGGER.info("Car Capabilities not available for the car with VIN %s.", vin)
+
             features = Features()
 
             try:
@@ -138,7 +145,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             except aiohttp.ClientError:
                 # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
                 # We just ignore the capabilities
-                LOGGER.info("Capabilities not available for the car with VIN %s. Make sure you disable the capability check in the option of this component.", vin)
+                LOGGER.info("Command Capabilities not available for the car with VIN %s. Make sure you disable the capability check in the option of this component.", vin)
 
             dev_reg.async_get_or_create(
                 config_entry_id=config_entry.entry_id,

@@ -105,6 +105,10 @@ class API:
         """Get all devices associated with an API key."""
         return await self._request("get", "/v2/vehicles")
 
+    async def get_car_capabilities(self, vin:str) -> list:
+        """Get all car capabilities associated with an vin."""
+        return await self._request("get", f"/v1/vehicle/{vin}/capabilities")
+
     async def get_car_capabilities_commands(self, vin:str) -> list:
         """Get all car capabilities associated with an vin."""
         return await self._request("get", f"/v1/vehicle/{vin}/capabilities/commands")
