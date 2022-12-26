@@ -6,10 +6,13 @@ import voluptuous as vol
 
 from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
-    LENGTH_KILOMETERS,
     PERCENTAGE,
     Platform,
-    SPEED_KILOMETERS_PER_HOUR
+    UnitOfLength,
+    UnitOfMass,
+    UnitOfPressure,
+    UnitOfSpeed,
+    UnitOfTemperature,
 )
 
 from homeassistant.helpers import (
@@ -18,7 +21,6 @@ from homeassistant.helpers import (
 
 from homeassistant.components.sensor import (
     STATE_CLASS_MEASUREMENT,
-    STATE_CLASS_TOTAL_INCREASING,
 )
 
 MERCEDESME_COMPONENTS = [
@@ -440,7 +442,7 @@ SENSORS = {
     ],
     "rangeElectricKm": [
         "Range Electric",
-        LENGTH_KILOMETERS,
+        None, # Deprecated: DO NOT USE
         "electric",
         "rangeelectric",
         "display_value",
@@ -537,7 +539,7 @@ SENSORS = {
     ],
     "tanklevelpercent": [
         "Fuel Level",
-        "%",
+        PERCENTAGE,
         "odometer",
         "tanklevelpercent",
         "value",
@@ -547,41 +549,23 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        STATE_CLASS_MEASUREMENT,
     ],
     "odometer": [
         "Odometer",
-        LENGTH_KILOMETERS,
+        None, # Deprecated: DO NOT USE,
         "odometer",
         "odo",
         "display_value",
         None,
         {
-            "averageSpeedReset",
-            "averageSpeedStart",
-            "batteryState",
-            "distanceReset",
-            "distanceStart",
-            "distanceZEReset",
-            "drivenTimeZEReset",
-            "drivenTimeReset",
-            "drivenTimeStart",
-            "ecoscoretotal",
-            "ecoscorefreewhl",
-            "ecoscorebonusrange",
-            "ecoscoreconst",
-            "ecoscoreaccel",
             "gasconsumptionstart",
             "gasconsumptionreset",
             "gasTankRange",
             "gasTankLevel",
-            "liquidconsumptionstart",
-            "liquidconsumptionreset",
             "liquidRangeSkipIndication",
-            "rangeliquid",
             "outsideTemperature",
             "serviceintervaldays",
-            "tanklevelpercent",
             "tankReserveLamp",
             "tankLevelAdBlue",
             "vehicleDataConnectionState"
@@ -594,7 +578,7 @@ SENSORS = {
     ],
     "averageSpeedStart": [
         "Average speed start",
-        SPEED_KILOMETERS_PER_HOUR,
+        None, # Deprecated: DO NOT USE
         "odometer",
         "averageSpeedStart",
         "display_value",
@@ -608,7 +592,7 @@ SENSORS = {
     ],
     "averageSpeedReset": [
         "Average speed reset",
-        SPEED_KILOMETERS_PER_HOUR,
+        None, # Deprecated: DO NOT USE,
         "odometer",
         "averageSpeedReset",
         "display_value",
@@ -622,12 +606,12 @@ SENSORS = {
     ],
     "distanceReset": [
         "Distance reset",
-        LENGTH_KILOMETERS,
+        None, # Deprecated: DO NOT USE,
         "odometer",
         "distanceReset",
         "display_value",
         None,
-        {},
+        {"drivenTimeReset"},
         "mdi:map-marker-distance",
         None,
         False,
@@ -636,12 +620,12 @@ SENSORS = {
     ],
     "distanceStart": [
         "Distance start",
-        LENGTH_KILOMETERS,
+        None, # Deprecated: DO NOT USE,
         "odometer",
         "distanceStart",
         "display_value",
         None,
-        {},
+        {"drivenTimeStart"},
         "mdi:map-marker-distance",
         None,
         False,
@@ -650,12 +634,12 @@ SENSORS = {
     ],
     "distanceZEReset": [
         "Distance zero-emission reset",
-        LENGTH_KILOMETERS,
+        None, # Deprecated: DO NOT USE,
         "odometer",
         "distanceZEReset",
         "display_value",
         None,
-        {},
+        {"drivenTimeZEReset"},
         "mdi:map-marker-distance",
         None,
         False,
@@ -692,7 +676,7 @@ SENSORS = {
     ],
     "ecoscorebonusrange": [
         "Eco score bonus range",
-        LENGTH_KILOMETERS,
+        None, # Deprecated: DO NOT USE,
         "odometer",
         "ecoscorebonusrange",
         "display_value",
@@ -762,7 +746,7 @@ SENSORS = {
     ],
     "rangeliquid": [
         "Range liquid",
-        LENGTH_KILOMETERS,
+        None, # Deprecated: DO NOT USE,
         "odometer",
         "rangeliquid",
         "display_value",
@@ -832,7 +816,7 @@ SENSORS = {
     ],
     "oilLevel": [
         "Oil Level",
-        "%",
+        PERCENTAGE,
         "odometer",
         "oilLevel",
         "value",
@@ -842,7 +826,21 @@ SENSORS = {
         None,
         False,
         None,
+        STATE_CLASS_MEASUREMENT,
+    ],
+    "tirePressureFrontRight": [
+        "tirePressureFrontRight",
         None,
+        "tires",
+        "tirepressureFrontRight",
+        "value",
+        None,
+        {},
+        "mdi:tire",
+        None,
+        False,
+        None,
+        STATE_CLASS_MEASUREMENT,
     ],
 }
 
@@ -895,6 +893,30 @@ SENSORS_POLL = {
         None,
         None,
     ],
+}
+
+UNITS = {
+    "BAR": UnitOfPressure.BAR,
+    "CELSIUS": UnitOfTemperature.CELSIUS,
+    "FAHRENHEIT": UnitOfTemperature.FAHRENHEIT,
+    "KG_PER_100KM": UnitOfMass.KILOGRAMS + "/100" + UnitOfLength.KILOMETERS,
+    "KILOMETERS": UnitOfLength.KILOMETERS,
+    "KM_PER_HOUR": UnitOfSpeed.KILOMETERS_PER_HOUR,
+    "KM_PER_KWH": UnitOfLength.KILOMETERS + "/kWh",
+    "KM_PER_LITER": UnitOfLength.KILOMETERS + "/L",
+    "KPA": UnitOfPressure.KPA,
+    "KWH_PER_100KM": "kWh/100" + UnitOfLength.KILOMETERS,
+    "KWH_PER_100MI": "kWh/100mi",
+    "LITER_PER_100KM": "L/100" + UnitOfLength.KILOMETERS,
+    "M_PER_HOUR": UnitOfSpeed.MILES_PER_HOUR,
+    "M_PER_KWH": "mpkWh",
+    "MILES": UnitOfLength.MILES,
+    "MPG_UK": "mpg",
+    "MPG_US": "mpg",
+    "MPGE": "mpge",
+    "PERCENT": PERCENTAGE,
+    "PSI": UnitOfPressure.PSI,
+
 }
 
 class SensorConfigFields(Enum):

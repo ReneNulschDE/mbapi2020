@@ -192,7 +192,7 @@ class Client: # pylint: disable-too-few-public-methods
                 return
 
             if msg_type == "service_status_updates":
-                LOGGER.debug(f"service_status_updates - Data: {MessageToJson(data, preserving_proto_field_name=True)}")
+                LOGGER.debug("service_status_updates - Data: %s", MessageToJson(data, preserving_proto_field_name=True))
                 self._write_debug_output(data, "ssu")
                 return
 
@@ -300,7 +300,8 @@ class Client: # pylint: disable-too-few-public-methods
                                         curr.get("pressure_unit",
                                             curr.get("electricity_consumption_unit",
                                                 curr.get("distance_unit",
-                                                    curr.get("combustion_consumption_unit", None))))))))
+                                                    curr.get("combustion_consumption_unit",
+                                                        curr.get("speed_unit",None)))))))))
                     )
                     # Set the value only if the timestamp is higher
                     if float(time_stamp) > float(self._get_car_value(class_instance, option, "ts", 0)):

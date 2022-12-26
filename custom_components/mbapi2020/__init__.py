@@ -58,7 +58,8 @@ from .const import (
     SERVICE_SEND_ROUTE_SCHEMA,
     SERVICE_VIN_SCHEMA,
     SERVICE_VIN_TIME_SCHEMA,
-    SensorConfigFields as scf
+    SensorConfigFields as scf,
+    UNITS
 
 )
 from .car import Car, CarAttribute, Features, RcpOptions
@@ -552,11 +553,20 @@ class MercedesMeEntity(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
-        if self._unit == LENGTH_KILOMETERS and \
-           self._hass.config.units is US_CUSTOMARY_SYSTEM:
-            return LENGTH_MILES
-        else:
-            return self._unit
+        #if self._unit == LENGTH_KILOMETERS and \
+        #   self._hass.config.units is US_CUSTOMARY_SYSTEM:
+        #    return LENGTH_MILES
+        #else:
+
+        if "unit" in self.extra_state_attributes:
+            reported_unit = self.extra_state_attributes["unit"]
+            if reported_unit in UNITS:
+                return UNITS[reported_unit]
+
+            LOGGER.warning("Unknown unit %s found. Please report via issue https://www.github.com/renenulschde/mbapi2020/issues", reported_unit)
+            return reported_unit
+
+        return None
 
     @property
     def icon(self):
