@@ -828,20 +828,6 @@ SENSORS = {
         None,
         STATE_CLASS_MEASUREMENT,
     ],
-    "tirePressureFrontRight": [
-        "tirePressureFrontRight",
-        None, # Deprecated: DO NOT USE
-        "tires",
-        "tirepressureFrontRight",
-        "value",
-        None,
-        {},
-        "mdi:tire",
-        None,
-        False,
-        None,
-        STATE_CLASS_MEASUREMENT,
-    ],
 }
 
 LOCKS = {
