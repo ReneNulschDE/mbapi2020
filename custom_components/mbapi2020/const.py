@@ -8,17 +8,22 @@ from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
     PERCENTAGE,
     Platform,
+    UnitOfEnergy,
     UnitOfLength,
     UnitOfMass,
     UnitOfPressure,
     UnitOfSpeed,
     UnitOfTemperature,
+    UnitOfVolume,
 )
 
 from homeassistant.helpers import (
     config_validation as cv,
 )
 
+from homeassistant.helpers.entity  import (
+    EntityCategory,
+)
 from homeassistant.components.sensor import (
     STATE_CLASS_MEASUREMENT,
 )
@@ -382,7 +387,7 @@ SENSORS = {
         "mdi:car",
         None,
         False,
-        "diagnostic",
+        EntityCategory.DIAGNOSTIC,
         None,
     ],
     "car": [
@@ -404,7 +409,7 @@ SENSORS = {
         "mdi:car",
         None,
         False,
-        "diagnostic",
+        EntityCategory.DIAGNOSTIC,
         None,
     ],
     "lock": [
@@ -471,7 +476,7 @@ SENSORS = {
     ],
     "electricconsumptionstart": [
         "Electric consumption start",
-        "kWh/100km",
+        None, # Deprecated: DO NOT USE,
         "electric",
         "electricconsumptionstart",
         "display_value",
@@ -516,7 +521,7 @@ SENSORS = {
     ],
     "auxheatstatus": [
         "Auxheat Status",
-        None,
+        None, # Deprecated: DO NOT USE
         "auxheat",
         "auxheatstatus",
         "value",
@@ -888,12 +893,12 @@ UNITS = {
     "KG_PER_100KM": UnitOfMass.KILOGRAMS + "/100" + UnitOfLength.KILOMETERS,
     "KILOMETERS": UnitOfLength.KILOMETERS,
     "KM_PER_HOUR": UnitOfSpeed.KILOMETERS_PER_HOUR,
-    "KM_PER_KWH": UnitOfLength.KILOMETERS + "/kWh",
-    "KM_PER_LITER": UnitOfLength.KILOMETERS + "/L",
+    "KM_PER_KWH": UnitOfLength.KILOMETERS + "/" + UnitOfEnergy.KILO_WATT_HOUR,
+    "KM_PER_LITER": UnitOfLength.KILOMETERS + "/" + UnitOfVolume.LITERS,
     "KPA": UnitOfPressure.KPA,
-    "KWH_PER_100KM": "kWh/100" + UnitOfLength.KILOMETERS,
-    "KWH_PER_100MI": "kWh/100mi",
-    "LITER_PER_100KM": "L/100" + UnitOfLength.KILOMETERS,
+    "KWH_PER_100KM": UnitOfEnergy.KILO_WATT_HOUR + "/100" + UnitOfLength.KILOMETERS,
+    "KWH_PER_100MI": UnitOfEnergy.KILO_WATT_HOUR + "/100" + UnitOfLength.MILES,
+    "LITER_PER_100KM": UnitOfVolume.LITERS + "/100" + UnitOfLength.KILOMETERS,
     "M_PER_HOUR": UnitOfSpeed.MILES_PER_HOUR,
     "M_PER_KWH": "mpkWh",
     "MILES": UnitOfLength.MILES,
