@@ -1,6 +1,6 @@
 """The MercedesME 2020 integration."""
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 import time
 
 import aiohttp
@@ -8,10 +8,6 @@ import voluptuous as vol
 
 
 from homeassistant.config_entries import ConfigEntry, SOURCE_REAUTH
-from homeassistant.const import (
-    LENGTH_KILOMETERS,
-    LENGTH_MILES,
-)
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client
@@ -20,9 +16,6 @@ from homeassistant.helpers.entity import (
     Entity,
     EntityCategory
 )
-from homeassistant.helpers.event import async_track_time_interval
-from homeassistant.components import system_health
-from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
 from homeassistant.util import slugify
 
 from .const import (
@@ -551,12 +544,12 @@ class MercedesMeEntity(Entity):
         return state
 
     @property
+    def suggested_unit_of_measurement(self):
+        return self.unit_of_measurement
+
+    @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
-        #if self._unit == LENGTH_KILOMETERS and \
-        #   self._hass.config.units is US_CUSTOMARY_SYSTEM:
-        #    return LENGTH_MILES
-        #else:
 
         if "unit" in self.extra_state_attributes:
             reported_unit = self.extra_state_attributes["unit"]
