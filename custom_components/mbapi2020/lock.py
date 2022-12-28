@@ -6,18 +6,12 @@ https://github.com/ReneNulschDE/mbapi2020/
 """
 
 from homeassistant.components.lock import LockEntity
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.const import ATTR_CODE
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity
+from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, CONF_PIN, DOMAIN, LOCKS, LOGGER
 
-from .const import (
-    CONF_FT_DISABLE_CAPABILITY_CHECK,
-    CONF_PIN,
-    DOMAIN,
-    LOCKS,
-    LOGGER,
-)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Setup the sensor platform."""
@@ -32,21 +26,15 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for car in data.client.cars:
 
         for key, value in sorted(LOCKS.items()):
-            if (value[5] is None or
-                    entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False or
-                    getattr(car.features, value[5], False) is True):
-                device = MercedesMELock(
-                    hass=hass,
-                    data=data,
-                    internal_name = key,
-                    sensor_config = value,
-                    vin = car.finorvin
-                    )
+            if (
+                value[5] is None
+                or entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False
+                or getattr(car.features, value[5], False) is True
+            ):
+                device = MercedesMELock(hass=hass, data=data, internal_name=key, sensor_config=value, vin=car.finorvin)
                 sensor_list.append(device)
 
     async_add_entities(sensor_list, True)
-
-
 
 
 class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
@@ -74,7 +62,7 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
     def is_locked(self):
         """Return true if device is locked."""
 
-        value = self._get_car_value(self._feature_name , self._object_name, self._attrib_name, None)
+        value = self._get_car_value(self._feature_name, self._object_name, self._attrib_name, None)
         if value and int(value) == 0:
             return True
 

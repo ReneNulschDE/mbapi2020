@@ -1,9 +1,9 @@
 """Constants for the MercedesME 2020 integration."""
-from enum import Enum
 import logging
+from enum import Enum
 
 import voluptuous as vol
-
+from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
 from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
     PERCENTAGE,
@@ -16,17 +16,8 @@ from homeassistant.const import (
     UnitOfTemperature,
     UnitOfVolume,
 )
-
-from homeassistant.helpers import (
-    config_validation as cv,
-)
-
-from homeassistant.helpers.entity  import (
-    EntityCategory,
-)
-from homeassistant.components.sensor import (
-    STATE_CLASS_MEASUREMENT,
-)
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.entity import EntityCategory
 
 MERCEDESME_COMPONENTS = [
     Platform.SENSOR,
@@ -114,9 +105,7 @@ SERVICE_VIN_TIME_SCHEMA = vol.Schema(
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("time_selection"): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=3)
-        ),
+        vol.Required("time_selection"): vol.All(vol.Coerce(int), vol.Range(min=0, max=3)),
         vol.Required("time_1"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_2"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_3"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
@@ -125,9 +114,7 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
 SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("type", default=0): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
+        vol.Required("type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),
     }
 )
 SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
@@ -144,9 +131,7 @@ SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
 SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("max_soc", default=100): vol.All(
-            vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])
-        ),
+        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),
     }
 )
 
@@ -167,10 +152,9 @@ ATTR_MB_MANUFACTURER = "Mercedes Benz"
 # ]
 
 BinarySensors = {
-
     "liquidRangeCritical": [
         "Liquid Range Critical",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "binarysensors",
         "liquidRangeCritical",
         "value",
@@ -182,10 +166,9 @@ BinarySensors = {
         None,
         None,
     ],
-
     "warningbrakefluid": [
         "Low Brake Fluid Warning",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "binarysensors",
         "warningbrakefluid",
         "value",
@@ -197,10 +180,9 @@ BinarySensors = {
         None,
         None,
     ],
-
     "warningwashwater": [
         "Low Wash Water Warning",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "binarysensors",
         "warningwashwater",
         "value",
@@ -212,10 +194,9 @@ BinarySensors = {
         None,
         None,
     ],
-
     "warningcoolantlevellow": [
         "Low Coolant Level Warning",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "binarysensors",
         "warningcoolantlevellow",
         "value",
@@ -227,10 +208,9 @@ BinarySensors = {
         None,
         None,
     ],
-
     "warningenginelight": [
         "Engine Light Warning",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "binarysensors",
         "warningenginelight",
         "value",
@@ -247,10 +227,9 @@ BinarySensors = {
         None,
         None,
     ],
-
     "parkbrakestatus": [
         "Park Brake Status",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "binarysensors",
         "parkbrakestatus",
         "value",
@@ -262,10 +241,9 @@ BinarySensors = {
         None,
         None,
     ],
-
     "windowStatusOverall": [
         "Windows Closed",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "windows",
         "windowStatusOverall",
         "value",
@@ -286,10 +264,9 @@ BinarySensors = {
         None,
         None,
     ],
-
     "tirewarninglamp": [
         "Tire Warning",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "tires",
         "tirewarninglamp",
         "value",
@@ -316,10 +293,9 @@ BinarySensors = {
         None,
         None,
     ],
-
     "remoteStartActive": [
         "Remote Start Active",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "binarysensors",
         "remoteStartActive",
         "value",
@@ -331,10 +307,9 @@ BinarySensors = {
         None,
         None,
     ],
-
     "engineState": [
         "Engine State",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "binarysensors",
         "engineState",
         "value",
@@ -351,7 +326,7 @@ BinarySensors = {
 DEVICE_TRACKER = {
     "tracker": [
         "Device Tracker",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "location",
         "positionLong",
         "value",
@@ -368,7 +343,7 @@ DEVICE_TRACKER = {
 SENSORS = {
     "chargingpowerkw": [
         "Charging Power",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "electric",
         "chargingPower",
         "value",
@@ -382,7 +357,7 @@ SENSORS = {
     ],
     "rcp_features": [
         "RCP Features",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "rcp_options",
         "rcp_supported",
         "value",
@@ -396,7 +371,7 @@ SENSORS = {
     ],
     "car": [
         "Car",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         None,
         "full_updatemessages_received",
         "value",
@@ -418,7 +393,7 @@ SENSORS = {
     ],
     "lock": [
         "Lock",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "doors",
         "doorlockstatusvehicle",
         "value",
@@ -451,7 +426,7 @@ SENSORS = {
     ],
     "rangeElectricKm": [
         "Range Electric",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "electric",
         "rangeelectric",
         "display_value",
@@ -480,7 +455,7 @@ SENSORS = {
     ],
     "electricconsumptionstart": [
         "Electric consumption start",
-        None, # Deprecated: DO NOT USE,
+        None,  # Deprecated: DO NOT USE,
         "electric",
         "electricconsumptionstart",
         "display_value",
@@ -494,7 +469,7 @@ SENSORS = {
     ],
     "electricconsumptionreset": [
         "Electric consumption reset",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "electric",
         "electricconsumptionreset",
         "display_value",
@@ -508,15 +483,12 @@ SENSORS = {
     ],
     "soc": [
         "State of Charge",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "electric",
         "soc",
         "value",
         None,
-        {
-            'maxSocLowerLimit',
-            'maxSoc'
-        },
+        {"maxSocLowerLimit", "maxSoc"},
         "mdi:ev-station",
         DEVICE_CLASS_BATTERY,
         False,
@@ -525,7 +497,7 @@ SENSORS = {
     ],
     "auxheatstatus": [
         "Auxheat Status",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "auxheat",
         "auxheatstatus",
         "value",
@@ -548,7 +520,7 @@ SENSORS = {
     ],
     "tanklevelpercent": [
         "Fuel Level",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "odometer",
         "tanklevelpercent",
         "value",
@@ -562,7 +534,7 @@ SENSORS = {
     ],
     "odometer": [
         "Odometer",
-        None, # Deprecated: DO NOT USE,
+        None,  # Deprecated: DO NOT USE,
         "odometer",
         "odo",
         "display_value",
@@ -577,7 +549,7 @@ SENSORS = {
             "serviceintervaldays",
             "tankReserveLamp",
             "tankLevelAdBlue",
-            "vehicleDataConnectionState"
+            "vehicleDataConnectionState",
         },
         "mdi:car-cruise-control",
         None,
@@ -587,7 +559,7 @@ SENSORS = {
     ],
     "averageSpeedStart": [
         "Average speed start",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "odometer",
         "averageSpeedStart",
         "display_value",
@@ -601,7 +573,7 @@ SENSORS = {
     ],
     "averageSpeedReset": [
         "Average speed reset",
-        None, # Deprecated: DO NOT USE,
+        None,  # Deprecated: DO NOT USE,
         "odometer",
         "averageSpeedReset",
         "display_value",
@@ -615,7 +587,7 @@ SENSORS = {
     ],
     "distanceReset": [
         "Distance reset",
-        None, # Deprecated: DO NOT USE,
+        None,  # Deprecated: DO NOT USE,
         "odometer",
         "distanceReset",
         "display_value",
@@ -629,7 +601,7 @@ SENSORS = {
     ],
     "distanceStart": [
         "Distance start",
-        None, # Deprecated: DO NOT USE,
+        None,  # Deprecated: DO NOT USE,
         "odometer",
         "distanceStart",
         "display_value",
@@ -643,7 +615,7 @@ SENSORS = {
     ],
     "distanceZEReset": [
         "Distance zero-emission reset",
-        None, # Deprecated: DO NOT USE,
+        None,  # Deprecated: DO NOT USE,
         "odometer",
         "distanceZEReset",
         "display_value",
@@ -657,7 +629,7 @@ SENSORS = {
     ],
     "ecoscoretotal": [
         "Eco score total",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "odometer",
         "ecoscoretotal",
         "display_value",
@@ -671,7 +643,7 @@ SENSORS = {
     ],
     "ecoscorefreewhl": [
         "Eco score free wheel",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "odometer",
         "ecoscorefreewhl",
         "display_value",
@@ -685,7 +657,7 @@ SENSORS = {
     ],
     "ecoscorebonusrange": [
         "Eco score bonus range",
-        None, # Deprecated: DO NOT USE,
+        None,  # Deprecated: DO NOT USE,
         "odometer",
         "ecoscorebonusrange",
         "display_value",
@@ -699,7 +671,7 @@ SENSORS = {
     ],
     "ecoscoreconst": [
         "Eco score constant",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "odometer",
         "ecoscoreconst",
         "display_value",
@@ -713,7 +685,7 @@ SENSORS = {
     ],
     "ecoscoreaccel": [
         "Eco score acceleration",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "odometer",
         "ecoscoreaccel",
         "display_value",
@@ -727,7 +699,7 @@ SENSORS = {
     ],
     "liquidconsumptionstart": [
         "Liquid consumption start",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "odometer",
         "liquidconsumptionstart",
         "display_value",
@@ -741,7 +713,7 @@ SENSORS = {
     ],
     "liquidconsumptionreset": [
         "Liquid consumption reset",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "odometer",
         "liquidconsumptionreset",
         "display_value",
@@ -755,7 +727,7 @@ SENSORS = {
     ],
     "rangeliquid": [
         "Range liquid",
-        None, # Deprecated: DO NOT USE,
+        None,  # Deprecated: DO NOT USE,
         "odometer",
         "rangeliquid",
         "display_value",
@@ -769,7 +741,7 @@ SENSORS = {
     ],
     "CarAlarm": [
         "Car Alarm",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "caralarm",
         "carAlarm",
         "value",
@@ -797,7 +769,7 @@ SENSORS = {
     ],
     "starterBatteryState": [
         "Starter Battery State",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "binarysensors",
         "starterBatteryState",
         "value",
@@ -811,7 +783,7 @@ SENSORS = {
     ],
     "ignitionstate": [
         "Ignition State",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "odometer",
         "ignitionstate",
         "value",
@@ -825,7 +797,7 @@ SENSORS = {
     ],
     "oilLevel": [
         "Oil Level",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "odometer",
         "oilLevel",
         "value",
@@ -842,7 +814,7 @@ SENSORS = {
 LOCKS = {
     "lock": [
         "Lock",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "doors",
         "doorLockStatusOverall",
         "value",
@@ -859,7 +831,7 @@ LOCKS = {
 SWITCHES = {
     "auxheat": [
         "AuxHeat",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "auxheat",
         "auxheatActive",
         "value",
@@ -876,7 +848,7 @@ SWITCHES = {
 SENSORS_POLL = {
     "geofencing_violation": [
         "Geofencing Violation",
-        None, # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "geofence_events",
         "last_event_type",
         "value",
@@ -911,8 +883,8 @@ UNITS = {
     "MPGE": "mpge",
     "PERCENT": PERCENTAGE,
     "PSI": UnitOfPressure.PSI,
-
 }
+
 
 class SensorConfigFields(Enum):
     """Representation of a Sensor."""

@@ -9,13 +9,7 @@ from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity
-
-from .const import (
-    CONF_FT_DISABLE_CAPABILITY_CHECK,
-    DOMAIN,
-    BinarySensors,
-    LOGGER
-)
+from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, BinarySensors
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -31,17 +25,15 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for car in data.client.cars:
 
         for key, value in sorted(BinarySensors.items()):
-            if (value[5] is None or
-                    entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False or
-                    getattr(car.features, value[5], False) is True):
+            if (
+                value[5] is None
+                or entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False
+                or getattr(car.features, value[5], False) is True
+            ):
                 device = MercedesMEBinarySensor(
-                    hass=hass,
-                    data=data,
-                    internal_name = key,
-                    sensor_config = value,
-                    vin = car.finorvin
-                    )
-                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] :
+                    hass=hass, data=data, internal_name=key, sensor_config=value, vin=car.finorvin
+                )
+                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]:
                     sensors.append(device)
 
     async_add_entities(sensors, True)

@@ -34,12 +34,10 @@ ODOMETER_OPTIONS = [
     "tankLevelAdBlue",
     "vehicleDataConnectionState",
     "ignitionstate",
-    "oilLevel"]
+    "oilLevel",
+]
 
-LOCATION_OPTIONS = [
-    "positionLat",
-    "positionLong",
-    "positionHeading"]
+LOCATION_OPTIONS = ["positionLat", "positionLong", "positionHeading"]
 
 TIRE_OPTIONS = [
     "tirepressureRearLeft",
@@ -58,7 +56,8 @@ TIRE_OPTIONS = [
     "tireTemperatureRearLeft",
     "tireTemperatureFrontRight",
     "tireTemperatureRearRight",
-    "tireTemperatureFrontLeft"]
+    "tireTemperatureFrontLeft",
+]
 
 WINDOW_OPTIONS = [
     "windowstatusrearleft",
@@ -66,109 +65,105 @@ WINDOW_OPTIONS = [
     "windowstatusfrontright",
     "windowstatusfrontleft",
     "windowStatusOverall",
-    "flipWindowStatus"]
+    "flipWindowStatus",
+]
 
 DOOR_OPTIONS = [
-    'decklidstatus',
-    'doorStatusOverall',
-    'doorLockStatusOverall',
-    'doorlockstatusgas',
-    'doorlockstatusvehicle',
-    'doorlockstatusfrontleft',
-    'doorlockstatusfrontright',
-    'doorlockstatusrearright',
-    'doorlockstatusrearleft',
-    'doorlockstatusdecklid',
-    'doorstatusrearleft',
-    'doorstatusfrontright',
-    'doorstatusrearright',
-    'doorstatusfrontleft',
-    'rooftopstatus',
-    'sunroofstatus',
-    'engineHoodStatus'
+    "decklidstatus",
+    "doorStatusOverall",
+    "doorLockStatusOverall",
+    "doorlockstatusgas",
+    "doorlockstatusvehicle",
+    "doorlockstatusfrontleft",
+    "doorlockstatusfrontright",
+    "doorlockstatusrearright",
+    "doorlockstatusrearleft",
+    "doorlockstatusdecklid",
+    "doorstatusrearleft",
+    "doorstatusfrontright",
+    "doorstatusrearright",
+    "doorstatusfrontleft",
+    "rooftopstatus",
+    "sunroofstatus",
+    "engineHoodStatus",
 ]
 
 ELECTRIC_OPTIONS = [
-    'rangeelectric',
-    'chargingactive',
-    'chargingstatus',
-    'chargingPower',
-    'distanceElectricalReset',
-    'distanceElectricalStart',
-    'ecoElectricBatteryTemperature',
-    'electricconsumptionstart',
-    'electricconsumptionreset',
-    'endofchargetime',
-    'precondActive',
-    'precondNow',
-    'maxrange',
-    'maxSocLowerLimit',
-    'maxSoc',
-    'selectedChargeProgram',
-    'soc'
-    ]
+    "rangeelectric",
+    "chargingactive",
+    "chargingstatus",
+    "chargingPower",
+    "distanceElectricalReset",
+    "distanceElectricalStart",
+    "ecoElectricBatteryTemperature",
+    "electricconsumptionstart",
+    "electricconsumptionreset",
+    "endofchargetime",
+    "precondActive",
+    "precondNow",
+    "maxrange",
+    "maxSocLowerLimit",
+    "maxSoc",
+    "selectedChargeProgram",
+    "soc",
+]
 
 BINARY_SENSOR_OPTIONS = [
-    'warningwashwater',
-    'warningenginelight',
-    'warningbrakefluid',
-    'warningcoolantlevellow',
-    'parkbrakestatus',
+    "warningwashwater",
+    "warningenginelight",
+    "warningbrakefluid",
+    "warningcoolantlevellow",
+    "parkbrakestatus",
     #'readingLampFrontRight',
     #'readingLampFrontLeft',
-    'warningBrakeLiningWear',
-    'warninglowbattery',
-    'starterBatteryState',
-    'liquidRangeCritical',
-    'tankCapOpenLamp',
-    'remoteStartActive',
-    'engineState']
+    "warningBrakeLiningWear",
+    "warninglowbattery",
+    "starterBatteryState",
+    "liquidRangeCritical",
+    "tankCapOpenLamp",
+    "remoteStartActive",
+    "engineState",
+]
 
 AUX_HEAT_OPTIONS = [
-    'auxheatActive',
-    'auxheatwarnings',
-    'auxheatruntime',
-    'auxheatstatus',
-    'auxheatwarningsPush',
-    'auxheattimeselection',
-    'auxheattime1',
-    'auxheattime2',
-    'auxheattime3']
+    "auxheatActive",
+    "auxheatwarnings",
+    "auxheatruntime",
+    "auxheatstatus",
+    "auxheatwarningsPush",
+    "auxheattimeselection",
+    "auxheattime1",
+    "auxheattime2",
+    "auxheattime3",
+]
 
-PRE_COND_OPTIONS = [
-    'preconditionState',
-    'precondimmediate']
+PRE_COND_OPTIONS = ["preconditionState", "precondimmediate"]
 
-RemoteStart_OPTIONS = [
-    'remoteEngine',
-    'remoteStartEndtime',
-    'remoteStartTemperature']
+RemoteStart_OPTIONS = ["remoteEngine", "remoteStartEndtime", "remoteStartTemperature"]
 
 CarAlarm_OPTIONS = [
-    'lastTheftWarning',
-    'towSensor',
-    'theftSystemArmed',
-    'carAlarm',
-    'parkEventType',
-    'parkEventLevel',
-    'carAlarmLastTime',
-    'towProtectionSensorStatus',
-    'theftAlarmActive',
-    'lastTheftWarningReason',
-    'lastParkEvent',
-    'collisionAlarmTimestamp',
-    'interiorSensor',
-    'carAlarmReason']
-
-GeofenceEvents_OPTIONS = [
-    'last_event_zone',
-    'last_event_timestamp',
-    'last_event_type'
+    "lastTheftWarning",
+    "towSensor",
+    "theftSystemArmed",
+    "carAlarm",
+    "parkEventType",
+    "parkEventLevel",
+    "carAlarmLastTime",
+    "towProtectionSensorStatus",
+    "theftAlarmActive",
+    "lastTheftWarningReason",
+    "lastParkEvent",
+    "collisionAlarmTimestamp",
+    "interiorSensor",
+    "carAlarmReason",
 ]
+
+GeofenceEvents_OPTIONS = ["last_event_zone", "last_event_timestamp", "last_event_type"]
 
 
 class Car(object):
-    """ Car class, stores the car values at runtime """
+    """Car class, stores the car values at runtime"""
+
     def __init__(self):
         self.licenseplate = None
         self.finorvin = None
@@ -199,48 +194,38 @@ class Car(object):
 
     @property
     def is_owner(self):
-        return CarAttribute(
-            self._is_owner, "VALID", None)
+        return CarAttribute(self._is_owner, "VALID", None)
 
     @property
     def full_updatemessages_received(self):
-        return CarAttribute(
-            self.messages_received["f"], "VALID", None)
+        return CarAttribute(self.messages_received["f"], "VALID", None)
 
     @property
     def partital_updatemessages_received(self):
-        return CarAttribute(
-            self.messages_received["p"], "VALID", None)
+        return CarAttribute(self.messages_received["p"], "VALID", None)
 
     @property
     def last_message_received(self):
         if self._last_message_received > 0:
-            return CarAttribute(datetime.fromtimestamp(int(round(self._last_message_received / 1000))),
-                "VALID",
-                None)
+            return CarAttribute(datetime.fromtimestamp(int(round(self._last_message_received / 1000))), "VALID", None)
 
         return CarAttribute(None, "NOT_RECEIVED", None)
 
     @property
     def last_command_type(self):
-        return CarAttribute(
-            self._last_command_type, "VALID", self._last_command_time_stamp)
+        return CarAttribute(self._last_command_type, "VALID", self._last_command_time_stamp)
 
     @property
     def last_command_state(self):
-        return CarAttribute(
-            self._last_command_state, "VALID", self._last_command_time_stamp)
+        return CarAttribute(self._last_command_state, "VALID", self._last_command_time_stamp)
 
     @property
     def last_command_error_code(self):
-        return CarAttribute(
-            self._last_command_error_code, "VALID", self._last_command_time_stamp)
+        return CarAttribute(self._last_command_error_code, "VALID", self._last_command_time_stamp)
 
     @property
     def last_command_error_message(self):
-        return CarAttribute(
-            self._last_command_error_message, "VALID", self._last_command_time_stamp)
-
+        return CarAttribute(self._last_command_error_message, "VALID", self._last_command_time_stamp)
 
     def add_update_listener(self, listener):
         """Add a listener for update notifications."""
@@ -255,80 +240,94 @@ class Car(object):
         for callback in self._update_listeners:
             callback()
 
-class Tires():
-    """ Stores the Tires values at runtime """
+
+class Tires:
+    """Stores the Tires values at runtime"""
+
     def __init__(self):
         self.name = "Tires"
 
 
-class Odometer():
-    """ Stores the Odometer values at runtime """
+class Odometer:
+    """Stores the Odometer values at runtime"""
+
     def __init__(self):
         self.name = "Odometer"
 
 
-class Features():
-    """ Stores the Features values at runtime """
+class Features:
+    """Stores the Features values at runtime"""
+
     def __init__(self):
         self.name = "Features"
 
 
-class RcpOptions():
-    """ Stores the RcpOptions values at runtime """
+class RcpOptions:
+    """Stores the RcpOptions values at runtime"""
+
     def __init__(self):
         self.name = "RCP_Options"
 
 
-class Windows():
-    """ Stores the Windows values at runtime """
+class Windows:
+    """Stores the Windows values at runtime"""
+
     def __init__(self):
         self.name = "Windows"
 
 
-class Doors():
-    """ Stores the Doors values at runtime """
+class Doors:
+    """Stores the Doors values at runtime"""
+
     def __init__(self):
         self.name = "Doors"
 
 
-class Electric():
-    """ Stores the Electric values at runtime """
+class Electric:
+    """Stores the Electric values at runtime"""
+
     def __init__(self):
         self.name = "Electric"
 
 
-class Auxheat():
-    """ Stores the Auxheat values at runtime """
+class Auxheat:
+    """Stores the Auxheat values at runtime"""
+
     def __init__(self):
         self.name = "Auxheat"
 
 
-class Precond():
-    """ Stores the Precond values at runtime """
+class Precond:
+    """Stores the Precond values at runtime"""
+
     def __init__(self):
         self.name = "Precond"
 
 
-class BinarySensors():
-    """ Stores the BinarySensors values at runtime """
+class BinarySensors:
+    """Stores the BinarySensors values at runtime"""
+
     def __init__(self):
         self.name = "BinarySensors"
 
 
-class RemoteStart():
-    """ Stores the RemoteStart values at runtime """
+class RemoteStart:
+    """Stores the RemoteStart values at runtime"""
+
     def __init__(self):
         self.name = "RemoteStart"
 
 
-class CarAlarm():
-    """ Stores the Odometer values at runtime """
+class CarAlarm:
+    """Stores the Odometer values at runtime"""
+
     def __init__(self):
         self.name = "CarAlarm"
 
 
-class Location():
-    """ Stores the Location values at runtime """
+class Location:
+    """Stores the Location values at runtime"""
+
     def __init__(self, latitude=None, longitude=None, heading=None):
         self.name = "Location"
         self.latitude = None
@@ -341,14 +340,18 @@ class Location():
         if heading is not None:
             self.heading = heading
 
-class GeofenceEvents():
-    """ Stores the geofence violation values at runtime """
+
+class GeofenceEvents:
+    """Stores the geofence violation values at runtime"""
+
     def __init__(self):
         self.name = "GeofenceEvents"
         self.events = []
 
-class CarAttribute():
-    """ Stores the CarAttribute values at runtime """
+
+class CarAttribute:
+    """Stores the CarAttribute values at runtime"""
+
     def __init__(self, value, retrievalstatus, timestamp, distance_unit=None, display_value=None, unit=None):
         self.value = value
         self.retrievalstatus = retrievalstatus

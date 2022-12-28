@@ -10,20 +10,20 @@ from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientError
 
 from .const import (
-    REGION_EUROPE,
-    REGION_NORAM,
-    REGION_APAC,
     LOGIN_BASE_URI,
     LOGIN_BASE_URI_NA,
     LOGIN_BASE_URI_PA,
+    REGION_APAC,
+    REGION_EUROPE,
+    REGION_NORAM,
     REST_API_BASE,
     REST_API_BASE_NA,
     REST_API_BASE_PA,
     RIS_APPLICATION_VERSION,
     RIS_APPLICATION_VERSION_NA,
     RIS_APPLICATION_VERSION_PA,
-    RIS_OS_VERSION,
     RIS_OS_NAME,
+    RIS_OS_VERSION,
     RIS_SDK_VERSION,
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_PA,
@@ -35,13 +35,15 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_TIMEOUT = 10
 SYSTEM_PROXY = None
 PROXIES = {}
-#SYSTEM_PROXY = "http://192.168.178.61:8080"
-#PROXIES = {
+# SYSTEM_PROXY = "http://192.168.178.61:8080"
+# PROXIES = {
 #  'https': SYSTEM_PROXY,
-#}
+# }
 
-class Oauth: # pylint: disable-too-few-public-methods
-    """ define the client. """
+
+class Oauth:  # pylint: disable-too-few-public-methods
+    """define the client."""
+
     def __init__(
         self,
         *,
@@ -49,7 +51,7 @@ class Oauth: # pylint: disable-too-few-public-methods
         locale: Optional[str] = "DE",
         country_code: Optional[str] = "de-DE",
         cache_path: Optional[str] = None,
-        region: str = None
+        region: str = None,
     ) -> None:
         self.token = None
         self._locale = locale
@@ -58,28 +60,26 @@ class Oauth: # pylint: disable-too-few-public-methods
         self._region: str = region
         self.cache_path = cache_path
 
-
     async def request_pin(self, email: str, nonce: str):
         _LOGGER.info("Start request PIN %s", email)
         url = f"{REST_API_BASE if self._region == 'Europe' else REST_API_BASE_NA}/v1/login"
         data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{self._country_code}", "nonce" : "{nonce}"}}'
         headers = self._get_header()
-        return await self._async_request("post", url, data=data, headers=headers )
-
+        return await self._async_request("post", url, data=data, headers=headers)
 
     async def async_refresh_access_token(self, refresh_token: str):
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
 
         url = f"{LOGIN_BASE_URI}/as/token.oauth2"
         data = (
-            #f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=refresh_token&refresh_token={refresh_token}"
+            # f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=refresh_token&refresh_token={refresh_token}"
             f"grant_type=refresh_token&refresh_token={refresh_token}"
         )
 
         headers = self._get_header()
-        headers['Content-Type'] = "application/x-www-form-urlencoded"
-        headers['X-Device-Id'] = str(uuid.uuid4())
-        headers['X-Request-Id'] = str(uuid.uuid4())
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+        headers["X-Device-Id"] = str(uuid.uuid4())
+        headers["X-Request-Id"] = str(uuid.uuid4())
 
         token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
 
@@ -92,22 +92,20 @@ class Oauth: # pylint: disable-too-few-public-methods
 
         return token_info
 
-
     async def request_access_token(self, email: str, pin: str, nonce: str):
 
         url = f"{LOGIN_BASE_URI}/as/token.oauth2"
-        encoded_email = urllib.parse.quote_plus(email, safe='@')
+        encoded_email = urllib.parse.quote_plus(email, safe="@")
         data = (
             f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=password&username={encoded_email}&password={nonce}:{pin}"
             "&scope=openid email phone profile offline_access ciam-uid"
         )
 
-
         headers = self._get_header()
-        headers['Content-Type'] = "application/x-www-form-urlencoded"
-        headers['Stage'] = "prod"
-        headers['X-Device-Id'] = str(uuid.uuid4())
-        headers['X-Request-Id'] = str(uuid.uuid4())
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+        headers["Stage"] = "prod"
+        headers["X-Device-Id"] = str(uuid.uuid4())
+        headers["X-Request-Id"] = str(uuid.uuid4())
 
         token_info = await self._async_request("post", url, data=data, headers=headers)
 
@@ -120,8 +118,7 @@ class Oauth: # pylint: disable-too-few-public-methods
         return None
 
     async def async_get_cached_token(self):
-        """ Gets a cached auth token
-        """
+        """Gets a cached auth token"""
         _LOGGER.debug("Start async_get_cached_token()")
         token_info = None
         if self.cache_path:
@@ -187,7 +184,6 @@ class Oauth: # pylint: disable-too-few-public-methods
 
         return header
 
-
     def _get_region_header(self, header) -> list:
 
         if self._region == REGION_EUROPE:
@@ -223,7 +219,7 @@ class Oauth: # pylint: disable-too-few-public-methods
 
         return LOGIN_BASE_URI
 
-    async def _async_request(self, method: str,  url: str, data: str = "", **kwargs) -> list:
+    async def _async_request(self, method: str, url: str, data: str = "", **kwargs) -> list:
         """Make a request against the API."""
 
         kwargs.setdefault("headers", {})
@@ -238,7 +234,7 @@ class Oauth: # pylint: disable-too-few-public-methods
 
         try:
             async with session.request(method, url, data=data, **kwargs) as resp:
-                #_LOGGER.warning("ClientError requesting data from %s: %s", url, resp.json)
+                # _LOGGER.warning("ClientError requesting data from %s: %s", url, resp.json)
                 resp.raise_for_status()
                 return await resp.json(content_type=None)
         except ClientError as err:

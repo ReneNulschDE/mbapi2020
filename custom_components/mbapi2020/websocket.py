@@ -1,37 +1,32 @@
 """Define an object to interact with the Websocket API."""
+import asyncio
 import logging
 import uuid
-
 from typing import Awaitable, Callable, Optional
 
-import asyncio
 import aiohttp
-
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-
-from homeassistant.const import (
-    EVENT_HOMEASSISTANT_STOP
-)
 
 import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb2
 
 from .const import (
     DOMAIN,
-    RIS_APPLICATION_VERSION,
-    RIS_APPLICATION_VERSION_PA,
-    RIS_APPLICATION_VERSION_NA,
-    RIS_SDK_VERSION,
-    RIS_OS_VERSION,
-    RIS_OS_NAME,
+    REGION_APAC,
     REGION_EUROPE,
     REGION_NORAM,
-    REGION_APAC,
+    RIS_APPLICATION_VERSION,
+    RIS_APPLICATION_VERSION_NA,
+    RIS_APPLICATION_VERSION_PA,
+    RIS_OS_NAME,
+    RIS_OS_VERSION,
+    RIS_SDK_VERSION,
     VERIFY_SSL,
     WEBSOCKET_API_BASE,
     WEBSOCKET_API_BASE_NA,
     WEBSOCKET_USER_AGENT,
-    WEBSOCKET_USER_AGENT_PA
+    WEBSOCKET_USER_AGENT_PA,
 )
 from .oauth import Oauth
 
@@ -46,6 +41,7 @@ STATE_RECONNECTING = "reconnecting"
 STATE_DISCONNECTED = "disconnected"
 
 LOGGER = logging.getLogger(__name__)
+
 
 class WebsocketWatchdog:
     """Define a watchdog to kick the websocket connection at intervals."""
@@ -75,14 +71,12 @@ class WebsocketWatchdog:
 
     async def trigger(self):
         """Trigger the watchdog."""
-        #LOGGER.debug("Watchdog triggered – sleeping for %s seconds", self._timeout)
+        # LOGGER.debug("Watchdog triggered – sleeping for %s seconds", self._timeout)
 
         if self._timer_task:
             self._timer_task.cancel()
 
-        self._timer_task = self._loop.call_later(
-            self._timeout, lambda: asyncio.create_task(self.on_expire())
-        )
+        self._timer_task = self._loop.call_later(self._timeout, lambda: asyncio.create_task(self.on_expire()))
 
 
 class Websocket:
@@ -106,7 +100,6 @@ class Websocket:
         async_dispatcher_send(self._hass, signal, state)
         self.connection_state = state
 
-
     async def async_connect(self, on_data) -> None:
         """Connect to the socket."""
 
@@ -129,22 +122,30 @@ class Websocket:
         while True:
             try:
                 self.is_connecting = True
-                LOGGER.info("Connecting to %s", WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA)
-                self._connection = await session.ws_connect(WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA, headers=headers)
+                LOGGER.info(
+                    "Connecting to %s", WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA
+                )
+                self._connection = await session.ws_connect(
+                    WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA, headers=headers
+                )
             except aiohttp.client_exceptions.ClientError:
-                LOGGER.error("Could not connect to %s, retry in 10 seconds...", WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA)
+                LOGGER.error(
+                    "Could not connect to %s, retry in 10 seconds...",
+                    WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA,
+                )
                 self.set_connection_state(STATE_RECONNECTING)
                 await asyncio.sleep(10)
             else:
                 self.is_connecting = False
-                LOGGER.info("Connected to mercedes websocket at %s", WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA)
+                LOGGER.info(
+                    "Connected to mercedes websocket at %s",
+                    WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA,
+                )
                 break
-
 
         self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_handler)
 
         asyncio.ensure_future(self._recv())
-
 
     async def async_stop(self):
         """Close connection."""
@@ -153,18 +154,15 @@ class Websocket:
         if self._connection is not None:
             await self._connection.close()
 
-
     def _decode_message(self, res_raw):
         res = vehicle_events_pb2.PushMessage()
         res.ParseFromString(res_raw)
         return res
 
-
     async def _disconnected(self):
         self.set_connection_state(STATE_DISCONNECTED)
         if not self._is_stopping:
             asyncio.ensure_future(self.async_connect(self._on_data_received))
-
 
     async def _recv(self):
         while not self._connection.closed:
@@ -210,13 +208,12 @@ class Websocket:
             if message is None:
                 break
 
-            LOGGER.debug("Got notification: %s", message.WhichOneof('msg'))
+            LOGGER.debug("Got notification: %s", message.WhichOneof("msg"))
             ack_message = self._on_data_received(message)
             if ack_message:
                 await self.call(ack_message.SerializeToString())
 
         await self._disconnected()
-
 
     async def call(self, message):
         try:
@@ -224,7 +221,6 @@ class Websocket:
         except aiohttp.client_exceptions.ClientError as err:
             LOGGER.error("remote websocket connection closed: %s", err)
             await self._disconnected()
-
 
     async def _websocket_connection_headers(self):
         token = await self.oauth.async_get_cached_token()
@@ -236,7 +232,7 @@ class Websocket:
             "ris-os-version": RIS_OS_VERSION,
             "ris-sdk-version": RIS_SDK_VERSION,
             "X-Locale": "en-US",
-            "User-Agent": WEBSOCKET_USER_AGENT
+            "User-Agent": WEBSOCKET_USER_AGENT,
         }
 
         header = self._get_region_header(header)

@@ -4,7 +4,9 @@
   "config_flow": true,
   "documentation": "https://github.com/ReneNulschDE/mbapi2020",
   "issue_tracker": "https://github.com/ReneNulschDE/mbapi2020/issues",
-  "requirements": ["protobuf>=3.19.1"],
+  "requirements": [
+    "protobuf>=3.19.1"
+  ],
   "dependencies": [],
   "codeowners": [
     "@ReneNulschDE"
@@ -12,5 +14,7 @@
   "version": "0.7.5",
   "iot_class": "cloud_push",
   "integration_type": "hub",
-  "loggers": ["custom_components.mbapi2020"]
+  "loggers": [
+    "custom_components.mbapi2020"
+  ]
 }

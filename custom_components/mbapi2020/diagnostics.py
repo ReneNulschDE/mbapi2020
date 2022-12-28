@@ -1,5 +1,6 @@
 """Diagnostics support for MBAPI2020."""
 from __future__ import annotations
+
 import json
 from json import JSONEncoder
 from typing import Any
@@ -18,10 +19,7 @@ async def async_get_config_entry_diagnostics(
     """Return diagnostics for a config entry."""
     domain = hass.data[DOMAIN]
 
-    data = {
-        "entry": entry.as_dict(),
-        "cars" : json.dumps(domain.client.cars, indent=4, cls=MBAPIEncoder)
-    }
+    data = {"entry": entry.as_dict(), "cars": json.dumps(domain.client.cars, indent=4, cls=MBAPIEncoder)}
 
     return async_redact_data(data, ("pin", "access_token", "refresh_token", "username", "unique_id", "nounce"))
 

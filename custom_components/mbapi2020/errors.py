@@ -1,5 +1,6 @@
 """Define package errors."""
 
+
 class MbapiError(Exception):
     """Define a base error."""
 

@@ -1,7 +1,6 @@
 refresh_access_token:
   description: Refresh the API access token
 
-
 auxheat_configure:
   description: "Command for configuring the auxiliary heating. It is possible to define three daytimes and select one active time."
   fields:
@@ -136,7 +135,6 @@ engine_stop:
       selector:
         text:
 
-
 preheat_start:
   description: "Start the pre-heating of a car defined by a vin."
   fields:
@@ -174,7 +172,7 @@ preheat_start_departure_time:
           min: 0
           max: 1439
           step: 1
-          mode: slider      
+          mode: slider
 
 preheat_stop:
   description: "Stop the pre-heating of a car defined by a vin."

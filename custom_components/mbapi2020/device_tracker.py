@@ -12,11 +12,7 @@ from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity
-
-from .const import (
-    DEVICE_TRACKER,
-    DOMAIN,
-)
+from .const import DEVICE_TRACKER, DOMAIN
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,20 +28,14 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
     sensor_list = []
 
-
     for car in data.client.cars:
         for key, value in sorted(DEVICE_TRACKER.items()):
-#            if value[5] is None or getattr(car.features, value[5]) is True:
+            #            if value[5] is None or getattr(car.features, value[5]) is True:
             device = MercedesMEDeviceTracker(
-                hass=hass,
-                data=data,
-                internal_name = key,
-                sensor_config = value,
-                vin = car.finorvin
-                )
-            if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] :
+                hass=hass, data=data, internal_name=key, sensor_config=value, vin=car.finorvin
+            )
+            if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]:
                 sensor_list.append(device)
-
 
     async_add_entities(sensor_list, True)
 
@@ -70,6 +60,6 @@ class MercedesMEDeviceTracker(MercedesMeEntity, TrackerEntity, RestoreEntity):
         """Return the source type, eg gps or router, of the device."""
         return SOURCE_TYPE_GPS
 
-    @ property
+    @property
     def device_class(self):
         return None
