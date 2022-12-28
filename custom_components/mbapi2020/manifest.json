@@ -4,7 +4,7 @@
   "config_flow": true,
   "documentation": "https://github.com/ReneNulschDE/mbapi2020",
   "issue_tracker": "https://github.com/ReneNulschDE/mbapi2020/issues",
-  "requirements": ["protobuf>=3.19.1,<4"],
+  "requirements": ["protobuf>=3.19.1"],
   "dependencies": [],
   "codeowners": [
     "@ReneNulschDE"
