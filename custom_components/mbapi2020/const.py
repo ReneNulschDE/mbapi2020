@@ -3,9 +3,8 @@ import logging
 from enum import Enum
 
 import voluptuous as vol
-from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
+from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import (
-    DEVICE_CLASS_BATTERY,
     PERCENTAGE,
     Platform,
     UnitOfEnergy,
@@ -490,10 +489,10 @@ SENSORS = {
         None,
         {"maxSocLowerLimit", "maxSoc"},
         "mdi:ev-station",
-        DEVICE_CLASS_BATTERY,
+        SensorDeviceClass.BATTERY,
         False,
         None,
-        STATE_CLASS_MEASUREMENT,
+        SensorStateClass.MEASUREMENT,
     ],
     "auxheatstatus": [
         "Auxheat Status",
@@ -530,7 +529,7 @@ SENSORS = {
         None,
         False,
         None,
-        STATE_CLASS_MEASUREMENT,
+        SensorStateClass.MEASUREMENT,
     ],
     "odometer": [
         "Odometer",
@@ -807,7 +806,7 @@ SENSORS = {
         None,
         False,
         None,
-        STATE_CLASS_MEASUREMENT,
+        SensorStateClass.MEASUREMENT,
     ],
 }
 
