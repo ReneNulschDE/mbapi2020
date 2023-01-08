@@ -11,7 +11,7 @@
   "codeowners": [
     "@ReneNulschDE"
   ],
-  "version": "0.8.0b1",
+  "version": "0.8.0",
   "iot_class": "cloud_push",
   "integration_type": "hub",
   "loggers": [
