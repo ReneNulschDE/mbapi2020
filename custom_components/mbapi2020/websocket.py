@@ -128,11 +128,12 @@ class Websocket:
                 self._connection = await session.ws_connect(
                     WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA, headers=headers
                 )
-            except aiohttp.client_exceptions.ClientError:
+            except aiohttp.client_exceptions.ClientError as exc:
                 LOGGER.error(
                     "Could not connect to %s, retry in 10 seconds...",
                     WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA,
                 )
+                LOGGER.debug(exc)
                 self.set_connection_state(STATE_RECONNECTING)
                 await asyncio.sleep(10)
             else:
