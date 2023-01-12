@@ -441,6 +441,10 @@ class MercedesMeEntity(Entity):
         return self._sensor_config[scf.DEVICE_CLASS.value]
 
     @property
+    def translation_key(self) -> str | None:
+        return self._internal_name
+
+    @property
     def extra_state_attributes(self):
         """Return the state attributes."""
 
