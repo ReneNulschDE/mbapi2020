@@ -907,11 +907,11 @@ class Client:  # pylint: disable-too-few-public-methods
         if not "WSL" in info.get("os_version"):
             self._disable_rlock = False
             self.__lock = threading.RLock()
-            LOGGER.info("WSL not detected - running in rlock mode")
+            LOGGER.debug("WSL not detected - running in rlock mode")
         else:
             self._disable_rlock = True
             self.__lock = None
-            LOGGER.info("WSL detected - rlock mode disabled")
+            LOGGER.debug("WSL detected - rlock mode disabled")
 
         return info
 
