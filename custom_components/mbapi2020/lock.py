@@ -5,6 +5,8 @@ For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
 
+import asyncio
+
 from homeassistant.components.lock import LockEntity
 from homeassistant.const import ATTR_CODE
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -42,21 +44,51 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
 
     async def async_lock(self, **kwargs):
         """Lock the device."""
+        old_state = self.is_locked
+        LOGGER.debug("starting lock")
+        self._attr_is_locking = True
         await self._data.client.doors_lock(self._vin)
+        LOGGER.debug("lock initiated")
+
+        count = 0
+        while count < 30:
+            if old_state == self.is_locked:
+                count += 1
+                LOGGER.debug("lock running %s", count)
+                await asyncio.sleep(1)
+            else:
+                break
+
+        self._attr_is_locking = False
+        LOGGER.debug("unlock finalized %s", count)
 
     async def async_unlock(self, **kwargs):
         """Unlock the device."""
+        old_state = self.is_locked
+        LOGGER.debug("starting unlock")
         code = kwargs.get(ATTR_CODE, None)
         pin = self._data.client.config_entry.options.get(CONF_PIN, None)
+        self._attr_is_unlocking = True
 
         if pin and pin.strip():
             await self._data.client.doors_unlock_with_pin(self._vin, pin)
-            return
-
-        if code is None:
-            LOGGER.error("Code required but none provided")
         else:
-            await self._data.client.doors_unlock_with_pin(self._vin, code)
+            if code is None:
+                LOGGER.error("Code required but none provided")
+            else:
+                await self._data.client.doors_unlock_with_pin(self._vin, code)
+
+        LOGGER.debug("unlock initiated")
+        count = 0
+        while count < 30:
+            if old_state == self.is_locked:
+                count += 1
+                LOGGER.debug("unlock running %s", count)
+                await asyncio.sleep(1)
+            else:
+                break
+        self._attr_is_unlocking = False
+        LOGGER.debug("unlock finalized %s", count)
 
     @property
     def is_locked(self):
