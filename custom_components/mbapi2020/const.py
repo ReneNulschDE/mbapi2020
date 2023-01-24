@@ -488,7 +488,7 @@ SENSORS = {
         "value",
         None,
         {"maxSocLowerLimit", "maxSoc"},
-        "mdi:ev-station",
+        None,
         SensorDeviceClass.BATTERY,
         False,
         None,
