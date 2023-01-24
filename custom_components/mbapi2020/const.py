@@ -819,7 +819,7 @@ LOCKS = {
         "value",
         None,
         {},
-        "mdi:lock",
+        None,
         None,
         False,
         None,
