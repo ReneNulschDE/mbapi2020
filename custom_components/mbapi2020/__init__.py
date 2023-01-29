@@ -498,7 +498,7 @@ class MercedesMeEntity(Entity):
             )
             return reported_unit
 
-        return None
+        return self._unit
 
     @property
     def icon(self):
