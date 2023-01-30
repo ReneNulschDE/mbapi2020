@@ -4,16 +4,17 @@
 ![HassFest tests](https://github.com/renenulschde/mbapi2020/workflows/Validate%20with%20hassfest/badge.svg) ![Validate with HACS](https://github.com/ReneNulschDE/mbapi2020/workflows/Validate%20with%20HACS/badge.svg)
 
 
+
 MercedesME platform as a Custom Component for Home Assistant.
 
 IMPORTANT:
 
 * Please login once in the MercedesME IOS or Android app before you install this component. (For North America, the app name is Mercedes Me Connect)
 
-* Tested Countries: AT, AU, BE, CA, CH, DE, DK, ES, FI, FR, IT, IR, NL, NO, NZ, PT, SE, TH, UK, US
+* Tested Countries: AT, AU, BE, CA, CH, DE, DK, ES, FI, FR, IN, IT, IR, NL, NO, NZ, PT, SE, TH, UK, US
 
 * North America: For Cars 2019 or newer only
-* Thailand: Please use region "Europe".
+* Thailand, India: Please use region "Europe".
 
 ### Installation
 * First: This is not a Home Assistant Add-On. It's a custom component.
@@ -32,7 +33,7 @@ See Options dialog in the Integration under Home-Assistant/Configuration/Integra
 ```
 Excluded Cars: comma-separated list of VINs.
 PIN: Security PIN to execute special services. Please use your MB mobile app to setup
-Disable Capability Check: By default the component checks the capabilities of a car. Active this option to disable the capability check.
+Disable Capability Check: By default the component checks the capabilities of a car. Active this option to disable the capability check. (For North America)
 Debug Save Messages: Enable this option to save all relevant received message into the messages folder of the component
 ```
 
@@ -126,7 +127,6 @@ Depends on your own car or purchased Mercedes Benz licenses.
   attributes: 
   Last_event_zone
   ```
-  
   Values:
   ENTER
   LEAVE
@@ -291,6 +291,7 @@ logger:
 
 ### Open Items
 * Add missing Sensors (Theft)
+
 
 ### Backup and Restore
 * In case of problems after a restore of Home Assistant, please delete the file .mercedesme-token-cache in your HA-config folder and restart HA
