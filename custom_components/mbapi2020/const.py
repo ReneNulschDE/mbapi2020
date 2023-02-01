@@ -546,6 +546,7 @@ SENSORS = {
             "liquidRangeSkipIndication",
             "outsideTemperature",
             "serviceintervaldays",
+            "serviceintervaldistance",
             "tankReserveLamp",
             "tankLevelAdBlue",
             "vehicleDataConnectionState",

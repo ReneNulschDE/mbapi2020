@@ -28,6 +28,7 @@ ODOMETER_OPTIONS = [
     "outsideTemperature",
     "rangeliquid",
     "serviceintervaldays",
+    "serviceintervaldistance",
     "tanklevelpercent",
     "tankReserveLamp",
     "batteryState",
