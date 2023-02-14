@@ -464,7 +464,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "electricconsumptionreset": [
         "Electric consumption reset",
@@ -478,7 +478,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "soc": [
         "State of Charge",
@@ -709,7 +709,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "liquidconsumptionreset": [
         "Liquid consumption reset",
@@ -723,7 +723,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "rangeliquid": [
         "Range liquid",
