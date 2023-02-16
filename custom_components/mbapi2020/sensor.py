@@ -5,7 +5,7 @@ For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
 
-from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.components.sensor import RestoreSensor
 
 from . import MercedesMeEntity
 from .const import (
@@ -56,7 +56,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(sensor_list, True)
 
 
-class MercedesMESensor(MercedesMeEntity, RestoreEntity):
+class MercedesMESensor(MercedesMeEntity, RestoreSensor):
     """Representation of a Sensor."""
 
     @property
@@ -73,12 +73,12 @@ class MercedesMESensor(MercedesMeEntity, RestoreEntity):
         await super().async_added_to_hass()
         # __init__ will set self._state to self._initial, only override
         # if needed.
-        state = await self.async_get_last_state()
-        if state is not None:
-            self._state = state.state
+
+        if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
+            self._state = last_sensor_data.native_value
 
 
-class MercedesMESensorPoll(MercedesMeEntity, RestoreEntity):
+class MercedesMESensorPoll(MercedesMeEntity, RestoreSensor):
     """Representation of a Sensor."""
 
     @property
@@ -95,9 +95,8 @@ class MercedesMESensorPoll(MercedesMeEntity, RestoreEntity):
         await super().async_added_to_hass()
         # __init__ will set self._state to self._initial, only override
         # if needed.
-        state = await self.async_get_last_state()
-        if state is not None:
-            self._state = state.state
+        if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
+            self._state = last_sensor_data.native_value
 
     async def async_update(self):
         """Get the latest data and updates the states."""
