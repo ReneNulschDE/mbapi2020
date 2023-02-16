@@ -40,6 +40,7 @@ CONF_VIN = "vin"
 CONF_TIME = "time"
 CONF_DEBUG_FILE_SAVE = "save_files"
 CONF_FT_DISABLE_CAPABILITY_CHECK = "cap_check_disabled"
+CONF_DELETE_AUTH_FILE = "delete_auth_file"
 
 DATA_CLIENT = "data_client"
 

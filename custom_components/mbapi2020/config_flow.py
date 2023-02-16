@@ -1,18 +1,22 @@
 """Config flow for mbapi2020 integration."""
 import logging
+import os
 import uuid
 
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.components import persistent_notification
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers import aiohttp_client
+from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 
 from .client import Client
 from .const import (  # pylint:disable=unused-import
     CONF_ALLOWED_REGIONS,
     CONF_COUNTRY_CODE,
     CONF_DEBUG_FILE_SAVE,
+    CONF_DELETE_AUTH_FILE,
     CONF_EXCLUDED_CARS,
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     CONF_LOCALE,
@@ -20,12 +24,12 @@ from .const import (  # pylint:disable=unused-import
     CONF_REGION,
     DEFAULT_COUNTRY_CODE,
     DEFAULT_LOCALE,
+    DEFAULT_TOKEN_PATH,
     DOMAIN,
+    LOGGER,
     VERIFY_SSL,
 )
 from .errors import MbapiError
-
-_LOGGER = logging.getLogger(__name__)
 
 SCHEMA_STEP_USER = vol.Schema(
     {vol.Required(CONF_USERNAME): str, vol.Required(CONF_REGION): vol.In(CONF_ALLOWED_REGIONS)}
@@ -132,6 +136,26 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         """Manage the options."""
 
         if user_input is not None:
+            if user_input[CONF_DELETE_AUTH_FILE] == True:
+                auth_file = f"{self.hass.config.config_dir}/{DEFAULT_TOKEN_PATH}"
+                LOGGER.warning("DELETE Auth File requested %s", auth_file)
+                if os.path.isfile(auth_file):
+                    os.remove(auth_file)
+
+                    LOGGER.debug("%s Creating restart_required issue", DOMAIN)
+                    async_create_issue(
+                        hass=self.hass,
+                        domain=DOMAIN,
+                        issue_id=f"restart_required_auth_deleted",
+                        is_fixable=True,
+                        issue_domain=DOMAIN,
+                        severity=IssueSeverity.WARNING,
+                        translation_key="restart_required",
+                        translation_placeholders={
+                            "name": DOMAIN,
+                        },
+                    )
+
             if user_input[CONF_PIN] == "0":
                 user_input[CONF_PIN] = ""
             self.options.update(user_input)
@@ -155,6 +179,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(CONF_PIN, default=pin): str,
                     vol.Optional(CONF_FT_DISABLE_CAPABILITY_CHECK, default=cap_check_disabled): bool,
                     vol.Optional(CONF_DEBUG_FILE_SAVE, default=save_debug_files): bool,
+                    vol.Optional(CONF_DELETE_AUTH_FILE, default=False): bool,
                 }
             ),
         )

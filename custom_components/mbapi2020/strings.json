@@ -36,9 +36,10 @@
                     "excluded_cars": "VINs excluded (comma-sep)",
                     "pin": "Security PIN (to be created in mobile app) - Enter 0 to delete the value from the configuration",
                     "cap_check_disabled": "Disable capabilities check",
-                    "save_files": "DEBUG ONLY: Enable save server messages to the messages folder"
+                    "save_files": "DEBUG ONLY: Enable save server messages to the messages folder",
+                    "delete_auth_file": "Delete authentication token file now. require a restart of Home Assistant after save."
                 },
-                "description": "Configure your options. Some changes require a restart of Home Assistant. You need to restart HA after PIN change.",
+                "description": "Configure your options. Some changes require a restart of Home Assistant. Will ignore all other changes. You need to restart HA after PIN change.",
                 "title": "Mercedes ME 2020 Options"
             }
         },
@@ -51,6 +52,19 @@
         "info": {
             "api_endpoint_reachable": "MB API endpoint reachable",
             "websocket_connection_state": "MB Websocket connection state"
+        }
+    },
+    "issues": {
+        "restart_required": {
+            "title": "Restart required",
+            "fix_flow": {
+                "step": {
+                    "confirm_restart": {
+                        "title": "Restart required",
+                        "description": "Restart of Home Assistant is required to finish auth update click submit to restart now."
+                    }
+                }
+            }
         }
     }
 }
