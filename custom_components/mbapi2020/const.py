@@ -134,6 +134,12 @@ SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
         vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),
     }
 )
+SERVICE_VIN_PIN_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Optional(CONF_PIN): cv.string,
+    }
+)
 
 
 ATTR_MB_MANUFACTURER = "Mercedes Benz"

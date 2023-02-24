@@ -104,6 +104,12 @@ doors_unlock:
       required: True
       selector:
         text:
+    pin:
+      description: "security pin"
+      example: "1234"
+      required: False
+      selector:
+        text:
 
 doors_lock:
   description: "Lock a car defined by a vin."
@@ -146,8 +152,8 @@ preheat_start:
         text:
     type:
       description: "Method that is used to initiate the start process. 0=Now (Default), 1=Immediate - Use Immediate in case your does not support now."
-      default: 0
-      example: 0
+      default: "0"
+      example: "0"
       selector:
         select:
           options:

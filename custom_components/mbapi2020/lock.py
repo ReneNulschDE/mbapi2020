@@ -7,6 +7,7 @@ https://github.com/ReneNulschDE/mbapi2020/
 
 import asyncio
 
+from homeassistant.components.alarm_control_panel import CodeFormat
 from homeassistant.components.lock import LockEntity
 from homeassistant.const import ATTR_CODE
 from homeassistant.helpers.restore_state import RestoreEntity

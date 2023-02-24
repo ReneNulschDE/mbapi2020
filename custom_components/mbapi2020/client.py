@@ -529,10 +529,15 @@ class Client:  # pylint: disable-too-few-public-methods
 
                                 current_car.publish_updates()
 
-    async def doors_unlock(self, vin: str):
+    async def doors_unlock(self, vin: str, pin: Optional[str] = ""):
 
         if not self.is_car_feature_available(vin, "DOORS_UNLOCK"):
             LOGGER.warning("Can't unlock car %s. VIN unknown or feature not availabe for this car.", vin)
+            return
+
+        if pin and pin.strip():
+            LOGGER.debug("Start unlock with user provided pin")
+            await self.doors_unlock_with_pin(vin, pin)
             return
 
         if self.pin is None:

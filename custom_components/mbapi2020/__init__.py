@@ -17,6 +17,7 @@ from .car import Car, CarAttribute, Features, RcpOptions
 from .client import Client
 from .const import (
     ATTR_MB_MANUFACTURER,
+    CONF_PIN,
     CONF_REGION,
     CONF_TIME,
     CONF_VIN,
@@ -44,6 +45,7 @@ from .const import (
     SERVICE_SIGPOS_START,
     SERVICE_SUNROOF_CLOSE,
     SERVICE_SUNROOF_OPEN,
+    SERVICE_VIN_PIN_SCHEMA,
     SERVICE_VIN_SCHEMA,
     SERVICE_VIN_TIME_SCHEMA,
     SERVICE_WINDOWS_CLOSE,
@@ -214,7 +216,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             await mercedes.client.auxheat_stop(call.data.get(CONF_VIN))
 
         async def doors_unlock(call) -> None:
-            await mercedes.client.doors_unlock(call.data.get(CONF_VIN))
+            await mercedes.client.doors_unlock(call.data.get(CONF_VIN), call.data.get(CONF_PIN))
 
         async def doors_lock(call) -> None:
             await mercedes.client.doors_lock(call.data.get(CONF_VIN))
@@ -282,7 +284,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             schema=SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA,
         )
         hass.services.async_register(DOMAIN, SERVICE_DOORS_LOCK_URL, doors_lock, schema=SERVICE_VIN_SCHEMA)
-        hass.services.async_register(DOMAIN, SERVICE_DOORS_UNLOCK_URL, doors_unlock, schema=SERVICE_VIN_SCHEMA)
+        hass.services.async_register(DOMAIN, SERVICE_DOORS_UNLOCK_URL, doors_unlock, schema=SERVICE_VIN_PIN_SCHEMA)
         hass.services.async_register(DOMAIN, SERVICE_ENGINE_START, engine_start, schema=SERVICE_VIN_SCHEMA)
         hass.services.async_register(DOMAIN, SERVICE_ENGINE_STOP, engine_stop, schema=SERVICE_VIN_SCHEMA)
         hass.services.async_register(DOMAIN, SERVICE_PREHEAT_START, preheat_start, schema=SERVICE_PREHEAT_START_SCHEMA)
