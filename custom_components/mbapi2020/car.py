@@ -36,6 +36,9 @@ ODOMETER_OPTIONS = [
     "vehicleDataConnectionState",
     "ignitionstate",
     "oilLevel",
+    "departuretime",
+    "departureTimeWeekday",
+    "precondatdeparture",
 ]
 
 LOCATION_OPTIONS = ["positionLat", "positionLong", "positionHeading"]

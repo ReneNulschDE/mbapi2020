@@ -397,6 +397,20 @@ SENSORS = {
         EntityCategory.DIAGNOSTIC,
         None,
     ],
+    "departuretime": [
+        "Departure time",
+        None,  # Deprecated: DO NOT USE
+        "odometer",
+        "departuretime",
+        "display_value",
+        None,
+        {"departureTimeWeekday"},
+        "mdi:clock-out",
+        None,
+        False,
+        None,
+        None,
+    ],
     "lock": [
         "Lock",
         None,  # Deprecated: DO NOT USE
@@ -890,6 +904,7 @@ UNITS = {
     "MPGE": "mpge",
     "PERCENT": PERCENTAGE,
     "PSI": UnitOfPressure.PSI,
+    "T24H": "",
 }
 
 
