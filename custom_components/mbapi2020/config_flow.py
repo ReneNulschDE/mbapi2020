@@ -75,7 +75,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.data = user_input
                 return await self.async_step_pin()
 
-            _LOGGER.error("Request PIN error: %s", errors)
+            LOGGER.error("Request PIN error: %s", errors)
 
         return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors="Unknown error")  # errors
 
@@ -94,11 +94,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin, nonce)
             except MbapiError as error:
-                _LOGGER.error("Request token error: %s", errors)
+                LOGGER.error("Request token error: %s", errors)
                 errors = error
 
             if not errors:
-                _LOGGER.debug("Token received")
+                LOGGER.debug("Token received")
                 self.data["token"] = result
 
                 if self.reauth_mode:
