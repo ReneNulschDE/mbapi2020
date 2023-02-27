@@ -82,7 +82,7 @@ battery_max_soc_configure:
       selector:
         text:
     max_soc:
-      description: "The maximum value for the state of charge of the HV battery (Values need to be between 50 and 100 and divisible by ten)"
+      description: "The maximum value for the state of charge of the HV battery (Value needs to be between 50 and 100 and divisible by ten)"
       example: "100"
       default: 100
       selector:
