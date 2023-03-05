@@ -10,35 +10,32 @@ from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientError
 
 from .const import (
-    LOGIN_BASE_URI,
-    LOGIN_BASE_URI_NA,
-    LOGIN_BASE_URI_PA,
+    DISABLE_SSL_CERT_CHECK,
     REGION_APAC,
+    REGION_CHINA,
     REGION_EUROPE,
     REGION_NORAM,
-    REST_API_BASE,
-    REST_API_BASE_NA,
-    REST_API_BASE_PA,
     RIS_APPLICATION_VERSION,
+    RIS_APPLICATION_VERSION_CN,
     RIS_APPLICATION_VERSION_NA,
     RIS_APPLICATION_VERSION_PA,
     RIS_OS_NAME,
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
+    SYSTEM_PROXY,
     WEBSOCKET_USER_AGENT,
+    WEBSOCKET_USER_AGENT_CN,
     WEBSOCKET_USER_AGENT_PA,
-    X_APPLICATIONNAME,
+    X_APPLICATIONNAME_AP,
+    X_APPLICATIONNAME_CN,
+    X_APPLICATIONNAME_ECE,
+    X_APPLICATIONNAME_US,
 )
+from .helper import UrlHelper as helper
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = 10
-SYSTEM_PROXY = None
-PROXIES = {}
-# SYSTEM_PROXY = "http://192.168.178.61:8080"
-# PROXIES = {
-#  'https': SYSTEM_PROXY,
-# }
 
 
 class Oauth:  # pylint: disable-too-few-public-methods
@@ -48,8 +45,8 @@ class Oauth:  # pylint: disable-too-few-public-methods
         self,
         *,
         session: Optional[ClientSession] = None,
-        locale: Optional[str] = "DE",
-        country_code: Optional[str] = "de-DE",
+        locale: Optional[str] = "EN",
+        country_code: Optional[str] = "en-US",
         cache_path: Optional[str] = None,
         region: str = None,
     ) -> None:
@@ -62,7 +59,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
     async def request_pin(self, email: str, nonce: str):
         _LOGGER.info("Start request PIN %s", email)
-        url = f"{REST_API_BASE if self._region == 'Europe' else REST_API_BASE_NA}/v1/login"
+        url = f"{helper.Rest_url(self._region)}/v1/login"
         data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{self._country_code}", "nonce" : "{nonce}"}}'
         headers = self._get_header()
         return await self._async_request("post", url, data=data, headers=headers)
@@ -70,11 +67,8 @@ class Oauth:  # pylint: disable-too-few-public-methods
     async def async_refresh_access_token(self, refresh_token: str):
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
 
-        url = f"{LOGIN_BASE_URI}/as/token.oauth2"
-        data = (
-            # f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=refresh_token&refresh_token={refresh_token}"
-            f"grant_type=refresh_token&refresh_token={refresh_token}"
-        )
+        url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
+        data = f"grant_type=refresh_token&refresh_token={refresh_token}"
 
         headers = self._get_header()
         headers["Content-Type"] = "application/x-www-form-urlencoded"
@@ -94,10 +88,11 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
     async def request_access_token(self, email: str, pin: str, nonce: str):
 
-        url = f"{LOGIN_BASE_URI}/as/token.oauth2"
+        url = f"{helper.LogiAPACn_Base_Url(self._region)}/as/token.oauth2"
         encoded_email = urllib.parse.quote_plus(email, safe="@")
+
         data = (
-            f"client_id=01398c1c-dc45-4b42-882b-9f5ba9f175f1&grant_type=password&username={encoded_email}&password={nonce}:{pin}"
+            f"client_id={helper.Login_App_Id(self._region)}&grant_type=password&username={encoded_email}&password={nonce}:{pin}"
             "&scope=openid email phone profile offline_access ciam-uid"
         )
 
@@ -187,43 +182,31 @@ class Oauth:  # pylint: disable-too-few-public-methods
     def _get_region_header(self, header) -> list:
 
         if self._region == REGION_EUROPE:
-            header["X-Applicationname"] = "mycar-store-ece"
+            header["X-Applicationname"] = X_APPLICATIONNAME_ECE
             header["Ris-Application-Version"] = RIS_APPLICATION_VERSION
 
         if self._region == REGION_NORAM:
-            header["X-Applicationname"] = "mycar-store-us"
+            header["X-Applicationname"] = X_APPLICATIONNAME_US
             header["Ris-Application-Version"] = RIS_APPLICATION_VERSION_NA
 
         if self._region == REGION_APAC:
-            header["X-Applicationname"] = "mycar-store-ap"
+            header["X-Applicationname"] = X_APPLICATIONNAME_AP
             header["Ris-Application-Version"] = RIS_APPLICATION_VERSION_PA
             header["User-Agent"] = WEBSOCKET_USER_AGENT_PA
 
+        if self._region == REGION_CHINA:
+            header["X-Applicationname"] = X_APPLICATIONNAME_CN
+            header["Ris-Application-Version"] = RIS_APPLICATION_VERSION_CN
+            header["User-Agent"] = WEBSOCKET_USER_AGENT_CN
+
         return header
-
-    def _get_restapi_base_url(self) -> str:
-        if self._region == REGION_NORAM:
-            return REST_API_BASE_NA
-
-        if self._region == REGION_APAC:
-            return REST_API_BASE_PA
-
-        return REST_API_BASE
-
-    def _get_login_base_url(self) -> str:
-        if self._region == REGION_NORAM:
-            return LOGIN_BASE_URI_NA
-
-        if self._region == REGION_APAC:
-            return LOGIN_BASE_URI_PA
-
-        return LOGIN_BASE_URI
 
     async def _async_request(self, method: str, url: str, data: str = "", **kwargs) -> list:
         """Make a request against the API."""
 
         kwargs.setdefault("headers", {})
         kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", DISABLE_SSL_CERT_CHECK)
 
         use_running_session = self._session and not self._session.closed
 

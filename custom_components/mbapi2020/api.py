@@ -9,14 +9,17 @@ from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientError
 
 from .const import (
-    REST_API_BASE,
-    REST_API_BASE_NA,
+    DISABLE_SSL_CERT_CHECK,
+    REGION_CHINA,
     RIS_APPLICATION_VERSION,
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
+    SYSTEM_PROXY,
     WEBSOCKET_USER_AGENT,
+    WEBSOCKET_USER_AGENT_CN,
     X_APPLICATIONNAME,
 )
+from .helper import UrlHelper as helper
 from .oauth import Oauth
 
 LOGGER = logging.getLogger(__name__)
@@ -39,9 +42,10 @@ class API:
     ) -> list:
         """Make a request against the API."""
 
-        url = f"{REST_API_BASE if self._region == 'Europe' else REST_API_BASE_NA}{endpoint}"
-
+        url = f"{helper.Rest_url(self._region)}{endpoint}"
         kwargs.setdefault("headers", {})
+        kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", DISABLE_SSL_CERT_CHECK)
 
         token = await self._oauth.async_get_cached_token()
 
@@ -110,13 +114,15 @@ class API:
 
     async def get_car_rcp_supported_settings(self, vin: str) -> list:
         """Get all supported car rcp options associated"""
-        url = f"https://rcp-rs.query.api.dvb.corpinter.net/api/v1/vehicles/{vin}/settings"
+        url = f"{helper.RCP_url(self._region)}/api/v1/vehicles/{vin}/settings"
+
         LOGGER.debug("get_car_rcp_supported_settings: %s", url)
         return await self._request("get", "", url=url, rcp_headers=True)
 
     async def get_car_rcp_settings(self, vin: str, setting: str) -> list:
         """Get all rcp setting for a car"""
-        url = f"https://rcp-rs.query.api.dvb.corpinter.net/api/v1/vehicles/{vin}/settings/{setting}"
+        url = f"{helper.RCP_url(self._region)}/api/v1/vehicles/{vin}/settings/{setting}"
+
         LOGGER.debug("get_car_rcp_settings: %s", url)
         return await self._request("get", "", url=url, rcp_headers=True)
 
@@ -146,16 +152,19 @@ class API:
         url = f"/v1/geofencing/vehicles/{vin}/fences/violations"
         return await self._request("get", url, rcp_headers=False, ignore_errors=True)
 
-    async def is_car_rcp_supported(self, vin: str) -> list:
+    async def is_car_rcp_supported(self, vin: str, **kwargs) -> list:
         """return if is car rcp supported"""
         token = await self._oauth.async_get_cached_token()
-
         headers = {
             "Authorization": f"Bearer {token['access_token']}",
-            "User-Agent": "MyCar/1.27.0 (com.daimler.ris.mercedesme.ece.ios; build:1719; iOS 16.3.0) Alamofire/5.4.0",
+            "User-Agent": WEBSOCKET_USER_AGENT if self._region != REGION_CHINA else WEBSOCKET_USER_AGENT_CN,
         }
 
-        url = f"https://psag.query.api.dvb.corpinter.net/api/app/v2/vehicles/{vin}/profileInformation"
+        kwargs.setdefault("headers", headers)
+        kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", DISABLE_SSL_CERT_CHECK)
+
+        url = f"{helper.PSAG_url(self._region)}/api/app/v2/vehicles/{vin}/profileInformation"
 
         use_running_session = self._session and not self._session.closed
 
@@ -165,8 +174,8 @@ class API:
             session = ClientSession(timeout=ClientTimeout(total=DEFAULT_TIMEOUT))
 
         try:
-            # async with session.request(method, url, proxy=proxy, ssl=False, **kwargs) as resp:
-            async with session.request("get", url, headers=headers) as resp:
+            async with session.request("get", url, **kwargs) as resp:
+                # async with session.request("get", url, headers=headers) as resp:
                 resp_status = resp.status
                 await resp.text()
                 return bool(resp_status == 200)
