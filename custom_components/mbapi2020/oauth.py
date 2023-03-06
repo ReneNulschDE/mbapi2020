@@ -88,7 +88,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
     async def request_access_token(self, email: str, pin: str, nonce: str):
 
-        url = f"{helper.LogiAPACn_Base_Url(self._region)}/as/token.oauth2"
+        url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
         encoded_email = urllib.parse.quote_plus(email, safe="@")
 
         data = (

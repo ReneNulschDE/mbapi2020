@@ -59,6 +59,6 @@ class UrlHelper:
     def Login_Base_Url(region: str) -> str:
         match region:
             case current if current == REGION_CHINA:
-                return LOGIN_APP_ID_CN
+                return LOGIN_BASE_URI_CN
             case _:
-                return LOGIN_APP_ID_EU
+                return LOGIN_BASE_URI
