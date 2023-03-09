@@ -929,6 +929,7 @@ UNITS = {
     "PERCENT": PERCENTAGE,
     "PSI": UnitOfPressure.PSI,
     "T24H": "",
+    "T12H": "",
 }
 
 
