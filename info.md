@@ -11,10 +11,11 @@ IMPORTANT:
 
 * Please login once in the MercedesME IOS or Android app before you install this component. (For North America, the app name is Mercedes Me Connect)
 
-* Tested Countries: AT, AU, BE, CA, CH, DE, DK, ES, FI, FR, IN, IT, IR, NL, NO, NZ, PT, SE, TH, UK, US
+* Tested Countries: AT, AU, BE, CA, CH, CN, DE, DK, ES, FI, FR, IN, IT, IR, NL, NO, NZ, PT, SE, TH, UK, US
 
 * North America: For Cars 2019 or newer only
 * Thailand, India: Please use region "Europe".
+* China: support of China is in early stage
 
 ### Installation
 * First: This is not a Home Assistant Add-On. It's a custom component.
