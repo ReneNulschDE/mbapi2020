@@ -65,7 +65,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             nonce = str(uuid.uuid4())
             user_input["nonce"] = nonce
 
-            client = Client(session=session, hass=self.hass, region=user_input[CONF_REGION], unique_id=self.unique_id)
+            client = Client(session=session, hass=self.hass, region=user_input[CONF_REGION])
             try:
                 await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
             except MbapiError as error:
@@ -90,7 +90,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             nonce = self.data["nonce"]
             session = aiohttp_client.async_get_clientsession(self.hass, VERIFY_SSL)
 
-            client = Client(session=session, hass=self.hass, region=self.data[CONF_REGION], unique_id=self.unique_id)
+            client = Client(session=session, hass=self.hass, region=self.data[CONF_REGION])
             try:
                 result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin, nonce)
             except MbapiError as error:
@@ -137,7 +137,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             if user_input[CONF_DELETE_AUTH_FILE] == True:
-                auth_file = f"{self.hass.config.config_dir}/{DEFAULT_TOKEN_PATH}.{self.config_entry.unique_id}"
+                auth_file = f"{self.hass.config.config_dir}/{DEFAULT_TOKEN_PATH}"
                 LOGGER.warning("DELETE Auth File requested %s", auth_file)
                 if os.path.isfile(auth_file):
                     os.remove(auth_file)
