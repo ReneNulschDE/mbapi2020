@@ -69,7 +69,7 @@ class Client:  # pylint: disable-too-few-public-methods
         session: Optional[ClientSession] = None,
         hass: Optional[HomeAssistant] = None,
         config_entry=None,
-        cache_path: Optional[str] = None,
+        unique_id: Optional[str] = None,
         region: str = None,
     ) -> None:
         self._ws_reconnect_delay = DEFAULT_SOCKET_MIN_RETRY
@@ -83,17 +83,23 @@ class Client:  # pylint: disable-too-few-public-methods
         self.config_entry = config_entry
         self._locale: str = DEFAULT_LOCALE
         self._country_code: str = DEFAULT_COUNTRY_CODE
+        self._cache_path: str = self._hass.config.path(DEFAULT_CACHE_PATH)
+        self._unique_id: str = unique_id
 
         if self.config_entry:
+            self._unique_id = self._unique_id or self.config_entry.unique_id
             if self.config_entry.options:
                 self._country_code = self.config_entry.options.get(CONF_COUNTRY_CODE, DEFAULT_COUNTRY_CODE)
                 self._locale = self.config_entry.options.get(CONF_LOCALE, DEFAULT_LOCALE)
+
+        if self._unique_id:
+            self._cache_path = f"{self._hass.config.path(DEFAULT_TOKEN_PATH)}.{self._unique_id}"
 
         self.oauth: Oauth = Oauth(
             session=session,
             locale=self._locale,
             country_code=self._country_code,
-            cache_path=self._hass.config.path(DEFAULT_TOKEN_PATH),
+            cache_path=self._cache_path,
             region=self._region,
         )
         self.api: API = API(session=session, oauth=self.oauth, region=self._region)
