@@ -23,11 +23,10 @@ from .const import (
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
     VERIFY_SSL,
-    WEBSOCKET_API_BASE,
-    WEBSOCKET_API_BASE_NA,
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_PA,
 )
+from .helper import UrlHelper as helper
 from .oauth import Oauth
 
 DEFAULT_WATCHDOG_TIMEOUT = 300
@@ -119,29 +118,20 @@ class Websocket:
 
         headers = await self._websocket_connection_headers()
 
+        websocket_url = helper.Websocket_url(self._region)
         while True:
             try:
                 self.is_connecting = True
-                LOGGER.info(
-                    "Connecting to %s", WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA
-                )
-                self._connection = await session.ws_connect(
-                    WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA, headers=headers
-                )
+                LOGGER.info("Connecting to %s", websocket_url)
+                self._connection = await session.ws_connect(websocket_url, headers=headers)
             except aiohttp.client_exceptions.ClientError as exc:
-                LOGGER.error(
-                    "Could not connect to %s, retry in 10 seconds...",
-                    WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA,
-                )
+                LOGGER.error("Could not connect to %s, retry in 10 seconds...", websocket_url)
                 LOGGER.debug(exc)
                 self.set_connection_state(STATE_RECONNECTING)
                 await asyncio.sleep(10)
             else:
                 self.is_connecting = False
-                LOGGER.info(
-                    "Connected to mercedes websocket at %s",
-                    WEBSOCKET_API_BASE if self._region == "Europe" else WEBSOCKET_API_BASE_NA,
-                )
+                LOGGER.info("Connected to mercedes websocket at %s", websocket_url)
                 break
 
         self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_handler)

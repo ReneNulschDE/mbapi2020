@@ -15,6 +15,9 @@ from .const import (
     REST_API_BASE_CN,
     REST_API_BASE_NA,
     REST_API_BASE_PA,
+    WEBSOCKET_API_BASE,
+    WEBSOCKET_API_BASE_CN,
+    WEBSOCKET_API_BASE_NA,
 )
 
 
@@ -30,6 +33,18 @@ class UrlHelper:
                 return REST_API_BASE_NA
             case current if current == REGION_EUROPE:
                 return REST_API_BASE
+
+    @staticmethod
+    def Websocket_url(region: str) -> str:
+        match region:
+            case current if current == REGION_APAC:
+                return WEBSOCKET_API_BASE_NA
+            case current if current == REGION_CHINA:
+                return WEBSOCKET_API_BASE_CN
+            case current if current == REGION_NORAM:
+                return WEBSOCKET_API_BASE_NA
+            case current if current == REGION_EUROPE:
+                return WEBSOCKET_API_BASE
 
     @staticmethod
     def RCP_url(region: str) -> str:
