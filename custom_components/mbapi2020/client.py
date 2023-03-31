@@ -316,6 +316,19 @@ class Client:  # pylint: disable-too-few-public-methods
                     )
                     status = curr.get("status", "VALID")
                     time_stamp = curr.get("timestamp", 0)
+
+                    # special EQA/B handling
+                    if option == "maxSoc" and value == -1:
+                        chargeprograms = car_detail["attributes"].get("chargePrograms")
+                        if chargeprograms is not None:
+                            time_stamp = chargeprograms.get("timestamp", 0)
+                            charge_programs_value = chargeprograms.get("charge_programs_value")
+                            if charge_programs_value is not None:
+                                charge_program_parameters = charge_programs_value.get("charge_program_parameters")
+                                if charge_program_parameters is not None and len(charge_program_parameters) > 0:
+                                    value = charge_program_parameters[0].get("max_soc")
+                                    status = "VALID"
+
                     curr_status = CarAttribute(
                         value,
                         status,
