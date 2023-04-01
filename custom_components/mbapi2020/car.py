@@ -108,6 +108,7 @@ ELECTRIC_OPTIONS = [
     "maxrange",
     "maxSocLowerLimit",
     "maxSoc",
+    "max_soc",
     "selectedChargeProgram",
     "soc",
 ]

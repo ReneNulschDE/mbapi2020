@@ -310,32 +310,15 @@ class Client:  # pylint: disable-too-few-public-methods
                     return
 
                 curr = car_detail["attributes"].get(option)
-                if curr is not None:
-                    value = curr.get(
-                        "value", curr.get("int_value", curr.get("double_value", curr.get("bool_value", -1)))
-                    )
-                    status = curr.get("status", "VALID")
-                    time_stamp = curr.get("timestamp", 0)
+                if curr is not None or option == "max_soc":
 
-                    # special EQA/B handling
-                    if option == "maxSoc" and value == -1:
-                        chargeprograms = car_detail["attributes"].get("chargePrograms")
-                        if chargeprograms is not None:
-                            time_stamp = chargeprograms.get("timestamp", 0)
-                            charge_programs_value = chargeprograms.get("charge_programs_value")
-                            if charge_programs_value is not None:
-                                charge_program_parameters = charge_programs_value.get("charge_program_parameters")
-                                if charge_program_parameters is not None and len(charge_program_parameters) > 0:
-                                    value = charge_program_parameters[0].get("max_soc")
-                                    status = "VALID"
-
-                    curr_status = CarAttribute(
-                        value,
-                        status,
-                        time_stamp,
-                        distance_unit=curr.get("distance_unit", None),
-                        display_value=curr.get("display_value", None),
-                        unit=curr.get(
+                    if option != "max_soc":
+                        value = curr.get(
+                            "value", curr.get("int_value", curr.get("double_value", curr.get("bool_value", -1)))
+                        )
+                        status = curr.get("status", "VALID")
+                        time_stamp = curr.get("timestamp", 0)
+                        curr_unit = curr.get(
                             "distance_unit",
                             curr.get(
                                 "ratio_unit",
@@ -358,7 +341,38 @@ class Client:  # pylint: disable-too-few-public-methods
                                     ),
                                 ),
                             ),
-                        ),
+                        )
+                        curr_distance_unit = curr.get("distance_unit", None)
+                        curr_display_value = curr.get("display_value", None)
+                    else:
+                        # special EQA/B max_soc handling
+                        chargeprograms = car_detail["attributes"].get("chargePrograms")
+                        if chargeprograms is not None:
+                            time_stamp = chargeprograms.get("timestamp", 0)
+                            charge_programs_value = chargeprograms.get("charge_programs_value")
+                            if charge_programs_value is not None:
+                                charge_program_parameters = charge_programs_value.get("charge_program_parameters")
+                                if charge_program_parameters is not None and len(charge_program_parameters) > 0:
+                                    value = charge_program_parameters[0].get("max_soc")
+                                    status = "VALID"
+                                    curr_unit = "PERCENT"
+                                else:
+                                    # charge_program_parameters does not exists, continue with the next option
+                                    continue
+                            else:
+                                # charge_programs_value does not exists, continue with the next option
+                                continue
+                        else:
+                            # chargePrograms does not exists, continue with the next option
+                            continue
+
+                    curr_status = CarAttribute(
+                        value,
+                        status,
+                        time_stamp,
+                        distance_unit=curr_distance_unit,
+                        display_value=curr_display_value,
+                        unit=curr_unit,
                     )
                     # Set the value only if the timestamp is higher
                     if float(time_stamp) > float(self._get_car_value(class_instance, option, "ts", 0)):
