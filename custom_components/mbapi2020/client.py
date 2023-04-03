@@ -353,7 +353,9 @@ class Client:  # pylint: disable-too-few-public-methods
                             if charge_programs_value is not None:
                                 charge_program_parameters = charge_programs_value.get("charge_program_parameters")
                                 if charge_program_parameters is not None and len(charge_program_parameters) > 0:
-                                    value = charge_program_parameters[0].get("max_soc")
+                                    value = charge_program_parameters[
+                                        int(self._get_car_value(class_instance, "selectedChargeProgram", "value", 0))
+                                    ].get("max_soc")
                                     status = "VALID"
                                     curr_unit = "PERCENT"
                                 else:

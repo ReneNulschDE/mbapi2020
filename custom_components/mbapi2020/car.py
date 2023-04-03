@@ -105,11 +105,11 @@ ELECTRIC_OPTIONS = [
     "endofchargetime",
     "precondActive",
     "precondNow",
+    "selectedChargeProgram",
     "maxrange",
     "maxSocLowerLimit",
     "maxSoc",
     "max_soc",
-    "selectedChargeProgram",
     "soc",
 ]
 
