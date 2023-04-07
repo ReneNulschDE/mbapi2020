@@ -936,9 +936,16 @@ class Client:  # pylint: disable-too-few-public-methods
                 return car
 
     async def set_rlock_mode(self):
-        info = await system_info.async_get_system_info(self._hass)
 
-        if not "WSL" in info.get("os_version"):
+        # In rare cases the ha-core system_info component runs in error when detecting the supervisor
+        # See https://github.com/ReneNulschDE/mbapi2020/issues/126
+        info = None
+        try:
+            info = await system_info.async_get_system_info(self._hass)
+        except Exception as e:
+            LOGGER.debug("WSL detection not possible. Error in HA-Core get_system_info. Force rlock mode.")
+
+        if not info is None and not "WSL" in info.get("os_version"):
             self._disable_rlock = False
             self.__lock = threading.RLock()
             LOGGER.debug("WSL not detected - running in rlock mode")
