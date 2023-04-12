@@ -1,70 +1,70 @@
 {
-    "config": {
-        "abort": {
-            "already_configured": "Component is al geconfigureerd.",
-            "reauth_successful": "Herauthenticatie succesvol! Component herladen is bezig."
-        },
-        "error": {
-            "cannot_connect": "Kan niet verbinden",
-            "invalid_auth": "Ongeldige authenticatie",
-            "unknown": "Onbekend"
-        },
-        "step": {
-            "user": {
-                "description": "Voer uw Mercedes ME inlogaccount in (e-mailadres)",
-                "title": "De Mercedes ME 2020-verbinding opzetten",
-                "data": {
-                    "username": "MB gebruikersnaam - e-mailadres (of mobiele telefoon inclusief landcode bijv. +31)",
-                    "region": "Regio"
-                }
-            },
-            "pin": {
-                "description": "Je hebt per e-mail een PIN-code ontvangen. Voer de PIN-code in (zes cijfers)",
-                "title": "Verbindingsinstelling - PIN-code",
-                "data": {
-                    "password": "PIN-code"
-                }
-            }
-        }
+  "config": {
+    "abort": {
+      "already_configured": "Component is al geconfigureerd.",
+      "reauth_successful": "Herauthenticatie succesvol! Component herladen is bezig."
     },
-    "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "country_code": "Land Code",
-                    "locale": "Taal",
-                    "excluded_cars": "Uitgesloten VINs (komma gescheiden)",
-                    "pin": "PIN-code (aan te maken in de mobiele app) - Voer 0 in om de waarde uit de configuratie te verwijderen",
-                    "cap_check_disabled": "Capaciteitscontrole uitschakelen",
-                    "save_files": "DEBUG ONLY: Schakel het opslaan van serverberichten in de berichtenmap in",
-                    "delete_auth_file": "Verwijder het authenticatie token bestand. Dit vereist een herstart van Home Assistant na het opslaan."
-                },
-                "description": "Configureer je opties. Sommige wijzigingen vereisen een herstart van Home Assistant. Alle andere wijzigingen worden genegeerd. Je moet HA opnieuw opstarten na een PIN-code wijziging.",
-                "title": "Mercedes ME 2020 Opties"
-            }
+    "error": {
+      "cannot_connect": "Kan niet verbinden",
+      "invalid_auth": "Ongeldige authenticatie",
+      "unknown": "Onbekend"
+    },
+    "step": {
+      "pin": {
+        "data": {
+          "password": "PIN-code"
         },
-        "abort": {
-            "already_configured": "Component is al geconfigureerd.",
-            "reauth_successful": "Herauthenticatie succesvol! Component herladen is bezig."
-        }
-    },
-    "system_health": {
-        "info": {
-            "api_endpoint_reachable": "MB API eindpunt bereikbaar",
-            "websocket_connection_state": "MB Websocket verbindingsstatus"
-        }
-    },
-    "issues": {
-        "restart_required": {
-            "title": "Herstart vereist",
-            "fix_flow": {
-                "step": {
-                    "confirm_restart": {
-                        "title": "Herstart vereist",
-                        "description": "Home Assistant moet opnieuw worden opgestart om de authenticatie update te voltooien."
-                    }
-                }
-            }
-        }
+        "description": "Je hebt per e-mail een PIN-code ontvangen. Voer de PIN-code in (zes cijfers)",
+        "title": "Verbindingsinstelling - PIN-code"
+      },
+      "user": {
+        "data": {
+          "region": "Regio",
+          "username": "MB gebruikersnaam - e-mailadres (of mobiele telefoon inclusief landcode bijv. +31)"
+        },
+        "description": "Voer uw Mercedes ME inlogaccount in (e-mailadres)",
+        "title": "De Mercedes ME 2020-verbinding opzetten"
+      }
     }
+  },
+  "issues": {
+    "restart_required": {
+      "fix_flow": {
+        "step": {
+          "confirm_restart": {
+            "description": "Home Assistant moet opnieuw worden opgestart om de authenticatie update te voltooien.",
+            "title": "Herstart vereist"
+          }
+        }
+      },
+      "title": "Herstart vereist"
+    }
+  },
+  "options": {
+    "abort": {
+      "already_configured": "Component is al geconfigureerd.",
+      "reauth_successful": "Herauthenticatie succesvol! Component herladen is bezig."
+    },
+    "step": {
+      "init": {
+        "data": {
+          "cap_check_disabled": "Capaciteitscontrole uitschakelen",
+          "country_code": "Land Code",
+          "delete_auth_file": "Verwijder het authenticatie token bestand. Dit vereist een herstart van Home Assistant na het opslaan.",
+          "excluded_cars": "Uitgesloten VINs (komma gescheiden)",
+          "locale": "Taal",
+          "pin": "PIN-code (aan te maken in de mobiele app) - Voer 0 in om de waarde uit de configuratie te verwijderen",
+          "save_files": "DEBUG ONLY: Schakel het opslaan van serverberichten in de berichtenmap in"
+        },
+        "description": "Configureer je opties. Sommige wijzigingen vereisen een herstart van Home Assistant. Alle andere wijzigingen worden genegeerd. Je moet HA opnieuw opstarten na een PIN-code wijziging.",
+        "title": "Mercedes ME 2020 Opties"
+      }
+    }
+  },
+  "system_health": {
+    "info": {
+      "api_endpoint_reachable": "MB API eindpunt bereikbaar",
+      "websocket_connection_state": "MB Websocket verbindingsstatus"
+    }
+  }
 }
