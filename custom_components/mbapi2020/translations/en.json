@@ -66,5 +66,25 @@
       "api_endpoint_reachable": "MB API endpoint reachable",
       "websocket_connection_state": "MB Websocket connection state"
     }
+  },
+  "services": {
+    "refresh_access_token": {
+      "name": "Refresh access token",
+      "description": "Refresh the API access token"
+    },
+    "auxheat_configure": {
+      "name": "Auxheat configure",
+      "description": "Command for configuring the auxiliary heating. It is possible to define three daytimes and select one active time.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "time_selection": {
+          "name": "Time selection",
+          "description": "The activated auxiliary heating preset time (0=no_selection, 1=time_1, 2=time_2, 3=time_3)"
+        }
+      }
+    }
   }
 }
