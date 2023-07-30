@@ -85,6 +85,206 @@
           "description": "The activated auxiliary heating preset time (0=no_selection, 1=time_1, 2=time_2, 3=time_3)"
         }
       }
+    },
+    "auxheat_start": {
+      "name": "Auxheat start",
+      "description": "Start the auxiliary heating of a car defined by a vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "auxheat_stop": {
+      "name": "Auxheat stop",
+      "description": "Stop the auxiliary heating of a car defined by a vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "battery_max_soc_configure": {
+      "name": "Battery max soc configure",
+      "description": "Configure the maximum value for the state of charge of the HV battery of a car defined by a vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "max_soc": {
+          "name": "Max Soc",
+          "description": "The maximum value for the state of charge of the HV battery (Value needs to be between 50 and 100 and divisible by ten)"
+        }
+      }
+    },
+    "doors_unlock": {
+      "name": "Doors unlock",
+      "description": "Unlock a car defined by a vin. PIN setup required. See options dialog of the integration.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "security pin, required if not stored in the settings."
+        }
+      }
+    },
+    "doors_lock": {
+      "name": "Doors lock",
+      "description": "Lock a car defined by a vin. PIN setup required. See options dialog of the integration.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "engine_start": {
+      "name": "Engine start",
+      "description": "Start the engine of a car defined by a vin. PIN setup required. See options dialog of the integration.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "engine_stop": {
+      "name": "Engine stop",
+      "description": "Stop the engine of a car defined by a vin. PIN setup required. See options dialog of the integration.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "preheat_start": {
+      "name": "Preconditioning start",
+      "description": "Start the preconditioning of a car defined by a vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "type": {
+          "name": "Type",
+          "description": "Method that is used to initiate the start process. 0=Now (Default), 1=Immediate - Use Immediate in case your does not support now."
+        }
+      }
+    },
+    "preheat_start_departure_time": {
+      "name": "Preconditioning start with departure time",
+      "description": "Start the preconditioning of a car defined by a vin and a given departure time.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "time": {
+          "name": "Time",
+          "description": "Departure time in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439."
+        }
+      }
+    },
+    "preheat_stop": {
+      "name": "Preconditioning stop",
+      "description": "Stop the preconditioning of a car defined by a vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "sigpos_start": {
+      "name": "Start signal position",
+      "description": "Start light signaling of a car defined by a vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "sunroof_open": {
+      "name": "Sunroof open",
+      "description": "Open the sunroof of a car defined by a vin. PIN setup required. See options dialog of the integration.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "sunroof_close": {
+      "name": "Sunroof close",
+      "description": "Close the sunroof of a car defined by a vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "windows_open": {
+      "name": "Windows open",
+      "description": "Open the windows of a car defined by a vin. PIN setup required. See options dialog of the integration.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "windows_close": {
+      "name": "Windows close",
+      "description": "Close the windows of a car defined by a vin. PIN setup required. See options dialog of the integration.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "send_route": {
+      "name": "Route send",
+      "description": "Sends a route to the car. (Single location only)",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "title": {
+          "name": "Title",
+          "description": "Title of the route"
+        },
+        "latitude": {
+          "name": "Latitude",
+          "description": "Latitude of the location"
+        },
+        "longitude": {
+          "name": "Longitude",
+          "description": "Longitude of the location"
+        },
+        "city": {
+          "name": "City",
+          "description": "City name of the location"
+        },
+        "postcode": {
+          "name": "Postcode",
+          "description": "Postcode of the location"
+        },
+        "street": {
+          "name": "Street",
+          "description": "Street name of the location"
+        }
+      }
     }
   }
 }
