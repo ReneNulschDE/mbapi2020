@@ -484,6 +484,7 @@ SENSORS = {
             "electricconsumptionstart",
             "electricconsumptionreset",
             "endofchargetime",
+            "endOfChargeTimeWeekday",
             "precondActive",
             "precondNow",
             "maxrange",
