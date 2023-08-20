@@ -103,6 +103,7 @@ ELECTRIC_OPTIONS = [
     "electricconsumptionstart",
     "electricconsumptionreset",
     "endofchargetime",
+    "endOfChargeTimeWeekday",
     "precondActive",
     "precondNow",
     "selectedChargeProgram",
