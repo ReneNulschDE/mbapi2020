@@ -383,7 +383,7 @@ SENSORS = {
         SensorDeviceClass.POWER,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "rcp_features": [
         "RCP Features",
@@ -496,7 +496,7 @@ SENSORS = {
         SensorDeviceClass.DISTANCE,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "electricconsumptionstart": [
         "Electric consumption start",
@@ -615,7 +615,7 @@ SENSORS = {
         SensorDeviceClass.DISTANCE,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "averageSpeedStart": [
         "Average speed start",
@@ -629,7 +629,7 @@ SENSORS = {
         SensorDeviceClass.SPEED,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "averageSpeedReset": [
         "Average speed reset",
@@ -643,7 +643,7 @@ SENSORS = {
         SensorDeviceClass.SPEED,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "distanceReset": [
         "Distance reset",
@@ -657,7 +657,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "distanceStart": [
         "Distance start",
@@ -671,7 +671,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "distanceZEReset": [
         "Distance zero-emission reset",
@@ -685,7 +685,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "ecoscoretotal": [
         "Eco score total",
@@ -699,7 +699,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "ecoscorefreewhl": [
         "Eco score free wheel",
@@ -713,7 +713,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "ecoscorebonusrange": [
         "Eco score bonus range",
@@ -727,7 +727,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "ecoscoreconst": [
         "Eco score constant",
@@ -741,7 +741,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "ecoscoreaccel": [
         "Eco score acceleration",
@@ -755,7 +755,7 @@ SENSORS = {
         None,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "liquidconsumptionstart": [
         "Liquid consumption start",
@@ -797,7 +797,7 @@ SENSORS = {
         SensorDeviceClass.DISTANCE,
         False,
         None,
-        None,
+        SensorStateClass.MEASUREMENT,
     ],
     "CarAlarm": [
         "Car Alarm",
