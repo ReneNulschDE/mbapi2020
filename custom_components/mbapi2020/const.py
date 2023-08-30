@@ -301,7 +301,10 @@ BinarySensors = {
         "tirewarninglamp",
         "value",
         None,
-        {
+        {   "tirepressureRearLeft",
+            "tirepressureRearRight",
+            "tirepressureFrontRight",
+            "tirepressureFrontLeft",
             "tireMarkerFrontRight",
             "tireMarkerFrontLeft",
             "tireMarkerRearLeft",
@@ -867,7 +870,7 @@ SENSORS = {
     ],
     "tirepressureRearLeft": [
         "Tire pressure rear left",
-        "KPA",  # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "tires",
         "tirepressureRearLeft",
         "value",
@@ -881,7 +884,7 @@ SENSORS = {
     ],
     "tirepressureRearRight": [
         "Tire pressure rear right",
-        "KPA",  # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "tires",
         "tirepressureRearRight",
         "value",
@@ -895,7 +898,7 @@ SENSORS = {
     ],
     "tirepressureFrontRight": [
         "Tire pressure front right",
-        "KPA",  # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "tires",
         "tirepressureFrontRight",
         "value",
@@ -909,7 +912,7 @@ SENSORS = {
     ],
     "tirepressureFrontLeft": [
         "Tire pressure front left",
-        "KPA",  # Deprecated: DO NOT USE
+        None,  # Deprecated: DO NOT USE
         "tires",
         "tirepressureFrontLeft",
         "value",
