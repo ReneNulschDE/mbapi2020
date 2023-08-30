@@ -301,7 +301,8 @@ BinarySensors = {
         "tirewarninglamp",
         "value",
         None,
-        {   "tirepressureRearLeft",
+        {   
+            "tirepressureRearLeft",
             "tirepressureRearRight",
             "tirepressureFrontRight",
             "tirepressureFrontLeft",
