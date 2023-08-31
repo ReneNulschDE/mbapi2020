@@ -83,6 +83,18 @@
         "time_selection": {
           "name": "Time selection",
           "description": "The activated auxiliary heating preset time (0=no_selection, 1=time_1, 2=time_2, 3=time_3)"
+        },
+        "time_1": {
+          "name": "time_1",
+          "description": "Daytime in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439."
+        },
+        "time_2": {
+          "name": "time_2",
+          "description": "Daytime in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439."
+        },
+        "time_3": {
+          "name": "time_3",
+          "description": "Daytime in minutes after midnight. E.g. valid value for 8 am would be 480. Value range is 0 to 1439."
         }
       }
     },
