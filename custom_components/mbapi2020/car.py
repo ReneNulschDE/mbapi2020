@@ -27,6 +27,7 @@ ODOMETER_OPTIONS = [
     "liquidRangeSkipIndication",
     "outsideTemperature",
     "rangeliquid",
+    "remoteStartTemperature",
     "serviceintervaldays",
     "serviceintervaldistance",
     "tanklevelpercent",

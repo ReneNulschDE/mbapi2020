@@ -42,6 +42,7 @@ CONF_TIME = "time"
 CONF_DEBUG_FILE_SAVE = "save_files"
 CONF_FT_DISABLE_CAPABILITY_CHECK = "cap_check_disabled"
 CONF_DELETE_AUTH_FILE = "delete_auth_file"
+CONF_ENABLE_CHINA_GCJ_02 = "enable_china_gcj_02"
 
 DATA_CLIENT = "data_client"
 
@@ -330,7 +331,7 @@ BinarySensors = {
         "remoteStartActive",
         "value",
         None,
-        None,
+        {"remoteStartTemperature"},
         "mdi:engine-outline",
         None,
         False,
@@ -610,6 +611,7 @@ SENSORS = {
             "tankReserveLamp",
             "tankLevelAdBlue",
             "vehicleDataConnectionState",
+            "remoteStartTemperature",
         },
         "mdi:car-cruise-control",
         SensorDeviceClass.DISTANCE,
