@@ -49,7 +49,7 @@
       "init": {
         "data": {
           "cap_check_disabled": "Disable capabilities check",
-          "enable_china_gcj-02": "Enable GCJ-02 translation",
+          "enable_china_gcj_02": "Enable GCJ-02 translation",
           "country_code": "Country Code",
           "delete_auth_file": "Delete authentication token file now. require a restart of Home Assistant after save.",
           "excluded_cars": "VINs excluded (comma-sep)",
