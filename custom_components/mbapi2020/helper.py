@@ -1,3 +1,5 @@
+import math
+
 from .const import (
     LOGIN_APP_ID_CN,
     LOGIN_APP_ID_EU,
@@ -77,3 +79,45 @@ class UrlHelper:
                 return LOGIN_BASE_URI_CN
             case _:
                 return LOGIN_BASE_URI
+
+
+class CoordinatesHelper:
+    @staticmethod
+    def _transform_lat(lon, lat):
+        ret = -100.0 + 2.0 * lon + 3.0 * lat + 0.2 * lat * lat + 0.1 * lon * lat + 0.2 * math.sqrt(abs(lon))
+        ret += (20.0 * math.sin(6.0 * lon * math.pi) + 20.0 * math.sin(2.0 * lon * math.pi)) * 2.0 / 3.0
+        ret += (20.0 * math.sin(lat * math.pi) + 40.0 * math.sin(lat / 3.0 * math.pi)) * 2.0 / 3.0
+        ret += (160.0 * math.sin(lat / 12.0 * math.pi) + 320 * math.sin(lat * math.pi / 30.0)) * 2.0 / 3.0
+        return ret
+
+    @staticmethod
+    def _transform_lon(lon, lat):
+        ret = 300.0 + lon + 2.0 * lat + 0.1 * lon * lon + 0.1 * lon * lat + 0.1 * math.sqrt(abs(lon))
+        ret += (20.0 * math.sin(6.0 * lon * math.pi) + 20.0 * math.sin(2.0 * lon * math.pi)) * 2.0 / 3.0
+        ret += (20.0 * math.sin(lon * math.pi) + 40.0 * math.sin(lon / 3.0 * math.pi)) * 2.0 / 3.0
+        ret += (150.0 * math.sin(lon / 12.0 * math.pi) + 300.0 * math.sin(lon / 30.0 * math.pi)) * 2.0 / 3.0
+        return ret
+
+    @staticmethod
+    def wgs84_to_gcj02(lon, lat):
+        """
+        Convert WGS-84 coordinates to GCJ-02 coordinates
+
+        :param lon: WGS-84 longitude
+        :param lat: WGS-84 latitude
+        :return: GCJ-02 longitude and latitude
+        """
+        a = 6378245.0  # Major axis
+        ee = 0.00669342162296594323  # Flattening
+
+        dlat = CoordinatesHelper._transform_lat(lon - 105.0, lat - 35.0)
+        dlon = CoordinatesHelper._transform_lon(lon - 105.0, lat - 35.0)
+        radlat = lat / 180.0 * math.pi
+        magic = math.sin(radlat)
+        magic = 1 - ee * magic * magic
+        sqrtmagic = math.sqrt(magic)
+        dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrtmagic) * math.pi)
+        dlon = (dlon * 180.0) / (a / sqrtmagic * math.cos(radlat) * math.pi)
+        mglat = lat + dlat
+        mglon = lon + dlon
+        return mglon, mglat

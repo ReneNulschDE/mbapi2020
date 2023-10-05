@@ -69,7 +69,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up MercedesME 2020 from a config entry."""
 
     try:
-
         # Find the right way to migrate old configs
         region = config_entry.data.get(CONF_REGION, None)
         if region is None:
@@ -102,7 +101,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         dev_reg = dr.async_get(hass)
 
         for car in masterdata.get("assignedVehicles"):
-
             # Check if the car has a separate VIN key, if not, use the FIN.
             vin = car.get("vin")
             if vin is None:
@@ -375,7 +373,16 @@ class MercedesMeContext:
 class MercedesMeEntity(Entity):
     """Entity class for MercedesMe devices."""
 
-    def __init__(self, hass, data, internal_name, sensor_config, vin, is_poll_sensor: bool = False):
+    def __init__(
+        self,
+        hass,
+        data,
+        internal_name,
+        sensor_config,
+        vin,
+        is_poll_sensor: bool = False,
+        use_chinese_location_data: bool = False,
+    ):
         """Initialize the MercedesMe entity."""
         self._hass = hass
         self._data = data
@@ -383,6 +390,7 @@ class MercedesMeEntity(Entity):
         self._internal_name = internal_name
         self._sensor_config = sensor_config
         self._is_poll_sensor = is_poll_sensor
+        self._use_chinese_location_data = use_chinese_location_data
 
         self._state = None
         self._sensor_name = sensor_config[scf.DISPLAY_NAME.value]
@@ -473,7 +481,6 @@ class MercedesMeEntity(Entity):
 
         if self._extended_attributes is not None:
             for attrib in self._extended_attributes:
-
                 retrievalstatus = self._get_car_value(self._feature_name, attrib, "retrievalstatus", "error")
 
                 if retrievalstatus == "VALID":
