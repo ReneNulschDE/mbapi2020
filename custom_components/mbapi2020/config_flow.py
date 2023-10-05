@@ -17,6 +17,7 @@ from .const import (  # pylint:disable=unused-import
     CONF_COUNTRY_CODE,
     CONF_DEBUG_FILE_SAVE,
     CONF_DELETE_AUTH_FILE,
+    CONF_ENABLE_CHINA_GCJ_02,
     CONF_EXCLUDED_CARS,
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     CONF_LOCALE,
@@ -55,7 +56,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-
             await self.async_set_unique_id(f"{user_input[CONF_USERNAME]}")
 
             if not self.reauth_mode:
@@ -85,7 +85,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-
             pin = user_input[CONF_PASSWORD]
             nonce = self.data["nonce"]
             session = aiohttp_client.async_get_clientsession(self.hass, VERIFY_SSL)
@@ -168,6 +167,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         pin = options.get(CONF_PIN, "")
         cap_check_disabled = options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
         save_debug_files = options.get(CONF_DEBUG_FILE_SAVE, False)
+        enable_china_gcj_02 = options.get(CONF_ENABLE_CHINA_GCJ_02, False)
 
         return self.async_show_form(
             step_id="init",
@@ -180,6 +180,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(CONF_FT_DISABLE_CAPABILITY_CHECK, default=cap_check_disabled): bool,
                     vol.Optional(CONF_DEBUG_FILE_SAVE, default=save_debug_files): bool,
                     vol.Optional(CONF_DELETE_AUTH_FILE, default=False): bool,
+                    vol.Optional(CONF_ENABLE_CHINA_GCJ_02, default=enable_china_gcj_02): bool,
                 }
             ),
         )
