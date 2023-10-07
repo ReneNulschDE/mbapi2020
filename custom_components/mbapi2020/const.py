@@ -857,20 +857,20 @@ SENSORS = {
         None,
         None,
     ],
-    "oilLevel": [
-        "Oil Level",
-        None,  # Deprecated: DO NOT USE
-        "odometer",
-        "oilLevel",
-        "value",
-        None,
-        {},
-        "mdi:oil-level",
-        SensorDeviceClass.POWER_FACTOR,
-        False,
-        None,
-        SensorStateClass.MEASUREMENT,
-    ],
+    # "oilLevel": [
+    #     "Oil Level",
+    #     None,  # Deprecated: DO NOT USE
+    #     "odometer",
+    #     "oilLevel",
+    #     "value",
+    #     None,
+    #     {},
+    #     "mdi:oil-level",
+    #     SensorDeviceClass.POWER_FACTOR,
+    #     False,
+    #     None,
+    #     SensorStateClass.MEASUREMENT,
+    # ],
     "tirepressureRearLeft": [
         "Tire pressure rear left",
         None,  # Deprecated: DO NOT USE

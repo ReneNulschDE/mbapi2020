@@ -182,11 +182,6 @@ Depends on your own car or purchased Mercedes Benz licenses.
   "5"        "start"               "Ignition start"
   ```
 
-* Oil Level in percent
-  ```
-  attributes: 
-  ```
-
 * Aux Heat Status
   ```
   Internal Name: auxheatstatus
