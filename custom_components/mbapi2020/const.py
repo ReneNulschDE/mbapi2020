@@ -876,7 +876,7 @@ SENSORS = {
         None,  # Deprecated: DO NOT USE
         "tires",
         "tirepressureRearLeft",
-        "value",
+        "display_value",
         None,
         {},
         None,
@@ -890,7 +890,7 @@ SENSORS = {
         None,  # Deprecated: DO NOT USE
         "tires",
         "tirepressureRearRight",
-        "value",
+        "display_value",
         None,
         {},
         None,
@@ -904,7 +904,7 @@ SENSORS = {
         None,  # Deprecated: DO NOT USE
         "tires",
         "tirepressureFrontRight",
-        "value",
+        "display_value",
         None,
         {},
         None,
@@ -918,7 +918,7 @@ SENSORS = {
         None,  # Deprecated: DO NOT USE
         "tires",
         "tirepressureFrontLeft",
-        "value",
+        "display_value",
         None,
         {},
         None,
