@@ -56,7 +56,7 @@ class MercedesMEDeviceTracker(MercedesMeEntity, TrackerEntity, RestoreEntity):
         lng = self._get_car_value("location", "positionLong", "value", 0)
 
         if self._use_chinese_location_data:
-            lng, lat = ch.wgs84_to_gcj02(lon=lng, lat=lat)
+            lng, lat = ch.gcj02_to_wgs84(gcj_lon=lng, gcj_lat=lat)
 
         return lat if lat else None
 
@@ -67,7 +67,7 @@ class MercedesMEDeviceTracker(MercedesMeEntity, TrackerEntity, RestoreEntity):
         lng = self._get_car_value("location", "positionLong", "value", 0)
 
         if self._use_chinese_location_data:
-            lng, lat = ch.wgs84_to_gcj02(lon=lng, lat=lat)
+            lng, lat = ch.gcj02_to_wgs84(gcj_lon=lng, gcj_lat=lat)
 
         return lng if lng else None
 

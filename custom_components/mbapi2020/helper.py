@@ -99,6 +99,34 @@ class CoordinatesHelper:
         return ret
 
     @staticmethod
+    def _transform_lat_gcj02(x, y):
+        """
+        Transform latitude.
+        :param x: Longitude
+        :param y: Latitude
+        :return: Transformed latitude
+        """
+        ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * math.sqrt(math.fabs(x))
+        ret += (20.0 * math.sin(6.0 * x * math.pi) + 20.0 * math.sin(2.0 * x * math.pi)) * 2.0 / 3.0
+        ret += (20.0 * math.sin(y * math.pi) + 40.0 * math.sin(y / 3.0 * math.pi)) * 2.0 / 3.0
+        ret += (160.0 * math.sin(y / 12.0 * math.pi) + 320 * math.sin(y * math.pi / 30.0)) * 2.0 / 3.0
+        return ret
+
+    @staticmethod
+    def _transform_lon_gcj02(x, y):
+        """
+        Transform longitude.
+        :param x: Longitude
+        :param y: Latitude
+        :return: Transformed longitude
+        """
+        ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * math.sqrt(math.fabs(x))
+        ret += (20.0 * math.sin(6.0 * x * math.pi) + 20.0 * math.sin(2.0 * x * math.pi)) * 2.0 / 3.0
+        ret += (20.0 * math.sin(x * math.pi) + 40.0 * math.sin(x / 3.0 * math.pi)) * 2.0 / 3.0
+        ret += (150.0 * math.sin(x / 12.0 * math.pi) + 300.0 * math.sin(x / 30.0 * math.pi)) * 2.0 / 3.0
+        return ret
+
+    @staticmethod
     def wgs84_to_gcj02(lon, lat):
         """
         Convert WGS-84 coordinates to GCJ-02 coordinates
@@ -121,3 +149,26 @@ class CoordinatesHelper:
         mglat = lat + dlat
         mglon = lon + dlon
         return mglon, mglat
+
+    @staticmethod
+    def gcj02_to_wgs84(gcj_lon, gcj_lat):
+        """
+        Convert GCJ-02 coordinates to WGS-84 coordinates.
+        :param gcj_lon: GCJ-02 longitude
+        :param gcj_lat: GCJ-02 latitude
+        :return: WGS-84 longitude and latitude
+        """
+        EARTH_RADIUS = 6378137.0
+        EE = 0.00669342162296594323
+
+        dlat = CoordinatesHelper._transform_lat_gcj02(gcj_lon - 105.0, gcj_lat - 35.0)
+        dlon = CoordinatesHelper._transform_lon_gcj02(gcj_lon - 105.0, gcj_lat - 35.0)
+        rad_lat = gcj_lat / 180.0 * math.pi
+        magic = math.sin(rad_lat)
+        magic = 1 - EE * magic * magic
+        sqrt_magic = math.sqrt(magic)
+        dlat = (dlat * 180.0) / ((EARTH_RADIUS * (1 - EE)) / (magic * sqrt_magic) * math.pi)
+        dlon = (dlon * 180.0) / (EARTH_RADIUS / sqrt_magic * math.cos(rad_lat) * math.pi)
+        wgs_lat = gcj_lat - dlat
+        wgs_lon = gcj_lon - dlon
+        return wgs_lon, wgs_lat
