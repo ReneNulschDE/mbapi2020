@@ -157,14 +157,15 @@ class Websocket:
 
     async def _recv(self):
         while not self._connection.closed:
-
             self.set_connection_state(STATE_CONNECTED)
 
             try:
                 data = await self._connection.receive()
             except aiohttp.client_exceptions.ClientError as err:
-                LOGGER.error("remote websocket connection closed: %s", err)
+                LOGGER.warning("remote websocket connection closed: %s", err)
                 break
+            except aiohttp.client_exceptions.ConnectionResetError as cr_err:
+                LOGGER.warning("remote websocket connection closed cr: %s", err)
 
             await self._watchdog.trigger()
 
@@ -231,7 +232,6 @@ class Websocket:
         return header
 
     def _get_region_header(self, header) -> list:
-
         if self._region == REGION_EUROPE:
             header["X-ApplicationName"] = "mycar-store-ece"
             header["ris-application-version"] = RIS_APPLICATION_VERSION
