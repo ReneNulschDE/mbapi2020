@@ -165,8 +165,8 @@ class Websocket:
             except aiohttp.client_exceptions.ClientError as err:
                 LOGGER.warning("remote websocket connection closed: %s", err)
                 break
-            except aiohttp.client_exceptions.ConnectionResetError as cr_err:
-                LOGGER.warning("remote websocket connection closed cr: %s", err)
+            except ConnectionResetError as cr_err:
+                LOGGER.warning("remote websocket connection closed cr: %s", cr_err)
                 break
 
             await self._watchdog.trigger()
