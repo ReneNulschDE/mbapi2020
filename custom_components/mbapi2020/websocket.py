@@ -22,6 +22,7 @@ from .const import (
     RIS_OS_NAME,
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
+    SYSTEM_PROXY,
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_PA,
@@ -123,7 +124,7 @@ class Websocket:
             try:
                 self.is_connecting = True
                 LOGGER.info("Connecting to %s", websocket_url)
-                self._connection = await session.ws_connect(websocket_url, headers=headers)
+                self._connection = await session.ws_connect(websocket_url, headers=headers, proxy=SYSTEM_PROXY)
             except aiohttp.client_exceptions.ClientError as exc:
                 LOGGER.error("Could not connect to %s, retry in 10 seconds...", websocket_url)
                 LOGGER.debug(exc)
