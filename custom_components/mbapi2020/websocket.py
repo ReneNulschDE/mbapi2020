@@ -117,11 +117,10 @@ class Websocket:
         session = async_get_clientsession(self._hass, VERIFY_SSL)
         self.set_connection_state(STATE_CONNECTING)
 
-        headers = await self._websocket_connection_headers()
-
         websocket_url = helper.Websocket_url(self._region)
         while True:
             try:
+                headers = await self._websocket_connection_headers()
                 self.is_connecting = True
                 LOGGER.info("Connecting to %s", websocket_url)
                 self._connection = await session.ws_connect(websocket_url, headers=headers, proxy=SYSTEM_PROXY)
