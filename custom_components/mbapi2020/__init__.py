@@ -39,6 +39,7 @@ from .const import (
     SERVICE_PREHEAT_START_DEPARTURE_TIME,
     SERVICE_PREHEAT_START_SCHEMA,
     SERVICE_PREHEAT_STOP,
+    SERVICE_PREHEAT_STOP_DEPARTURE_TIME,
     SERVICE_REFRESH_TOKEN_URL,
     SERVICE_SEND_ROUTE,
     SERVICE_SEND_ROUTE_SCHEMA,
@@ -246,6 +247,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         async def preheat_stop(call) -> None:
             await mercedes.client.preheat_stop(call.data.get(CONF_VIN))
 
+        async def preheat_stop_departure_time(call) -> None:
+            await mercedes.client.preheat_stop_departure_time(call.data.get(CONF_VIN))
+
         async def windows_open(call) -> None:
             await mercedes.client.windows_open(call.data.get(CONF_VIN))
 
@@ -293,6 +297,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             schema=SERVICE_VIN_TIME_SCHEMA,
         )
         hass.services.async_register(DOMAIN, SERVICE_PREHEAT_STOP, preheat_stop, schema=SERVICE_VIN_SCHEMA)
+        hass.services.async_register(
+            DOMAIN, SERVICE_PREHEAT_STOP_DEPARTURE_TIME, preheat_stop_departure_time, schema=SERVICE_VIN_SCHEMA
+        )
         hass.services.async_register(DOMAIN, SERVICE_SEND_ROUTE, send_route_to_car, schema=SERVICE_SEND_ROUTE_SCHEMA)
         hass.services.async_register(DOMAIN, SERVICE_SIGPOS_START, sigpos_start, schema=SERVICE_VIN_SCHEMA)
         hass.services.async_register(DOMAIN, SERVICE_SUNROOF_OPEN, sunroof_open, schema=SERVICE_VIN_SCHEMA)

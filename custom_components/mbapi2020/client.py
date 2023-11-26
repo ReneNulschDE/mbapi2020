@@ -127,7 +127,6 @@ class Client:  # pylint: disable-too-few-public-methods
                 return
 
             if msg_type == "vepUpdates":  # VEPUpdatesByVIN
-
                 self._process_vep_updates(data)
 
                 sequence_number = data.vepUpdates.sequence_number
@@ -206,13 +205,12 @@ class Client:  # pylint: disable-too-few-public-methods
         try:
             self._on_dataload_complete = callback_dataload_complete
             await self.websocket.async_connect(on_data)
-        except (WebsocketError) as err:
+        except WebsocketError as err:
             LOGGER.error("Error with the websocket connection: %s", err)
             self._ws_reconnect_delay = self._ws_reconnect_delay
             async_call_later(self._hass, self._ws_reconnect_delay, self.websocket.async_connect(on_data))
 
     def _build_car(self, received_car_data, update_mode):
-
         if received_car_data.get("vin") in self.excluded_cars:
             LOGGER.debug("CAR excluded: %s", received_car_data.get("vin"))
             return
@@ -311,7 +309,6 @@ class Client:  # pylint: disable-too-few-public-methods
 
                 curr = car_detail["attributes"].get(option)
                 if curr is not None or option == "max_soc":
-
                     if option != "max_soc":
                         value = curr.get(
                             "value", curr.get("int_value", curr.get("double_value", curr.get("bool_value", -1)))
@@ -413,7 +410,6 @@ class Client:  # pylint: disable-too-few-public-methods
         cars = vep_json["vepUpdates"]["updates"]
 
         for vin in cars:
-
             if vin in self.excluded_cars:
                 continue
 
@@ -455,7 +451,6 @@ class Client:  # pylint: disable-too-few-public-methods
                 )
 
     def _process_assigned_vehicles(self, data):
-
         if not self._dataload_complete_fired:
             LOGGER.debug("Start _process_assigned_vehicles")
 
@@ -464,7 +459,6 @@ class Client:  # pylint: disable-too-few-public-methods
             if not self._disable_rlock:
                 with self.__lock:
                     for vin in data.assigned_vehicles.vins:
-
                         if vin in self.excluded_cars:
                             continue
 
@@ -477,7 +471,6 @@ class Client:  # pylint: disable-too-few-public-methods
                             self.cars.append(current_car)
             else:
                 for vin in data.assigned_vehicles.vins:
-
                     if vin in self.excluded_cars:
                         continue
 
@@ -523,7 +516,6 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if apptwin_json["apptwin_command_status_updates_by_vin"]:
             if apptwin_json["apptwin_command_status_updates_by_vin"]["updates_by_vin"]:
-
                 car = list(apptwin_json["apptwin_command_status_updates_by_vin"]["updates_by_vin"].keys())[0]
                 car = apptwin_json["apptwin_command_status_updates_by_vin"]["updates_by_vin"][car]
                 vin = car.get("vin", None)
@@ -559,7 +551,6 @@ class Client:  # pylint: disable-too-few-public-methods
                                 current_car.publish_updates()
 
     async def doors_unlock(self, vin: str, pin: Optional[str] = ""):
-
         if not self.is_car_feature_available(vin, "DOORS_UNLOCK"):
             LOGGER.warning("Can't unlock car %s. VIN unknown or feature not availabe for this car.", vin)
             return
@@ -854,6 +845,21 @@ class Client:  # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End preheat_stop for vin %s", vin)
 
+    async def preheat_stop_departure_time(self, vin: str):
+        LOGGER.info("Start preheat_stop_departure_time for vin %s", vin)
+
+        if not self.is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
+            LOGGER.warning("Can't stop PreCond for car %s. VIN unknown or feature not availabe for this car.", vin)
+            return
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.zev_preconditioning_stop.type = pb2_commands.ZEVPreconditioningType.departure
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End preheat_stop_departure_time for vin %s", vin)
+
     async def windows_open(self, vin: str):
         LOGGER.info("Start windows_open for vin %s", vin)
 
@@ -894,7 +900,6 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End windows_close for vin %s", vin)
 
     def is_car_feature_available(self, vin: str, feature: str) -> bool:
-
         if self.config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False):
             return True
 
@@ -906,7 +911,6 @@ class Client:  # pylint: disable-too-few-public-methods
         return False
 
     def _write_debug_output(self, data, datatype):
-
         if self.config_entry.options.get(CONF_DEBUG_FILE_SAVE, False):
             LOGGER.debug("Start _write_debug_output")
 
@@ -920,7 +924,6 @@ class Client:  # pylint: disable-too-few-public-methods
             self.write_debug_json_output(MessageToJson(data, preserving_proto_field_name=True), datatype)
 
     def write_debug_json_output(self, data, datatype):
-
         # LOGGER.debug(self.config_entry.options)
         if self.config_entry.options.get(CONF_DEBUG_FILE_SAVE, False):
             path = self._debug_save_path
@@ -936,7 +939,6 @@ class Client:  # pylint: disable-too-few-public-methods
                 return car
 
     async def set_rlock_mode(self):
-
         # In rare cases the ha-core system_info component runs in error when detecting the supervisor
         # See https://github.com/ReneNulschDE/mbapi2020/issues/126
         info = None
@@ -957,10 +959,8 @@ class Client:  # pylint: disable-too-few-public-methods
         return info
 
     async def update_poll_states(self, vin: str = None):
-
         LOGGER.debug("start update_poll_states")
         for car in self.cars:
-
             if car.geofence_events is None:
                 car.geofence_events = GeofenceEvents()
 

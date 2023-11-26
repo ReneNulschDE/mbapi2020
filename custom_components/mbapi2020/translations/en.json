@@ -215,6 +215,16 @@
         }
       }
     },
+    "preheat_stop_departure_time": {
+      "name": "Preconditioning stop mode departuretime",
+      "description": "Stop the configured departure time preconditioning of a car defined by a vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
     "sigpos_start": {
       "name": "Start signal position",
       "description": "Start light signaling of a car defined by a vin.",
