@@ -162,10 +162,10 @@ class Websocket:
             try:
                 data = await self._connection.receive()
             except aiohttp.client_exceptions.ClientError as err:
-                LOGGER.warning("remote websocket connection closed: %s", err)
+                LOGGER.debug("remote websocket connection closed: %s", err)
                 break
             except ConnectionResetError as cr_err:
-                LOGGER.warning("remote websocket connection closed cr: %s", cr_err)
+                LOGGER.debug("remote websocket connection closed cr: %s", cr_err)
                 break
 
             await self._watchdog.trigger()
