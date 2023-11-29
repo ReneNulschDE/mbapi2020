@@ -22,6 +22,7 @@ MERCEDESME_COMPONENTS = [
     Platform.SENSOR,
     Platform.LOCK,
     Platform.BINARY_SENSOR,
+    Platform.BUTTON,
     Platform.DEVICE_TRACKER,
     Platform.SWITCH,
 ]
@@ -354,6 +355,52 @@ BinarySensors = {
         None,
     ],
 }
+
+BUTTONS = {
+    # "btn_unlock": [
+    #     "Unlock Car",
+    #     None,  # Deprecated: DO NOT USE
+    #     None,
+    #     "doors_unlock",
+    #     None,
+    #     "DOORS_UNLOCK",
+    #     None,
+    #     "mdi:car-door-lock",
+    #     None,
+    #     False,
+    #     None,
+    #     None,
+    # ],
+    "btn_preheat_start_now": [
+        "Preclimate start",
+        None,  # Deprecated: DO NOT USE
+        None,
+        "preheat_start",
+        None,
+        "ZEV_PRECONDITIONING_START",
+        None,
+        "mdi:hvac",
+        None,
+        False,
+        None,
+        None,
+    ],
+    "btn_preheat_stop_now": [
+        "Preclimate stop",
+        None,  # Deprecated: DO NOT USE
+        None,
+        "preheat_stop",
+        None,
+        "ZEV_PRECONDITIONING_STOP",
+        None,
+        "mdi:hvac",
+        None,
+        False,
+        None,
+        None,
+    ],
+}
+
 
 DEVICE_TRACKER = {
     "tracker": [
