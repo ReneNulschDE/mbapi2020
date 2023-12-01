@@ -316,22 +316,24 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     return True
 
+    # async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    #    """Unload is not supported."""
+    # LOGGER.debug("Start unload component.")
+    # unload_ok = all(
+    #     await asyncio.gather(
+    #         *[hass.config_entries.async_forward_entry_unload(entry, component) for component in MERCEDESME_COMPONENTS]
+    #     )
+    # )
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Unload a config entry."""
-    LOGGER.debug("Start unload component.")
-    unload_ok = all(
-        await asyncio.gather(
-            *[hass.config_entries.async_forward_entry_unload(entry, component) for component in MERCEDESME_COMPONENTS]
-        )
-    )
-    if unload_ok:
-        if hass.data[DOMAIN]:
-            del hass.data[DOMAIN]
-    else:
-        LOGGER.debug("unload not successful.")
+    # unload_ok = await hass.data[DOMAIN].client.websocket.async_stop()
 
-    return unload_ok
+    # if unload_ok:
+    #     if hass.data[DOMAIN]:
+    #         del hass.data[DOMAIN]
+    # else:
+    #     LOGGER.debug("unload not successful.")
+
+    # return False
 
 
 class MercedesMeContext:
