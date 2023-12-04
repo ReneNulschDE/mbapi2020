@@ -23,7 +23,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     sensors = []
     for car in data.client.cars:
-
         for key, value in sorted(BinarySensors.items()):
             if (
                 value[5] is None
@@ -57,10 +56,14 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
             return False
         if self._state == "1":
             return True
+        if self._state == "2":
+            return False
         if self._state == 0:
             return False
         if self._state == 1:
             return True
+        if self._state == 2:
+            return False
         if self._state == "true":
             return True
         if self._state == "false":
