@@ -55,6 +55,7 @@ from .const import (
 )
 from .const import SensorConfigFields as scf
 from .errors import WebsocketError
+from .helper import LogHelper as loghelper
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 
@@ -106,7 +107,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             vin = car.get("vin")
             if vin is None:
                 vin = car.get("fin")
-                LOGGER.debug("VIN not found in masterdata. Used FIN %s instead.", vin)
+                LOGGER.debug("VIN not found in masterdata. Used FIN %s instead.", loghelper.Mask_VIN(vin))
 
             # Car is excluded, we do not add this
             if vin in config_entry.options.get("excluded_cars", ""):
@@ -117,7 +118,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 mercedes.client.write_debug_json_output(car_capabilities, "cai")
             except aiohttp.ClientError:
                 # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
-                LOGGER.info("Car Capabilities not available for the car with VIN %s.", vin)
+                LOGGER.info("Car Capabilities not available for the car with VIN %s.", loghelper.Mask_VIN(vin))
 
             features = Features()
 
@@ -131,7 +132,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 # We just ignore the capabilities
                 LOGGER.info(
                     "Command Capabilities not available for the car with VIN %s. Make sure you disable the capability check in the option of this component.",
-                    vin,
+                    loghelper.Mask_VIN(vin),
                 )
 
             dev_reg.async_get_or_create(
@@ -146,7 +147,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             rcp_options = RcpOptions()
             rcp_supported = await mercedes.client.api.is_car_rcp_supported(vin)
-            LOGGER.debug("RCP supported for car %s: %s", vin, rcp_supported)
+            LOGGER.debug("RCP supported for car %s: %s", loghelper.Mask_VIN(vin), rcp_supported)
             setattr(rcp_options, "rcp_supported", CarAttribute(rcp_supported, "VALID", 0))
             rcp_supported = False
             if rcp_supported:
@@ -188,7 +189,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             current_car._is_owner = car.get("isOwner")
 
             mercedes.client.cars.append(current_car)
-            LOGGER.debug("Init - car added - %s", current_car.finorvin)
+            LOGGER.debug("Init - car added - %s", loghelper.Mask_VIN(current_car.finorvin))
 
         handle = await mercedes.client.update_poll_states()
 
@@ -534,9 +535,6 @@ class MercedesMeEntity(Entity):
     def update(self):
         """Get the latest data and updates the states."""
         # LOGGER.("Updating %s", self._internal_name)
-
-        # self._car = next(car for car in self._data.client.cars
-        #                 if car.finorvin == self._vin)
 
         self._state = self._get_car_value(self._feature_name, self._object_name, self._attrib_name, "error")
 

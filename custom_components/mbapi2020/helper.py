@@ -23,6 +23,14 @@ from .const import (
 )
 
 
+class LogHelper:
+    @staticmethod
+    def Mask_VIN(vin: str) -> str:
+        if len(vin) > 12:
+            return vin[:5] + "X" * (12 - 5 + 1) + vin[13:]
+        return "X" * len(vin)
+
+
 class UrlHelper:
     @staticmethod
     def Rest_url(region: str) -> str:

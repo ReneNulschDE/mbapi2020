@@ -15,6 +15,7 @@ from .const import (
     SENSORS,
     SENSORS_POLL,
 )
+from .const import SensorConfigFields as scf
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -28,29 +29,34 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     sensor_list = []
     for car in data.client.cars:
-
         for key, value in sorted(SENSORS.items()):
             if (
                 value[5] is None
-                or entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False
+                or entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is True
                 or getattr(car.features, value[5], False) is True
             ):
                 device = MercedesMESensor(
                     hass=hass, data=data, internal_name=key, sensor_config=value, vin=car.finorvin
                 )
-                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]:
+                if (
+                    device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]
+                    or value[scf.DEFAULT_VALUE_MODE.value] == 0
+                ):
                     sensor_list.append(device)
 
         for key, value in sorted(SENSORS_POLL.items()):
             if (
                 value[5] is None
-                or entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is False
+                or entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is True
                 or getattr(car.features, value[5], False) is True
             ):
                 device = MercedesMESensorPoll(
                     hass=hass, data=data, internal_name=key, sensor_config=value, vin=car.finorvin, is_poll_sensor=True
                 )
-                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]:
+                if (
+                    device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]
+                    or value[scf.DEFAULT_VALUE_MODE.value] == 0
+                ):
                     sensor_list.append(device)
 
     async_add_entities(sensor_list, True)

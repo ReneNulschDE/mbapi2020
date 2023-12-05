@@ -10,6 +10,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity
 from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, SWITCHES
+from .helper import LogHelper as loghelper
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -23,7 +24,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     sensor_list = []
     for car in data.client.cars:
-
         for key, value in sorted(SWITCHES.items()):
             if (
                 value[5] is None
@@ -35,7 +35,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 )
                 LOGGER.info(
                     "Created Switch for car %s - feature %s check: %s",
-                    car.finorvin,
+                    loghelper.Mask_VIN(car.finorvin),
                     value[5],
                     getattr(car.features, value[5]),
                 )

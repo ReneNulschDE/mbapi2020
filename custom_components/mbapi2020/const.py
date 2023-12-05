@@ -566,7 +566,7 @@ SENSORS = {
         False,
         None,
         SensorStateClass.MEASUREMENT,
-        None,
+        0,
     ],
     "electricconsumptionreset": [
         "Electric consumption reset",
@@ -581,7 +581,7 @@ SENSORS = {
         False,
         None,
         SensorStateClass.MEASUREMENT,
-        None,
+        0,
     ],
     "soc": [
         "State of Charge",
