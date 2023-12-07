@@ -309,5 +309,28 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "lock": {
+        "state": {
+          "0": "Unlocked",
+          "1": "Locked int",
+          "2": "Locked",
+          "3": "Partly unlocked",
+          "4": "Unknown"
+        },
+        "state_attributes": {
+          "doorStatusOverall": {
+            "state": {
+              "0": "Open",
+              "1": "Closed",
+              "2": "Not existing",
+              "3": "Unknown"
+            }
+          }
+        }
+      }
+    }
   }
 }
