@@ -433,7 +433,7 @@ SENSORS = {
         False,
         None,
         SensorStateClass.MEASUREMENT,
-        0,
+        None,
     ],
     "rcp_features": [
         "RCP Features",
@@ -567,7 +567,7 @@ SENSORS = {
         False,
         None,
         SensorStateClass.MEASUREMENT,
-        0,
+        None,
     ],
     "electricconsumptionreset": [
         "Electric consumption reset",
@@ -582,7 +582,7 @@ SENSORS = {
         False,
         None,
         SensorStateClass.MEASUREMENT,
-        0,
+        None,
     ],
     "soc": [
         "State of Charge",
@@ -844,7 +844,7 @@ SENSORS = {
         False,
         None,
         SensorStateClass.MEASUREMENT,
-        0,
+        None,
     ],
     "liquidconsumptionreset": [
         "Liquid consumption reset",
@@ -859,7 +859,7 @@ SENSORS = {
         False,
         None,
         SensorStateClass.MEASUREMENT,
-        0,
+        None,
     ],
     "rangeliquid": [
         "Range liquid",
