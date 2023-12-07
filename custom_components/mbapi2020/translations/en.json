@@ -321,7 +321,7 @@
           "4": "Unknown"
         },
         "state_attributes": {
-          "doorStatusOverall": {
+          "doorstatusoverall": {
             "state": {
               "0": "Open",
               "1": "Closed",

@@ -466,7 +466,7 @@ class MercedesMeEntity(Entity):
 
     @property
     def translation_key(self) -> str | None:
-        return self._internal_name
+        return self._internal_name.lower()
 
     @property
     def extra_state_attributes(self):
