@@ -541,6 +541,7 @@ SENSORS = {
             "endofChargeTimeWeekday",
             "precondActive",
             "precondNow",
+            "precondDuration",
             "maxrange",
             "selectedChargeProgram",
             "soc",
