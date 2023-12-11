@@ -490,7 +490,7 @@ class MercedesMeEntity(Entity):
                 state[item] = value if item != "timestamp" else datetime.fromtimestamp(int(value))
 
         if self._extended_attributes is not None:
-            for attrib in self._extended_attributes:
+            for attrib in sorted(self._extended_attributes):
                 retrievalstatus = self._get_car_value(self._feature_name, attrib, "retrievalstatus", "error")
 
                 if retrievalstatus == "VALID":
