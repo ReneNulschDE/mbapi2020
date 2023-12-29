@@ -80,6 +80,10 @@ Depends on your own car or purchased Mercedes Benz licenses.
   ```
 
 * remoteStartActive
+  ```
+  attributes: 
+  remoteStartTemperature
+  ```
 
 * engineState
 
@@ -200,6 +204,17 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
   ```
 
+* Departure Time
+  ```
+  Internal Name: departuretime
+
+  Planned departure time to initiate preclimate functions
+
+  attributes:
+  departureTimeWeekday
+
+  ```
+
 ### Diagnostic Sensors 
 [Diagnostic sensors](https://www.home-assistant.io/blog/2021/11/03/release-202111/#entity-categorization) are hidden by default, check the devices page to see the current values
 
@@ -295,3 +310,24 @@ logger:
 ### Useful links
 
 * [Forum post](https://community.home-assistant.io/t/mercedes-me-component/41911/520)
+
+
+### Attributes
+
+* Charging Status
+  
+  ```
+  0=CHARGING
+  1=CHARGING_ENDS
+  2=CHARGE_BREAK
+  3=UNPLUGGED
+  4=FAILURE
+  5=SLOW
+  6=FAST
+  7=DISCHARGING
+  8=NO_CHARGING
+  9=SLOW_CHARGING_AFTER_REACHING_TRIP_TARGET
+  10=CHARGING_AFTER_REACHING_TRIP_TARGET
+  11=FAST_CHARGING_AFTER_REACHING_TRIP_TARGET
+  12=UNKNOWN
+  ```
