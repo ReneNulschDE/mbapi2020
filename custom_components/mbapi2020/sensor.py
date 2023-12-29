@@ -14,6 +14,7 @@ from .const import (
     LOGGER,
     SENSORS,
     SENSORS_POLL,
+    DefaultValueModeType,
 )
 from .const import SensorConfigFields as scf
 
@@ -40,7 +41,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 )
                 if (
                     device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]
-                    or value[scf.DEFAULT_VALUE_MODE.value] == 0
+                    or value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
                 ):
                     sensor_list.append(device)
 
@@ -55,7 +56,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 )
                 if (
                     device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]
-                    or value[scf.DEFAULT_VALUE_MODE.value] == 0
+                    or value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
                 ):
                     sensor_list.append(device)
 

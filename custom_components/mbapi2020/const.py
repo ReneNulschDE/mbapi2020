@@ -1,6 +1,6 @@
 """Constants for the MercedesME 2020 integration."""
 import logging
-from enum import Enum
+from enum import Enum, StrEnum
 
 import voluptuous as vol
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
@@ -184,6 +184,7 @@ ATTR_MB_MANUFACTURER = "Mercedes Benz"
 #                   10 entity_category
 #                   11 Default Value Mode (for now: None, 0)
 # ]
+
 
 BinarySensors = {
     "liquidRangeCritical": [
@@ -433,7 +434,7 @@ SENSORS = {
         False,
         None,
         SensorStateClass.MEASUREMENT,
-        None,
+        "Zero",
     ],
     "rcp_features": [
         "RCP Features",
@@ -1121,3 +1122,10 @@ class SensorConfigFields(Enum):
     ENTITY_CATEGORY = 10
     STATE_CLASS = 11
     DEFAULT_VALUE_MODE = 12
+
+
+class DefaultValueModeType(StrEnum):
+    """Source type for device trackers."""
+
+    NONE = "None"
+    ZERO = "Zero"
