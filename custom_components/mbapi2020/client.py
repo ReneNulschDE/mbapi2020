@@ -294,7 +294,7 @@ class Client:  # pylint: disable-too-few-public-methods
                 if curr is not None or option == "max_soc":
                     if option != "max_soc":
                         value = curr.get(
-                            "value", curr.get("int_value", curr.get("double_value", curr.get("bool_value", -1)))
+                            "value", curr.get("int_value", curr.get("double_value", curr.get("bool_value", 0)))
                         )
                         status = curr.get("status", "VALID")
                         time_stamp = curr.get("timestamp", 0)
@@ -371,7 +371,7 @@ class Client:  # pylint: disable-too-few-public-methods
                         curr_status = CarAttribute(0, 4, 0)
                         setattr(class_instance, option, curr_status)
             else:
-                setattr(class_instance, option, CarAttribute(-1, -1, None))
+                setattr(class_instance, option, CarAttribute(0, -1, None))
 
         return class_instance
 
