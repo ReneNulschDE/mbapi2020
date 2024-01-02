@@ -39,9 +39,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 device = MercedesMESensor(
                     hass=hass, data=data, internal_name=key, sensor_config=value, vin=car.finorvin
                 )
-                if (
-                    device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]
-                    or value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
+                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] or (
+                    value[scf.DEFAULT_VALUE_MODE.value] != None
+                    and value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
                 ):
                     sensor_list.append(device)
 
@@ -54,9 +54,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 device = MercedesMESensorPoll(
                     hass=hass, data=data, internal_name=key, sensor_config=value, vin=car.finorvin, is_poll_sensor=True
                 )
-                if (
-                    device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]
-                    or value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
+                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] or (
+                    value[scf.DEFAULT_VALUE_MODE.value] != None
+                    and value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
                 ):
                     sensor_list.append(device)
 
