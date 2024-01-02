@@ -418,6 +418,7 @@ class MercedesMeEntity(Entity):
 
         self._attr_device_class = self._sensor_config[scf.DEVICE_CLASS.value]
         self._attr_device_info = {"identifiers": {(DOMAIN, self._vin)}}
+        self._attr_entity_category = self._sensor_config[scf.ENTITY_CATEGORY.value]
         self._attr_icon = self._sensor_config[scf.ICON.value]
         self._attr_should_poll = self._is_poll_sensor
         self._attr_state_class = self._sensor_config[scf.STATE_CLASS.value]
@@ -429,16 +430,6 @@ class MercedesMeEntity(Entity):
     def name(self):
         """Return the name of the sensor."""
         return self._name
-
-    @property
-    def entity_category(self):
-        """Return the entity_category of the sensor."""
-        if not self._sensor_config[scf.ENTITY_CATEGORY.value] is None:
-            if self._sensor_config[scf.ENTITY_CATEGORY.value] == "diagnostic":
-                return EntityCategory.DIAGNOSTIC
-            if self._sensor_config[scf.ENTITY_CATEGORY.value] == "config":
-                return EntityCategory.CONFIG
-        return None
 
     def device_retrieval_status(self):
         if self._sensor_name == "Car":

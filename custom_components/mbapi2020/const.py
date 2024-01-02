@@ -6,6 +6,7 @@ import voluptuous as vol
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import (
     PERCENTAGE,
+    EntityCategory,
     Platform,
     UnitOfEnergy,
     UnitOfLength,
@@ -16,7 +17,6 @@ from homeassistant.const import (
     UnitOfVolume,
 )
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.entity import EntityCategory
 
 MERCEDESME_COMPONENTS = [
     Platform.SENSOR,
