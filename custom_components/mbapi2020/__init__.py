@@ -416,23 +416,19 @@ class MercedesMeEntity(Entity):
         self._licenseplate = self._car.licenseplate
         self._name = f"{self._licenseplate} {self._sensor_name}"
 
-        #        conf = hass.data[DOMAIN].config
-        #        if conf.get(CONF_CARS) is not None:
-        #            for car_conf in conf.get(CONF_CARS):
-        #                if car_conf.get(CONF_CARS_VIN) == vin:
-        #                    custom_car_name = car_conf.get(CONF_NAME)
-        #                    if custom_car_name != "_notset_":
-        #                        self._name = f"{custom_car_name} {sensor_name}".strip()
+        self._attr_device_class = self._sensor_config[scf.DEVICE_CLASS.value]
+        self._attr_device_info = {"identifiers": {(DOMAIN, self._vin)}}
+        self._attr_icon = self._sensor_config[scf.ICON.value]
+        self._attr_should_poll = self._is_poll_sensor
+        self._attr_state_class = self._sensor_config[scf.STATE_CLASS.value]
+        self._attr_suggested_unit_of_measurement = self.unit_of_measurement
+        self._attr_translation_key = self._internal_name.lower()
+        self._attr_unique_id = self._unique_id
 
     @property
     def name(self):
         """Return the name of the sensor."""
         return self._name
-
-    @property
-    def unique_id(self) -> str:
-        """Return the name of the sensor."""
-        return self._unique_id
 
     @property
     def entity_category(self):
@@ -449,24 +445,6 @@ class MercedesMeEntity(Entity):
             return "VALID"
 
         return self._get_car_value(self._feature_name, self._object_name, "retrievalstatus", "error")
-
-    @property
-    def device_info(self):
-        """Return the device info."""
-
-        return {"identifiers": {(DOMAIN, self._vin)}}
-
-    @property
-    def device_class(self):
-        return self._sensor_config[scf.DEVICE_CLASS.value]
-
-    @property
-    def state_class(self):
-        return self._sensor_config[scf.STATE_CLASS.value]
-
-    @property
-    def translation_key(self) -> str | None:
-        return self._internal_name.lower()
 
     @property
     def extra_state_attributes(self):
@@ -503,10 +481,6 @@ class MercedesMeEntity(Entity):
         return state
 
     @property
-    def suggested_unit_of_measurement(self):
-        return self.unit_of_measurement
-
-    @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
 
@@ -522,15 +496,6 @@ class MercedesMeEntity(Entity):
             return reported_unit
 
         return self._unit
-
-    @property
-    def icon(self):
-        """Return the icon."""
-        return self._sensor_config[scf.ICON.value]
-
-    @property
-    def should_poll(self):
-        return self._is_poll_sensor
 
     def update(self):
         """Get the latest data and updates the states."""
