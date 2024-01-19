@@ -12,6 +12,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb2
 
 from .const import (
+    DISABLE_SSL_CERT_CHECK,
     DOMAIN,
     REGION_APAC,
     REGION_EUROPE,
@@ -23,7 +24,6 @@ from .const import (
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
     SYSTEM_PROXY,
-    VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_PA,
 )
@@ -114,7 +114,7 @@ class Websocket:
 
         await self._watchdog.trigger()
 
-        session = async_get_clientsession(self._hass, VERIFY_SSL)
+        session = async_get_clientsession(self._hass, not DISABLE_SSL_CERT_CHECK)
         self.set_connection_state(STATE_CONNECTING)
 
         websocket_url = helper.Websocket_url(self._region)
