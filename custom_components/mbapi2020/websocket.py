@@ -6,13 +6,13 @@ from typing import Awaitable, Callable, Optional
 
 import aiohttp
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb2
 
 from .const import (
-    DISABLE_SSL_CERT_CHECK,
     DOMAIN,
     REGION_APAC,
     REGION_EUROPE,
@@ -24,6 +24,7 @@ from .const import (
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
     SYSTEM_PROXY,
+    VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_PA,
 )
@@ -85,8 +86,8 @@ class Websocket:
     def __init__(self, hass, oauth, region) -> None:
         """Initialize."""
         self.oauth: Oauth = oauth
-        self._hass = hass
-        self._is_stopping = False
+        self._hass: HomeAssistant = hass
+        self._is_stopping: bool = False
         self._on_data_received: Callable[..., Awaitable] = None
         self._connection = None
         self._region = region
@@ -114,7 +115,7 @@ class Websocket:
 
         await self._watchdog.trigger()
 
-        session = async_get_clientsession(self._hass, not DISABLE_SSL_CERT_CHECK)
+        session = async_get_clientsession(self._hass, VERIFY_SSL)
         self.set_connection_state(STATE_CONNECTING)
 
         websocket_url = helper.Websocket_url(self._region)

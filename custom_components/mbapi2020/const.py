@@ -70,7 +70,7 @@ X_APPLICATIONNAME_US = "mycar-store-us"
 X_APPLICATIONNAME_AP = "mycar-store-ap"
 
 USE_PROXY = False
-DISABLE_SSL_CERT_CHECK = False if USE_PROXY else None
+VERIFY_SSL = True
 SYSTEM_PROXY = None
 PROXIES = {}
 # SYSTEM_PROXY = "http://192.168.178.61:8080"

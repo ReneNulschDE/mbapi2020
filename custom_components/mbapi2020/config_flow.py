@@ -5,8 +5,9 @@ import uuid
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import aiohttp_client
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 
 from .client import Client
@@ -26,7 +27,7 @@ from .const import (
     DEFAULT_TOKEN_PATH,
     DOMAIN,
     LOGGER,
-    DISABLE_SSL_CERT_CHECK,
+    VERIFY_SSL,
 )
 from .errors import MbapiError
 
@@ -61,12 +62,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not self.reauth_mode:
                 self._abort_if_unique_id_configured()
 
-            session = aiohttp_client.async_get_clientsession(self.hass, not )
+            session = async_get_clientsession(self.hass, VERIFY_SSL)
             nonce = str(uuid.uuid4())
             user_input["nonce"] = nonce
 
             client = Client(
-                session=session, hass=self.hass, region=user_input[CONF_REGION]
+                hass=self.hass, session=session, region=user_input[CONF_REGION]
             )
             try:
                 await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
@@ -91,11 +92,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             pin = user_input[CONF_PASSWORD]
             nonce = self.data["nonce"]
-            session = aiohttp_client.async_get_clientsession(self.hass, not DISABLE_SSL_CERT_CHECK)
+            session = async_get_clientsession(self.hass, VERIFY_SSL)
 
-            client = Client(
-                session=session, hass=self.hass, region=self.data[CONF_REGION]
-            )
+            client = Client(hass=self.hass, session=session, region=self.data[CONF_REGION])
             try:
                 result = await client.oauth.request_access_token(
                     self.data[CONF_USERNAME], pin, nonce

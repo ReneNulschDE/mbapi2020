@@ -91,13 +91,14 @@ class Client:  # pylint: disable-too-few-public-methods
                 self._locale = self.config_entry.options.get(CONF_LOCALE, DEFAULT_LOCALE)
 
         self.oauth: Oauth = Oauth(
+            self._hass,
             session=session,
             locale=self._locale,
             country_code=self._country_code,
             cache_path=self._hass.config.path(DEFAULT_TOKEN_PATH),
             region=self._region,
         )
-        self.api: API = API(session=session, oauth=self.oauth, region=self._region)
+        self.api: API = API(self._hass, session=session, oauth=self.oauth, region=self._region)
         self.websocket: Websocket = Websocket(self._hass, self.oauth, region=self._region)
         self.cars = []
 

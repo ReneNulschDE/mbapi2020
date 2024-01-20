@@ -7,14 +7,16 @@ from typing import Optional
 
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientError
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
-    DISABLE_SSL_CERT_CHECK,
     REGION_CHINA,
     RIS_APPLICATION_VERSION,
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
     SYSTEM_PROXY,
+    VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_CN,
     X_APPLICATIONNAME,
@@ -31,11 +33,12 @@ DEFAULT_TIMEOUT: int = 10
 class API:
     """Define the API object."""
 
-    def __init__(self, oauth: Oauth, session: Optional[ClientSession] = None, region: str = None) -> None:
+    def __init__(self, hass: HomeAssistant, oauth: Oauth, session: Optional[ClientSession] = None, region: str = None) -> None:
         """Initialize."""
         self._session: ClientSession = session
         self._oauth: Oauth = oauth
         self._region = region
+        self.hass = hass
 
     async def _request(
         self, method: str, endpoint: str, rcp_headers: bool = False, ignore_errors: bool = False, **kwargs
@@ -45,7 +48,6 @@ class API:
         url = f"{helper.Rest_url(self._region)}{endpoint}"
         kwargs.setdefault("headers", {})
         kwargs.setdefault("proxy", SYSTEM_PROXY)
-        kwargs.setdefault("ssl", DISABLE_SSL_CERT_CHECK)
 
         token = await self._oauth.async_get_cached_token()
 
@@ -70,21 +72,16 @@ class API:
                 "Accept-Language": "de-DE;q=1.0, en-DE;q=0.9",
             }
 
-        use_running_session = self._session and not self._session.closed
-
-        if use_running_session:
-            session = self._session
-        else:
-            session = ClientSession(timeout=ClientTimeout(total=DEFAULT_TIMEOUT))
+        if not self._session or self._session.closed:
+            self._session = async_get_clientsession(self.hass, VERIFY_SSL)
 
         try:
-            # async with session.request(method, url, proxy=proxy, ssl=False, **kwargs) as resp:
             if "url" in kwargs:
-                async with session.request(method, **kwargs) as resp:
+                async with self._session.request(method, **kwargs) as resp:
                     # resp.raise_for_status()
                     return await resp.json(content_type=None)
             else:
-                async with session.request(method, url, **kwargs) as resp:
+                async with self._session.request(method, url, **kwargs) as resp:
                     resp.raise_for_status()
                     return await resp.json(content_type=None)
 
@@ -96,9 +93,6 @@ class API:
                 return None
         except Exception:
             LOGGER.debug(traceback.format_exc())
-        finally:
-            if not use_running_session:
-                await session.close()
 
     async def get_user_info(self) -> list:
         """Get all devices associated with an API key."""
@@ -162,7 +156,6 @@ class API:
 
         kwargs.setdefault("headers", headers)
         kwargs.setdefault("proxy", SYSTEM_PROXY)
-        kwargs.setdefault("ssl", DISABLE_SSL_CERT_CHECK)
 
         url = f"{helper.PSAG_url(self._region)}/api/app/v2/vehicles/{vin}/profileInformation"
 
@@ -175,7 +168,6 @@ class API:
 
         try:
             async with session.request("get", url, **kwargs) as resp:
-                # async with session.request("get", url, headers=headers) as resp:
                 resp_status = resp.status
                 await resp.text()
                 return bool(resp_status == 200)

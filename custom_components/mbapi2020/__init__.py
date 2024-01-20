@@ -1,16 +1,18 @@
 """The MercedesME 2020 integration."""
-import asyncio
-import time
+from __future__ import annotations
+
 from datetime import datetime
+import time
 
 import aiohttp
-import homeassistant.helpers.device_registry as dr
 import voluptuous as vol
+
 from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client
-from homeassistant.helpers.entity import Entity, EntityCategory
+import homeassistant.helpers.device_registry as dr
+from homeassistant.helpers.entity import Entity
 from homeassistant.util import slugify
 
 from .car import Car, CarAttribute, Features, RcpOptions
@@ -52,8 +54,8 @@ from .const import (
     SERVICE_WINDOWS_CLOSE,
     SERVICE_WINDOWS_OPEN,
     UNITS,
+    SensorConfigFields as scf,
 )
-from .const import SensorConfigFields as scf
 from .errors import WebsocketError
 from .helper import LogHelper as loghelper
 

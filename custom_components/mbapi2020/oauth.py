@@ -1,16 +1,20 @@
 """Define an object to interact with the REST API."""
+from __future__ import annotations
+
 import json
 import logging
 import time
+from typing import Optional
 import urllib.parse
 import uuid
-from typing import Optional
 
-from aiohttp import ClientSession, ClientTimeout
+from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientError
 
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
 from .const import (
-    DISABLE_SSL_CERT_CHECK,
     REGION_APAC,
     REGION_CHINA,
     REGION_EUROPE,
@@ -23,6 +27,7 @@ from .const import (
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
     SYSTEM_PROXY,
+    VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_CN,
     WEBSOCKET_USER_AGENT_PA,
@@ -43,7 +48,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
     def __init__(
         self,
-        *,
+        hass: HomeAssistant,
         session: Optional[ClientSession] = None,
         locale: Optional[str] = "EN",
         country_code: Optional[str] = "en-US",
@@ -56,6 +61,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         self._session: ClientSession = session
         self._region: str = region
         self.cache_path = cache_path
+        self.hass = hass
 
     async def request_pin(self, email: str, nonce: str):
         _LOGGER.info("Start request PIN %s", email)
@@ -206,17 +212,12 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
         kwargs.setdefault("headers", {})
         kwargs.setdefault("proxy", SYSTEM_PROXY)
-        kwargs.setdefault("ssl", DISABLE_SSL_CERT_CHECK)
 
-        use_running_session = self._session and not self._session.closed
-
-        if use_running_session:
-            session = self._session
-        else:
-            session = ClientSession(timeout=ClientTimeout(total=DEFAULT_TIMEOUT))
+        if not self._session or self._session.closed:
+            self._session = async_get_clientsession(self.hass, VERIFY_SSL)
 
         try:
-            async with session.request(method, url, data=data, **kwargs) as resp:
+            async with self._session.request(method, url, data=data, **kwargs) as resp:
                 # _LOGGER.warning("ClientError requesting data from %s: %s", url, resp.json)
                 resp.raise_for_status()
                 return await resp.json(content_type=None)
@@ -225,6 +226,3 @@ class Oauth:  # pylint: disable-too-few-public-methods
             raise err
         except Exception as exc:
             _LOGGER.error("Unexpected Error requesting data from %s: %s", url, exc)
-        finally:
-            if not use_running_session:
-                await session.close()
