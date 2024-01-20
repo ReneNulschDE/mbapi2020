@@ -1,0 +1,34 @@
+name: Release Workflow
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+      - name: Get integration information
+        id: information
+        run: |
+          name=$(find custom_components/ -type d -maxdepth 1 | tail -n 1 | cut -d "/" -f2)
+          echo "name=$name" >> $GITHUB_OUTPUT
+      - name: Adjust version number
+        shell: bash
+        run: |
+          yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
+            "${{ github.workspace }}/custom_components/${{ steps.information.outputs.name }}/manifest.json"
+      - name: Create zip file for the integration
+        shell: bash
+        run: |
+          cd "${{ github.workspace }}/custom_components/${{ steps.information.outputs.name }}"
+          zip ${{ steps.information.outputs.name }}.zip -r ./
+      - name: Upload the zipfile as a release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ github.workspace }}/custom_components/${{ steps.information.outputs.name }}/${{ steps.information.outputs.name }}.zip
+          tag_name: ${{ github.event.release.tag_name }}
