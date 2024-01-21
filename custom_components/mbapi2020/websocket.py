@@ -1,16 +1,18 @@
 """Define an object to interact with the Websocket API."""
+from __future__ import annotations
+
 import asyncio
+from collections.abc import Awaitable, Callable
 import logging
+from typing import Optional
 import uuid
-from typing import Awaitable, Callable, Optional
 
 import aiohttp
+
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-
-import custom_components.mbapi2020.proto.vehicle_events_pb2 as vehicle_events_pb2
 
 from .const import (
     DOMAIN,
@@ -30,6 +32,7 @@ from .const import (
 )
 from .helper import UrlHelper as helper
 from .oauth import Oauth
+from .proto import vehicle_events_pb2
 
 DEFAULT_WATCHDOG_TIMEOUT = 300
 

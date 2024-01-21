@@ -55,6 +55,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         cache_path: Optional[str] = None,
         region: str = None,
     ) -> None:
+        """Initialize the OAuth instance."""
         self.token = None
         self._locale = locale
         self._country_code = country_code
@@ -64,6 +65,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         self.hass = hass
 
     async def request_pin(self, email: str, nonce: str):
+        """Initiate a PIN request."""
         _LOGGER.info("Start request PIN %s", email)
         url = f"{helper.Rest_url(self._region)}/v1/login"
         data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{self._country_code}", "nonce" : "{nonce}"}}'
@@ -71,6 +73,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         return await self._async_request("post", url, data=data, headers=headers)
 
     async def async_refresh_access_token(self, refresh_token: str):
+        """Refresh the access token."""
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
 
         url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
@@ -93,7 +96,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         return token_info
 
     async def request_access_token(self, email: str, pin: str, nonce: str):
-
+        """Request the access token using the Pin."""
         url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
         encoded_email = urllib.parse.quote_plus(email, safe="@")
 
@@ -119,7 +122,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         return None
 
     async def async_get_cached_token(self):
-        """Gets a cached auth token"""
+        """Get a cached auth token."""
         _LOGGER.debug("Start async_get_cached_token()")
         token_info = None
         if self.cache_path:
@@ -136,13 +139,15 @@ class Oauth:  # pylint: disable-too-few-public-methods
                         return None
                     token_info = await self.async_refresh_access_token(token_info["refresh_token"])
 
-            except IOError:
+            except OSError:
                 pass
+
         self.token = token_info
         return token_info
 
     @classmethod
-    def is_token_expired(cls, token_info):
+    def is_token_expired(cls, token_info) -> bool:
+        """Check if the token is expired."""
         if token_info is not None:
             now = int(time.time())
             return token_info["expires_at"] - now < 60
@@ -156,20 +161,16 @@ class Oauth:  # pylint: disable-too-few-public-methods
                 with open(self.cache_path, "w") as token_file:
                     token_file.write(json.dumps(token_info))
                     token_file.close()
-            except IOError:
+            except OSError:
                 _LOGGER.error("Couldn't write token cache to %s", self.cache_path)
 
     @classmethod
     def _add_custom_values_to_token_info(cls, token_info):
-        """
-        Store some values that aren't directly provided by a Web API
-        response.
-        """
+        """Store some values that aren't directly provided by a Web API response."""
         token_info["expires_at"] = int(time.time()) + token_info["expires_in"]
         return token_info
 
     def _get_header(self) -> list:
-
         header = {
             "Ris-Os-Name": RIS_OS_NAME,
             "Ris-Os-Version": RIS_OS_VERSION,
@@ -186,7 +187,6 @@ class Oauth:  # pylint: disable-too-few-public-methods
         return header
 
     def _get_region_header(self, header) -> list:
-
         if self._region == REGION_EUROPE:
             header["X-Applicationname"] = X_APPLICATIONNAME_ECE
             header["Ris-Application-Version"] = RIS_APPLICATION_VERSION

@@ -1,6 +1,7 @@
 """The MercedesME 2020 integration."""
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 import time
 
@@ -120,7 +121,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 mercedes.client.write_debug_json_output(car_capabilities, "cai")
             except aiohttp.ClientError:
                 # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
-                LOGGER.info("Car Capabilities not available for the car with VIN %s.", loghelper.Mask_VIN(vin))
+                LOGGER.info(
+                    "Car Capabilities not available for the car with VIN %s.",
+                    loghelper.Mask_VIN(vin),
+                )
 
             features = Features()
 
@@ -301,7 +305,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         )
         hass.services.async_register(DOMAIN, SERVICE_PREHEAT_STOP, preheat_stop, schema=SERVICE_VIN_SCHEMA)
         hass.services.async_register(
-            DOMAIN, SERVICE_PREHEAT_STOP_DEPARTURE_TIME, preheat_stop_departure_time, schema=SERVICE_VIN_SCHEMA
+            DOMAIN,
+            SERVICE_PREHEAT_STOP_DEPARTURE_TIME,
+            preheat_stop_departure_time,
+            schema=SERVICE_VIN_SCHEMA,
         )
         hass.services.async_register(DOMAIN, SERVICE_SEND_ROUTE, send_route_to_car, schema=SERVICE_SEND_ROUTE_SCHEMA)
         hass.services.async_register(DOMAIN, SERVICE_SIGPOS_START, sigpos_start, schema=SERVICE_VIN_SCHEMA)
@@ -317,26 +324,54 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         LOGGER.error("Config entry failed: %s", err)
         raise ConfigEntryNotReady from err
 
+    config_entry.add_update_listener(config_entry_update_listener)
+
     return True
 
-    # async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
-    #    """Unload is not supported."""
-    # LOGGER.debug("Start unload component.")
-    # unload_ok = all(
-    #     await asyncio.gather(
-    #         *[hass.config_entries.async_forward_entry_unload(entry, component) for component in MERCEDESME_COMPONENTS]
-    #     )
-    # )
 
-    # unload_ok = await hass.data[DOMAIN].client.websocket.async_stop()
+async def config_entry_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Update listener, called when the config entry options are changed."""
+    LOGGER.debug("Start config_entry_update async_reload")
+    await hass.config_entries.async_reload(entry.entry_id)
 
-    # if unload_ok:
-    #     if hass.data[DOMAIN]:
-    #         del hass.data[DOMAIN]
-    # else:
-    #     LOGGER.debug("unload not successful.")
 
-    # return False
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Unload mbapi2020 Home config entry."""
+    LOGGER.debug("Start unload component.")
+
+    LOGGER.debug("Start unload component. Services")
+    hass.services.async_remove(DOMAIN, SERVICE_REFRESH_TOKEN_URL)
+    hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_CONFIGURE)
+    hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_START)
+    hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_STOP)
+    hass.services.async_remove(DOMAIN, SERVICE_BATTERY_MAX_SOC_CONFIGURE)
+    hass.services.async_remove(DOMAIN, SERVICE_DOORS_LOCK_URL)
+    hass.services.async_remove(DOMAIN, SERVICE_DOORS_UNLOCK_URL)
+    hass.services.async_remove(DOMAIN, SERVICE_ENGINE_START)
+    hass.services.async_remove(DOMAIN, SERVICE_ENGINE_STOP)
+    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START)
+    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START_DEPARTURE_TIME)
+    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_STOP)
+    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_STOP_DEPARTURE_TIME)
+    hass.services.async_remove(DOMAIN, SERVICE_SEND_ROUTE)
+    hass.services.async_remove(DOMAIN, SERVICE_SIGPOS_START)
+    hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_OPEN)
+    hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_CLOSE)
+    hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_OPEN)
+    hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_CLOSE)
+
+    await hass.data[DOMAIN].client.websocket.async_stop()
+
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, MERCEDESME_COMPONENTS)
+    LOGGER.debug("Start unload component. components - %s", unload_ok)
+
+    if unload_ok:
+        if hass.data[DOMAIN]:
+            del hass.data[DOMAIN]
+    else:
+        LOGGER.debug("unload not successful.")
+
+    return unload_ok
 
 
 class MercedesMeContext:

@@ -1,14 +1,15 @@
 """Config flow for mbapi2020 integration."""
+from __future__ import annotations
+
 import os
 import uuid
 
 import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import aiohttp_client
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 
 from .client import Client
 from .const import (
@@ -66,9 +67,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             nonce = str(uuid.uuid4())
             user_input["nonce"] = nonce
 
-            client = Client(
-                hass=self.hass, session=session, region=user_input[CONF_REGION]
-            )
+            client = Client(hass=self.hass, session=session, region=user_input[CONF_REGION])
             try:
                 await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
             except MbapiError as error:
@@ -80,9 +79,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             LOGGER.error("Request PIN error: %s", errors)
 
-        return self.async_show_form(
-            step_id="user", data_schema=SCHEMA_STEP_USER, errors="Unknown error"
-        )  # errors
+        return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors="Unknown error")  # errors
 
     async def async_step_pin(self, user_input=None):
         """Handle the step where the user inputs his/her station."""
@@ -96,9 +93,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             client = Client(hass=self.hass, session=session, region=self.data[CONF_REGION])
             try:
-                result = await client.oauth.request_access_token(
-                    self.data[CONF_USERNAME], pin, nonce
-                )
+                result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin, nonce)
             except MbapiError as error:
                 LOGGER.error("Request token error: %s", errors)
                 errors = error
@@ -108,18 +103,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.data["token"] = result
 
                 if self.reauth_mode:
-                    self.hass.async_create_task(
-                        self.hass.config_entries.async_reload(
-                            self._existing_entry.entry_id
-                        )
-                    )
+                    self.hass.async_create_task(self.hass.config_entries.async_reload(self._existing_entry.entry_id))
                     return self.async_abort(reason="reauth_successful")
 
                 return self.async_create_entry(title=DOMAIN, data=self.data)
 
-        return self.async_show_form(
-            step_id="pin", data_schema=SCHEMA_STEP_PIN, errors=errors
-        )
+        return self.async_show_form(step_id="pin", data_schema=SCHEMA_STEP_PIN, errors=errors)
 
     async def async_step_reauth(self, user_input=None):
         """Get new tokens for a config entry that can't authenticate."""
@@ -127,9 +116,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.reauth_mode = True
         self._existing_entry = user_input
 
-        return self.async_show_form(
-            step_id="user", data_schema=SCHEMA_STEP_USER, errors="Unknown error"
-        )  # errors
+        return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER)
 
     @staticmethod
     @callback
@@ -156,20 +143,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 if os.path.isfile(auth_file):
                     os.remove(auth_file)
 
-                    LOGGER.debug("%s Creating restart_required issue", DOMAIN)
-                    async_create_issue(
-                        hass=self.hass,
-                        domain=DOMAIN,
-                        issue_id="restart_required_auth_deleted",
-                        is_fixable=True,
-                        issue_domain=DOMAIN,
-                        severity=IssueSeverity.WARNING,
-                        translation_key="restart_required",
-                        translation_placeholders={
-                            "name": DOMAIN,
-                        },
-                    )
-
             if user_input[CONF_PIN] == "0":
                 user_input[CONF_PIN] = ""
             self.options.update(user_input)
@@ -192,14 +165,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(CONF_LOCALE, default=locale): str,
                     vol.Optional(CONF_EXCLUDED_CARS, default=excluded_cars): str,
                     vol.Optional(CONF_PIN, default=pin): str,
-                    vol.Optional(
-                        CONF_FT_DISABLE_CAPABILITY_CHECK, default=cap_check_disabled
-                    ): bool,
+                    vol.Optional(CONF_FT_DISABLE_CAPABILITY_CHECK, default=cap_check_disabled): bool,
                     vol.Optional(CONF_DEBUG_FILE_SAVE, default=save_debug_files): bool,
                     vol.Optional(CONF_DELETE_AUTH_FILE, default=False): bool,
-                    vol.Optional(
-                        CONF_ENABLE_CHINA_GCJ_02, default=enable_china_gcj_02
-                    ): bool,
+                    vol.Optional(CONF_ENABLE_CHINA_GCJ_02, default=enable_china_gcj_02): bool,
                 }
             ),
         )

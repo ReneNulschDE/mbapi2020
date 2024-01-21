@@ -1,12 +1,15 @@
 """Define an object to interact with the REST API."""
+from __future__ import annotations
+
 import json
 import logging
 import traceback
+from typing import Any
 import uuid
-from typing import Optional
 
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientError
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -33,7 +36,13 @@ DEFAULT_TIMEOUT: int = 10
 class API:
     """Define the API object."""
 
-    def __init__(self, hass: HomeAssistant, oauth: Oauth, session: Optional[ClientSession] = None, region: str = None) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        oauth: Oauth,
+        session: ClientSession,
+        region: str,
+    ) -> None:
         """Initialize."""
         self._session: ClientSession = session
         self._oauth: Oauth = oauth
@@ -41,8 +50,13 @@ class API:
         self.hass = hass
 
     async def _request(
-        self, method: str, endpoint: str, rcp_headers: bool = False, ignore_errors: bool = False, **kwargs
-    ) -> list:
+        self,
+        method: str,
+        endpoint: str,
+        rcp_headers: bool = False,
+        ignore_errors: bool = False,
+        **kwargs,
+    ) -> list[Any]:
         """Make a request against the API."""
 
         url = f"{helper.Rest_url(self._region)}{endpoint}"
@@ -90,11 +104,11 @@ class API:
             if not ignore_errors:
                 raise ClientError from err
             else:
-                return None
+                return []
         except Exception:
             LOGGER.debug(traceback.format_exc())
 
-    async def get_user_info(self) -> list:
+    async def get_user_info(self) -> list[Any]:
         """Get all devices associated with an API key."""
         return await self._request("get", "/v2/vehicles")
 
@@ -107,23 +121,30 @@ class API:
         return await self._request("get", f"/v1/vehicle/{vin}/capabilities/commands")
 
     async def get_car_rcp_supported_settings(self, vin: str) -> list:
-        """Get all supported car rcp options associated"""
+        """Get all supported car rcp options associated."""
         url = f"{helper.RCP_url(self._region)}/api/v1/vehicles/{vin}/settings"
 
         LOGGER.debug("get_car_rcp_supported_settings: %s", url)
         return await self._request("get", "", url=url, rcp_headers=True)
 
     async def get_car_rcp_settings(self, vin: str, setting: str) -> list:
-        """Get all rcp setting for a car"""
+        """Get all rcp setting for a car."""
         url = f"{helper.RCP_url(self._region)}/api/v1/vehicles/{vin}/settings/{setting}"
 
         LOGGER.debug("get_car_rcp_settings: %s", url)
         return await self._request("get", "", url=url, rcp_headers=True)
 
     async def send_route_to_car(
-        self, vin: str, title: str, latitude: float, longitude: float, city: str, postcode: str, street: str
+        self,
+        vin: str,
+        title: str,
+        latitude: float,
+        longitude: float,
+        city: str,
+        postcode: str,
+        street: str,
     ):
-        """Send route to car associated by vin"""
+        """Send route to car associated by vin."""
         data = {
             "routeTitle": title,
             "routeType": "singlePOI",
@@ -142,12 +163,12 @@ class API:
         return await self._request("post", f"/v1/vehicle/{vin}/route", data=json.dumps(data))
 
     async def get_car_geofencing_violations(self, vin: str) -> list:
-        """Get all geofencing violations for a car"""
+        """Get all geofencing violations for a car."""
         url = f"/v1/geofencing/vehicles/{vin}/fences/violations"
         return await self._request("get", url, rcp_headers=False, ignore_errors=True)
 
     async def is_car_rcp_supported(self, vin: str, **kwargs) -> list:
-        """return if is car rcp supported"""
+        """Return if is car rcp supported."""
         token = await self._oauth.async_get_cached_token()
         headers = {
             "Authorization": f"Bearer {token['access_token']}",

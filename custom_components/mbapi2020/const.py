@@ -1,8 +1,11 @@
 """Constants for the MercedesME 2020 integration."""
-import logging
+from __future__ import annotations
+
 from enum import Enum, StrEnum
+import logging
 
 import voluptuous as vol
+
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import (
     PERCENTAGE,
@@ -71,12 +74,7 @@ X_APPLICATIONNAME_AP = "mycar-store-ap"
 
 USE_PROXY = False
 VERIFY_SSL = True
-SYSTEM_PROXY = None
-PROXIES = {}
-# SYSTEM_PROXY = "http://192.168.178.61:8080"
-# PROXIES = {
-#    "https": SYSTEM_PROXY,
-# }
+SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:8080"
 
 
 LOGIN_APP_ID = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
