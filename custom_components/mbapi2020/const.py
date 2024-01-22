@@ -99,6 +99,10 @@ WEBSOCKET_API_BASE_CN = "wss://websocket.cn-prod.mobilesdk.mercedes-benz.com/ws"
 WEBSOCKET_USER_AGENT = "MyCar/1.39.0 (com.daimler.ris.mercedesme.ece.ios; build:2066; iOS 17.2.0) Alamofire/5.4.0"
 WEBSOCKET_USER_AGENT_CN = "MyStarCN/1.39.0 (com.daimler.ris.mercedesme.cn.ios; build:1758; iOS 16.3.1) Alamofire/5.4.0"
 WEBSOCKET_USER_AGENT_PA = "mycar-store-ap v1.39.0, android 8.0.0, SDK 2.84.3"
+WIDGET_API_BASE = "https://widget.emea-prod.mobilesdk.mercedes-benz.com"
+WIDGET_API_BASE_NA = "https://widget.amap-prod.mobilesdk.mercedes-benz.com"
+WIDGET_API_BASE_PA = "https://widget.amap-prod.mobilesdk.mercedes-benz.com"
+WIDGET_API_BASE_CN = "https://widget.cn-prod.mobilesdk.mercedes-benz.com"
 DEFAULT_SOCKET_MIN_RETRY = 15
 
 SERVICE_REFRESH_TOKEN_URL = "refresh_access_token"
