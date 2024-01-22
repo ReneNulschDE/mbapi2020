@@ -55,6 +55,7 @@ from .const import (
     SERVICE_WINDOWS_CLOSE,
     SERVICE_WINDOWS_OPEN,
     UNITS,
+    VERIFY_SSL,
     SensorConfigFields as scf,
 )
 from .errors import WebsocketError
@@ -384,7 +385,7 @@ class MercedesMeContext:
         self._region = region
         self.client = Client(
             hass=hass,
-            session=aiohttp_client.async_get_clientsession(hass),
+            session=aiohttp_client.async_get_clientsession(hass, VERIFY_SSL),
             config_entry=config_entry,
             region=self._region,
         )
