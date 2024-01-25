@@ -56,7 +56,7 @@ class API:
         rcp_headers: bool = False,
         ignore_errors: bool = False,
         **kwargs,
-    ) -> list[Any]:
+    ):
         """Make a request against the API."""
 
         url = f"{helper.Rest_url(self._region)}{endpoint}"
@@ -108,7 +108,7 @@ class API:
         except Exception:
             LOGGER.debug(traceback.format_exc())
 
-    async def get_user_info(self) -> list[Any]:
+    async def get_user_info(self) -> dict:
         """Get all devices associated with an API key."""
         return await self._request("get", "/v2/vehicles")
 

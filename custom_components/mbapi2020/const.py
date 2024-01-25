@@ -143,7 +143,7 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
 SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),
+        vol.Required("type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),  # type: ignore
     }
 )
 SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
@@ -160,7 +160,7 @@ SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
 SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),
+        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),  # type: ignore
     }
 )
 SERVICE_VIN_PIN_SCHEMA = vol.Schema(
@@ -549,6 +549,8 @@ SENSORS = {
             "selectedChargeProgram",
             "soc",
             "chargingPower",
+            "electricRatioStart",
+            "electricRatioOverall",
         },
         "mdi:ev-station",
         SensorDeviceClass.DISTANCE,

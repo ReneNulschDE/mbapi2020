@@ -34,7 +34,7 @@ from .helper import UrlHelper as helper
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
-DEFAULT_WATCHDOG_TIMEOUT = 300
+DEFAULT_WATCHDOG_TIMEOUT = 3600
 
 STATE_INIT = "initializing"
 STATE_CONNECTING = "connecting"
@@ -208,7 +208,10 @@ class Websocket:
             LOGGER.debug("Got notification: %s", message.WhichOneof("msg"))
             ack_message = self._on_data_received(message)
             if ack_message:
-                await self.call(ack_message.SerializeToString())
+                if isinstance(ack_message, str):
+                    await self.call(bytes.fromhex(ack_message))
+                else:
+                    await self.call(ack_message.SerializeToString())
 
         await self._disconnected()
 

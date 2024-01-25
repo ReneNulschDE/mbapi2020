@@ -1,20 +1,23 @@
 """The MercedesME 2020 client."""
+from __future__ import annotations
+
 import json
 import logging
+from pathlib import Path
 import threading
 import time
-import uuid
-from pathlib import Path
 from typing import Optional
+import uuid
 
 from aiohttp import ClientSession
 from google.protobuf.json_format import MessageToJson
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import system_info
-from homeassistant.helpers.event import async_call_later
 
 import custom_components.mbapi2020.proto.client_pb2 as client_pb2
 import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import system_info
+from homeassistant.helpers.event import async_call_later
 
 from .api import API
 from .car import (
@@ -66,13 +69,13 @@ class Client:  # pylint: disable-too-few-public-methods
 
     def __init__(
         self,
-        *,
-        session: Optional[ClientSession] = None,
-        hass: Optional[HomeAssistant] = None,
-        config_entry=None,
-        cache_path: Optional[str] = None,
-        region: str = None,
+        hass: HomeAssistant,
+        session: ClientSession,
+        config_entry: ConfigEntry,
+        region: str = "",
     ) -> None:
+        """Initialize the client instance."""
+
         self._ws_reconnect_delay = DEFAULT_SOCKET_MIN_RETRY
         self._hass = hass
         self._region = region
@@ -191,15 +194,21 @@ class Client:  # pylint: disable-too-few-public-methods
 
             if msg_type == "apptwin_pending_command_request":
                 self._process_assigned_vehicles(data)
+                if self._dataload_complete_fired:
+                    return "aa0100"
                 return
 
             if msg_type == "assigned_vehicles":
                 self._process_assigned_vehicles(data)
+                if self._dataload_complete_fired:
+                    return "ba0100"
                 return
 
             if msg_type == "service_status_updates":
                 LOGGER.debug("service_status_updates - Data: %s", MessageToJson(data, preserving_proto_field_name=True))
                 self._write_debug_output(data, "ssu")
+                ack_command = client_pb2.ClientMessage()
+                ack_command.acknowledge_service_status_update
                 return
 
             LOGGER.debug("Message Type not implemented: %s", msg_type)

@@ -1,4 +1,6 @@
 """Define the objects to store care data."""
+from __future__ import annotations
+
 import collections
 from datetime import datetime
 
@@ -103,6 +105,8 @@ ELECTRIC_OPTIONS = [
     "ecoElectricBatteryTemperature",
     "electricconsumptionstart",
     "electricconsumptionreset",
+    "electricRatioStart",
+    "electricRatioOverall",
     "endofchargetime",
     "endofChargeTimeWeekday",
     "precondActive",

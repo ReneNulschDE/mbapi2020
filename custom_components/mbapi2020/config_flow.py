@@ -67,7 +67,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             nonce = str(uuid.uuid4())
             user_input["nonce"] = nonce
 
-            client = Client(hass=self.hass, session=session, region=user_input[CONF_REGION])
+            client = Client(self.hass, session, None, region=user_input[CONF_REGION])
             try:
                 await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
             except MbapiError as error:
@@ -91,7 +91,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             nonce = self.data["nonce"]
             session = async_get_clientsession(self.hass, VERIFY_SSL)
 
-            client = Client(hass=self.hass, session=session, region=self.data[CONF_REGION])
+            client = Client(self.hass, session, None, self.data[CONF_REGION])
             try:
                 result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin, nonce)
             except MbapiError as error:

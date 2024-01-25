@@ -379,16 +379,14 @@ class MercedesMeContext:
     """Context class for MercedesMe connections."""
 
     def __init__(self, hass, config_entry, region):
+        """Initialize the MercedesMeContext."""
+
         self.config_entry = config_entry
         self.entry_setup_complete: bool = False
         self._hass = hass
         self._region = region
-        self.client = Client(
-            hass=hass,
-            session=aiohttp_client.async_get_clientsession(hass, VERIFY_SSL),
-            config_entry=config_entry,
-            region=self._region,
-        )
+        session = aiohttp_client.async_get_clientsession(hass, VERIFY_SSL)
+        self.client = Client(hass, session, config_entry, region)
 
     def on_dataload_complete(self):
         # Remove old cars from device_registry
