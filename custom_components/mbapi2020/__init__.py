@@ -194,7 +194,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             mercedes.client.cars.append(current_car)
             LOGGER.debug("Init - car added - %s", loghelper.Mask_VIN(current_car.finorvin))
 
-        handle = await mercedes.client.update_poll_states()
+        await mercedes.client.update_poll_states()
 
         hass.loop.create_task(mercedes.ws_connect())
         hass.data.setdefault(DOMAIN, {})
