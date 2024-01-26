@@ -1,10 +1,11 @@
 """Constants for the MercedesME 2020 integration."""
 from __future__ import annotations
 
-import logging
 from enum import Enum, StrEnum
+import logging
 
 import voluptuous as vol
+
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import (
     PERCENTAGE,
@@ -71,11 +72,9 @@ X_APPLICATIONNAME_CN = "mycar-store-cn"
 X_APPLICATIONNAME_US = "mycar-store-us"
 X_APPLICATIONNAME_AP = "mycar-store-ap"
 
-USE_PROXY = True
-VERIFY_SSL = False
-SYSTEM_PROXY: str | None = (
-    None if not USE_PROXY else "http://192.168.178.61:20001"
-)  # "http://mbdev-proxy.nulsch.de:20000"  # "http://0.0.0.0:8080"
+USE_PROXY = False
+VERIFY_SSL = True
+SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:8080"
 
 
 LOGIN_APP_ID = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
@@ -135,9 +134,7 @@ SERVICE_VIN_TIME_SCHEMA = vol.Schema(
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("time_selection"): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=3)
-        ),
+        vol.Required("time_selection"): vol.All(vol.Coerce(int), vol.Range(min=0, max=3)),
         vol.Required("time_1"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_2"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_3"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
@@ -146,9 +143,7 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
 SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("type", default=0): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),  # type: ignore
+        vol.Required("type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),  # type: ignore
     }
 )
 SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
@@ -165,9 +160,7 @@ SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
 SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("max_soc", default=100): vol.All(
-            vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])
-        ),  # type: ignore
+        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),  # type: ignore
     }
 )
 SERVICE_VIN_PIN_SCHEMA = vol.Schema(
