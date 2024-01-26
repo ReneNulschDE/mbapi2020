@@ -1,11 +1,10 @@
 """Constants for the MercedesME 2020 integration."""
 from __future__ import annotations
 
-from enum import Enum, StrEnum
 import logging
+from enum import Enum, StrEnum
 
 import voluptuous as vol
-
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import (
     PERCENTAGE,
@@ -61,8 +60,8 @@ DEFAULT_COUNTRY_CODE = "EN"
 RIS_APPLICATION_VERSION_NA = "3.39.0"
 RIS_APPLICATION_VERSION_CN = "1.39.0"
 RIS_APPLICATION_VERSION_PA = "1.39.1"
-RIS_APPLICATION_VERSION = "1.39.0 (2066)"
-RIS_SDK_VERSION = "2.109.0"
+RIS_APPLICATION_VERSION = "1.40.0 (2097)"
+RIS_SDK_VERSION = "2.111.1"
 RIS_SDK_VERSION_CN = "2.109.0"
 RIS_OS_VERSION = "16.5"
 RIS_OS_NAME = "ios"
@@ -72,9 +71,11 @@ X_APPLICATIONNAME_CN = "mycar-store-cn"
 X_APPLICATIONNAME_US = "mycar-store-us"
 X_APPLICATIONNAME_AP = "mycar-store-ap"
 
-USE_PROXY = False
-VERIFY_SSL = True
-SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:8080"
+USE_PROXY = True
+VERIFY_SSL = False
+SYSTEM_PROXY: str | None = (
+    None if not USE_PROXY else "http://192.168.178.61:20001"
+)  # "http://mbdev-proxy.nulsch.de:20000"  # "http://0.0.0.0:8080"
 
 
 LOGIN_APP_ID = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
@@ -96,7 +97,7 @@ WEBSOCKET_API_BASE = "wss://websocket.emea-prod.mobilesdk.mercedes-benz.com/ws"
 WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
 WEBSOCKET_API_BASE_PA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
 WEBSOCKET_API_BASE_CN = "wss://websocket.cn-prod.mobilesdk.mercedes-benz.com/ws"
-WEBSOCKET_USER_AGENT = "MyCar/1.39.0 (com.daimler.ris.mercedesme.ece.ios; build:2066; iOS 17.2.0) Alamofire/5.4.0"
+WEBSOCKET_USER_AGENT = "MyCar/1.40.0 (com.daimler.ris.mercedesme.ece.ios; build:2097; iOS 17.3.0) Alamofire/5.4.0"
 WEBSOCKET_USER_AGENT_CN = "MyStarCN/1.39.0 (com.daimler.ris.mercedesme.cn.ios; build:1758; iOS 16.3.1) Alamofire/5.4.0"
 WEBSOCKET_USER_AGENT_PA = "mycar-store-ap v1.39.0, android 8.0.0, SDK 2.84.3"
 WIDGET_API_BASE = "https://widget.emea-prod.mobilesdk.mercedes-benz.com"
@@ -134,7 +135,9 @@ SERVICE_VIN_TIME_SCHEMA = vol.Schema(
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("time_selection"): vol.All(vol.Coerce(int), vol.Range(min=0, max=3)),
+        vol.Required("time_selection"): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=3)
+        ),
         vol.Required("time_1"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_2"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_3"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
@@ -143,7 +146,9 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
 SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),  # type: ignore
+        vol.Required("type", default=0): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),  # type: ignore
     }
 )
 SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
@@ -160,7 +165,9 @@ SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
 SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),  # type: ignore
+        vol.Required("max_soc", default=100): vol.All(
+            vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])
+        ),  # type: ignore
     }
 )
 SERVICE_VIN_PIN_SCHEMA = vol.Schema(

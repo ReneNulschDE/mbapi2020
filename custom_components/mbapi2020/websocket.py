@@ -2,13 +2,12 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
 import logging
-from typing import Optional
 import uuid
+from collections.abc import Awaitable, Callable
+from typing import Optional
 
 import aiohttp
-
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -34,7 +33,7 @@ from .helper import UrlHelper as helper
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
-DEFAULT_WATCHDOG_TIMEOUT = 3600
+DEFAULT_WATCHDOG_TIMEOUT = 10800
 
 STATE_INIT = "initializing"
 STATE_CONNECTING = "connecting"
@@ -80,7 +79,9 @@ class WebsocketWatchdog:
         if self._timer_task:
             self._timer_task.cancel()
 
-        self._timer_task = self._loop.call_later(self._timeout, lambda: asyncio.create_task(self.on_expire()))
+        self._timer_task = self._loop.call_later(
+            self._timeout, lambda: asyncio.create_task(self.on_expire())
+        )
 
 
 class Websocket:
@@ -127,9 +128,13 @@ class Websocket:
                 headers = await self._websocket_connection_headers()
                 self.is_connecting = True
                 LOGGER.info("Connecting to %s", websocket_url)
-                self._connection = await session.ws_connect(websocket_url, headers=headers, proxy=SYSTEM_PROXY)
+                self._connection = await session.ws_connect(
+                    websocket_url, headers=headers, proxy=SYSTEM_PROXY
+                )
             except aiohttp.client_exceptions.ClientError as exc:
-                LOGGER.error("Could not connect to %s, retry in 10 seconds...", websocket_url)
+                LOGGER.error(
+                    "Could not connect to %s, retry in 10 seconds...", websocket_url
+                )
                 LOGGER.debug(exc)
                 self.set_connection_state(STATE_RECONNECTING)
                 await asyncio.sleep(10)

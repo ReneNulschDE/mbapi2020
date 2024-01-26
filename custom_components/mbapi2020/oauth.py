@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Optional, cast
+from typing import Optional
 import urllib.parse
 import uuid
 
@@ -49,17 +49,17 @@ class Oauth:  # pylint: disable-too-few-public-methods
     def __init__(
         self,
         hass: HomeAssistant,
-        session: ClientSession,
-        locale: str,
-        country_code: str,
-        cache_path: str,
-        region: str,
+        session: Optional[ClientSession] = None,
+        locale: Optional[str] = "EN",
+        country_code: Optional[str] = "en-US",
+        cache_path: Optional[str] = None,
+        region: str = "",
     ) -> None:
         """Initialize the OAuth instance."""
         self.token = None
         self._locale = locale
         self._country_code = country_code
-        self._session: ClientSession = session
+        self._session: ClientSession | None = session
         self._region: str = region
         self.cache_path = cache_path
         self.hass = hass
@@ -72,7 +72,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         headers = self._get_header()
         return await self._async_request("post", url, data=data, headers=headers)
 
-    async def async_refresh_access_token(self, refresh_token: str) -> dict[str, str | float | int | bool]:
+    async def async_refresh_access_token(self, refresh_token: str):
         """Refresh the access token."""
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
 
@@ -95,7 +95,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
         return token_info
 
-    async def request_access_token(self, email: str, pin: str, nonce: str) -> dict[str, str | float | int | bool]:
+    async def request_access_token(self, email: str, pin: str, nonce: str):
         """Request the access token using the Pin."""
         url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
         encoded_email = urllib.parse.quote_plus(email, safe="@")
@@ -119,12 +119,12 @@ class Oauth:  # pylint: disable-too-few-public-methods
             self.token = token_info
             return token_info
 
-        return token_info
+        return None
 
-    async def async_get_cached_token(self) -> dict[str, str | float | int | bool]:
+    async def async_get_cached_token(self):
         """Get a cached auth token."""
         _LOGGER.debug("Start async_get_cached_token()")
-        token_info = {}
+        token_info = None
         if self.cache_path:
             try:
                 token_file = open(self.cache_path)
@@ -136,7 +136,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
                     _LOGGER.debug("%s token expired -> start refresh", __name__)
                     if "refresh_token" not in token_info:
                         _LOGGER.warning("Refresh token is missing - reauth required")
-                        return {}
+                        return None
                     token_info = await self.async_refresh_access_token(token_info["refresh_token"])
 
             except OSError:
@@ -145,16 +145,16 @@ class Oauth:  # pylint: disable-too-few-public-methods
         self.token = token_info
         return token_info
 
-    @classmethod  # type: ignore
-    def is_token_expired(cls, token_info: dict[str, str | float | int | bool]) -> bool:
+    @classmethod
+    def is_token_expired(cls, token_info) -> bool:
         """Check if the token is expired."""
         if token_info is not None:
             now = int(time.time())
-            return cast(int, token_info["expires_at"]) - now < 60
+            return token_info["expires_at"] - now < 60
 
         return True
 
-    def _save_token_info(self, token_info) -> None:
+    def _save_token_info(self, token_info):
         _LOGGER.debug("Start _save_token_info() to %s", self.cache_path)
         if self.cache_path:
             try:
@@ -164,13 +164,13 @@ class Oauth:  # pylint: disable-too-few-public-methods
             except OSError:
                 _LOGGER.error("Couldn't write token cache to %s", self.cache_path)
 
-    @classmethod  # type: ignore
-    def _add_custom_values_to_token_info(cls, token_info) -> dict[str, str | float | int | bool]:
+    @classmethod
+    def _add_custom_values_to_token_info(cls, token_info):
         """Store some values that aren't directly provided by a Web API response."""
         token_info["expires_at"] = int(time.time()) + token_info["expires_in"]
         return token_info
 
-    def _get_header(self) -> dict:
+    def _get_header(self):
         header = {
             "Ris-Os-Name": RIS_OS_NAME,
             "Ris-Os-Version": RIS_OS_VERSION,
@@ -186,7 +186,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
         return header
 
-    def _get_region_header(self, header) -> dict:
+    def _get_region_header(self, header):
         if self._region == REGION_EUROPE:
             header["X-Applicationname"] = X_APPLICATIONNAME_ECE
             header["Ris-Application-Version"] = RIS_APPLICATION_VERSION
@@ -207,7 +207,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
         return header
 
-    async def _async_request(self, method: str, url: str, data: str = "", **kwargs) -> dict:
+    async def _async_request(self, method: str, url: str, data: str = "", **kwargs):
         """Make a request against the API."""
 
         kwargs.setdefault("headers", {})
@@ -220,11 +220,9 @@ class Oauth:  # pylint: disable-too-few-public-methods
             async with self._session.request(method, url, data=data, **kwargs) as resp:
                 # _LOGGER.warning("ClientError requesting data from %s: %s", url, resp.json)
                 resp.raise_for_status()
-                return cast(dict, await resp.json(content_type=None))
+                return await resp.json(content_type=None)
         except ClientError as err:
             _LOGGER.error("ClientError requesting data from %s: %s", url, err)
             raise err
         except Exception as exc:
             _LOGGER.error("Unexpected Error requesting data from %s: %s", url, exc)
-
-        return {}

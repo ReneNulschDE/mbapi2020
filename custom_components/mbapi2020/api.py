@@ -4,10 +4,9 @@ from __future__ import annotations
 import json
 import logging
 import traceback
-from typing import Any
 import uuid
 
-from aiohttp import ClientSession, ClientTimeout
+from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientError
 
 from homeassistant.core import HomeAssistant
@@ -108,26 +107,26 @@ class API:
         except Exception:
             LOGGER.debug(traceback.format_exc())
 
-    async def get_user_info(self) -> dict:
+    async def get_user_info(self):
         """Get all devices associated with an API key."""
         return await self._request("get", "/v2/vehicles")
 
-    async def get_car_capabilities(self, vin: str) -> list:
+    async def get_car_capabilities(self, vin: str):
         """Get all car capabilities associated with an vin."""
         return await self._request("get", f"/v1/vehicle/{vin}/capabilities")
 
-    async def get_car_capabilities_commands(self, vin: str) -> list:
+    async def get_car_capabilities_commands(self, vin: str):
         """Get all car capabilities associated with an vin."""
         return await self._request("get", f"/v1/vehicle/{vin}/capabilities/commands")
 
-    async def get_car_rcp_supported_settings(self, vin: str) -> list:
+    async def get_car_rcp_supported_settings(self, vin: str):
         """Get all supported car rcp options associated."""
         url = f"{helper.RCP_url(self._region)}/api/v1/vehicles/{vin}/settings"
 
         LOGGER.debug("get_car_rcp_supported_settings: %s", url)
         return await self._request("get", "", url=url, rcp_headers=True)
 
-    async def get_car_rcp_settings(self, vin: str, setting: str) -> list:
+    async def get_car_rcp_settings(self, vin: str, setting: str):
         """Get all rcp setting for a car."""
         url = f"{helper.RCP_url(self._region)}/api/v1/vehicles/{vin}/settings/{setting}"
 
@@ -162,12 +161,12 @@ class API:
 
         return await self._request("post", f"/v1/vehicle/{vin}/route", data=json.dumps(data))
 
-    async def get_car_geofencing_violations(self, vin: str) -> list:
+    async def get_car_geofencing_violations(self, vin: str):
         """Get all geofencing violations for a car."""
         url = f"/v1/geofencing/vehicles/{vin}/fences/violations"
         return await self._request("get", url, rcp_headers=False, ignore_errors=True)
 
-    async def is_car_rcp_supported(self, vin: str, **kwargs) -> list:
+    async def is_car_rcp_supported(self, vin: str, **kwargs):
         """Return if is car rcp supported."""
         token = await self._oauth.async_get_cached_token()
         headers = {
@@ -180,18 +179,10 @@ class API:
 
         url = f"{helper.PSAG_url(self._region)}/api/app/v2/vehicles/{vin}/profileInformation"
 
-        use_running_session = self._session and not self._session.closed
+        if not self._session or self._session.closed:
+            self._session = async_get_clientsession(self.hass, VERIFY_SSL)
 
-        if use_running_session:
-            session = self._session
-        else:
-            session = ClientSession(timeout=ClientTimeout(total=DEFAULT_TIMEOUT))
-
-        try:
-            async with session.request("get", url, **kwargs) as resp:
-                resp_status = resp.status
-                await resp.text()
-                return bool(resp_status == 200)
-        finally:
-            if not use_running_session:
-                await session.close()
+        async with self._session.request("get", url, **kwargs) as resp:
+            resp_status = resp.status
+            await resp.text()
+            return bool(resp_status == 200)

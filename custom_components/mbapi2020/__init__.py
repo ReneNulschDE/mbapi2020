@@ -1,7 +1,6 @@
 """The MercedesME 2020 integration."""
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime
 import time
 
@@ -14,44 +13,35 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client
 import homeassistant.helpers.device_registry as dr
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import slugify
 
 from .car import Car, CarAttribute, Features, RcpOptions
 from .client import Client
 from .const import (
     ATTR_MB_MANUFACTURER,
-    CONF_PIN,
     CONF_REGION,
-    CONF_TIME,
-    CONF_VIN,
     DOMAIN,
     LOGGER,
     LOGIN_BASE_URI,
     MERCEDESME_COMPONENTS,
     SERVICE_AUXHEAT_CONFIGURE,
-    SERVICE_AUXHEAT_CONFIGURE_SCHEMA,
     SERVICE_AUXHEAT_START,
     SERVICE_AUXHEAT_STOP,
     SERVICE_BATTERY_MAX_SOC_CONFIGURE,
-    SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA,
     SERVICE_DOORS_LOCK_URL,
     SERVICE_DOORS_UNLOCK_URL,
     SERVICE_ENGINE_START,
     SERVICE_ENGINE_STOP,
     SERVICE_PREHEAT_START,
     SERVICE_PREHEAT_START_DEPARTURE_TIME,
-    SERVICE_PREHEAT_START_SCHEMA,
     SERVICE_PREHEAT_STOP,
     SERVICE_PREHEAT_STOP_DEPARTURE_TIME,
     SERVICE_REFRESH_TOKEN_URL,
     SERVICE_SEND_ROUTE,
-    SERVICE_SEND_ROUTE_SCHEMA,
     SERVICE_SIGPOS_START,
     SERVICE_SUNROOF_CLOSE,
     SERVICE_SUNROOF_OPEN,
-    SERVICE_VIN_PIN_SCHEMA,
-    SERVICE_VIN_SCHEMA,
-    SERVICE_VIN_TIME_SCHEMA,
     SERVICE_WINDOWS_CLOSE,
     SERVICE_WINDOWS_OPEN,
     UNITS,
@@ -60,19 +50,22 @@ from .const import (
 )
 from .errors import WebsocketError
 from .helper import LogHelper as loghelper
+from .services import setup_services
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 
 
-async def async_setup(hass: HomeAssistant, config: dict):
-    """Set up the MercedesME 2020 component."""
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up MBAPI2020."""
+    LOGGER.debug("Start async_setup.")
+    setup_services(hass)
 
-    if DOMAIN not in config:
-        return True
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up MercedesME 2020 from a config entry."""
+    LOGGER.debug("Start async_setup_entry.")
 
     try:
         # Find the right way to migrate old configs
@@ -111,7 +104,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             vin = car.get("vin")
             if vin is None:
                 vin = car.get("fin")
-                LOGGER.debug("VIN not found in masterdata. Used FIN %s instead.", loghelper.Mask_VIN(vin))
+                LOGGER.debug(
+                    "VIN not found in masterdata. Used FIN %s instead.",
+                    loghelper.Mask_VIN(vin),
+                )
 
             # Car is excluded, we do not add this
             if vin in config_entry.options.get("excluded_cars", ""):
@@ -203,120 +199,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         hass.loop.create_task(mercedes.ws_connect())
         hass.data.setdefault(DOMAIN, {})
         hass.data[DOMAIN] = mercedes
-
-        async def refresh_access_token(call) -> None:
-            await mercedes.client.oauth.async_get_cached_token()
-
-        async def auxheat_configure(call) -> None:
-            await mercedes.client.auxheat_configure(
-                call.data.get(CONF_VIN),
-                call.data.get("time_selection"),
-                call.data.get("time_1"),
-                call.data.get("time_2"),
-                call.data.get("time_3"),
-            )
-
-        async def auxheat_start(call) -> None:
-            await mercedes.client.auxheat_start(call.data.get(CONF_VIN))
-
-        async def auxheat_stop(call) -> None:
-            await mercedes.client.auxheat_stop(call.data.get(CONF_VIN))
-
-        async def doors_unlock(call) -> None:
-            await mercedes.client.doors_unlock(call.data.get(CONF_VIN), call.data.get(CONF_PIN))
-
-        async def doors_lock(call) -> None:
-            await mercedes.client.doors_lock(call.data.get(CONF_VIN))
-
-        async def engine_start(call) -> None:
-            await mercedes.client.engine_start(call.data.get(CONF_VIN))
-
-        async def engine_stop(call) -> None:
-            await mercedes.client.engine_stop(call.data.get(CONF_VIN))
-
-        async def sigpos_start(call) -> None:
-            await mercedes.client.sigpos_start(call.data.get(CONF_VIN))
-
-        async def sunroof_open(call) -> None:
-            await mercedes.client.sunroof_open(call.data.get(CONF_VIN))
-
-        async def sunroof_close(call) -> None:
-            await mercedes.client.sunroof_close(call.data.get(CONF_VIN))
-
-        async def preheat_start(call) -> None:
-            if call.data.get("type", 0) == 0:
-                await mercedes.client.preheat_start(call.data.get(CONF_VIN))
-            else:
-                await mercedes.client.preheat_start_immediate(call.data.get(CONF_VIN))
-
-        async def preheat_start_departure_time(call) -> None:
-            await mercedes.client.preheat_start_departure_time(call.data.get(CONF_VIN), call.data.get(CONF_TIME))
-
-        async def preheat_stop(call) -> None:
-            await mercedes.client.preheat_stop(call.data.get(CONF_VIN))
-
-        async def preheat_stop_departure_time(call) -> None:
-            await mercedes.client.preheat_stop_departure_time(call.data.get(CONF_VIN))
-
-        async def windows_open(call) -> None:
-            await mercedes.client.windows_open(call.data.get(CONF_VIN))
-
-        async def windows_close(call) -> None:
-            await mercedes.client.windows_close(call.data.get(CONF_VIN))
-
-        async def send_route_to_car(call) -> None:
-            await mercedes.client.send_route_to_car(
-                call.data.get(CONF_VIN),
-                call.data.get("title"),
-                call.data.get("latitude"),
-                call.data.get("longitude"),
-                call.data.get("city"),
-                call.data.get("postcode"),
-                call.data.get("street"),
-            )
-
-        async def battery_max_soc_configure(call) -> None:
-            await mercedes.client.battery_max_soc_configure(call.data.get(CONF_VIN), call.data.get("max_soc"))
-
-        hass.services.async_register(DOMAIN, SERVICE_REFRESH_TOKEN_URL, refresh_access_token)
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_AUXHEAT_CONFIGURE,
-            auxheat_configure,
-            schema=SERVICE_AUXHEAT_CONFIGURE_SCHEMA,
-        )
-        hass.services.async_register(DOMAIN, SERVICE_AUXHEAT_START, auxheat_start, schema=SERVICE_VIN_SCHEMA)
-        hass.services.async_register(DOMAIN, SERVICE_AUXHEAT_STOP, auxheat_stop, schema=SERVICE_VIN_SCHEMA)
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_BATTERY_MAX_SOC_CONFIGURE,
-            battery_max_soc_configure,
-            schema=SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA,
-        )
-        hass.services.async_register(DOMAIN, SERVICE_DOORS_LOCK_URL, doors_lock, schema=SERVICE_VIN_SCHEMA)
-        hass.services.async_register(DOMAIN, SERVICE_DOORS_UNLOCK_URL, doors_unlock, schema=SERVICE_VIN_PIN_SCHEMA)
-        hass.services.async_register(DOMAIN, SERVICE_ENGINE_START, engine_start, schema=SERVICE_VIN_SCHEMA)
-        hass.services.async_register(DOMAIN, SERVICE_ENGINE_STOP, engine_stop, schema=SERVICE_VIN_SCHEMA)
-        hass.services.async_register(DOMAIN, SERVICE_PREHEAT_START, preheat_start, schema=SERVICE_PREHEAT_START_SCHEMA)
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_PREHEAT_START_DEPARTURE_TIME,
-            preheat_start_departure_time,
-            schema=SERVICE_VIN_TIME_SCHEMA,
-        )
-        hass.services.async_register(DOMAIN, SERVICE_PREHEAT_STOP, preheat_stop, schema=SERVICE_VIN_SCHEMA)
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_PREHEAT_STOP_DEPARTURE_TIME,
-            preheat_stop_departure_time,
-            schema=SERVICE_VIN_SCHEMA,
-        )
-        hass.services.async_register(DOMAIN, SERVICE_SEND_ROUTE, send_route_to_car, schema=SERVICE_SEND_ROUTE_SCHEMA)
-        hass.services.async_register(DOMAIN, SERVICE_SIGPOS_START, sigpos_start, schema=SERVICE_VIN_SCHEMA)
-        hass.services.async_register(DOMAIN, SERVICE_SUNROOF_OPEN, sunroof_open, schema=SERVICE_VIN_SCHEMA)
-        hass.services.async_register(DOMAIN, SERVICE_SUNROOF_CLOSE, sunroof_close, schema=SERVICE_VIN_SCHEMA)
-        hass.services.async_register(DOMAIN, SERVICE_WINDOWS_OPEN, windows_open, schema=SERVICE_VIN_SCHEMA)
-        hass.services.async_register(DOMAIN, SERVICE_WINDOWS_CLOSE, windows_close, schema=SERVICE_VIN_SCHEMA)
 
     except aiohttp.ClientError as err:
         LOGGER.warning("Can't connect to MB APIs; Retrying in background")
