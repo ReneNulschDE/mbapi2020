@@ -25,32 +25,13 @@ from .const import (
     LOGGER,
     LOGIN_BASE_URI,
     MERCEDESME_COMPONENTS,
-    SERVICE_AUXHEAT_CONFIGURE,
-    SERVICE_AUXHEAT_START,
-    SERVICE_AUXHEAT_STOP,
-    SERVICE_BATTERY_MAX_SOC_CONFIGURE,
-    SERVICE_DOORS_LOCK_URL,
-    SERVICE_DOORS_UNLOCK_URL,
-    SERVICE_ENGINE_START,
-    SERVICE_ENGINE_STOP,
-    SERVICE_PREHEAT_START,
-    SERVICE_PREHEAT_START_DEPARTURE_TIME,
-    SERVICE_PREHEAT_STOP,
-    SERVICE_PREHEAT_STOP_DEPARTURE_TIME,
-    SERVICE_REFRESH_TOKEN_URL,
-    SERVICE_SEND_ROUTE,
-    SERVICE_SIGPOS_START,
-    SERVICE_SUNROOF_CLOSE,
-    SERVICE_SUNROOF_OPEN,
-    SERVICE_WINDOWS_CLOSE,
-    SERVICE_WINDOWS_OPEN,
     UNITS,
     VERIFY_SSL,
     SensorConfigFields as scf,
 )
 from .errors import WebsocketError
 from .helper import LogHelper as loghelper
-from .services import setup_services
+from .services import remove_services, setup_services
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 
@@ -222,38 +203,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload mbapi2020 Home config entry."""
     LOGGER.debug("Start unload component.")
 
-    LOGGER.debug("Start unload component. Services")
-    hass.services.async_remove(DOMAIN, SERVICE_REFRESH_TOKEN_URL)
-    hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_CONFIGURE)
-    hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_START)
-    hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_STOP)
-    hass.services.async_remove(DOMAIN, SERVICE_BATTERY_MAX_SOC_CONFIGURE)
-    hass.services.async_remove(DOMAIN, SERVICE_DOORS_LOCK_URL)
-    hass.services.async_remove(DOMAIN, SERVICE_DOORS_UNLOCK_URL)
-    hass.services.async_remove(DOMAIN, SERVICE_ENGINE_START)
-    hass.services.async_remove(DOMAIN, SERVICE_ENGINE_STOP)
-    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START)
-    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START_DEPARTURE_TIME)
-    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_STOP)
-    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_STOP_DEPARTURE_TIME)
-    hass.services.async_remove(DOMAIN, SERVICE_SEND_ROUTE)
-    hass.services.async_remove(DOMAIN, SERVICE_SIGPOS_START)
-    hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_OPEN)
-    hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_CLOSE)
-    hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_OPEN)
-    hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_CLOSE)
-
     await hass.data[DOMAIN].client.websocket.async_stop()
 
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, MERCEDESME_COMPONENTS)
-    LOGGER.debug("Start unload component. components - %s", unload_ok)
+    remove_services(hass)
 
-    if unload_ok:
-        if hass.data[DOMAIN]:
-            del hass.data[DOMAIN]
-    else:
-        LOGGER.debug("unload not successful.")
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, MERCEDESME_COMPONENTS):
+        del hass.data[DOMAIN]
 
+    LOGGER.debug("unload result: %s", unload_ok)
     return unload_ok
 
 

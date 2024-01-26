@@ -8,6 +8,7 @@ from .const import (
     CONF_TIME,
     CONF_VIN,
     DOMAIN,
+    LOGGER,
     SERVICE_AUXHEAT_CONFIGURE,
     SERVICE_AUXHEAT_CONFIGURE_SCHEMA,
     SERVICE_AUXHEAT_START,
@@ -117,18 +118,34 @@ def setup_services(hass: HomeAssistant) -> None:
     # Register all the above services
     service_mapping = [
         (SERVICE_REFRESH_TOKEN_URL, refresh_access_token, None),
-        (SERVICE_AUXHEAT_CONFIGURE, auxheat_configure, SERVICE_AUXHEAT_CONFIGURE_SCHEMA),
+        (
+            SERVICE_AUXHEAT_CONFIGURE,
+            auxheat_configure,
+            SERVICE_AUXHEAT_CONFIGURE_SCHEMA,
+        ),
         (SERVICE_AUXHEAT_START, auxheat_start, SERVICE_VIN_SCHEMA),
         (SERVICE_AUXHEAT_STOP, auxheat_stop, SERVICE_VIN_SCHEMA),
-        (SERVICE_BATTERY_MAX_SOC_CONFIGURE, battery_max_soc_configure, SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA),
+        (
+            SERVICE_BATTERY_MAX_SOC_CONFIGURE,
+            battery_max_soc_configure,
+            SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA,
+        ),
         (SERVICE_DOORS_LOCK_URL, doors_lock, SERVICE_VIN_SCHEMA),
         (SERVICE_DOORS_UNLOCK_URL, doors_unlock, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_ENGINE_START, engine_start, SERVICE_VIN_SCHEMA),
         (SERVICE_ENGINE_STOP, engine_stop, SERVICE_VIN_SCHEMA),
         (SERVICE_PREHEAT_START, preheat_start, SERVICE_PREHEAT_START_SCHEMA),
-        (SERVICE_PREHEAT_START_DEPARTURE_TIME, preheat_start_departure_time, SERVICE_VIN_TIME_SCHEMA),
+        (
+            SERVICE_PREHEAT_START_DEPARTURE_TIME,
+            preheat_start_departure_time,
+            SERVICE_VIN_TIME_SCHEMA,
+        ),
         (SERVICE_PREHEAT_STOP, preheat_stop, SERVICE_VIN_SCHEMA),
-        (SERVICE_PREHEAT_STOP_DEPARTURE_TIME, preheat_stop_departure_time, SERVICE_VIN_SCHEMA),
+        (
+            SERVICE_PREHEAT_STOP_DEPARTURE_TIME,
+            preheat_stop_departure_time,
+            SERVICE_VIN_SCHEMA,
+        ),
         (SERVICE_SEND_ROUTE, send_route_to_car, SERVICE_SEND_ROUTE_SCHEMA),
         (SERVICE_SIGPOS_START, sigpos_start, SERVICE_VIN_SCHEMA),
         (SERVICE_SUNROOF_OPEN, sunroof_open, SERVICE_VIN_SCHEMA),
@@ -139,3 +156,26 @@ def setup_services(hass: HomeAssistant) -> None:
 
     for service_name, service_handler, schema in service_mapping:
         hass.services.async_register(DOMAIN, service_name, service_handler, schema=schema)
+
+
+def remove_services(hass: HomeAssistant) -> None:
+    LOGGER.debug("Start unload component. Services")
+    hass.services.async_remove(DOMAIN, SERVICE_REFRESH_TOKEN_URL)
+    hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_CONFIGURE)
+    hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_START)
+    hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_STOP)
+    hass.services.async_remove(DOMAIN, SERVICE_BATTERY_MAX_SOC_CONFIGURE)
+    hass.services.async_remove(DOMAIN, SERVICE_DOORS_LOCK_URL)
+    hass.services.async_remove(DOMAIN, SERVICE_DOORS_UNLOCK_URL)
+    hass.services.async_remove(DOMAIN, SERVICE_ENGINE_START)
+    hass.services.async_remove(DOMAIN, SERVICE_ENGINE_STOP)
+    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START)
+    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START_DEPARTURE_TIME)
+    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_STOP)
+    hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_STOP_DEPARTURE_TIME)
+    hass.services.async_remove(DOMAIN, SERVICE_SEND_ROUTE)
+    hass.services.async_remove(DOMAIN, SERVICE_SIGPOS_START)
+    hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_OPEN)
+    hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_CLOSE)
+    hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_OPEN)
+    hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_CLOSE)
