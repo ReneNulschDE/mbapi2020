@@ -4,6 +4,7 @@ Sensor support for Mercedes cars with Mercedes ME.
 For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
+from __future__ import annotations
 
 from homeassistant.components.sensor import RestoreSensor
 
@@ -15,8 +16,8 @@ from .const import (
     SENSORS,
     SENSORS_POLL,
     DefaultValueModeType,
+    SensorConfigFields as scf,
 )
-from .const import SensorConfigFields as scf
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -52,7 +53,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 or getattr(car.features, value[5], False) is True
             ):
                 device = MercedesMESensorPoll(
-                    hass=hass, data=data, internal_name=key, sensor_config=value, vin=car.finorvin, is_poll_sensor=True
+                    hass=hass, data=data, internal_name=key, sensor_config=value, vin=car.finorvin, is_poll_sensor=False
                 )
                 if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] or (
                     value[scf.DEFAULT_VALUE_MODE.value] != None
