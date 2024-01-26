@@ -205,7 +205,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     await hass.data[DOMAIN].client.websocket.async_stop()
 
-    remove_services(hass)
+    # remove_services(hass)
 
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, MERCEDESME_COMPONENTS):
         del hass.data[DOMAIN]
@@ -404,11 +404,13 @@ class MercedesMeEntity(Entity):
 
         Show latest data after startup.
         """
+        await super().async_added_to_hass()
         self._car.add_update_listener(self.update_callback)
         self.async_schedule_update_ha_state(True)
 
     async def async_will_remove_from_hass(self):
         """Entity being removed from hass."""
+        await super().async_will_remove_from_hass()
         self._car.remove_update_callback(self.update_callback)
 
     def extend_attributes(self, extended_attributes):

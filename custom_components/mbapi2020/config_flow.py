@@ -75,11 +75,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             if not errors:
                 self.data = user_input
-                return await self.async_step_pin()
+                return self.async_step_pin()
 
             LOGGER.error("Request PIN error: %s", errors)
 
-        return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors="Unknown error")  # errors
+        return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors={"Unknown error": str(errors)})
 
     async def async_step_pin(self, user_input=None):
         """Handle the step where the user inputs his/her station."""
