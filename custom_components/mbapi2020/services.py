@@ -159,6 +159,8 @@ def setup_services(hass: HomeAssistant) -> None:
 
 
 def remove_services(hass: HomeAssistant) -> None:
+    """Remove the services for the MBAPI2020 integration."""
+
     LOGGER.debug("Start unload component. Services")
     hass.services.async_remove(DOMAIN, SERVICE_REFRESH_TOKEN_URL)
     hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_CONFIGURE)
