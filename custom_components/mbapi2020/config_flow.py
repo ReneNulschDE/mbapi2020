@@ -75,7 +75,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             if not errors:
                 self.data = user_input
-                return self.async_step_pin()
+                return await self.async_step_pin()
 
             LOGGER.error("Request PIN error: %s", errors)
 

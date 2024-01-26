@@ -180,6 +180,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
             "X-Sessionid": str(uuid.uuid4()),
             "User-Agent": WEBSOCKET_USER_AGENT,
             "Content-Type": "application/json",
+            "Accept-Language": "en-GB",
         }
 
         header = self._get_region_header(header)
