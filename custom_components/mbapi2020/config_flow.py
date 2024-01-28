@@ -7,9 +7,11 @@ import uuid
 import voluptuous as vol
 
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.storage import STORAGE_DIR
 
 from .client import Client
 from .const import (
@@ -25,9 +27,9 @@ from .const import (
     CONF_REGION,
     DEFAULT_COUNTRY_CODE,
     DEFAULT_LOCALE,
-    DEFAULT_TOKEN_PATH,
     DOMAIN,
     LOGGER,
+    TOKEN_FILE_PREFIX,
     VERIFY_SSL,
 )
 from .errors import MbapiError
@@ -58,7 +60,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            await self.async_set_unique_id(f"{user_input[CONF_USERNAME]}")
+            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
+                f"{user_input[CONF_USERNAME]}"
+            )
 
             if not self.reauth_mode:
                 self._abort_if_unique_id_configured()
@@ -67,7 +71,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             nonce = str(uuid.uuid4())
             user_input["nonce"] = nonce
 
-            client = Client(self.hass, session, None, region=user_input[CONF_REGION])
+            LOGGER.warning(new_config_entry.as_dict())
+            client = Client(self.hass, session, new_config_entry, region=user_input[CONF_REGION])
             try:
                 await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
             except MbapiError as error:
@@ -130,7 +135,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry):
         """Initialize options flow."""
-        self.config_entry = config_entry
+        self.config_entry: ConfigEntry = config_entry
         self.options = dict(config_entry.options)
 
     async def async_step_init(self, user_input=None):
@@ -138,7 +143,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             if user_input[CONF_DELETE_AUTH_FILE] is True:
-                auth_file = f"{self.hass.config.config_dir}/{DEFAULT_TOKEN_PATH}"
+                auth_file = self.hass.config.path(STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{self.config_entry.entry_id}")
                 LOGGER.warning("DELETE Auth File requested %s", auth_file)
                 if os.path.isfile(auth_file):
                     os.remove(auth_file)

@@ -6,7 +6,6 @@ import logging
 from pathlib import Path
 import threading
 import time
-from typing import Optional
 import uuid
 
 from aiohttp import ClientSession
@@ -19,7 +18,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import system_info
 from homeassistant.helpers.event import async_call_later
 
-from .api import API
 from .car import (
     AUX_HEAT_OPTIONS,
     BINARY_SENSOR_OPTIONS,
@@ -52,11 +50,11 @@ from .const import (
     DEFAULT_COUNTRY_CODE,
     DEFAULT_LOCALE,
     DEFAULT_SOCKET_MIN_RETRY,
-    DEFAULT_TOKEN_PATH,
 )
 from .errors import WebsocketError
 from .helper import LogHelper as loghelper
 from .oauth import Oauth
+from .webapi import WebApi
 from .websocket import Websocket
 
 LOGGER = logging.getLogger(__name__)
@@ -98,22 +96,24 @@ class Client:  # pylint: disable-too-few-public-methods
             session=session,
             locale=self._locale,
             country_code=self._country_code,
-            cache_path=self._hass.config.path(DEFAULT_TOKEN_PATH),
             region=self._region,
+            config_entry_id=self.config_entry.entry_id,
         )
-        self.api: API = API(self._hass, session=session, oauth=self.oauth, region=self._region)
+        self.webapi: WebApi = WebApi(self._hass, session=session, oauth=self.oauth, region=self._region)
         self.websocket: Websocket = Websocket(self._hass, self.oauth, region=self._region)
-        self.cars = []
+        self.cars: dict[str, Car] = {}
 
     @property
     def pin(self) -> str:
+        """Return the security pin of an account."""
         if self.config_entry:
             if self.config_entry.options:
                 return self.config_entry.options.get(CONF_PIN, None)
-        return None
+        return ""
 
     @property
     def excluded_cars(self):
+        """Return the list of exluded/ignored VIN/FIN."""
         if self.config_entry:
             if self.config_entry.options:
                 return self.config_entry.options.get(CONF_EXCLUDED_CARS, [])
@@ -226,7 +226,13 @@ class Client:  # pylint: disable-too-few-public-methods
             LOGGER.debug("CAR excluded: %s", loghelper.Mask_VIN(received_car_data.get("vin")))
             return
 
-        car = self._get_car(received_car_data.get("vin"))
+        if received_car_data.get("vin") not in self.cars:
+            LOGGER.warning(
+                "Flow Problem - VepUpdate for unknown car: %s", loghelper.Mask_VIN(received_car_data.get("vin"))
+            )
+            return
+
+        car: Car = self.cars.get(received_car_data.get("vin"), Car(received_car_data.get("vin")))
 
         car.messages_received.update("p" if update_mode else "f")
         car._last_message_received = int(round(time.time() * 1000))
@@ -287,7 +293,7 @@ class Client:  # pylint: disable-too-few-public-methods
             car.entry_setup_complete = True
 
         # Nimm jedes car (item) aus self.cars ausser es ist das aktuelle dann nimm car
-        self.cars = [car if item.finorvin == car.finorvin else item for item in self.cars]
+        self.cars[car.finorvin] = car
 
     def _get_car_values(self, car_detail, car_id, class_instance, options, update):
         LOGGER.debug("get_car_values %s for %s called", class_instance.name, loghelper.Mask_VIN(car_id))
@@ -375,11 +381,10 @@ class Client:  # pylint: disable-too-few-public-methods
                             loghelper.Mask_VIN(car_id),
                             option,
                         )
-                else:
+                elif not update:
                     # Do not set status for non existing values on partial update
-                    if not update:
-                        curr_status = CarAttribute(0, 4, 0)
-                        setattr(class_instance, option, curr_status)
+                    curr_status = CarAttribute(0, 4, 0)
+                    setattr(class_instance, option, curr_status)
             else:
                 setattr(class_instance, option, CarAttribute(0, -1, None))
 
@@ -431,13 +436,13 @@ class Client:  # pylint: disable-too-few-public-methods
                     self._build_car(current_car, update_mode=True)
 
             if self._dataload_complete_fired:
-                current_car = self._get_car(vin)
+                current_car = self.cars.get(vin)
 
                 if current_car:
                     current_car.publish_updates()
 
         if not self._dataload_complete_fired:
-            for car in self.cars:
+            for car in self.cars.values():
                 LOGGER.debug(
                     "_process_vep_updates - %s - complete: %s - %s",
                     loghelper.Mask_VIN(car.finorvin),
@@ -457,45 +462,43 @@ class Client:  # pylint: disable-too-few-public-methods
                         if vin in self.excluded_cars:
                             continue
 
-                        _car = self._get_car(vin)
+                        _car = self.cars.get(vin)
 
                         if _car is None:
-                            current_car = Car()
-                            current_car.finorvin = vin
+                            current_car = Car(vin)
                             current_car.licenseplate = vin
-                            self.cars.append(current_car)
+                            self.cars[vin] = current_car
             else:
                 for vin in data.assigned_vehicles.vins:
                     if vin in self.excluded_cars:
                         continue
 
-                    _car = self._get_car(vin)
+                    _car = self.cars.get(vin)
 
                     if _car is None:
-                        current_car = Car()
-                        current_car.finorvin = vin
+                        current_car = Car(vin)
                         current_car.licenseplate = vin
-                        self.cars.append(current_car)
+                        self.cars[vin] = current_car
 
             load_complete = True
             current_time = int(round(time.time() * 1000))
-            for car in self.cars:
+            for key, value in self.cars.items():
                 LOGGER.debug(
                     "_process_assigned_vehicles - %s - %s - %s - %s",
-                    loghelper.Mask_VIN(car.finorvin),
-                    car.entry_setup_complete,
-                    car.messages_received,
-                    current_time - car._last_message_received,
+                    loghelper.Mask_VIN(key),
+                    value.entry_setup_complete,
+                    value.messages_received,
+                    current_time - value._last_message_received,
                 )
 
-                if car._last_message_received > 0 and current_time - car._last_message_received > 30000:
+                if value._last_message_received > 0 and current_time - value._last_message_received > 30000:
                     LOGGER.debug(
                         "No Full Update Message received - Force car entry setup complete for car %s",
-                        loghelper.Mask_VIN(car.finorvin),
+                        loghelper.Mask_VIN(key),
                     )
-                    car.entry_setup_complete = True
+                    value.entry_setup_complete = True
 
-                if not car.entry_setup_complete:
+                if not value.entry_setup_complete:
                     load_complete = False
 
             if load_complete:
@@ -535,7 +538,7 @@ class Client:  # pylint: disable-too-few-public-methods
                                         command_error_message,
                                     )
 
-                            current_car = self._get_car(vin)
+                            current_car = self.cars.get(vin)
 
                             if current_car:
                                 current_car._last_command_type = command_type
@@ -546,8 +549,8 @@ class Client:  # pylint: disable-too-few-public-methods
 
                                 current_car.publish_updates()
 
-    async def doors_unlock(self, vin: str, pin: Optional[str] = ""):
-        if not self.is_car_feature_available(vin, "DOORS_UNLOCK"):
+    async def doors_unlock(self, vin: str, pin: str = ""):
+        if not self._is_car_feature_available(vin, "DOORS_UNLOCK"):
             LOGGER.warning(
                 "Can't unlock car %s. VIN unknown or feature not availabe for this car.", loghelper.Mask_VIN(vin)
             )
@@ -558,7 +561,7 @@ class Client:  # pylint: disable-too-few-public-methods
             await self.doors_unlock_with_pin(vin, pin)
             return
 
-        if self.pin is None:
+        if not self.pin:
             LOGGER.warning(
                 "Can't unlock car %s. PIN not set. Please set the PIN -> Integration, Options ", loghelper.Mask_VIN(vin)
             )
@@ -569,7 +572,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def doors_unlock_with_pin(self, vin: str, pin: str):
         LOGGER.info("Start Doors_unlock_with_pin for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "DOORS_UNLOCK"):
+        if not self._is_car_feature_available(vin, "DOORS_UNLOCK"):
             LOGGER.warning(
                 "Can't unlock car %s. VIN unknown or feature not availabe for this car.", loghelper.Mask_VIN(vin)
             )
@@ -591,7 +594,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def doors_lock(self, vin: str):
         LOGGER.info("Start Doors_lock for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "DOORS_LOCK"):
+        if not self._is_car_feature_available(vin, "DOORS_LOCK"):
             LOGGER.warning(
                 "Can't lock car %s. VIN unknown or feature not availabe for this car.", loghelper.Mask_VIN(vin)
             )
@@ -609,7 +612,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def auxheat_configure(self, vin: str, time_selection: int, time_1: int, time_2: int, time_3: int):
         LOGGER.info("Start auxheat_configure for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "AUXHEAT_START"):
+        if not self._is_car_feature_available(vin, "AUXHEAT_START"):
             LOGGER.warning(
                 "Can't start auxheat for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -633,7 +636,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def auxheat_start(self, vin: str):
         LOGGER.info("Start auxheat start for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "AUXHEAT_START"):
+        if not self._is_car_feature_available(vin, "AUXHEAT_START"):
             LOGGER.warning(
                 "Can't start auxheat for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -653,7 +656,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def auxheat_stop(self, vin: str):
         LOGGER.info("Start auxheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "AUXHEAT_STOP"):
+        if not self._is_car_feature_available(vin, "AUXHEAT_STOP"):
             LOGGER.warning(
                 "Can't stop auxheat for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -673,7 +676,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def battery_max_soc_configure(self, vin: str, max_soc: int):
         LOGGER.info("Start battery_max_soc_configure to %s for vin %s", max_soc, loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE"):
+        if not self._is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE"):
             LOGGER.warning(
                 "Can't configure battery_max_soc for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -694,7 +697,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def engine_start(self, vin: str):
         LOGGER.info("Start engine start for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "ENGINE_START"):
+        if not self._is_car_feature_available(vin, "ENGINE_START"):
             LOGGER.warning(
                 "Can't start engine for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -703,7 +706,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         message = client_pb2.ClientMessage()
 
-        if self.pin is None:
+        if not self.pin:
             LOGGER.warning(
                 "Can't start the car %s. PIN not set. Please set the PIN -> Integration, Options ",
                 loghelper.Mask_VIN(vin),
@@ -720,7 +723,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def engine_stop(self, vin: str):
         LOGGER.info("Start engine_stop for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "ENGINE_STOP"):
+        if not self._is_car_feature_available(vin, "ENGINE_STOP"):
             LOGGER.warning(
                 "Can't stop engine for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -742,14 +745,14 @@ class Client:  # pylint: disable-too-few-public-methods
     ):
         LOGGER.info("Start send_route_to_car for vin %s", loghelper.Mask_VIN(vin))
 
-        await self.api.send_route_to_car(vin, title, latitude, longitude, city, postcode, street)
+        await self.webapi.send_route_to_car(vin, title, latitude, longitude, city, postcode, street)
 
         LOGGER.info("End send_route_to_car for vin %s", loghelper.Mask_VIN(vin))
 
     async def sigpos_start(self, vin: str):
         LOGGER.info("Start sigpos_start for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "SIGPOS_START"):
+        if not self._is_car_feature_available(vin, "SIGPOS_START"):
             LOGGER.warning(
                 "Can't start signaling for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -769,7 +772,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def sunroof_open(self, vin: str):
         LOGGER.info("Start sunroof_open for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "SUNROOF_OPEN"):
+        if not self._is_car_feature_available(vin, "SUNROOF_OPEN"):
             LOGGER.warning(
                 "Can't open the sunroof for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -778,7 +781,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         message = client_pb2.ClientMessage()
 
-        if self.pin is None:
+        if not self.pin:
             LOGGER.warning(
                 "Can't open the sunroof - car %s. PIN not set. Please set the PIN -> Integration, Options ",
                 loghelper.Mask_VIN(vin),
@@ -795,7 +798,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def sunroof_close(self, vin: str):
         LOGGER.info("Start sunroof_close for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "SUNROOF_CLOSE"):
+        if not self._is_car_feature_available(vin, "SUNROOF_CLOSE"):
             LOGGER.warning(
                 "Can't close the sunroof for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -815,7 +818,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def preheat_start(self, vin: str):
         LOGGER.info("Start preheat_start for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
+        if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
             LOGGER.warning(
                 "Can't start PreCond for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -835,7 +838,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def preheat_start_immediate(self, vin: str):
         LOGGER.info("Start preheat_start_immediate for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
+        if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
             LOGGER.warning(
                 "Can't start PreCond for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -855,7 +858,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def preheat_start_departure_time(self, vin: str, departure_time: int):
         LOGGER.info("Start preheat_start_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
+        if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
             LOGGER.warning(
                 "Can't start PreCond for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -875,7 +878,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def preheat_stop(self, vin: str):
         LOGGER.info("Start preheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
+        if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
             LOGGER.warning(
                 "Can't stop PreCond for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -893,7 +896,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def preheat_stop_departure_time(self, vin: str):
         LOGGER.info("Start preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
+        if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
             LOGGER.warning(
                 "Can't stop PreCond for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -911,7 +914,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def windows_open(self, vin: str):
         LOGGER.info("Start windows_open for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "WINDOWS_OPEN"):
+        if not self._is_car_feature_available(vin, "WINDOWS_OPEN"):
             LOGGER.warning(
                 "Can't open the windows for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -920,7 +923,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         message = client_pb2.ClientMessage()
 
-        if self.pin is None:
+        if not self.pin:
             LOGGER.warning(
                 "Can't open the windows - car %s. PIN not set. Please set the PIN -> Integration, Options",
                 loghelper.Mask_VIN(vin),
@@ -937,7 +940,7 @@ class Client:  # pylint: disable-too-few-public-methods
     async def windows_close(self, vin: str):
         LOGGER.info("Start windows_close for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self.is_car_feature_available(vin, "WINDOWS_CLOSE"):
+        if not self._is_car_feature_available(vin, "WINDOWS_CLOSE"):
             LOGGER.warning(
                 "Can't close the windows for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -954,14 +957,14 @@ class Client:  # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End windows_close for vin %s", loghelper.Mask_VIN(vin))
 
-    def is_car_feature_available(self, vin: str, feature: str) -> bool:
+    def _is_car_feature_available(self, vin: str, feature: str) -> bool:
         if self.config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False):
             return True
 
-        current_car = self._get_car(vin)
+        current_car = self.cars.get(vin)
 
         if current_car:
-            return getattr(current_car.features, feature, False)
+            return current_car.features.get(feature, False)
 
         return False
 
@@ -979,6 +982,7 @@ class Client:  # pylint: disable-too-few-public-methods
             self.write_debug_json_output(MessageToJson(data, preserving_proto_field_name=True), datatype)
 
     def write_debug_json_output(self, data, datatype):
+        """Write text to files based on datatype."""
         # LOGGER.debug(self.config_entry.options)
         if self.config_entry.options.get(CONF_DEBUG_FILE_SAVE, False):
             path = self._debug_save_path
@@ -988,21 +992,16 @@ class Client:  # pylint: disable-too-few-public-methods
             current_file.write(f"{data}")
             current_file.close()
 
-    def _get_car(self, vin: str):
-        for car in self.cars:
-            if car.finorvin == vin:
-                return car
-
-    async def set_rlock_mode(self):
+    async def _set_rlock_mode(self):
         # In rare cases the ha-core system_info component runs in error when detecting the supervisor
         # See https://github.com/ReneNulschDE/mbapi2020/issues/126
         info = None
         try:
             info = await system_info.async_get_system_info(self._hass)
-        except Exception as e:
+        except Exception:
             LOGGER.debug("WSL detection not possible. Error in HA-Core get_system_info. Force rlock mode.")
 
-        if not info is None and not "WSL" in info.get("os_version"):
+        if info and "WSL" not in str(info.get("os_version")):
             self._disable_rlock = False
             self.__lock = threading.RLock()
             LOGGER.debug("WSL not detected - running in rlock mode")
@@ -1013,27 +1012,35 @@ class Client:  # pylint: disable-too-few-public-methods
 
         return info
 
-    async def update_poll_states(self, vin: str = None):
-        LOGGER.debug("start update_poll_states")
-        for car in self.cars:
+    async def update_poll_states(self, vin: str):
+        """Update the values for poll states, currently geofencing only."""
+
+        if vin in self.cars:
+            car = self.cars[vin]
+
+            if not car.has_geofencing:
+                return
+
+            LOGGER.debug("start update_poll_states: %s", vin)
+
             if car.geofence_events is None:
                 car.geofence_events = GeofenceEvents()
 
-            if not vin is None:
-                if not car.finorvin == vin:
-                    continue
+            geofencing_violotions = await self.webapi.get_car_geofencing_violations(car.finorvin)
+            if geofencing_violotions and len(geofencing_violotions) > 0:
+                car.geofence_events.last_event_type = CarAttribute(
+                    geofencing_violotions[-1].get("type"), "VALID", geofencing_violotions[-1].get("time")
+                )
+                car.geofence_events.last_event_timestamp = CarAttribute(
+                    geofencing_violotions[-1].get("time"), "VALID", geofencing_violotions[-1].get("time")
+                )
+                car.geofence_events.last_event_zone = CarAttribute(
+                    geofencing_violotions[-1].get("snapshot").get("name"),
+                    "VALID",
+                    geofencing_violotions[-1].get("time"),
+                )
+                car.has_geofencing = True
+            else:
+                car.has_geofencing = False
 
-            geofencing_violotions = await self.api.get_car_geofencing_violations(car.finorvin)
-            if geofencing_violotions:
-                if len(geofencing_violotions) > 0:
-                    car.geofence_events.last_event_type = CarAttribute(
-                        geofencing_violotions[-1].get("type"), "VALID", geofencing_violotions[-1].get("time")
-                    )
-                    car.geofence_events.last_event_timestamp = CarAttribute(
-                        geofencing_violotions[-1].get("time"), "VALID", geofencing_violotions[-1].get("time")
-                    )
-                    car.geofence_events.last_event_zone = CarAttribute(
-                        geofencing_violotions[-1].get("snapshot").get("name"),
-                        "VALID",
-                        geofencing_violotions[-1].get("time"),
-                    )
+            # return geofencing_violotions

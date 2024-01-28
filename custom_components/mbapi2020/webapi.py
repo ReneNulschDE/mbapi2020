@@ -32,7 +32,7 @@ DEFAULT_LIMIT: int = 288
 DEFAULT_TIMEOUT: int = 10
 
 
-class API:
+class WebApi:
     """Define the API object."""
 
     def __init__(

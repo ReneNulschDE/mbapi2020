@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 
 from .const import (
     CONF_PIN,
@@ -24,7 +25,6 @@ from .const import (
     SERVICE_PREHEAT_START_SCHEMA,
     SERVICE_PREHEAT_STOP,
     SERVICE_PREHEAT_STOP_DEPARTURE_TIME,
-    SERVICE_REFRESH_TOKEN_URL,
     SERVICE_SEND_ROUTE,
     SERVICE_SEND_ROUTE_SCHEMA,
     SERVICE_SIGPOS_START,
@@ -41,11 +41,19 @@ from .const import (
 def setup_services(hass: HomeAssistant) -> None:
     """Set up the services for the MBAPI2020 integration."""
 
-    async def refresh_access_token(call) -> None:
-        await hass.data[DOMAIN].client.oauth.async_get_cached_token()
+    def _get_config_entryid(hass: HomeAssistant, vin: str):
+        for coordinator_id in iter(hass.data[DOMAIN]):
+            coordinator = hass.data[DOMAIN][coordinator_id]
+            if coordinator.client and coordinator.client.cars:
+                if vin in coordinator.client.cars:
+                    return coordinator_id
+
+        raise ServiceValidationError(
+            "Given VIN/FIN is not managed by any coordinator or excluded in the integration options."
+        )
 
     async def auxheat_configure(call) -> None:
-        await hass.data[DOMAIN].client.auxheat_configure(
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.auxheat_configure(
             call.data.get(CONF_VIN),
             call.data.get("time_selection"),
             call.data.get("time_1"),
@@ -54,55 +62,87 @@ def setup_services(hass: HomeAssistant) -> None:
         )
 
     async def auxheat_start(call) -> None:
-        await hass.data[DOMAIN].client.auxheat_start(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.auxheat_start(
+            call.data.get(CONF_VIN)
+        )
 
     async def auxheat_stop(call) -> None:
-        await hass.data[DOMAIN].client.auxheat_stop(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.auxheat_stop(
+            call.data.get(CONF_VIN)
+        )
 
     async def doors_unlock(call) -> None:
-        await hass.data[DOMAIN].client.doors_unlock(call.data.get(CONF_VIN), call.data.get(CONF_PIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.doors_unlock(
+            call.data.get(CONF_VIN), call.data.get(CONF_PIN)
+        )
 
     async def doors_lock(call) -> None:
-        await hass.data[DOMAIN].client.doors_lock(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.doors_lock(
+            call.data.get(CONF_VIN)
+        )
 
     async def engine_start(call) -> None:
-        await hass.data[DOMAIN].client.engine_start(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.engine_start(
+            call.data.get(CONF_VIN)
+        )
 
     async def engine_stop(call) -> None:
-        await hass.data[DOMAIN].client.engine_stop(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.engine_stop(
+            call.data.get(CONF_VIN)
+        )
 
     async def sigpos_start(call) -> None:
-        await hass.data[DOMAIN].client.sigpos_start(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.sigpos_start(
+            call.data.get(CONF_VIN)
+        )
 
     async def sunroof_open(call) -> None:
-        await hass.data[DOMAIN].client.sunroof_open(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.sunroof_open(
+            call.data.get(CONF_VIN)
+        )
 
     async def sunroof_close(call) -> None:
-        await hass.data[DOMAIN].client.sunroof_close(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.sunroof_close(
+            call.data.get(CONF_VIN)
+        )
 
     async def preheat_start(call) -> None:
         if call.data.get("type", 0) == 0:
-            await hass.data[DOMAIN].client.preheat_start(call.data.get(CONF_VIN))
+            await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.preheat_start(
+                call.data.get(CONF_VIN)
+            )
         else:
-            await hass.data[DOMAIN].client.preheat_start_immediate(call.data.get(CONF_VIN))
+            await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.preheat_start_immediate(
+                call.data.get(CONF_VIN)
+            )
 
     async def preheat_start_departure_time(call) -> None:
-        await hass.data[DOMAIN].client.preheat_start_departure_time(call.data.get(CONF_VIN), call.data.get(CONF_TIME))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.preheat_start_departure_time(
+            call.data.get(CONF_VIN), call.data.get(CONF_TIME)
+        )
 
     async def preheat_stop(call) -> None:
-        await hass.data[DOMAIN].client.preheat_stop(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.preheat_stop(
+            call.data.get(CONF_VIN)
+        )
 
     async def preheat_stop_departure_time(call) -> None:
-        await hass.data[DOMAIN].client.preheat_stop_departure_time(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.preheat_stop_departure_time(
+            call.data.get(CONF_VIN)
+        )
 
     async def windows_open(call) -> None:
-        await hass.data[DOMAIN].client.windows_open(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.windows_open(
+            call.data.get(CONF_VIN)
+        )
 
     async def windows_close(call) -> None:
-        await hass.data[DOMAIN].client.windows_close(call.data.get(CONF_VIN))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.windows_close(
+            call.data.get(CONF_VIN)
+        )
 
     async def send_route_to_car(call) -> None:
-        await hass.data[DOMAIN].client.send_route_to_car(
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.send_route_to_car(
             call.data.get(CONF_VIN),
             call.data.get("title"),
             call.data.get("latitude"),
@@ -113,11 +153,12 @@ def setup_services(hass: HomeAssistant) -> None:
         )
 
     async def battery_max_soc_configure(call) -> None:
-        await hass.data[DOMAIN].client.battery_max_soc_configure(call.data.get(CONF_VIN), call.data.get("max_soc"))
+        await hass.data[DOMAIN][_get_config_entryid(hass, call.data.get(CONF_VIN))].client.battery_max_soc_configure(
+            call.data.get(CONF_VIN), call.data.get("max_soc")
+        )
 
     # Register all the above services
     service_mapping = [
-        (SERVICE_REFRESH_TOKEN_URL, refresh_access_token, None),
         (
             SERVICE_AUXHEAT_CONFIGURE,
             auxheat_configure,
@@ -162,7 +203,6 @@ def remove_services(hass: HomeAssistant) -> None:
     """Remove the services for the MBAPI2020 integration."""
 
     LOGGER.debug("Start unload component. Services")
-    hass.services.async_remove(DOMAIN, SERVICE_REFRESH_TOKEN_URL)
     hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_CONFIGURE)
     hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_START)
     hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_STOP)

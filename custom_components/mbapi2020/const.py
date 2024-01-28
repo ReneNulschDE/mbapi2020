@@ -1,6 +1,7 @@
 """Constants for the MercedesME 2020 integration."""
 from __future__ import annotations
 
+from datetime import timedelta
 from enum import Enum, StrEnum
 import logging
 
@@ -48,15 +49,16 @@ CONF_FT_DISABLE_CAPABILITY_CHECK = "cap_check_disabled"
 CONF_DELETE_AUTH_FILE = "delete_auth_file"
 CONF_ENABLE_CHINA_GCJ_02 = "enable_china_gcj_02"
 
-DATA_CLIENT = "data_client"
-
 DOMAIN = "mbapi2020"
 LOGGER = logging.getLogger(__package__)
 
+UPDATE_INTERVAL = timedelta(seconds=300)
+
 DEFAULT_CACHE_PATH = "custom_components/mbapi2020/messages"
-DEFAULT_TOKEN_PATH = ".mercedesme-token-cache"
 DEFAULT_LOCALE = "en-GB"
 DEFAULT_COUNTRY_CODE = "EN"
+
+TOKEN_FILE_PREFIX = ".mercedesme-token-cache"
 
 RIS_APPLICATION_VERSION_NA = "3.39.0"
 RIS_APPLICATION_VERSION_CN = "1.39.0"
@@ -74,7 +76,7 @@ X_APPLICATIONNAME_AP = "mycar-store-ap"
 
 USE_PROXY = False
 VERIFY_SSL = True
-SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:8080"
+SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:20001"
 
 
 LOGIN_APP_ID = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
@@ -105,7 +107,6 @@ WIDGET_API_BASE_PA = "https://widget.amap-prod.mobilesdk.mercedes-benz.com"
 WIDGET_API_BASE_CN = "https://widget.cn-prod.mobilesdk.mercedes-benz.com"
 DEFAULT_SOCKET_MIN_RETRY = 15
 
-SERVICE_REFRESH_TOKEN_URL = "refresh_access_token"
 SERVICE_AUXHEAT_CONFIGURE = "auxheat_configure"
 SERVICE_AUXHEAT_START = "auxheat_start"
 SERVICE_AUXHEAT_STOP = "auxheat_stop"
@@ -124,13 +125,7 @@ SERVICE_PREHEAT_STOP_DEPARTURE_TIME = "preheat_stop_departure_time"
 SERVICE_PREHEAT_STOP = "preheat_stop"
 SERVICE_WINDOWS_OPEN = "windows_open"
 SERVICE_WINDOWS_CLOSE = "windows_close"
-SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})
-SERVICE_VIN_TIME_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_VIN): cv.string,
-        vol.Required(CONF_TIME): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
-    }
-)
+
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
@@ -163,10 +158,17 @@ SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
         vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),  # type: ignore
     }
 )
+SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})
 SERVICE_VIN_PIN_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
         vol.Optional(CONF_PIN): cv.string,
+    }
+)
+SERVICE_VIN_TIME_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Required(CONF_TIME): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
     }
 )
 

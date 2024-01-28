@@ -14,12 +14,13 @@ from .const import DOMAIN
 
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    config_entry: ConfigEntry,
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    domain = hass.data[DOMAIN]
+    domain = hass.data[DOMAIN][config_entry.entry_id]
 
-    data = {"entry": entry.as_dict(), "cars": json.dumps(domain.client.cars, indent=4, cls=MBAPIEncoder)}
+    data = {"entry": config_entry.as_dict(), "cars": domain.client.cars}
+    # data = {"entry": entry.as_dict(), "cars": json.dumps(domain.client.cars, indent=4, cls=MBAPIEncoder)}
 
     return async_redact_data(data, ("pin", "access_token", "refresh_token", "username", "unique_id", "nounce"))
 

@@ -1,6 +1,3 @@
-refresh_access_token:
-  description: Refresh the API access token
-
 auxheat_configure:
   description: "Command for configuring the auxiliary heating. It is possible to define three daytimes and select one active time."
   fields:

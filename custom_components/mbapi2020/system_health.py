@@ -1,4 +1,6 @@
 """Provide info to system health."""
+from __future__ import annotations
+
 from homeassistant.components import system_health
 from homeassistant.core import HomeAssistant, callback
 
@@ -13,7 +15,9 @@ def async_register(hass: HomeAssistant, register: system_health.SystemHealthRegi
 
 async def system_health_info(hass):
     """Get info for the info page."""
-    client = hass.data[DOMAIN]
+
+    config_entry_id = next(iter(hass.data[DOMAIN]))
+    client = hass.data[DOMAIN][config_entry_id]
 
     return {
         "websocket_connection_state": client.client.websocket.connection_state,
