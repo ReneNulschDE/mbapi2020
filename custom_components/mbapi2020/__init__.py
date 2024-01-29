@@ -37,6 +37,7 @@ CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up MBAPI2020."""
     LOGGER.debug("Start async_setup - Initializing services.")
+    hass.data.setdefault(DOMAIN, {})
     setup_services(hass)
 
     return True
