@@ -113,7 +113,10 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
         if value and int(value) == 0:
             return True
 
-        return False
+        if value and int(value) == 1:
+            return False
+
+        return None
 
     @property
     def code_format(self):
