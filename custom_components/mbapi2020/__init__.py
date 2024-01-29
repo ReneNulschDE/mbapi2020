@@ -219,7 +219,6 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
         self._vin = vin
         self._internal_name = internal_name
         self._sensor_config = sensor_config
-        self._is_poll_sensor = should_poll
 
         self._state = None
         self._sensor_name = sensor_config[scf.DISPLAY_NAME.value]
@@ -227,29 +226,24 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
         self._feature_name = sensor_config[scf.OBJECT_NAME.value]
         self._object_name = sensor_config[scf.ATTRIBUTE_NAME.value]
         self._attrib_name = sensor_config[scf.VALUE_FIELD_NAME.value]
-        self._extended_attributes = sensor_config[scf.EXTENDED_ATTRIBUTE_LIST.value]
 
         self._car = self._coordinator.client.cars[self._vin]
         self._use_chinese_location_data: bool = self._coordinator.config_entry.options.get(
             CONF_ENABLE_CHINA_GCJ_02, False
         )
-        self._licenseplate = self._car.licenseplate
-        self._name = f"{self._licenseplate} {self._sensor_name}"
+
+        self._name = f"{self._car.licenseplate} {self._sensor_name}"
 
         self._attr_device_class = self._sensor_config[scf.DEVICE_CLASS.value]
         self._attr_device_info = {"identifiers": {(DOMAIN, self._vin)}}
         self._attr_entity_category = self._sensor_config[scf.ENTITY_CATEGORY.value]
         self._attr_icon = self._sensor_config[scf.ICON.value]
-        self._attr_should_poll = self._is_poll_sensor
+        self._attr_should_poll = should_poll
         self._attr_state_class = self._sensor_config[scf.STATE_CLASS.value]
         self._attr_suggested_unit_of_measurement = self.unit_of_measurement
         self._attr_translation_key = self._internal_name.lower()
         self._attr_unique_id = slugify(f"{self._vin}_{self._internal_name}")
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
+        self._attr_name = self._sensor_name
 
     def device_retrieval_status(self):
         """Return the retrieval_status of the sensor."""
@@ -262,7 +256,7 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
     def extra_state_attributes(self):
         """Return the state attributes."""
 
-        state = {"car": self._licenseplate, "vin": self._vin}
+        state = {"car": self._car.licenseplate, "vin": self._vin}
 
         state = self._extend_attributes(state)
 
@@ -276,8 +270,8 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             if value:
                 state[item] = value if item != "timestamp" else datetime.fromtimestamp(int(value))
 
-        if self._extended_attributes is not None:
-            for attrib in sorted(self._extended_attributes):
+        if self._sensor_config[scf.EXTENDED_ATTRIBUTE_LIST.value] is not None:
+            for attrib in sorted(self._sensor_config[scf.EXTENDED_ATTRIBUTE_LIST.value]):
                 retrievalstatus = self._get_car_value(self._feature_name, attrib, "retrievalstatus", "error")
 
                 if retrievalstatus == "VALID":
