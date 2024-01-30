@@ -12,6 +12,7 @@ import uuid
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientError
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.storage import STORAGE_DIR
@@ -56,15 +57,19 @@ class Oauth:  # pylint: disable-too-few-public-methods
         hass: HomeAssistant,
         session: ClientSession,
         region: str,
-        config_entry_id: str,
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the OAuth instance."""
         self._session: ClientSession = session
         self._region: str = region
         self._hass = hass
-        self._config_entry_id = config_entry_id
+        self._config_entry = config_entry
         self._old_token_path = hass.config.path(TOKEN_FILE_PREFIX)
-        self._config_entry_token_path = hass.config.path(STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{config_entry_id}")
+        self._config_entry_token_path: str = None
+        if config_entry:
+            self._config_entry_token_path = hass.config.path(
+                STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{config_entry.entry_id}"
+            )
         self.token = None
 
     async def request_pin(self, email: str, nonce: str):
@@ -118,7 +123,8 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
         if token_info is not None:
             token_info = self._add_custom_values_to_token_info(token_info)
-            self._save_token_info(token_info)
+            if self._config_entry_token_path:
+                self._save_token_info(token_info)
             self.token = token_info
             return token_info
 
@@ -133,26 +139,26 @@ class Oauth:  # pylint: disable-too-few-public-methods
             token_info = self.token
         else:
             if not os.path.exists(self._config_entry_token_path):
-                # migrate token
-                _LOGGER.debug(
-                    "async_get_cached_token: new token file %s not present. start token migration.",
-                    self._config_entry_token_path,
-                )
-                if not os.path.exists(self._old_token_path):
-                    _LOGGER.info(
-                        "async_get_cached_token: Abort token migration - no old token file present. Reauth required"
-                    )
-                    return None
+                if os.path.exists(self._old_token_path):
+                    _LOGGER.debug("async_get_cached_token: token migration - start copy")
+                    shutil.copyfile(self._old_token_path, self._config_entry_token_path)
+                    os.remove(self._old_token_path)
 
-                _LOGGER.debug("async_get_cached_token: token migration - start copy")
-                shutil.copyfile(self._old_token_path, self._config_entry_token_path)
-
-                os.remove(self._old_token_path)
-
-            token_file = open(self._config_entry_token_path)
-            token_info_string = token_file.read()
-            token_file.close()
-            token_info = json.loads(token_info_string)
+                    token_file = open(self._config_entry_token_path)
+                    token_info_string = token_file.read()
+                    token_file.close()
+                    token_info = json.loads(token_info_string)
+                else:
+                    if self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
+                        token_info = self._config_entry.data["token"]
+                    else:
+                        _LOGGER.warning("No token information - reauth required")
+                        return None
+            else:
+                token_file = open(self._config_entry_token_path)
+                token_info_string = token_file.read()
+                token_file.close()
+                token_info = json.loads(token_info_string)
 
         if self.is_token_expired(token_info):
             _LOGGER.debug("%s token expired -> start refresh", __name__)

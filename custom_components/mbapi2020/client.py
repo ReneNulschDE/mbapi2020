@@ -88,7 +88,7 @@ class Client:  # pylint: disable-too-few-public-methods
             self._hass,
             session=session,
             region=self._region,
-            config_entry_id=self.config_entry.entry_id,
+            config_entry=config_entry,
         )
         self.webapi: WebApi = WebApi(self._hass, session=session, oauth=self.oauth, region=self._region)
         self.websocket: Websocket = Websocket(self._hass, self.oauth, region=self._region)

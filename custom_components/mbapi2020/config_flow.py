@@ -56,9 +56,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
-                f"{user_input[CONF_USERNAME]}"
-            )
+            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(user_input[CONF_USERNAME])
 
             if not self.reauth_mode:
                 self._abort_if_unique_id_configured()
@@ -95,7 +93,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             nonce = self.data["nonce"]
             new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(self.data[CONF_USERNAME])
             session = async_get_clientsession(self.hass, VERIFY_SSL)
-
+            LOGGER.warning(new_config_entry)
             client = Client(self.hass, session, new_config_entry, self.data[CONF_REGION])
             try:
                 result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin, nonce)
@@ -105,7 +103,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             if not errors:
                 LOGGER.debug("Token received")
-                # self.data["token"] = result
+                self.data["token"] = result
 
                 if self.reauth_mode:
                     self.hass.async_create_task(self.hass.config_entries.async_reload(self._existing_entry.entry_id))
