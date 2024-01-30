@@ -3,8 +3,10 @@ from __future__ import annotations
 
 from homeassistant.components import system_health
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.loader import async_get_integration
 
-from .const import DOMAIN, WEBSOCKET_API_BASE
+from .const import DOMAIN, REST_API_BASE, WEBSOCKET_API_BASE
+from .coordinator import MBAPI2020DataUpdateCoordinator
 
 
 @callback
@@ -16,10 +18,31 @@ def async_register(hass: HomeAssistant, register: system_health.SystemHealthRegi
 async def system_health_info(hass):
     """Get info for the info page."""
 
-    config_entry_id = next(iter(hass.data[DOMAIN]))
-    client = hass.data[DOMAIN][config_entry_id]
+    domain = hass.data[DOMAIN]
+    first_coordinator: MBAPI2020DataUpdateCoordinator = None
+    used_cars: int = 0
+
+    for key in iter(domain):
+        if not isinstance(domain[key], MBAPI2020DataUpdateCoordinator):
+            next
+
+        coordinator = domain[key]
+        if not first_coordinator:
+            first_coordinator = coordinator
+
+        if coordinator.client and coordinator.client.cars:
+            used_cars += len(coordinator.client.cars)
+
+    if first_coordinator and first_coordinator.client and first_coordinator.client.websocket:
+        websocket_connection_state = str(first_coordinator.client.websocket.connection_state)
+    else:
+        websocket_connection_state = "unknown"
+
+    integration = await async_get_integration(hass, DOMAIN)
 
     return {
-        "websocket_connection_state": client.client.websocket.connection_state,
-        "api_endpoint_reachable": system_health.async_check_can_reach_url(hass, WEBSOCKET_API_BASE),
+        "api_endpoint_reachable": system_health.async_check_can_reach_url(hass, REST_API_BASE),
+        "websocket_connection_state": websocket_connection_state,
+        "cars_connected": used_cars,
+        "version": integration.manifest.get("version"),
     }

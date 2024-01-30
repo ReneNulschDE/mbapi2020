@@ -64,8 +64,10 @@
   },
   "system_health": {
     "info": {
-      "api_endpoint_reachable": "MB API endpoint reachable",
-      "websocket_connection_state": "MB Websocket connection state"
+      "api_endpoint_reachable": "MB API reachable",
+      "websocket_connection_state": "MB WS state",
+      "cars_connected": "Connected cars",
+      "version": "Version"
     }
   },
   "services": {
