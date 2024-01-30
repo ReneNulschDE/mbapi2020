@@ -106,6 +106,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.data["token"] = result
 
                 if self.reauth_mode:
+                    self.hass.config_entries.async_update_entry(self._existing_entry, data=self.data)
                     self.hass.async_create_task(self.hass.config_entries.async_reload(self._existing_entry.entry_id))
                     return self.async_abort(reason="reauth_successful")
 
@@ -128,13 +129,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return OptionsFlowHandler(config_entry)
 
 
-class OptionsFlowHandler(config_entries.OptionsFlow):
+class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
     """Options flow handler."""
-
-    def __init__(self, config_entry):
-        """Initialize options flow."""
-        self.config_entry: ConfigEntry = config_entry
-        self.options = dict(config_entry.options)
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
@@ -149,6 +145,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             if user_input[CONF_PIN] == "0":
                 user_input[CONF_PIN] = ""
             self.options.update(user_input)
+            changed = self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                options=user_input,
+            )
+            if changed:
+                await self.hass.config_entries.async_reload(self.config_entry.entry_id)
             return self.async_create_entry(title=DOMAIN, data=self.options)
 
         options = self.config_entry.options

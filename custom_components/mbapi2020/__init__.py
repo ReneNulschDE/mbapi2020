@@ -173,7 +173,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         LOGGER.error("Config entry failed: %s", err)
         raise ConfigEntryNotReady from err
 
-    config_entry.add_update_listener(config_entry_update_listener)
+    # config_entry.add_update_listener(config_entry_update_listener)
 
     return True
 
