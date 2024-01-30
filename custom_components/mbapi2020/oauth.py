@@ -6,7 +6,6 @@ import logging
 import os
 import shutil
 import time
-from typing import Optional
 import urllib.parse
 import uuid
 
@@ -18,6 +17,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.storage import STORAGE_DIR
 
 from .const import (
+    DEFAULT_COUNTRY_CODE,
+    DEFAULT_LOCALE,
     REGION_APAC,
     REGION_CHINA,
     REGION_EUROPE,
@@ -53,29 +54,24 @@ class Oauth:  # pylint: disable-too-few-public-methods
     def __init__(
         self,
         hass: HomeAssistant,
-        session: Optional[ClientSession] = None,
-        locale: Optional[str] = "EN",
-        country_code: Optional[str] = "en-US",
-        region: str = "",
-        config_entry_id: str = "",
+        session: ClientSession,
+        region: str,
+        config_entry_id: str,
     ) -> None:
         """Initialize the OAuth instance."""
-        self.token = None
-        self._locale = locale
-        self._country_code = country_code
-        self._session: ClientSession | None = session
+        self._session: ClientSession = session
         self._region: str = region
-        self.hass = hass
+        self._hass = hass
         self._config_entry_id = config_entry_id
-
-        self.old_token_path = hass.config.path(TOKEN_FILE_PREFIX)
-        self.config_entry_token_path = hass.config.path(STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{config_entry_id}")
+        self._old_token_path = hass.config.path(TOKEN_FILE_PREFIX)
+        self._config_entry_token_path = hass.config.path(STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{config_entry_id}")
+        self.token = None
 
     async def request_pin(self, email: str, nonce: str):
         """Initiate a PIN request."""
         _LOGGER.info("Start request PIN %s", email)
         url = f"{helper.Rest_url(self._region)}/v1/login"
-        data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{self._country_code}", "nonce" : "{nonce}"}}'
+        data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{DEFAULT_COUNTRY_CODE}", "nonce" : "{nonce}"}}'
         headers = self._get_header()
         return await self._async_request("post", url, data=data, headers=headers)
 
@@ -136,24 +132,24 @@ class Oauth:  # pylint: disable-too-few-public-methods
         if self.token:
             token_info = self.token
         else:
-            if not os.path.exists(self.config_entry_token_path):
+            if not os.path.exists(self._config_entry_token_path):
                 # migrate token
                 _LOGGER.debug(
                     "async_get_cached_token: new token file %s not present. start token migration.",
-                    self.config_entry_token_path,
+                    self._config_entry_token_path,
                 )
-                if not os.path.exists(self.old_token_path):
+                if not os.path.exists(self._old_token_path):
                     _LOGGER.info(
                         "async_get_cached_token: Abort token migration - no old token file present. Reauth required"
                     )
                     return None
 
                 _LOGGER.debug("async_get_cached_token: token migration - start copy")
-                shutil.copyfile(self.old_token_path, self.config_entry_token_path)
+                shutil.copyfile(self._old_token_path, self._config_entry_token_path)
 
-                os.remove(self.old_token_path)
+                os.remove(self._old_token_path)
 
-            token_file = open(self.config_entry_token_path)
+            token_file = open(self._config_entry_token_path)
             token_info_string = token_file.read()
             token_file.close()
             token_info = json.loads(token_info_string)
@@ -178,14 +174,14 @@ class Oauth:  # pylint: disable-too-few-public-methods
         return True
 
     def _save_token_info(self, token_info):
-        _LOGGER.debug("Start _save_token_info() to %s", self.config_entry_token_path)
+        _LOGGER.debug("Start _save_token_info() to %s", self._config_entry_token_path)
 
         try:
-            with open(self.config_entry_token_path, "w") as token_file:
+            with open(self._config_entry_token_path, "w") as token_file:
                 token_file.write(json.dumps(token_info))
                 token_file.close()
         except OSError:
-            _LOGGER.error("Couldn't write token cache to %s", self.config_entry_token_path)
+            _LOGGER.error("Couldn't write token cache to %s", self._config_entry_token_path)
             raise
 
     @classmethod
@@ -199,7 +195,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
             "Ris-Os-Name": RIS_OS_NAME,
             "Ris-Os-Version": RIS_OS_VERSION,
             "Ris-Sdk-Version": RIS_SDK_VERSION,
-            "X-Locale": self._locale,
+            "X-Locale": DEFAULT_LOCALE,
             "X-Trackingid": str(uuid.uuid4()),
             "X-Sessionid": str(uuid.uuid4()),
             "User-Agent": WEBSOCKET_USER_AGENT,
@@ -239,7 +235,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         kwargs.setdefault("proxy", SYSTEM_PROXY)
 
         if not self._session or self._session.closed:
-            self._session = async_get_clientsession(self.hass, VERIFY_SSL)
+            self._session = async_get_clientsession(self._hass, VERIFY_SSL)
 
         try:
             async with self._session.request(method, url, data=data, **kwargs) as resp:

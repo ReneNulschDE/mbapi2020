@@ -40,11 +40,9 @@ from .car import (
     Windows,
 )
 from .const import (
-    CONF_COUNTRY_CODE,
     CONF_DEBUG_FILE_SAVE,
     CONF_EXCLUDED_CARS,
     CONF_FT_DISABLE_CAPABILITY_CHECK,
-    CONF_LOCALE,
     CONF_PIN,
     DEFAULT_CACHE_PATH,
     DEFAULT_COUNTRY_CODE,
@@ -86,16 +84,9 @@ class Client:  # pylint: disable-too-few-public-methods
         self._locale: str = DEFAULT_LOCALE
         self._country_code: str = DEFAULT_COUNTRY_CODE
 
-        if self.config_entry:
-            if self.config_entry.options:
-                self._country_code = self.config_entry.options.get(CONF_COUNTRY_CODE, DEFAULT_COUNTRY_CODE)
-                self._locale = self.config_entry.options.get(CONF_LOCALE, DEFAULT_LOCALE)
-
         self.oauth: Oauth = Oauth(
             self._hass,
             session=session,
-            locale=self._locale,
-            country_code=self._country_code,
             region=self._region,
             config_entry_id=self.config_entry.entry_id,
         )

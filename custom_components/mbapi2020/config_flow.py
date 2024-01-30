@@ -16,17 +16,13 @@ from homeassistant.helpers.storage import STORAGE_DIR
 from .client import Client
 from .const import (
     CONF_ALLOWED_REGIONS,
-    CONF_COUNTRY_CODE,
     CONF_DEBUG_FILE_SAVE,
     CONF_DELETE_AUTH_FILE,
     CONF_ENABLE_CHINA_GCJ_02,
     CONF_EXCLUDED_CARS,
     CONF_FT_DISABLE_CAPABILITY_CHECK,
-    CONF_LOCALE,
     CONF_PIN,
     CONF_REGION,
-    DEFAULT_COUNTRY_CODE,
-    DEFAULT_LOCALE,
     DOMAIN,
     LOGGER,
     TOKEN_FILE_PREFIX,
@@ -71,7 +67,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             nonce = str(uuid.uuid4())
             user_input["nonce"] = nonce
 
-            LOGGER.warning(new_config_entry.as_dict())
             client = Client(self.hass, session, new_config_entry, region=user_input[CONF_REGION])
             try:
                 await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
@@ -84,7 +79,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             LOGGER.error("Request PIN error: %s", errors)
 
-        return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors={"Unknown error": str(errors)})
+        return self.async_show_form(
+            step_id="user",
+            data_schema=SCHEMA_STEP_USER,
+            errors={"Unknown error": str(errors)},
+        )
 
     async def async_step_pin(self, user_input=None):
         """Handle the step where the user inputs his/her station."""
@@ -94,9 +93,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             pin = user_input[CONF_PASSWORD]
             nonce = self.data["nonce"]
+            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(self.data[CONF_USERNAME])
             session = async_get_clientsession(self.hass, VERIFY_SSL)
 
-            client = Client(self.hass, session, None, self.data[CONF_REGION])
+            client = Client(self.hass, session, new_config_entry, self.data[CONF_REGION])
             try:
                 result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin, nonce)
             except MbapiError as error:
@@ -105,7 +105,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             if not errors:
                 LOGGER.debug("Token received")
-                self.data["token"] = result
+                # self.data["token"] = result
 
                 if self.reauth_mode:
                     self.hass.async_create_task(self.hass.config_entries.async_reload(self._existing_entry.entry_id))
@@ -154,8 +154,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             return self.async_create_entry(title=DOMAIN, data=self.options)
 
         options = self.config_entry.options
-        country_code = options.get(CONF_COUNTRY_CODE, DEFAULT_COUNTRY_CODE)
-        locale = options.get(CONF_LOCALE, DEFAULT_LOCALE)
         excluded_cars = options.get(CONF_EXCLUDED_CARS, "")
         pin = options.get(CONF_PIN, "")
         cap_check_disabled = options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
@@ -166,8 +164,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(CONF_COUNTRY_CODE, default=country_code): str,
-                    vol.Optional(CONF_LOCALE, default=locale): str,
                     vol.Optional(CONF_EXCLUDED_CARS, default=excluded_cars): str,
                     vol.Optional(CONF_PIN, default=pin): str,
                     vol.Optional(CONF_FT_DISABLE_CAPABILITY_CHECK, default=cap_check_disabled): bool,
