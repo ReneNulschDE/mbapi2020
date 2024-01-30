@@ -74,8 +74,8 @@ X_APPLICATIONNAME_CN = "mycar-store-cn"
 X_APPLICATIONNAME_US = "mycar-store-us"
 X_APPLICATIONNAME_AP = "mycar-store-ap"
 
-USE_PROXY = True
-VERIFY_SSL = False
+USE_PROXY = False
+VERIFY_SSL = True
 SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:8080"
 
 
