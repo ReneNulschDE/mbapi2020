@@ -329,7 +329,6 @@ class Client:  # pylint: disable-too-few-public-methods
                                 ),
                             ),
                         )
-                        curr_distance_unit = curr.get("distance_unit", None)
                         curr_display_value = curr.get("display_value", None)
                     else:
                         # special EQA/B max_soc handling
@@ -359,7 +358,6 @@ class Client:  # pylint: disable-too-few-public-methods
                         value,
                         status,
                         time_stamp,
-                        distance_unit=curr_distance_unit,
                         display_value=curr_display_value,
                         unit=curr_unit,
                     )

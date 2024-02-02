@@ -269,7 +269,7 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             if value:
                 state["original_value"] = value
 
-        for item in ["distance_unit", "retrievalstatus", "timestamp", "unit"]:
+        for item in ["retrievalstatus", "timestamp", "unit"]:
             value = self._get_car_value(self._feature_name, self._object_name, item, None)
             if value:
                 state[item] = value if item != "timestamp" else datetime.fromtimestamp(int(value))

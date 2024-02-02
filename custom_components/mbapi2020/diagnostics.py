@@ -26,12 +26,3 @@ async def async_get_config_entry_diagnostics(
         data["cars"].append({loghelper.Mask_VIN(car.finorvin): json.loads(json.dumps(car, cls=MBJSONEncoder))})
 
     return async_redact_data(data, JSON_EXPORT_IGNORED_KEYS)
-
-
-class MBAPIEncoder(JSONEncoder):
-    """Custom JSON Encoder for MBAPI2020."""
-
-    def default(self, o):
-        if isinstance(o, set):
-            return list(o)
-        return o.__dict__
