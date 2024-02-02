@@ -60,6 +60,21 @@ DEFAULT_COUNTRY_CODE = "EN"
 
 TOKEN_FILE_PREFIX = ".mercedesme-token-cache"
 
+JSON_EXPORT_IGNORED_KEYS = (
+    "pin",
+    "access_token",
+    "refresh_token",
+    "username",
+    "unique_id",
+    "nounce",
+    "_update_listeners",
+    "finorvin",
+    "licenseplate",
+    "fin",
+    "licensePlate",
+)
+
+
 RIS_APPLICATION_VERSION_NA = "3.40.0"
 RIS_APPLICATION_VERSION_CN = "1.39.0"
 RIS_APPLICATION_VERSION_PA = "1.40.0"

@@ -4,8 +4,7 @@ from __future__ import annotations
 import collections
 from dataclasses import dataclass
 from datetime import datetime
-
-from custom_components.mbapi2020.const import LOGGER
+from typing import Any
 
 ODOMETER_OPTIONS = [
     "odo",
@@ -215,6 +214,7 @@ class Car:
         self.caralarm = None
         self.geofence_events = GeofenceEvents()
         self.features = {}
+        self.masterdate: dict[str, Any] = {}
         self.entry_setup_complete = False
         self._update_listeners = set()
 

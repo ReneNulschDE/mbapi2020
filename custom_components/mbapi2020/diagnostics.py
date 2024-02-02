@@ -9,7 +9,8 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from .const import DOMAIN, JSON_EXPORT_IGNORED_KEYS
+from .helper import LogHelper as loghelper, MBJSONEncoder
 
 
 async def async_get_config_entry_diagnostics(
@@ -19,10 +20,12 @@ async def async_get_config_entry_diagnostics(
     """Return diagnostics for a config entry."""
     domain = hass.data[DOMAIN][config_entry.entry_id]
 
-    data = {"entry": config_entry.as_dict(), "cars": domain.client.cars}
-    # data = {"entry": entry.as_dict(), "cars": json.dumps(domain.client.cars, indent=4, cls=MBAPIEncoder)}
+    data = {"entry": config_entry.as_dict(), "cars": []}
 
-    return async_redact_data(data, ("pin", "access_token", "refresh_token", "username", "unique_id", "nounce"))
+    for car in domain.client.cars.values():
+        data["cars"].append({loghelper.Mask_VIN(car.finorvin): json.loads(json.dumps(car, cls=MBJSONEncoder))})
+
+    return async_redact_data(data, JSON_EXPORT_IGNORED_KEYS)
 
 
 class MBAPIEncoder(JSONEncoder):

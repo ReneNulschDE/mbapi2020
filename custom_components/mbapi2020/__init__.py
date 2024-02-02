@@ -87,17 +87,19 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             if vin in config_entry.options.get("excluded_cars", ""):
                 continue
 
+            features: dict[str, bool] = {}
+
             try:
                 car_capabilities = await coordinator.client.webapi.get_car_capabilities(vin)
                 coordinator.client.write_debug_json_output(car_capabilities, "cai")
+                if car_capabilities and "features" in car_capabilities:
+                    features.update(car_capabilities["features"])
             except aiohttp.ClientError:
                 # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
                 LOGGER.info(
                     "Car Capabilities not available for the car with VIN %s.",
                     loghelper.Mask_VIN(vin),
                 )
-
-            features: dict[str, bool] = {}
 
             try:
                 capabilities = await coordinator.client.webapi.get_car_capabilities_commands(vin)
@@ -153,6 +155,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             if not current_car.licenseplate.strip():
                 current_car.licenseplate = vin
             current_car.features = features
+            current_car.masterdata = car
             current_car.rcp_options = rcp_options
             current_car._last_message_received = int(round(time.time() * 1000))
             current_car._is_owner = car.get("isOwner")
