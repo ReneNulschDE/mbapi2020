@@ -1,6 +1,7 @@
 """Define an object to interact with the REST API."""
 from __future__ import annotations
 
+from copy import deepcopy
 import json
 import logging
 import os
@@ -12,6 +13,7 @@ import uuid
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientError
 
+from custom_components.mbapi2020.errors import MBAuthError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -91,8 +93,14 @@ class Oauth:  # pylint: disable-too-few-public-methods
         headers["Content-Type"] = "application/x-www-form-urlencoded"
         headers["X-Device-Id"] = str(uuid.uuid4())
         headers["X-Request-Id"] = str(uuid.uuid4())
-
-        token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
+        token_info = None
+        try:
+            token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
+        except MBAuthError as err:
+            new_config_entry_data = deepcopy(dict(self._config_entry.data))
+            new_config_entry_data["token"] = None
+            changed = self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
+            raise err
 
         if token_info is not None:
             if "refresh_token" not in token_info:
@@ -162,7 +170,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
         if self.is_token_expired(token_info):
             _LOGGER.debug("%s token expired -> start refresh", __name__)
-            if "refresh_token" not in token_info:
+            if not token_info or "refresh_token" not in token_info:
                 _LOGGER.warning("Refresh token is missing - reauth required")
                 return None
             token_info = await self.async_refresh_access_token(token_info["refresh_token"])
@@ -181,6 +189,10 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
     def _save_token_info(self, token_info):
         _LOGGER.debug("Start _save_token_info() to %s", self._config_entry_token_path)
+
+        new_config_entry_data = deepcopy(dict(self._config_entry.data))
+        new_config_entry_data["token"] = token_info
+        changed = self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
 
         try:
             with open(self._config_entry_token_path, "w") as token_file:
@@ -250,6 +262,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
                 return await resp.json(content_type=None)
         except ClientError as err:
             _LOGGER.error("ClientError requesting data from %s: %s", url, err)
-            raise err
+            if str(err).startswith("400"):
+                raise MBAuthError from err
         except Exception as exc:
             _LOGGER.error("Unexpected Error requesting data from %s: %s", url, exc)

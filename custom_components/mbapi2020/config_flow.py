@@ -1,16 +1,17 @@
 """Config flow for mbapi2020 integration."""
 from __future__ import annotations
 
+from copy import deepcopy
 import os
 import uuid
 
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.storage import STORAGE_DIR
 
 from .client import Client
@@ -141,6 +142,23 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
                 LOGGER.warning("DELETE Auth File requested %s", auth_file)
                 if os.path.isfile(auth_file):
                     os.remove(auth_file)
+                new_config_entry_data = deepcopy(dict(self._config_entry.data))
+                new_config_entry_data["token"] = None
+                changed = self.hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
+
+                LOGGER.debug("%s Creating restart_required issue", DOMAIN)
+                async_create_issue(
+                    hass=self.hass,
+                    domain=DOMAIN,
+                    issue_id="restart_required_auth_deleted",
+                    is_fixable=True,
+                    issue_domain=DOMAIN,
+                    severity=IssueSeverity.WARNING,
+                    translation_key="restart_required",
+                    translation_placeholders={
+                        "name": DOMAIN,
+                    },
+                )
 
             if user_input[CONF_PIN] == "0":
                 user_input[CONF_PIN] = ""
