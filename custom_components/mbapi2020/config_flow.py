@@ -57,7 +57,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(user_input[CONF_USERNAME])
+            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
+                f"{user_input[CONF_USERNAME]}-{user_input[CONF_REGION]}"
+            )
 
             if not self.reauth_mode:
                 self._abort_if_unique_id_configured()
@@ -92,7 +94,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             pin = user_input[CONF_PASSWORD]
             nonce = self.data["nonce"]
-            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(self.data[CONF_USERNAME])
+            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
+                f"{self.data[CONF_USERNAME]}-{self.data[CONF_REGION]}"
+            )
             session = async_get_clientsession(self.hass, VERIFY_SSL)
             LOGGER.warning(new_config_entry)
             client = Client(self.hass, session, new_config_entry, self.data[CONF_REGION])
@@ -111,7 +115,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     self.hass.async_create_task(self.hass.config_entries.async_reload(self._existing_entry.entry_id))
                     return self.async_abort(reason="reauth_successful")
 
-                return self.async_create_entry(title=DOMAIN, data=self.data)
+                return self.async_create_entry(
+                    title=f"{self.data[CONF_USERNAME]} (Region: {self.data[CONF_REGION]})", data=self.data
+                )
 
         return self.async_show_form(step_id="pin", data_schema=SCHEMA_STEP_PIN, errors=errors)
 
