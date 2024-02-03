@@ -167,7 +167,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         await coordinator.async_config_entry_first_refresh()
 
-        hass.loop.create_task(coordinator.ws_connect())
+        if len(coordinator.client.cars) > 0:
+            hass.loop.create_task(coordinator.ws_connect())
+        else:
+            LOGGER.warning("No active cars found. Websocket connection disabled.")
 
     except aiohttp.ClientError as err:
         LOGGER.warning("Can't connect to MB APIs; Retrying in background")
@@ -190,13 +193,16 @@ async def config_entry_update_listener(hass: HomeAssistant, config_entry: Config
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Unload mbapi2020 Home config entry."""
     LOGGER.debug("Start unload component.")
+    unload_ok = False
 
-    await hass.data[DOMAIN][config_entry.entry_id].client.websocket.async_stop()
-
-    # remove_services(hass)
-
-    if unload_ok := await hass.config_entries.async_unload_platforms(config_entry, MERCEDESME_COMPONENTS):
-        del hass.data[DOMAIN]
+    if len(hass.data[DOMAIN][config_entry.entry_id].client.cars) > 0:
+        await hass.data[DOMAIN][config_entry.entry_id].client.websocket.async_stop()
+        if unload_ok := await hass.config_entries.async_unload_platforms(config_entry, MERCEDESME_COMPONENTS):
+            del hass.data[DOMAIN][config_entry.entry_id]
+    else:
+        # No cars loaded, we destroy the config entry only
+        del hass.data[DOMAIN][config_entry.entry_id]
+        unload_ok = True
 
     LOGGER.debug("unload result: %s", unload_ok)
     return unload_ok
@@ -302,9 +308,9 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
         """Return the unit of measurement."""
 
         if "unit" in self.extra_state_attributes:
-            reported_unit = self.extra_state_attributes["unit"]
-            if reported_unit in UNITS:
-                return UNITS[reported_unit]
+            reported_unit: str = self.extra_state_attributes["unit"]
+            if reported_unit.upper() in UNITS:
+                return UNITS[reported_unit.upper()]
 
             LOGGER.warning(
                 "Unknown unit %s found. Please report via issue https://www.github.com/renenulschde/mbapi2020/issues",
