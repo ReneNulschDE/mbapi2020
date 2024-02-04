@@ -250,7 +250,7 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
         self._attr_icon = self._sensor_config[scf.ICON.value]
         self._attr_should_poll = should_poll
         self._attr_state_class = self._sensor_config[scf.STATE_CLASS.value]
-        self._attr_suggested_unit_of_measurement = self.unit_of_measurement
+        self._attr_native_unit_of_measurement = self.unit_of_measurement
         self._attr_translation_key = self._internal_name.lower()
         self._attr_unique_id = slugify(f"{self._vin}_{self._internal_name}")
         self._attr_name = self._sensor_name
