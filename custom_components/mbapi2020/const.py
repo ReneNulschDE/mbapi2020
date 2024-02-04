@@ -444,7 +444,7 @@ DEVICE_TRACKER = {
 SENSORS = {
     "chargingpowerkw": [
         "Charging Power",
-        "kW",  # Deprecated: DO NOT USE
+        "KW",  # Deprecated: DO NOT USE
         "electric",
         "chargingPower",
         "value",
@@ -744,7 +744,7 @@ SENSORS = {
         None,
         {"drivenTimeReset"},
         "mdi:map-marker-distance",
-        None,
+        SensorDeviceClass.DISTANCE,
         False,
         None,
         SensorStateClass.MEASUREMENT,
@@ -759,7 +759,7 @@ SENSORS = {
         None,
         {"drivenTimeStart"},
         "mdi:map-marker-distance",
-        None,
+        SensorDeviceClass.DISTANCE,
         False,
         None,
         SensorStateClass.MEASUREMENT,
@@ -774,7 +774,7 @@ SENSORS = {
         None,
         {"drivenTimeZEReset"},
         "mdi:map-marker-distance",
-        None,
+        SensorDeviceClass.DISTANCE,
         False,
         None,
         SensorStateClass.MEASUREMENT,
@@ -804,7 +804,7 @@ SENSORS = {
         None,
         {},
         "mdi:leaf",
-        None,
+        SensorDeviceClass.POWER_FACTOR,
         False,
         None,
         SensorStateClass.MEASUREMENT,
@@ -819,7 +819,7 @@ SENSORS = {
         None,
         {},
         "mdi:leaf",
-        None,
+        SensorDeviceClass.DISTANCE,
         False,
         None,
         SensorStateClass.MEASUREMENT,
@@ -834,7 +834,7 @@ SENSORS = {
         None,
         {},
         "mdi:leaf",
-        None,
+        SensorDeviceClass.POWER_FACTOR,
         False,
         None,
         SensorStateClass.MEASUREMENT,
@@ -849,7 +849,7 @@ SENSORS = {
         None,
         {},
         "mdi:leaf",
-        None,
+        SensorDeviceClass.POWER_FACTOR,
         False,
         None,
         SensorStateClass.MEASUREMENT,
@@ -864,7 +864,7 @@ SENSORS = {
         None,
         {},
         "mdi:fuel",
-        None,
+        None,  # No device class present in HA 2024.2
         False,
         None,
         SensorStateClass.MEASUREMENT,
@@ -879,7 +879,7 @@ SENSORS = {
         None,
         {},
         "mdi:fuel",
-        None,
+        None,  # No device class present in HA 2024.2
         False,
         None,
         SensorStateClass.MEASUREMENT,
@@ -1112,6 +1112,7 @@ UNITS = {
     "PSI": UnitOfPressure.PSI,
     "T24H": "",
     "T12H": "",
+    "%": PERCENTAGE,
 }
 
 
