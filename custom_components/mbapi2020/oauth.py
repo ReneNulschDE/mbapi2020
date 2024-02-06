@@ -73,10 +73,17 @@ class Oauth:  # pylint: disable-too-few-public-methods
                 STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{config_entry.entry_id}"
             )
         self.token = None
+        self._xsessionid = ""
 
     async def request_pin(self, email: str, nonce: str):
         """Initiate a PIN request."""
         _LOGGER.info("Start request PIN %s", email)
+        _LOGGER.info("PIN preflight request 1")
+        headers = self._get_header()
+        url = f"{helper.Rest_url(self._region)}/v1/config"
+        r = await self._async_request("get", url, headers=headers)
+
+        _LOGGER.info("PIN request")
         url = f"{helper.Rest_url(self._region)}/v1/login"
         data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{DEFAULT_COUNTRY_CODE}", "nonce" : "{nonce}"}}'
         headers = self._get_header()
@@ -209,13 +216,16 @@ class Oauth:  # pylint: disable-too-few-public-methods
         return token_info
 
     def _get_header(self):
+        if not self._xsessionid:
+            self._xsessionid = str(uuid.uuid4())
+
         header = {
             "Ris-Os-Name": RIS_OS_NAME,
             "Ris-Os-Version": RIS_OS_VERSION,
             "Ris-Sdk-Version": RIS_SDK_VERSION,
             "X-Locale": DEFAULT_LOCALE,
             "X-Trackingid": str(uuid.uuid4()),
-            "X-Sessionid": str(uuid.uuid4()),
+            "X-Sessionid": self._xsessionid,
             "User-Agent": WEBSOCKET_USER_AGENT,
             "Content-Type": "application/json",
             "Accept-Language": "en-GB",
