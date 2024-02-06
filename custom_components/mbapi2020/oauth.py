@@ -56,12 +56,21 @@ class Oauth:  # pylint: disable-too-few-public-methods
         self._session: ClientSession = session
         self._region: str = region
         self.cache_path = cache_path
+        self._session_id = ""
 
     async def request_pin(self, email: str, nonce: str):
         _LOGGER.info("Start request PIN %s", email)
+        headers = self._get_header()
+
+        _LOGGER.info("PIN preflight request 1")
+        url = f"{helper.Rest_url(self._region)}/v1/config"
+        r = await self._async_request("get", url, headers=headers)
+        _LOGGER.info("PIN preflight request 2")
+        url = f"{helper.Rest_url(self._region)}/v3/agreements?addressCountry=DE"
+        r = await self._async_request("get", url, headers=headers)
+
         url = f"{helper.Rest_url(self._region)}/v1/login"
         data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{self._country_code}", "nonce" : "{nonce}"}}'
-        headers = self._get_header()
         return await self._async_request("post", url, data=data, headers=headers)
 
     async def async_refresh_access_token(self, refresh_token: str):
@@ -75,7 +84,9 @@ class Oauth:  # pylint: disable-too-few-public-methods
         headers["X-Device-Id"] = str(uuid.uuid4())
         headers["X-Request-Id"] = str(uuid.uuid4())
 
-        token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
+        token_info = await self._async_request(
+            method="post", url=url, data=data, headers=headers
+        )
 
         if token_info is not None:
             if "refresh_token" not in token_info:
@@ -87,7 +98,6 @@ class Oauth:  # pylint: disable-too-few-public-methods
         return token_info
 
     async def request_access_token(self, email: str, pin: str, nonce: str):
-
         url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
         encoded_email = urllib.parse.quote_plus(email, safe="@")
 
@@ -128,7 +138,9 @@ class Oauth:  # pylint: disable-too-few-public-methods
                     if "refresh_token" not in token_info:
                         _LOGGER.warning("Refresh token is missing - reauth required")
                         return None
-                    token_info = await self.async_refresh_access_token(token_info["refresh_token"])
+                    token_info = await self.async_refresh_access_token(
+                        token_info["refresh_token"]
+                    )
 
             except IOError:
                 pass
@@ -163,6 +175,8 @@ class Oauth:  # pylint: disable-too-few-public-methods
         return token_info
 
     def _get_header(self) -> list:
+        if not self._session_id:
+            self._session_id = str(uuid.uuid4())
 
         header = {
             "Ris-Os-Name": RIS_OS_NAME,
@@ -170,7 +184,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
             "Ris-Sdk-Version": RIS_SDK_VERSION,
             "X-Locale": self._locale,
             "X-Trackingid": str(uuid.uuid4()),
-            "X-Sessionid": str(uuid.uuid4()),
+            "X-Sessionid": self._session_id,
             "User-Agent": WEBSOCKET_USER_AGENT,
             "Content-Type": "application/json",
         }
@@ -180,7 +194,6 @@ class Oauth:  # pylint: disable-too-few-public-methods
         return header
 
     def _get_region_header(self, header) -> list:
-
         if self._region == REGION_EUROPE:
             header["X-Applicationname"] = X_APPLICATIONNAME_ECE
             header["Ris-Application-Version"] = RIS_APPLICATION_VERSION
@@ -201,7 +214,9 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
         return header
 
-    async def _async_request(self, method: str, url: str, data: str = "", **kwargs) -> list:
+    async def _async_request(
+        self, method: str, url: str, data: str = "", **kwargs
+    ) -> list:
         """Make a request against the API."""
 
         kwargs.setdefault("headers", {})
