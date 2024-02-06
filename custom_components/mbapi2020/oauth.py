@@ -65,9 +65,11 @@ class Oauth:  # pylint: disable-too-few-public-methods
         _LOGGER.info("PIN preflight request 1")
         url = f"{helper.Rest_url(self._region)}/v1/config"
         r = await self._async_request("get", url, headers=headers)
-        _LOGGER.info("PIN preflight request 2")
-        url = f"{helper.Rest_url(self._region)}/v3/agreements?addressCountry=DE"
-        r = await self._async_request("get", url, headers=headers)
+
+        # _LOGGER.info("PIN preflight request 2")
+        # headers = self._get_header()
+        # url = f"{helper.Rest_url(self._region)}/v3/agreements?addressCountry=DE"
+        # r = await self._async_request("get", url, headers=headers)
 
         url = f"{helper.Rest_url(self._region)}/v1/login"
         data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{self._country_code}", "nonce" : "{nonce}"}}'
@@ -179,6 +181,8 @@ class Oauth:  # pylint: disable-too-few-public-methods
             self._session_id = str(uuid.uuid4())
 
         header = {
+            #            "Ldsso-Appid": "2005",
+            #            "Ldsso-Appversion": "2005_82",
             "Ris-Os-Name": RIS_OS_NAME,
             "Ris-Os-Version": RIS_OS_VERSION,
             "Ris-Sdk-Version": RIS_SDK_VERSION,
