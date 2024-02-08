@@ -98,7 +98,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 f"{self._data[CONF_USERNAME]}-{self._data[CONF_REGION]}"
             )
             session = async_get_clientsession(self.hass, VERIFY_SSL)
-            LOGGER.warning(new_config_entry)
+
             client = Client(self.hass, session, new_config_entry, self._data[CONF_REGION])
             try:
                 result = await client.oauth.request_access_token(self._data[CONF_USERNAME], pin, nonce)
