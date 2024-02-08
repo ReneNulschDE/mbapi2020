@@ -167,10 +167,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         await coordinator.async_config_entry_first_refresh()
 
-        if len(coordinator.client.cars) > 0:
-            hass.loop.create_task(coordinator.ws_connect())
-        else:
-            LOGGER.warning("No active cars found. Websocket connection disabled.")
+        # !! Use case: Smart cars have no masterdata entries
+        # we create the websocket to check if this channel has some data, car creation is done in the client module
+        # if len(coordinator.client.cars) == 0:
+        hass.loop.create_task(coordinator.ws_connect())
 
     except aiohttp.ClientError as err:
         LOGGER.warning("Can't connect to MB APIs; Retrying in background")
