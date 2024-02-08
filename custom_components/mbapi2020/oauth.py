@@ -89,11 +89,11 @@ class Oauth:  # pylint: disable-too-few-public-methods
         headers = self._get_header()
         return await self._async_request("post", url, data=data, headers=headers)
 
-    async def async_refresh_access_token(self, refresh_token: str):
+    async def async_refresh_access_token(self, refresh_token: str, is_retry: bool = False):
         """Refresh the access token."""
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
 
-        _LOGGER.info("Auth token preflight request 1")
+        _LOGGER.info("Auth token refresh preflight request 1")
         headers = self._get_header()
         url = f"{helper.Rest_url(self._region)}/v1/config"
         r = await self._async_request("get", url, headers=headers)
@@ -108,12 +108,16 @@ class Oauth:  # pylint: disable-too-few-public-methods
         token_info = None
         try:
             token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
+
         except MBAuthError as err:
-            if self._config_entry and self._config_entry.data:
-                new_config_entry_data = deepcopy(dict(self._config_entry.data))
-                new_config_entry_data["token"] = None
-                changed = self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
-            raise err
+            if is_retry:
+                if self._config_entry and self._config_entry.data:
+                    new_config_entry_data = deepcopy(dict(self._config_entry.data))
+                    new_config_entry_data["token"] = None
+                    changed = self._hass.config_entries.async_update_entry(
+                        self._config_entry, data=new_config_entry_data
+                    )
+                raise err
 
         if token_info is not None:
             if "refresh_token" not in token_info:
@@ -155,9 +159,11 @@ class Oauth:  # pylint: disable-too-few-public-methods
         """Get a cached auth token."""
         # _LOGGER.debug("Start async_get_cached_token()")
         token_info: dict[str, any]
+        token_type: str = ""
 
         if self.token:
             token_info = self.token
+            token_type = "instance"
         else:
             if not os.path.exists(self._config_entry_token_path):
                 if os.path.exists(self._old_token_path):
@@ -169,9 +175,11 @@ class Oauth:  # pylint: disable-too-few-public-methods
                     token_info_string = token_file.read()
                     token_file.close()
                     token_info = json.loads(token_info_string)
+                    token_type = "old_file"
                 else:
                     if self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
                         token_info = self._config_entry.data["token"]
+                        token_type = "config_entry"
                     else:
                         _LOGGER.warning("No token information - reauth required")
                         return None
@@ -180,13 +188,30 @@ class Oauth:  # pylint: disable-too-few-public-methods
                 token_info_string = token_file.read()
                 token_file.close()
                 token_info = json.loads(token_info_string)
+                token_type = "new_file"
 
         if self.is_token_expired(token_info):
             _LOGGER.debug("%s token expired -> start refresh", __name__)
             if not token_info or "refresh_token" not in token_info:
                 _LOGGER.warning("Refresh token is missing - reauth required")
                 return None
-            token_info = await self.async_refresh_access_token(token_info["refresh_token"])
+
+            token_info = await self.async_refresh_access_token(token_info["refresh_token"], is_retry=False)
+
+            if not token_info and token_type == "old_file":
+                if os.path.exists(self._old_token_path):
+                    _LOGGER.warning("async_get_cached_token: Delete old invalid token file")
+                    os.remove(self._old_token_path)
+                if self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
+                    token_info = self._config_entry.data["token"]
+                    token_type = "config_entry_2"
+
+                    _LOGGER.warning("Starting Refresh token in fallback mode round 2")
+                    token_info = await self.async_refresh_access_token(token_info["refresh_token"], is_retry=True)
+
+                if not token_info:
+                    _LOGGER.warning("Refresh token is missing in round 2 - reauth required")
+                    return None
 
         self.token = token_info
         return token_info

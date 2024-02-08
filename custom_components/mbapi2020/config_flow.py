@@ -48,9 +48,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     def __init__(self):
         """Initialize component."""
-        self._existing_entry = None
-        self.data = None
-        self.reauth_mode = False
+        self._reauth_entry = None
+        self._data = None
+        self._reauth_mode = False
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
@@ -61,7 +61,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 f"{user_input[CONF_USERNAME]}-{user_input[CONF_REGION]}"
             )
 
-            if not self.reauth_mode:
+            if not self._reauth_mode:
                 self._abort_if_unique_id_configured()
 
             session = async_get_clientsession(self.hass, VERIFY_SSL)
@@ -76,7 +76,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors=errors)
 
             if not errors:
-                self.data = user_input
+                self._data = user_input
                 return await self.async_step_pin()
 
             LOGGER.error("Request PIN error: %s", errors)
@@ -93,30 +93,30 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             pin = user_input[CONF_PASSWORD]
-            nonce = self.data["nonce"]
+            nonce = self._data["nonce"]
             new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
-                f"{self.data[CONF_USERNAME]}-{self.data[CONF_REGION]}"
+                f"{self._data[CONF_USERNAME]}-{self._data[CONF_REGION]}"
             )
             session = async_get_clientsession(self.hass, VERIFY_SSL)
             LOGGER.warning(new_config_entry)
-            client = Client(self.hass, session, new_config_entry, self.data[CONF_REGION])
+            client = Client(self.hass, session, new_config_entry, self._data[CONF_REGION])
             try:
-                result = await client.oauth.request_access_token(self.data[CONF_USERNAME], pin, nonce)
+                result = await client.oauth.request_access_token(self._data[CONF_USERNAME], pin, nonce)
             except MbapiError as error:
                 LOGGER.error("Request token error: %s", errors)
                 errors = error
 
             if not errors:
                 LOGGER.debug("Token received")
-                self.data["token"] = result
+                self._data["token"] = result
 
-                if self.reauth_mode:
-                    self.hass.config_entries.async_update_entry(self._existing_entry, data=self.data)
-                    self.hass.async_create_task(self.hass.config_entries.async_reload(self._existing_entry.entry_id))
+                if self._reauth_mode:
+                    self.hass.config_entries.async_update_entry(self._reauth_entry, data=self._data)
+                    self.hass.async_create_task(self.hass.config_entries.async_reload(self._reauth_entry.entry_id))
                     return self.async_abort(reason="reauth_successful")
 
                 return self.async_create_entry(
-                    title=f"{self.data[CONF_USERNAME]} (Region: {self.data[CONF_REGION]})", data=self.data
+                    title=f"{self._data[CONF_USERNAME]} (Region: {self._data[CONF_REGION]})", data=self._data
                 )
 
         return self.async_show_form(step_id="pin", data_schema=SCHEMA_STEP_PIN, errors=errors)
@@ -124,9 +124,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_reauth(self, user_input=None):
         """Get new tokens for a config entry that can't authenticate."""
 
-        self.reauth_mode = True
-        self._existing_entry = user_input
-
+        self._reauth_mode = True
+        self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER)
 
     @staticmethod
