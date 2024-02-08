@@ -48,7 +48,7 @@ async def async_setup_entry(
                     "Created Switch for car %s - feature %s check: %s",
                     loghelper.Mask_VIN(car.finorvin),
                     value[5],
-                    getattr(car.features, value[5]),
+                    car.features.get(value[5]),
                 )
                 sensor_list.append(device)
 
