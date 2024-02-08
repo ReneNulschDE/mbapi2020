@@ -349,15 +349,6 @@ class Location:
     """Stores the Location values at runtime."""
 
     name: str = "Location"
-    latitude: float | None = None
-    longitude: float | None = None
-    heading: float | None = None
-
-    def __init__(self, latitude=None, longitude=None, heading=None):
-        """Initialize the instance. Name is needed in client."""
-        self.latitude = latitude
-        self.longitude = longitude
-        self.heading = heading
 
 
 @dataclass(init=False)
