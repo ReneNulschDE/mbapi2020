@@ -74,6 +74,7 @@ JSON_EXPORT_IGNORED_KEYS = (
     "fin",
     "licensePlate",
     "vin",
+    "dealers",
 )
 
 
