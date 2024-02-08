@@ -13,7 +13,7 @@ import uuid
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientError
 
-from custom_components.mbapi2020.errors import MBAuthError
+from custom_components.mbapi2020.errors import MbapiError, MBAuthError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -93,6 +93,11 @@ class Oauth:  # pylint: disable-too-few-public-methods
         """Refresh the access token."""
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
 
+        _LOGGER.info("Auth token preflight request 1")
+        headers = self._get_header()
+        url = f"{helper.Rest_url(self._region)}/v1/config"
+        r = await self._async_request("get", url, headers=headers)
+
         url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
         data = f"grant_type=refresh_token&refresh_token={refresh_token}"
 
@@ -104,9 +109,10 @@ class Oauth:  # pylint: disable-too-few-public-methods
         try:
             token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
         except MBAuthError as err:
-            new_config_entry_data = deepcopy(dict(self._config_entry.data))
-            new_config_entry_data["token"] = None
-            changed = self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
+            if self._config_entry and self._config_entry.data:
+                new_config_entry_data = deepcopy(dict(self._config_entry.data))
+                new_config_entry_data["token"] = None
+                changed = self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
             raise err
 
         if token_info is not None:
@@ -265,14 +271,22 @@ class Oauth:  # pylint: disable-too-few-public-methods
         if not self._session or self._session.closed:
             self._session = async_get_clientsession(self._hass, VERIFY_SSL)
 
-        try:
-            async with self._session.request(method, url, data=data, **kwargs) as resp:
-                # _LOGGER.warning("ClientError requesting data from %s: %s", url, resp.json)
-                resp.raise_for_status()
-                return await resp.json(content_type=None)
-        except ClientError as err:
-            _LOGGER.error("ClientError requesting data from %s: %s", url, err)
-            if str(err).startswith("400"):
-                raise MBAuthError from err
-        except Exception as exc:
-            _LOGGER.error("Unexpected Error requesting data from %s: %s", url, exc)
+        async with self._session.request(method, url, data=data, **kwargs) as resp:
+            # _LOGGER.warning("ClientError requesting data from %s: %s", url, resp.json)
+            # resp.raise_for_status()
+
+            if 400 <= resp.status < 500:
+                try:
+                    error = await resp.text()
+                    error_json = json.loads(error)
+                    if error_json:
+                        error_message = f'Error requesting: {url} - {error_json["code"]} - {error_json["errors"]}'
+                    else:
+                        error_message = f"Error requesting: {url} - 0 - {error}"
+                except (json.JSONDecodeError, KeyError):
+                    error_message = f"Error requesting: {url} - 0 - {error}"
+
+                _LOGGER.error(error_message)
+                raise MBAuthError(error_message)
+
+            return await resp.json(content_type=None)

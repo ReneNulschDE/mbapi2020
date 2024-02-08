@@ -29,7 +29,7 @@ from .const import (
     TOKEN_FILE_PREFIX,
     VERIFY_SSL,
 )
-from .errors import MbapiError
+from .errors import MbapiError, MBAuthError
 
 SCHEMA_STEP_USER = vol.Schema(
     {
@@ -71,8 +71,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             client = Client(self.hass, session, new_config_entry, region=user_input[CONF_REGION])
             try:
                 await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
-            except MbapiError as error:
-                errors = error
+            except (MBAuthError, MbapiError) as error:
+                errors = {"base": "unknown"}
+                return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors=errors)
 
             if not errors:
                 self.data = user_input
@@ -83,7 +84,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=SCHEMA_STEP_USER,
-            errors={"Unknown error": str(errors)},
         )
 
     async def async_step_pin(self, user_input=None):
