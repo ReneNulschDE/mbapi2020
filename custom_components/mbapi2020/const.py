@@ -15,6 +15,7 @@ from homeassistant.const import (
     UnitOfEnergy,
     UnitOfLength,
     UnitOfMass,
+    UnitOfPower,
     UnitOfPressure,
     UnitOfSpeed,
     UnitOfTemperature,
@@ -444,7 +445,7 @@ DEVICE_TRACKER = {
 SENSORS = {
     "chargingpowerkw": [
         "Charging Power",
-        "KW",  # Deprecated: DO NOT USE
+        UnitOfPower.KILO_WATT,  # Deprecated: DO NOT USE
         "electric",
         "chargingPower",
         "value",
@@ -1099,6 +1100,7 @@ UNITS = {
     "KM_PER_KWH": UnitOfLength.KILOMETERS + "/" + UnitOfEnergy.KILO_WATT_HOUR,
     "KM_PER_LITER": UnitOfLength.KILOMETERS + "/" + UnitOfVolume.LITERS,
     "KPA": UnitOfPressure.KPA,
+    "KW": UnitOfPower.KILO_WATT,
     "KWH_PER_100KM": UnitOfEnergy.KILO_WATT_HOUR + "/100" + UnitOfLength.KILOMETERS,
     "KWH_PER_100MI": UnitOfEnergy.KILO_WATT_HOUR + "/100" + UnitOfLength.MILES,
     "LITER_PER_100KM": UnitOfVolume.LITERS + "/100" + UnitOfLength.KILOMETERS,
