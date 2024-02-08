@@ -214,7 +214,7 @@ class Car:
         self.caralarm = None
         self.geofence_events = GeofenceEvents()
         self.features = {}
-        self.masterdate: dict[str, Any] = {}
+        self.masterdata: dict[str, Any] = {}
         self.entry_setup_complete = False
         self._update_listeners = set()
 
@@ -271,105 +271,93 @@ class Car:
 class Tires:
     """Stores the Tires values at runtime."""
 
-    def __init__(self):
-        self.name = "Tires"
+    name: str = "Tires"
 
 
 @dataclass(init=False)
 class Odometer:
     """Stores the Odometer values at runtime."""
 
-    def __init__(self):
-        self.name = "Odometer"
+    name: str = "Odometer"
 
 
 @dataclass(init=False)
 class RcpOptions:
-    """Stores the RcpOptions values at runtime"""
+    """Stores the RcpOptions values at runtime."""
 
-    def __init__(self):
-        self.name = "RCP_Options"
+    name: str = "RCP_Options"
 
 
 @dataclass(init=False)
 class Windows:
-    """Stores the Windows values at runtime"""
+    """Stores the Windows values at runtime."""
 
-    def __init__(self):
-        self.name = "Windows"
+    name: str = "Windows"
 
 
 @dataclass(init=False)
 class Doors:
-    """Stores the Doors values at runtime"""
+    """Stores the Doors values at runtime."""
 
-    def __init__(self):
-        self.name = "Doors"
+    name: str = "Doors"
 
 
 @dataclass(init=False)
 class Electric:
-    """Stores the Electric values at runtime"""
+    """Stores the Electric values at runtime."""
 
-    def __init__(self):
-        self.name = "Electric"
+    name: str = "Electric"
 
 
 @dataclass(init=False)
 class Auxheat:
-    """Stores the Auxheat values at runtime"""
+    """Stores the Auxheat values at runtime."""
 
-    def __init__(self):
-        self.name = "Auxheat"
+    name: str = "Auxheat"
 
 
 @dataclass(init=False)
 class Precond:
-    """Stores the Precond values at runtime"""
+    """Stores the Precond values at runtime."""
 
-    def __init__(self):
-        self.name = "Precond"
+    name = "Precond"
 
 
 @dataclass(init=False)
 class BinarySensors:
-    """Stores the BinarySensors values at runtime"""
+    """Stores the BinarySensors values at runtime."""
 
-    def __init__(self):
-        self.name = "BinarySensors"
+    name: str = "BinarySensors"
 
 
 @dataclass(init=False)
 class RemoteStart:
-    """Stores the RemoteStart values at runtime"""
+    """Stores the RemoteStart values at runtime."""
 
-    def __init__(self):
-        self.name = "RemoteStart"
+    name: str = "RemoteStart"
 
 
 @dataclass(init=False)
 class CarAlarm:
-    """Stores the Odometer values at runtime"""
+    """Stores the CarAlarm values at runtime."""
 
-    def __init__(self):
-        self.name = "CarAlarm"
+    name: str = "CarAlarm"
 
 
 @dataclass(init=False)
 class Location:
-    """Stores the Location values at runtime"""
+    """Stores the Location values at runtime."""
+
+    name: str = "Location"
+    latitude: float | None = None
+    longitude: float | None = None
+    heading: float | None = None
 
     def __init__(self, latitude=None, longitude=None, heading=None):
-        self.name = "Location"
-        self.latitude = None
-        self.longitude = None
-        self.heading = None
-        if latitude is not None:
-            self.latitude = latitude
-        if longitude is not None:
-            self.longitude = longitude
-        if heading is not None:
-            self.heading = heading
+        """Initialize the instance. Name is needed in client."""
+        self.latitude = latitude
+        self.longitude = longitude
+        self.heading = heading
 
 
 @dataclass(init=False)
@@ -379,19 +367,16 @@ class GeofenceEvents:
     last_event_type: CarAttribute | None = None
     last_event_timestamp: CarAttribute | None = None
     last_event_zone: CarAttribute | None = None
-
-    def __init__(self):
-        """Generate the geofence violation store."""
-
-        self.name = "GeofenceEvents"
-        self.events = []
+    name: str = "GeofenceEvents"
+    events = []
 
 
 @dataclass(init=False)
 class CarAttribute:
-    """Stores the CarAttribute values at runtime"""
+    """Stores the CarAttribute values at runtime."""
 
     def __init__(self, value, retrievalstatus, timestamp, display_value=None, unit=None):
+        """Initialize the instance."""
         self.value = value
         self.retrievalstatus = retrievalstatus
         self.timestamp = timestamp
