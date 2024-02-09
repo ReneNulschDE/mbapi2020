@@ -1,5 +1,5 @@
 name: Report an issue with MBAPI2020
-description: Report an issue with MBAPI2020.
+description: Report an issue with Mercedes ME integration.
 body:
   - type: markdown
     attributes:
@@ -65,7 +65,7 @@ body:
       description: >-
         The MBAPI2020 integration provides the ability to [download diagnostic data](https://www.home-assistant.io/docs/configuration/troubleshooting/#debug-logs-and-diagnostics).
 
-        **It would really help if you could download the diagnostics data for the device you are having issues with,
+        **It would really help if you could download the diagnostics data for the account/hub you are having issues with,
         and <ins>drag-and-drop that file into the textbox below.</ins>**
 
         It generally allows pinpointing defects and thus resolving issues faster.
