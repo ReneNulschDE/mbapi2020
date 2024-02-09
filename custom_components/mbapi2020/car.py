@@ -200,6 +200,7 @@ class Car:
         self._last_command_error_code = ""
         self._last_command_error_message = ""
         self._last_command_time_stamp = 0
+        self._last_full_message = None
 
         self.binarysensors = None
         self.tires = None
@@ -212,6 +213,7 @@ class Car:
         self.precond = None
         self.electric = None
         self.caralarm = None
+        self.last_full_message = None
         self.geofence_events = GeofenceEvents()
         self.features = {}
         self.masterdata: dict[str, Any] = {}

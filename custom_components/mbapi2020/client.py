@@ -228,6 +228,9 @@ class Client:  # pylint: disable-too-few-public-methods
         car.messages_received.update("p" if update_mode else "f")
         car._last_message_received = int(round(time.time() * 1000))
 
+        if not update_mode:
+            car._last_full_message = received_car_data
+
         car.odometer = self._get_car_values(
             received_car_data,
             car.finorvin,
