@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Feature Request or other questions
+    url: https://community.home-assistant.io/t/mercedes-me-component/41911
+    about: Please use our Community Forum for making feature requests or asking general questions.
+  - name: I'm unsure where to go
+    url: https://community.home-assistant.io/t/mercedes-me-component/41911
+    about: If you are unsure where to go, then joining and searching in the Forum is a good start.
