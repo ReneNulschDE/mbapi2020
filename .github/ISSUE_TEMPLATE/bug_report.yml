@@ -29,7 +29,7 @@ body:
       required: true
     attributes:
       label: What version of MBAPI2020 do use?
-      placeholder: core-
+      placeholder: v0.xx.x
       description: >
         Can be found in: [Settings ⇒ System ⇒ Repairs ⇒ Three Dots in Upper Right ⇒ System information](https://my.home-assistant.io/redirect/system_health/).
 
@@ -37,7 +37,7 @@ body:
   - type: input
     attributes:
       label: What was the last working version of MBAPI2020?
-      placeholder: core-
+      placeholder: v0.xx.x
       description: >
         If known, otherwise leave blank.
   - type: dropdown
