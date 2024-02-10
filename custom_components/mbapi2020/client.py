@@ -30,6 +30,8 @@ from .car import (
     Auxheat,
     BinarySensors,
     Car,
+    CarAlarm,
+    CarAlarm_OPTIONS,
     CarAttribute,
     Doors,
     Electric,
@@ -280,6 +282,14 @@ class Client:  # pylint: disable-too-few-public-methods
             car.finorvin,
             Auxheat() if not car.auxheat else car.auxheat,
             AUX_HEAT_OPTIONS,
+            update_mode,
+        )
+
+        car.caralarm = self._get_car_values(
+            received_car_data,
+            car.finorvin,
+            CarAlarm() if not car.caralarm else car.caralarm,
+            CarAlarm_OPTIONS,
             update_mode,
         )
 
