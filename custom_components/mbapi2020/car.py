@@ -160,20 +160,22 @@ PRE_COND_OPTIONS = ["preconditionState", "precondimmediate"]
 RemoteStart_OPTIONS = ["remoteEngine", "remoteStartEndtime", "remoteStartTemperature"]
 
 CarAlarm_OPTIONS = [
-    "lastTheftWarning",
-    "towSensor",
-    "theftSystemArmed",
     "carAlarm",
-    "parkEventType",
-    "parkEventLevel",
     "carAlarmLastTime",
-    "towProtectionSensorStatus",
-    "theftAlarmActive",
-    "lastTheftWarningReason",
-    "lastParkEvent",
+    "carAlarmReason",
     "collisionAlarmTimestamp",
     "interiorSensor",
-    "carAlarmReason",
+    "lastParkEvent",
+    "lastTheftWarning",
+    "lastTheftWarningReason",
+    "parkEventLevel",
+    "parkEventType",
+    "theftAlarmActive",
+    "theftSystemArmed",
+    "towProtectionSensorStatus",
+    "towSensor",
+    "interiorProtectionSensorStatus",
+    "exteriorProtectionSensorStatus",
 ]
 
 GeofenceEvents_OPTIONS = ["last_event_zone", "last_event_timestamp", "last_event_type"]

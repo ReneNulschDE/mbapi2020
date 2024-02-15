@@ -96,6 +96,12 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
         if self.device_retrieval_status() == "NOT_RECEIVED":
             return "NOT_RECEIVED"
 
+        if self._internal_name == "lastParkEvent":
+            # try:
+            return datetime.fromtimestamp(int(self._state))
+        # finally:
+        #     return None
+
         return self._state
 
     # async def async_added_to_hass(self) -> None:

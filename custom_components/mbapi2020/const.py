@@ -911,19 +911,24 @@ SENSORS = {
         "value",
         None,
         {
-            "lastTheftWarning",
-            "towSensor",
-            "theftSystemArmed",
-            "parkEventType",
-            "parkEventLevel",
             "carAlarmLastTime",
-            "towProtectionSensorStatus",
-            "theftAlarmActive",
-            "lastTheftWarningReason",
-            "lastParkEvent",
+            "carAlarmReason",
             "collisionAlarmTimestamp",
             "interiorSensor",
-            "carAlarmReason",
+            "interiorProtectionStatus",  #
+            "interiorMonitoringLastEvent",
+            "interiorMonitoringStatus",  #
+            "exteriorMonitoringLastEvent",
+            "exteriorMonitoringStatus",  #
+            "lastParkEvent",
+            "lastTheftWarning",
+            "lastTheftWarningReason",  #
+            "parkEventLevel",  #
+            "parkEventType",  #
+            "theftAlarmActive",  ##
+            "theftSystemArmed",
+            "towProtectionSensorStatus",  #
+            "towSensor",
         },
         "mdi:alarm-light",
         None,
@@ -1034,6 +1039,39 @@ SENSORS = {
         False,
         None,
         SensorStateClass.MEASUREMENT,
+        None,
+    ],
+    "lastParkEvent": [
+        "Last park event",
+        None,  # Deprecated: DO NOT USE
+        "caralarm",
+        "lastParkEvent",
+        "value",
+        None,
+        {
+            "parkEventType",
+            "parkEventLevel",
+        },
+        None,
+        SensorDeviceClass.DATE,
+        False,
+        None,
+        None,
+        None,
+    ],
+    "interiorProtectionSensorStatus": [
+        "Interior Protection",
+        None,  # Deprecated: DO NOT USE
+        "caralarm",
+        "interiorProtectionSensorStatus",
+        "value",
+        None,
+        {},
+        None,
+        SensorDeviceClass.DATE,
+        False,
+        None,
+        None,
         None,
     ],
 }
