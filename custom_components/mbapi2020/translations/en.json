@@ -410,7 +410,7 @@
             }
           },
           "Sunroofstatus": {
-            "name": "Sunroof status",
+            "name": "sunroof status",
             "state": {
               "0": "closed",
               "1": "open",
