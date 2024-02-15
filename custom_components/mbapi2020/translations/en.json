@@ -428,7 +428,16 @@
             }
           }
         }
+      },
+      "sensor": {
+        "interiorprotectionsensorstatus": {
+          "state": {
+            "0": "Not active",
+            "1": "Not active",
+            "2": "Active"
+          },
+          "state_attributes": {}
+        }
       }
     }
   }
-}
