@@ -95,7 +95,21 @@ class WebApi:
                     return await resp.json(content_type=None)
             else:
                 async with self._session.request(method, url, **kwargs) as resp:
-                    resp.raise_for_status()
+                    if 400 <= resp.status < 500:
+                        try:
+                            error = await resp.text()
+                            error_json = json.loads(error)
+                            if error_json:
+                                error_message = f'Error requesting: {url} - {resp.status} -  {error_json["code"]} - {error_json["errors"]}'
+                            else:
+                                error_message = f"Error requesting: {url} - {resp.status} - 0 - {error}"
+                        except (json.JSONDecodeError, KeyError):
+                            error_message = f"Error requesting: {url} - {resp.status} - 0 - {error}"
+
+                        LOGGER.error(error_message) if not ignore_errors else LOGGER.warning(error_message)
+                    else:
+                        resp.raise_for_status()
+
                     return await resp.json(content_type=None)
 
         except ClientError as err:
