@@ -409,7 +409,7 @@
               "3": "unknown"
             }
           },
-          "Sunroofstatus": {
+          "sunroofstatus": {
             "name": "sunroof status",
             "state": {
               "0": "closed",
