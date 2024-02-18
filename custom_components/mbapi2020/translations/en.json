@@ -143,7 +143,7 @@
           "name": "Vin",
           "description": "Vin/Fin of the car"
         },
-        "time_selection": {
+        "charge_program": {
           "name": "Charge program",
           "description": "The activated charging program (0=Default, 2=Home, 3=Work)"
         }
