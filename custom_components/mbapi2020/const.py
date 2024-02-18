@@ -131,6 +131,7 @@ SERVICE_AUXHEAT_CONFIGURE = "auxheat_configure"
 SERVICE_AUXHEAT_START = "auxheat_start"
 SERVICE_AUXHEAT_STOP = "auxheat_stop"
 SERVICE_BATTERY_MAX_SOC_CONFIGURE = "battery_max_soc_configure"
+SERVICE_CHARGE_PROGRAM_CONFIGURE = "charge_program_configure"
 SERVICE_DOORS_LOCK_URL = "doors_lock"
 SERVICE_DOORS_UNLOCK_URL = "doors_unlock"
 SERVICE_ENGINE_START = "engine_start"
@@ -189,6 +190,12 @@ SERVICE_VIN_TIME_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
         vol.Required(CONF_TIME): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
+    }
+)
+SERVICE_VIN_CHARGE_PROGRAM_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Required("charge_program", default=0): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),
     }
 )
 

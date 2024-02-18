@@ -551,6 +551,25 @@ class Client:  # pylint: disable-too-few-public-methods
 
                                 current_car.publish_updates()
 
+    async def charge_program_configure(self, vin: str, program: int):
+        """Send the selected charge program to the car."""
+        if not self._is_car_feature_available(vin, "DOORS_UNLOCK"):
+            LOGGER.warning(
+                "Can't unlock car %s. VIN unknown or feature not availabe for this car.", loghelper.Mask_VIN(vin)
+            )
+            return
+
+        LOGGER.debug("Start unlock with user provided pin")
+        message = client_pb2.ClientMessage()
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        charge_programm = pb2_commands.ChargeProgramConfigure()
+        charge_programm.charge_program = program
+        message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
+
+        await self.websocket.call(message.SerializeToString())
+        return
+
     async def doors_unlock(self, vin: str, pin: str = ""):
         if not self._is_car_feature_available(vin, "DOORS_UNLOCK"):
             LOGGER.warning(

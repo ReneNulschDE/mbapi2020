@@ -17,6 +17,7 @@ from .const import (
     SERVICE_AUXHEAT_STOP,
     SERVICE_BATTERY_MAX_SOC_CONFIGURE,
     SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA,
+    SERVICE_CHARGE_PROGRAM_CONFIGURE,
     SERVICE_DOORS_LOCK_URL,
     SERVICE_DOORS_UNLOCK_URL,
     SERVICE_ENGINE_START,
@@ -31,6 +32,7 @@ from .const import (
     SERVICE_SIGPOS_START,
     SERVICE_SUNROOF_CLOSE,
     SERVICE_SUNROOF_OPEN,
+    SERVICE_VIN_CHARGE_PROGRAM_SCHEMA,
     SERVICE_VIN_PIN_SCHEMA,
     SERVICE_VIN_SCHEMA,
     SERVICE_VIN_TIME_SCHEMA,
@@ -76,6 +78,12 @@ def setup_services(hass: HomeAssistant) -> None:
     async def doors_unlock(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.doors_unlock(
             call.data.get(CONF_VIN), call.data.get(CONF_PIN)
+        )
+
+    async def charge_program_configure(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.charge_program_configure(
+            call.data.get(CONF_VIN),
+            call.data.get("charge_program"),
         )
 
     async def doors_lock(call) -> None:
@@ -153,6 +161,7 @@ def setup_services(hass: HomeAssistant) -> None:
             battery_max_soc_configure,
             SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA,
         ),
+        (SERVICE_CHARGE_PROGRAM_CONFIGURE, charge_program_configure, SERVICE_VIN_CHARGE_PROGRAM_SCHEMA),
         (SERVICE_DOORS_LOCK_URL, doors_lock, SERVICE_VIN_SCHEMA),
         (SERVICE_DOORS_UNLOCK_URL, doors_unlock, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_ENGINE_START, engine_start, SERVICE_VIN_SCHEMA),
