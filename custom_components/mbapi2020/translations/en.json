@@ -136,7 +136,7 @@
       }
     },
     "charge_program_configure": {
-      "name": "Carge program configure",
+      "name": "Charge program configure",
       "description": "Command to select the charge program.",
       "fields": {
         "vin": {
