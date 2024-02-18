@@ -135,6 +135,20 @@
         }
       }
     },
+    "charge_program_configure": {
+      "name": "Carge program configure",
+      "description": "Command to select the charge program.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "time_selection": {
+          "name": "Charge program",
+          "description": "The activated charging program (0=Default, 2=Home, 3=Work)"
+        }
+      }
+    },
     "doors_unlock": {
       "name": "Doors unlock",
       "description": "Unlock a car defined by a vin. PIN setup required. See options dialog of the integration.",
