@@ -553,9 +553,10 @@ class Client:  # pylint: disable-too-few-public-methods
 
     async def charge_program_configure(self, vin: str, program: int):
         """Send the selected charge program to the car."""
-        if not self._is_car_feature_available(vin, "DOORS_UNLOCK"):
+        if not self._is_car_feature_available(vin, "CHARGE_PROGRAM_CONFIGURE"):
             LOGGER.warning(
-                "Can't unlock car %s. VIN unknown or feature not availabe for this car.", loghelper.Mask_VIN(vin)
+                "Can't set the charge program of the  car %s. VIN unknown or feature CHARGE_PROGRAM_CONFIGURE not availabe for this car.",
+                loghelper.Mask_VIN(vin),
             )
             return
 
