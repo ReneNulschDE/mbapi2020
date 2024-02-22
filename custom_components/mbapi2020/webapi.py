@@ -106,7 +106,7 @@ class WebApi:
                         except (json.JSONDecodeError, KeyError):
                             error_message = f"Error requesting: {url} - {resp.status} - 0 - {error}"
 
-                        LOGGER.error(error_message) if not ignore_errors else LOGGER.warning(error_message)
+                        LOGGER.error(error_message) if not ignore_errors else LOGGER.info(error_message)
                     else:
                         resp.raise_for_status()
 
