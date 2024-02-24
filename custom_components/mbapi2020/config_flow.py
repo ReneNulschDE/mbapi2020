@@ -1,12 +1,11 @@
 """Config flow for mbapi2020 integration."""
 from __future__ import annotations
 
-from copy import deepcopy
 import os
 import uuid
+from copy import deepcopy
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
@@ -57,8 +56,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
-                f"{user_input[CONF_USERNAME]}-{user_input[CONF_REGION]}"
+            new_config_entry: config_entries.ConfigEntry = (
+                await self.async_set_unique_id(
+                    f"{user_input[CONF_USERNAME]}-{user_input[CONF_REGION]}"
+                )
             )
 
             if not self._reauth_mode:
@@ -68,12 +69,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             nonce = str(uuid.uuid4())
             user_input["nonce"] = nonce
 
-            client = Client(self.hass, session, new_config_entry, region=user_input[CONF_REGION])
+            client = Client(
+                self.hass, session, new_config_entry, region=user_input[CONF_REGION]
+            )
             try:
                 await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
             except (MBAuthError, MbapiError) as error:
                 errors = {"base": "unknown"}
-                return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors=errors)
+                return self.async_show_form(
+                    step_id="user", data_schema=SCHEMA_STEP_USER, errors=errors
+                )
 
             if not errors:
                 self._data = user_input
@@ -94,14 +99,20 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             pin = user_input[CONF_PASSWORD]
             nonce = self._data["nonce"]
-            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
-                f"{self._data[CONF_USERNAME]}-{self._data[CONF_REGION]}"
+            new_config_entry: config_entries.ConfigEntry = (
+                await self.async_set_unique_id(
+                    f"{self._data[CONF_USERNAME]}-{self._data[CONF_REGION]}"
+                )
             )
             session = async_get_clientsession(self.hass, VERIFY_SSL)
 
-            client = Client(self.hass, session, new_config_entry, self._data[CONF_REGION])
+            client = Client(
+                self.hass, session, new_config_entry, self._data[CONF_REGION]
+            )
             try:
-                result = await client.oauth.request_access_token(self._data[CONF_USERNAME], pin, nonce)
+                result = await client.oauth.request_access_token(
+                    self._data[CONF_USERNAME], pin, nonce
+                )
             except MbapiError as error:
                 LOGGER.error("Request token error: %s", errors)
                 errors = error
@@ -111,21 +122,34 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._data["token"] = result
 
                 if self._reauth_mode:
-                    self.hass.config_entries.async_update_entry(self._reauth_entry, data=self._data)
-                    self.hass.async_create_task(self.hass.config_entries.async_reload(self._reauth_entry.entry_id))
+                    self.hass.config_entries.async_update_entry(
+                        self._reauth_entry, data=self._data
+                    )
+                    self.hass.async_create_task(
+                        self.hass.config_entries.async_reload(
+                            self._reauth_entry.entry_id
+                        )
+                    )
                     return self.async_abort(reason="reauth_successful")
 
                 return self.async_create_entry(
-                    title=f"{self._data[CONF_USERNAME]} (Region: {self._data[CONF_REGION]})", data=self._data
+                    title=f"{self._data[CONF_USERNAME]} (Region: {self._data[CONF_REGION]})",
+                    data=self._data,
                 )
 
-        return self.async_show_form(step_id="pin", data_schema=SCHEMA_STEP_PIN, errors=errors)
+        return self.async_show_form(
+            step_id="pin", data_schema=SCHEMA_STEP_PIN, errors=errors
+        )
 
     async def async_step_reauth(self, user_input=None):
         """Get new tokens for a config entry that can't authenticate."""
 
         self._reauth_mode = True
-        self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+
+        self._reauth_entry = self.hass.config_entries.async_get_entry(
+            user_input.entry_id
+        )
+
         return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER)
 
     @staticmethod
@@ -143,13 +167,17 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
 
         if user_input is not None:
             if user_input[CONF_DELETE_AUTH_FILE] is True:
-                auth_file = self.hass.config.path(STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{self.config_entry.entry_id}")
+                auth_file = self.hass.config.path(
+                    STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{self.config_entry.entry_id}"
+                )
                 LOGGER.warning("DELETE Auth File requested %s", auth_file)
                 if os.path.isfile(auth_file):
                     os.remove(auth_file)
                 new_config_entry_data = deepcopy(dict(self._config_entry.data))
                 new_config_entry_data["token"] = None
-                changed = self.hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
+                changed = self.hass.config_entries.async_update_entry(
+                    self._config_entry, data=new_config_entry_data
+                )
 
                 LOGGER.debug("%s Creating restart_required issue", DOMAIN)
                 async_create_issue(
@@ -189,10 +217,14 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
                 {
                     vol.Optional(CONF_EXCLUDED_CARS, default=excluded_cars): str,
                     vol.Optional(CONF_PIN, default=pin): str,
-                    vol.Optional(CONF_FT_DISABLE_CAPABILITY_CHECK, default=cap_check_disabled): bool,
+                    vol.Optional(
+                        CONF_FT_DISABLE_CAPABILITY_CHECK, default=cap_check_disabled
+                    ): bool,
                     vol.Optional(CONF_DEBUG_FILE_SAVE, default=save_debug_files): bool,
                     vol.Optional(CONF_DELETE_AUTH_FILE, default=False): bool,
-                    vol.Optional(CONF_ENABLE_CHINA_GCJ_02, default=enable_china_gcj_02): bool,
+                    vol.Optional(
+                        CONF_ENABLE_CHINA_GCJ_02, default=enable_china_gcj_02
+                    ): bool,
                 }
             ),
         )
