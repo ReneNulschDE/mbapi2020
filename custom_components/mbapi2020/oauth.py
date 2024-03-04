@@ -1,6 +1,7 @@
 """Define an object to interact with the REST API."""
 from __future__ import annotations
 
+import asyncio
 from copy import deepcopy
 import json
 import logging
@@ -74,6 +75,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
             )
         self.token = None
         self._xsessionid = ""
+        self._get_token_lock = asyncio.Lock()
 
     async def request_pin(self, email: str, nonce: str):
         """Initiate a PIN request."""
@@ -157,7 +159,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
     async def async_get_cached_token(self):
         """Get a cached auth token."""
-        # _LOGGER.debug("Start async_get_cached_token()")
+        _LOGGER.debug("Start async_get_cached_token()")
         token_info: dict[str, any]
         token_type: str = ""
 
@@ -191,27 +193,28 @@ class Oauth:  # pylint: disable-too-few-public-methods
                 token_type = "new_file"
 
         if self.is_token_expired(token_info):
-            _LOGGER.debug("%s token expired -> start refresh", __name__)
-            if not token_info or "refresh_token" not in token_info:
-                _LOGGER.warning("Refresh token is missing - reauth required")
-                return None
-
-            token_info = await self.async_refresh_access_token(token_info["refresh_token"], is_retry=False)
-
-            if not token_info and token_type == "old_file":
-                if os.path.exists(self._old_token_path):
-                    _LOGGER.warning("async_get_cached_token: Delete old invalid token file")
-                    os.remove(self._old_token_path)
-                if self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
-                    token_info = self._config_entry.data["token"]
-                    token_type = "config_entry_2"
-
-                    _LOGGER.warning("Starting Refresh token in fallback mode round 2")
-                    token_info = await self.async_refresh_access_token(token_info["refresh_token"], is_retry=True)
-
-                if not token_info:
-                    _LOGGER.warning("Refresh token is missing in round 2 - reauth required")
+            async with self._get_token_lock:
+                _LOGGER.debug("%s token expired -> start refresh", __name__)
+                if not token_info or "refresh_token" not in token_info:
+                    _LOGGER.warning("Refresh token is missing - reauth required")
                     return None
+
+                token_info = await self.async_refresh_access_token(token_info["refresh_token"], is_retry=False)
+
+                if not token_info and token_type == "old_file":
+                    if os.path.exists(self._old_token_path):
+                        _LOGGER.warning("async_get_cached_token: Delete old invalid token file")
+                        os.remove(self._old_token_path)
+                    if self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
+                        token_info = self._config_entry.data["token"]
+                        token_type = "config_entry_2"
+
+                        _LOGGER.warning("Starting Refresh token in fallback mode round 2")
+                        token_info = await self.async_refresh_access_token(token_info["refresh_token"], is_retry=True)
+
+                    if not token_info:
+                        _LOGGER.warning("Refresh token is missing in round 2 - reauth required")
+                        return None
 
         self.token = token_info
         return token_info
