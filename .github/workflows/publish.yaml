@@ -1,9 +1,12 @@
-name: Release Workflow
+name: Publish Workflow
 
 on:
   release:
     types:
       - published
+  push:
+    branches:
+      - main
 
 jobs:
   release:
@@ -18,6 +21,7 @@ jobs:
           name=$(find custom_components/ -type d -maxdepth 1 | tail -n 1 | cut -d "/" -f2)
           echo "name=$name" >> $GITHUB_OUTPUT
       - name: Adjust version number
+        if: ${{ github.event_name == 'release' }}
         shell: bash
         run: |
           yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
@@ -27,8 +31,16 @@ jobs:
         run: |
           cd "${{ github.workspace }}/custom_components/${{ steps.information.outputs.name }}"
           zip ${{ steps.information.outputs.name }}.zip -r ./
+      - name: 📤 Upload zip to action
+        uses: actions/upload-artifact@v3.1.2
+        if: ${{ github.event_name == 'push' }}
+        with:
+          name: mbapi2020
+          path: ${{ github.workspace }}/custom_components/{{ steps.information.outputs.name }}
+          retention-days: 14
       - name: Upload the zipfile as a release asset
         uses: softprops/action-gh-release@v1
+        if: ${{ github.event_name == 'release' }}
         with:
           files: ${{ github.workspace }}/custom_components/${{ steps.information.outputs.name }}/${{ steps.information.outputs.name }}.zip
           tag_name: ${{ github.event.release.tag_name }}
