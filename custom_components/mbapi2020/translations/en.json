@@ -465,8 +465,7 @@
           "9": "Anti booming lifting",
           "10": "Intermediate position",
           "11": "Opening lifting",
-          "12": "Closing lifting",
-          "-1": "Unknown"
+          "12": "Closing lifting"
         },
         "state_attributes": {}
       }
