@@ -214,16 +214,6 @@ class Client:  # pylint: disable-too-few-public-methods
                     return "ba0100"
                 return
 
-            if msg_type == "service_status_updates":
-                LOGGER.debug(
-                    "service_status_updates - Data: %s",
-                    MessageToJson(data, preserving_proto_field_name=True),
-                )
-                self._write_debug_output(data, "ssu")
-                ack_command = client_pb2.ClientMessage()
-                ack_command.acknowledge_service_status_update
-                return
-
             LOGGER.debug("Message Type not implemented: %s", msg_type)
 
         try:
