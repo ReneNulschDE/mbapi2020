@@ -450,6 +450,25 @@
           "2": "Active"
         },
         "state_attributes": {}
+      },
+      "sunroofstatus": {
+        "state": {
+          "0": "Closed",
+          "1": "Opened",
+          "2": "Open lifting",
+          "3": "Running",
+          "4": "Anti booming",
+          "5": "Intermediate sliding",
+          "6": "Intermediate lifting",
+          "7": "Opening",
+          "8": "Closing",
+          "9": "Anti booming lifting",
+          "10": "Intermediate position",
+          "11": "Opening lifting",
+          "12": "Closing lifting",
+          "-1": "Unknown"
+        },
+        "state_attributes": {}
       }
     }
   }
