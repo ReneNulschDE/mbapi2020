@@ -92,8 +92,8 @@ X_APPLICATIONNAME_CN = "mycar-store-cn"
 X_APPLICATIONNAME_US = "mycar-store-us"
 X_APPLICATIONNAME_AP = "mycar-store-ap"
 
-USE_PROXY = False
-VERIFY_SSL = True
+USE_PROXY = True
+VERIFY_SSL = False
 SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:8080"
 
 
@@ -1076,6 +1076,36 @@ SENSORS = {
         {},
         None,
         SensorDeviceClass.DATE,
+        False,
+        None,
+        None,
+        None,
+    ],
+    "sunroofstatus": [
+        "Sunroof Status",
+        None,  # Deprecated: DO NOT USE
+        "doors",
+        "sunroofstatus",
+        "value",
+        None,
+        {},
+        None,
+        None,
+        False,
+        None,
+        None,
+        None,
+    ],
+    "chargeflapdcstatus": [
+        "Charge Flap DC Status",
+        None,  # Deprecated: DO NOT USE
+        "doors",
+        "chargeFlapDCStatus",
+        "value",
+        None,
+        {},
+        None,
+        None,
         False,
         None,
         None,
