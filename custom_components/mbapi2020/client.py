@@ -401,6 +401,7 @@ class Client:  # pylint: disable-too-few-public-methods
                                     ].get("max_soc")
                                     status = "VALID"
                                     curr_unit = "PERCENT"
+                                    curr_display_value = value
                                 else:
                                     # charge_program_parameters does not exists, continue with the next option
                                     continue
