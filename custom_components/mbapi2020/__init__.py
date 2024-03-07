@@ -173,10 +173,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         hass.loop.create_task(coordinator.ws_connect())
 
     except aiohttp.ClientError as err:
-        LOGGER.warning("Can't connect to MB APIs; Retrying in background")
+        LOGGER.warning("Can't connect to MB APIs; Retrying in background: %s", err)
         raise ConfigEntryNotReady from err
     except WebsocketError as err:
-        LOGGER.error("Config entry failed: %s", err)
+        LOGGER.error("Websocket error: %s", err)
         raise ConfigEntryNotReady from err
 
     # config_entry.add_update_listener(config_entry_update_listener)

@@ -71,7 +71,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             client = Client(self.hass, session, new_config_entry, region=user_input[CONF_REGION])
             try:
                 await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
-            except (MBAuthError, MbapiError) as error:
+            except (MBAuthError, MbapiError):
                 errors = {"base": "unknown"}
                 return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors=errors)
 

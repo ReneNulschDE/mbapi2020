@@ -11,7 +11,7 @@ import uuid
 from aiohttp import ClientSession
 from google.protobuf.json_format import MessageToJson
 
-import custom_components.mbapi2020.proto.client_pb2 as client_pb2
+from custom_components.mbapi2020.proto import client_pb2
 import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -221,7 +221,6 @@ class Client:  # pylint: disable-too-few-public-methods
             await self.websocket.async_connect(on_data)
         except WebsocketError as err:
             LOGGER.error("Error with the websocket connection: %s", err)
-            self._ws_reconnect_delay = self._ws_reconnect_delay
             async_call_later(
                 self._hass,
                 self._ws_reconnect_delay,
@@ -327,11 +326,11 @@ class Client:  # pylint: disable-too-few-public-methods
         self.cars[car.finorvin] = car
 
     def _get_car_values(self, car_detail, car_id, class_instance, options, update):
-        LOGGER.debug(
-            "get_car_values %s for %s called",
-            class_instance.name,
-            loghelper.Mask_VIN(car_id),
-        )
+        # LOGGER.debug(
+        #     "get_car_values %s for %s called",
+        #     class_instance.name,
+        #     loghelper.Mask_VIN(car_id),
+        # )
 
         for option in options:
             if car_detail is not None:
@@ -620,6 +619,7 @@ class Client:  # pylint: disable-too-few-public-methods
         return
 
     async def doors_unlock(self, vin: str, pin: str = ""):
+        """Send the doors unlock command to the car."""
         if not self._is_car_feature_available(vin, "DOORS_UNLOCK"):
             LOGGER.warning(
                 "Can't unlock car %s. VIN unknown or feature not availabe for this car.",
@@ -642,6 +642,7 @@ class Client:  # pylint: disable-too-few-public-methods
         await self.doors_unlock_with_pin(vin, self.pin)
 
     async def doors_unlock_with_pin(self, vin: str, pin: str):
+        """Send the doors unlock command to the car."""
         LOGGER.info("Start Doors_unlock_with_pin for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "DOORS_UNLOCK"):
@@ -665,6 +666,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End Doors_unlock for vin %s", loghelper.Mask_VIN(vin))
 
     async def doors_lock(self, vin: str):
+        """Send the doors lock command to the car."""
         LOGGER.info("Start Doors_lock for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "DOORS_LOCK"):
@@ -684,6 +686,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End Doors_lock for vin %s", loghelper.Mask_VIN(vin))
 
     async def auxheat_configure(self, vin: str, time_selection: int, time_1: int, time_2: int, time_3: int):
+        """Send the auxheat configure command to the car."""
         LOGGER.info("Start auxheat_configure for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "AUXHEAT_START"):
@@ -708,6 +711,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End auxheat_configure for vin %s", loghelper.Mask_VIN(vin))
 
     async def auxheat_start(self, vin: str):
+        """Send the auxheat start command to the car."""
         LOGGER.info("Start auxheat start for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "AUXHEAT_START"):
@@ -728,6 +732,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End auxheat start for vin %s", loghelper.Mask_VIN(vin))
 
     async def auxheat_stop(self, vin: str):
+        """Send the auxheat stop command to the car."""
         LOGGER.info("Start auxheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "AUXHEAT_STOP"):
@@ -748,6 +753,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End auxheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
     async def battery_max_soc_configure(self, vin: str, max_soc: int):
+        """Send the maxsoc configure command to the car."""
         LOGGER.info(
             "Start battery_max_soc_configure to %s for vin %s",
             max_soc,
@@ -773,6 +779,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End battery_max_soc_configure for vin %s", loghelper.Mask_VIN(vin))
 
     async def engine_start(self, vin: str):
+        """Send the engine start command to the car."""
         LOGGER.info("Start engine start for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "ENGINE_START"):
@@ -799,6 +806,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End engine start for vin %s", loghelper.Mask_VIN(vin))
 
     async def engine_stop(self, vin: str):
+        """Send the engine stop command to the car."""
         LOGGER.info("Start engine_stop for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "ENGINE_STOP"):
@@ -828,6 +836,7 @@ class Client:  # pylint: disable-too-few-public-methods
         postcode: str,
         street: str,
     ):
+        """Send a route target to the car."""
         LOGGER.info("Start send_route_to_car for vin %s", loghelper.Mask_VIN(vin))
 
         await self.webapi.send_route_to_car(vin, title, latitude, longitude, city, postcode, street)
@@ -835,6 +844,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End send_route_to_car for vin %s", loghelper.Mask_VIN(vin))
 
     async def sigpos_start(self, vin: str):
+        """Send a sigpos command to the car."""
         LOGGER.info("Start sigpos_start for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "SIGPOS_START"):
@@ -855,6 +865,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End sigpos_start for vin %s", loghelper.Mask_VIN(vin))
 
     async def sunroof_open(self, vin: str):
+        """Send a sunroof open command to the car."""
         LOGGER.info("Start sunroof_open for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "SUNROOF_OPEN"):
@@ -881,6 +892,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End sunroof_open for vin %s", loghelper.Mask_VIN(vin))
 
     async def sunroof_close(self, vin: str):
+        """Send a sunroof close command to the car."""
         LOGGER.info("Start sunroof_close for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "SUNROOF_CLOSE"):
@@ -901,6 +913,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End sunroof_close for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_start(self, vin: str):
+        """Send a preconditioning start command to the car."""
         LOGGER.info("Start preheat_start for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
@@ -921,6 +934,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End preheat_start for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_start_immediate(self, vin: str):
+        """Send a preconditioning immediatestart command to the car."""
         LOGGER.info("Start preheat_start_immediate for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
@@ -941,6 +955,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End preheat_start_immediate for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_start_departure_time(self, vin: str, departure_time: int):
+        """Send a preconditioning start by time command to the car."""
         LOGGER.info("Start preheat_start_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
@@ -961,6 +976,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End preheat_start_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_stop(self, vin: str):
+        """Send a preconditioning stop command to the car."""
         LOGGER.info("Start preheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
@@ -979,6 +995,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End preheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_stop_departure_time(self, vin: str):
+        """Send a preconditioning stop by time command to the car."""
         LOGGER.info("Start preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
@@ -997,6 +1014,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
     async def windows_open(self, vin: str):
+        """Send a window open command to the car."""
         LOGGER.info("Start windows_open for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "WINDOWS_OPEN"):
@@ -1023,6 +1041,7 @@ class Client:  # pylint: disable-too-few-public-methods
         LOGGER.info("End windows_open for vin %s", loghelper.Mask_VIN(vin))
 
     async def windows_close(self, vin: str):
+        """Send a window close command to the car."""
         LOGGER.info("Start windows_close for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "WINDOWS_CLOSE"):
@@ -1055,7 +1074,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
     def _write_debug_output(self, data, datatype):
         if self.config_entry.options.get(CONF_DEBUG_FILE_SAVE, False):
-            LOGGER.debug("Start _write_debug_output")
+            # LOGGER.debug("Start _write_debug_output")
 
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
