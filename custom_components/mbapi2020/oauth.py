@@ -12,9 +12,8 @@ import urllib.parse
 import uuid
 
 from aiohttp import ClientSession
-from aiohttp.client_exceptions import ClientError
 
-from custom_components.mbapi2020.errors import MbapiError, MBAuthError
+from custom_components.mbapi2020.errors import MBAuthError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -83,7 +82,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         _LOGGER.info("PIN preflight request 1")
         headers = self._get_header()
         url = f"{helper.Rest_url(self._region)}/v1/config"
-        r = await self._async_request("get", url, headers=headers)
+        await self._async_request("get", url, headers=headers)
 
         _LOGGER.info("PIN request")
         url = f"{helper.Rest_url(self._region)}/v1/login"
@@ -98,7 +97,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         _LOGGER.info("Auth token refresh preflight request 1")
         headers = self._get_header()
         url = f"{helper.Rest_url(self._region)}/v1/config"
-        r = await self._async_request("get", url, headers=headers)
+        await self._async_request("get", url, headers=headers)
 
         url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
         data = f"grant_type=refresh_token&refresh_token={refresh_token}"
@@ -115,10 +114,8 @@ class Oauth:  # pylint: disable-too-few-public-methods
             if is_retry:
                 if self._config_entry and self._config_entry.data:
                     new_config_entry_data = deepcopy(dict(self._config_entry.data))
-                    new_config_entry_data["token"] = None
-                    changed = self._hass.config_entries.async_update_entry(
-                        self._config_entry, data=new_config_entry_data
-                    )
+                    new_config_entry_data.pop("token", None)
+                    self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
                 raise err
 
         if token_info is not None:
@@ -166,31 +163,29 @@ class Oauth:  # pylint: disable-too-few-public-methods
         if self.token:
             token_info = self.token
             token_type = "instance"
-        else:
-            if not os.path.exists(self._config_entry_token_path):
-                if os.path.exists(self._old_token_path):
-                    _LOGGER.debug("async_get_cached_token: token migration - start copy")
-                    shutil.copyfile(self._old_token_path, self._config_entry_token_path)
-                    os.remove(self._old_token_path)
+        elif not os.path.exists(self._config_entry_token_path):
+            if os.path.exists(self._old_token_path):
+                _LOGGER.debug("async_get_cached_token: token migration - start copy")
+                shutil.copyfile(self._old_token_path, self._config_entry_token_path)
+                os.remove(self._old_token_path)
 
-                    token_file = open(self._config_entry_token_path)
-                    token_info_string = token_file.read()
-                    token_file.close()
-                    token_info = json.loads(token_info_string)
-                    token_type = "old_file"
-                else:
-                    if self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
-                        token_info = self._config_entry.data["token"]
-                        token_type = "config_entry"
-                    else:
-                        _LOGGER.warning("No token information - reauth required")
-                        return None
-            else:
                 token_file = open(self._config_entry_token_path)
                 token_info_string = token_file.read()
                 token_file.close()
                 token_info = json.loads(token_info_string)
-                token_type = "new_file"
+                token_type = "old_file"
+            elif self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
+                token_info = self._config_entry.data["token"]
+                token_type = "config_entry"
+            else:
+                _LOGGER.warning("No token information - reauth required")
+                return None
+        else:
+            token_file = open(self._config_entry_token_path)
+            token_info_string = token_file.read()
+            token_file.close()
+            token_info = json.loads(token_info_string)
+            token_type = "new_file"
 
         if self.is_token_expired(token_info):
             async with self._get_token_lock:
@@ -233,7 +228,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
         new_config_entry_data = deepcopy(dict(self._config_entry.data))
         new_config_entry_data["token"] = token_info
-        changed = self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
+        self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
 
         try:
             with open(self._config_entry_token_path, "w") as token_file:
