@@ -22,7 +22,7 @@
           "region": "Region",
           "username": "MB username - email address (or mobile phone including country code ex. +44)"
         },
-        "description": "Enter your Mercedes ME login account (email adress)",
+        "description": "Enter your Mercedes ME login account (email address)",
         "title": "Set up the Mercedes ME 2020 connection"
       }
     }
