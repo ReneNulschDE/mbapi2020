@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v3.1.2
         if: ${{ github.event_name == 'push' }}
         with:
-          name: mbapi2020.zip
+          name: mbapi2020
           path: ${{ github.workspace }}/custom_components/${{ steps.information.outputs.name }}
           retention-days: 14
       - name: Upload the zipfile as a release asset
