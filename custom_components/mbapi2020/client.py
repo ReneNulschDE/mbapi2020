@@ -1065,7 +1065,7 @@ class Client:  # pylint: disable-too-few-public-methods
         """Send the windows move command to the car."""
         LOGGER.info("Start windows_move for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self._is_car_feature_available(vin, "WINDOWS_OPEN"):
+        if not self._is_car_feature_available(vin, "variableOpenableWindow"):
             LOGGER.warning(
                 "Can't move windows for car %s. VIN unknown or feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
