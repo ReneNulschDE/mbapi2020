@@ -146,6 +146,7 @@ SERVICE_PREHEAT_STOP_DEPARTURE_TIME = "preheat_stop_departure_time"
 SERVICE_PREHEAT_STOP = "preheat_stop"
 SERVICE_WINDOWS_OPEN = "windows_open"
 SERVICE_WINDOWS_CLOSE = "windows_close"
+SERVICE_WINDOWS_MOVE = "windows_move"
 
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {
@@ -196,6 +197,23 @@ SERVICE_VIN_CHARGE_PROGRAM_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
         vol.Required("charge_program", default=0): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),
+    }
+)
+SERVICE_WINDOWS_MOVE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Optional("front_left", default=None): vol.Any(
+            None, vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]))
+        ),  # type: ignore
+        vol.Optional("front_right", default=None): vol.Any(
+            None, vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]))
+        ),  # type: ignore
+        vol.Optional("rear_left", default=None): vol.Any(
+            None, vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]))
+        ),  # type: ignore
+        vol.Optional("rear_right", default=None): vol.Any(
+            None, vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]))
+        ),  # type: ignore
     }
 )
 

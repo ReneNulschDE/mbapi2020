@@ -4,11 +4,9 @@ import datetime
 from enum import Enum
 import inspect
 import json
-import logging
 import math
-import pathlib
 import time
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 
 from .const import (
     JSON_EXPORT_IGNORED_KEYS,

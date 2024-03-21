@@ -291,6 +291,32 @@
         }
       }
     },
+    "windows_move": {
+      "name": "Windows move",
+      "description": "Move the windows of a car defined by a vin to a new position. PIN setup required. See options dialog of the integration.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "front_left": {
+          "name": "Front left",
+          "description": "The new position of the front left window (0=open, 90=ventilating, 100=closed)"
+        },
+        "front_right": {
+          "name": "Front right",
+          "description": "The new position of the front right window (0=open, 90=ventilating, 100=closed)"
+        },
+        "rear_left": {
+          "name": "Rear left",
+          "description": "The new position of the rear left window (0=open, 90=ventilating, 100=closed)"
+        },
+        "rear_right": {
+          "name": "Rear right",
+          "description": "The new position of the rear right window (0=open, 90=ventilating, 100=closed)"
+        }
+      }
+    },
     "send_route": {
       "name": "Route send",
       "description": "Sends a route to the car. (Single location only)",

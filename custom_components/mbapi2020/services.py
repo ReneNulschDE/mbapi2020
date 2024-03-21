@@ -37,6 +37,8 @@ from .const import (
     SERVICE_VIN_SCHEMA,
     SERVICE_VIN_TIME_SCHEMA,
     SERVICE_WINDOWS_CLOSE,
+    SERVICE_WINDOWS_MOVE,
+    SERVICE_WINDOWS_MOVE_SCHEMA,
     SERVICE_WINDOWS_OPEN,
 )
 
@@ -131,6 +133,15 @@ def setup_services(hass: HomeAssistant) -> None:
     async def windows_close(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.windows_close(call.data.get(CONF_VIN))
 
+    async def windows_move(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.windows_move(
+            call.data.get(CONF_VIN),
+            call.data.get("front_left"),
+            call.data.get("front_right"),
+            call.data.get("rear_left"),
+            call.data.get("rear_right"),
+        )
+
     async def send_route_to_car(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.send_route_to_car(
             call.data.get(CONF_VIN),
@@ -184,6 +195,7 @@ def setup_services(hass: HomeAssistant) -> None:
         (SERVICE_SUNROOF_CLOSE, sunroof_close, SERVICE_VIN_SCHEMA),
         (SERVICE_WINDOWS_OPEN, windows_open, SERVICE_VIN_SCHEMA),
         (SERVICE_WINDOWS_CLOSE, windows_close, SERVICE_VIN_SCHEMA),
+        (SERVICE_WINDOWS_MOVE, windows_move, SERVICE_WINDOWS_MOVE_SCHEMA),
     ]
 
     for service_name, service_handler, schema in service_mapping:
@@ -212,3 +224,4 @@ def remove_services(hass: HomeAssistant) -> None:
     hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_CLOSE)
     hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_OPEN)
     hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_CLOSE)
+    hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_MOVE)
