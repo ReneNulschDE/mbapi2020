@@ -283,7 +283,6 @@ windows_move:
         select:
           options:
             - "0"
-            - "1"
             - "10"
             - "20"
             - "30"
@@ -302,7 +301,6 @@ windows_move:
         select:
           options:
             - "0"
-            - "1"
             - "10"
             - "20"
             - "30"
@@ -321,7 +319,6 @@ windows_move:
         select:
           options:
             - "0"
-            - "1"
             - "10"
             - "20"
             - "30"
@@ -340,7 +337,6 @@ windows_move:
         select:
           options:
             - "0"
-            - "1"
             - "10"
             - "20"
             - "30"

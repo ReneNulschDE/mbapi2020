@@ -1063,7 +1063,14 @@ class Client:  # pylint: disable-too-few-public-methods
 
     async def windows_move(self, vin: str, front_left: int, front_right: int, rear_left: int, rear_right: int):
         """Send the windows move command to the car."""
-        LOGGER.info("Start windows_move for vin %s", loghelper.Mask_VIN(vin))
+        LOGGER.info(
+            "Start windows_move for vin %s, fl-%s, fr-%s, rl-%s, rr-%s",
+            loghelper.Mask_VIN(vin),
+            front_left,
+            front_right,
+            rear_left,
+            rear_right,
+        )
 
         if not self._is_car_feature_available(vin, "variableOpenableWindow"):
             LOGGER.warning(
@@ -1074,25 +1081,29 @@ class Client:  # pylint: disable-too-few-public-methods
 
         message = client_pb2.ClientMessage()
 
-        LOGGER.info(
-            "Start windows_move for vin %s, fl-%s, fr-%s, rl-%s, rr-%s",
-            loghelper.Mask_VIN(vin),
-            front_left,
-            front_right,
-            rear_left,
-            rear_right,
-        )
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.windows_move.pin = self.pin
-        if front_left:
-            message.commandRequest.windows_move.front_left.value = front_left
-        if front_right:
-            message.commandRequest.windows_move.front_right.value = front_right
-        if rear_left:
-            message.commandRequest.windows_move.rear_left.value = rear_left
-        if rear_right:
-            message.commandRequest.windows_move.rear_right.value = rear_right
+        if front_left is not None:
+            if front_left == 0:
+                message.commandRequest.windows_move.front_left.SetInParent()
+            else:
+                message.commandRequest.windows_move.front_left = front_left
+        if front_right is not None:
+            if front_right == 0:
+                message.commandRequest.windows_move.front_right.SetInParent()
+            else:
+                message.commandRequest.windows_move.front_right.value = front_right
+        if rear_left is not None:
+            if rear_left == 0:
+                message.commandRequest.windows_move.rear_left.SetInParent()
+            else:
+                message.commandRequest.windows_move.rear_left.value = rear_left
+        if rear_right is not None:
+            if rear_right == 0:
+                message.commandRequest.windows_move.rear_right.SetInParent()
+            else:
+                message.commandRequest.windows_move.rear_right.value = rear_right
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End windows_move for vin %s", loghelper.Mask_VIN(vin))
