@@ -301,19 +301,19 @@
         },
         "front_left": {
           "name": "Front left",
-          "description": "The new position of the front left window (0=open, 90=ventilating, 100=closed)"
+          "description": "The new position of the front left window (0=closed, 10=ventilating, 100=open)"
         },
         "front_right": {
           "name": "Front right",
-          "description": "The new position of the front right window (0=open, 90=ventilating, 100=closed)"
+          "description": "The new position of the front left window (0=closed, 10=ventilating, 100=open)"
         },
         "rear_left": {
           "name": "Rear left",
-          "description": "The new position of the rear left window (0=open, 90=ventilating, 100=closed)"
+          "description": "The new position of the front left window (0=closed, 10=ventilating, 100=open)"
         },
         "rear_right": {
           "name": "Rear right",
-          "description": "The new position of the rear right window (0=open, 90=ventilating, 100=closed)"
+          "description": "The new position of the front left window (0=closed, 10=ventilating, 100=open)"
         }
       }
     },

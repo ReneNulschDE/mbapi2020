@@ -1088,7 +1088,7 @@ class Client:  # pylint: disable-too-few-public-methods
             if front_left == 0:
                 message.commandRequest.windows_move.front_left.SetInParent()
             else:
-                message.commandRequest.windows_move.front_left = front_left
+                message.commandRequest.windows_move.front_left.value = front_left
         if front_right is not None:
             if front_right == 0:
                 message.commandRequest.windows_move.front_right.SetInParent()
