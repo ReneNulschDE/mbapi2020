@@ -1,4 +1,5 @@
 """The MercedesME 2020 integration."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -104,8 +105,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             try:
                 capabilities = await coordinator.client.webapi.get_car_capabilities_commands(vin)
                 coordinator.client.write_debug_json_output(capabilities, "ca")
-                for feature in capabilities.get("commands"):
-                    features[feature.get("commandName")] = bool(feature.get("isAvailable"))
+                if capabilities:
+                    for feature in capabilities.get("commands"):
+                        features[feature.get("commandName")] = bool(feature.get("isAvailable"))
             except aiohttp.ClientError:
                 # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
                 # We just ignore the capabilities
