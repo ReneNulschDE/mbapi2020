@@ -1,4 +1,5 @@
 """Define an object to interact with the Websocket API."""
+
 from __future__ import annotations
 
 import asyncio
@@ -169,6 +170,12 @@ class Websocket:
                 await self._websocket_handler(session)
             except client_exceptions.ClientConnectionError as cce:
                 LOGGER.error("Could not connect: %s, retry in %s seconds...", cce, retry_in)
+                LOGGER.debug(cce)
+                self.connection_state = STATE_RECONNECTING
+                await asyncio.sleep(retry_in)
+                retry_in = retry_in * 2 if retry_in < 120 else 120
+            except ConnectionResetError as cce:
+                LOGGER.info("Connection reseted: %s, retry in %s seconds...", cce, retry_in)
                 LOGGER.debug(cce)
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)

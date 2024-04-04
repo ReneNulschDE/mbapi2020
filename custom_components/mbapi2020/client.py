@@ -1,6 +1,8 @@
 """The MercedesME 2020 client."""
+
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from pathlib import Path
@@ -16,7 +18,6 @@ import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import system_info
-from homeassistant.helpers.event import async_call_later
 
 from .car import (
     AUX_HEAT_OPTIONS,
@@ -216,16 +217,46 @@ class Client:  # pylint: disable-too-few-public-methods
 
             LOGGER.debug("Message Type not implemented: %s", msg_type)
 
-        try:
-            self._on_dataload_complete = callback_dataload_complete
-            await self.websocket.async_connect(on_data)
-        except WebsocketError as err:
-            LOGGER.error("Error with the websocket connection: %s", err)
-            async_call_later(
-                self._hass,
-                self._ws_reconnect_delay,
-                self.websocket.async_connect(on_data),
-            )
+        stop_retry_loop: bool = False
+        ws_connect_retry_counter: int = 0
+        self._on_dataload_complete = callback_dataload_complete
+        while not stop_retry_loop:
+            try:
+                if ws_connect_retry_counter == 0:
+                    await self.websocket.async_connect(on_data)
+                else:
+                    await asyncio.sleep(self._ws_reconnect_delay)
+                    await self.websocket.async_connect(on_data)
+            except WebsocketError as err:
+                if self.websocket._is_stopping:
+                    stop_retry_loop = True
+                    break
+                else:
+                    LOGGER.error(
+                        "Error with the websocket connection (retry counter: %s): %s", ws_connect_retry_counter, err
+                    )
+                    ws_connect_retry_counter += 1
+            except Exception as err:
+                if self.websocket._is_stopping:
+                    stop_retry_loop = True
+                    break
+                else:
+                    LOGGER.error(
+                        "Unkown error with the websocket connection (retry counter: %s): %s",
+                        ws_connect_retry_counter,
+                        err,
+                    )
+                    ws_connect_retry_counter += 1
+                    if ws_connect_retry_counter > 10:
+                        LOGGER.error(
+                            "Retry counter: %s - Giving up and initiate component reload.", ws_connect_retry_counter
+                        )
+            if self.websocket._is_stopping:
+                LOGGER.info("Client WS Handler loop - stopping")
+                stop_retry_loop = True
+                break
+            else:
+                LOGGER.info("Client WS Handler loop - loop end round %s", ws_connect_retry_counter)
 
     def _build_car(self, received_car_data, update_mode):
         if received_car_data.get("vin") in self.excluded_cars:
