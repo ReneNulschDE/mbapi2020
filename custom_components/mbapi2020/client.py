@@ -86,6 +86,7 @@ class Client:  # pylint: disable-too-few-public-methods
         self.config_entry = config_entry
         self._locale: str = DEFAULT_LOCALE
         self._country_code: str = DEFAULT_COUNTRY_CODE
+        self.session_id = str(uuid.uuid4()).upper()
 
         self.oauth: Oauth = Oauth(
             self._hass,
@@ -93,7 +94,9 @@ class Client:  # pylint: disable-too-few-public-methods
             region=self._region,
             config_entry=config_entry,
         )
+        self.oauth.session_id = self.session_id
         self.webapi: WebApi = WebApi(self._hass, session=session, oauth=self.oauth, region=self._region)
+        self.webapi.session_id = self.session_id
         self.websocket: Websocket = Websocket(self._hass, self.oauth, region=self._region)
         self.cars: dict[str, Car] = {}
 
@@ -235,7 +238,7 @@ class Client:  # pylint: disable-too-few-public-methods
                     LOGGER.error(
                         "Error with the websocket connection (retry counter: %s): %s", ws_connect_retry_counter, err
                     )
-                    ws_connect_retry_counter += 1
+                    ws_connect_retry_counter = ws_connect_retry_counter + 1
             except Exception as err:
                 if self.websocket._is_stopping:
                     stop_retry_loop = True
@@ -246,7 +249,7 @@ class Client:  # pylint: disable-too-few-public-methods
                         ws_connect_retry_counter,
                         err,
                     )
-                    ws_connect_retry_counter += 1
+                    ws_connect_retry_counter = ws_connect_retry_counter + 1
                     if ws_connect_retry_counter > 10:
                         LOGGER.error(
                             "Retry counter: %s - Giving up and initiate component reload.", ws_connect_retry_counter

@@ -1,4 +1,5 @@
 """Define an object to interact with the REST API."""
+
 from __future__ import annotations
 
 import json
@@ -47,6 +48,7 @@ class WebApi:
         self._oauth: Oauth = oauth
         self._region = region
         self.hass = hass
+        self.session_id = str(uuid.uuid4()).upper()
 
     async def _request(
         self,
@@ -67,8 +69,8 @@ class WebApi:
         if not rcp_headers:
             kwargs["headers"] = {
                 "Authorization": f"Bearer {token['access_token']}",
-                "X-SessionId": str(uuid.uuid4()),
-                "X-TrackingId": str(uuid.uuid4()),
+                "X-SessionId": self.session_id,
+                "X-TrackingId": str(uuid.uuid4()).upper(),
                 "X-ApplicationName": X_APPLICATIONNAME,
                 "ris-application-version": RIS_APPLICATION_VERSION,
                 "ris-os-name": "ios",

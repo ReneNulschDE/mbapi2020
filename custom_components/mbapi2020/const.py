@@ -1,4 +1,5 @@
 """Constants for the MercedesME 2020 integration."""
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -81,10 +82,10 @@ JSON_EXPORT_IGNORED_KEYS = (
 RIS_APPLICATION_VERSION_NA = "3.40.0"
 RIS_APPLICATION_VERSION_CN = "1.39.0"
 RIS_APPLICATION_VERSION_PA = "1.40.0"
-RIS_APPLICATION_VERSION = "1.41.0"
-RIS_SDK_VERSION = "2.113.0"
+RIS_APPLICATION_VERSION = "1.42.0 (2168)"
+RIS_SDK_VERSION = "2.114.0"
 RIS_SDK_VERSION_CN = "2.109.2"
-RIS_OS_VERSION = "17.3"
+RIS_OS_VERSION = "17.4.1"
 RIS_OS_NAME = "ios"
 X_APPLICATIONNAME = "mycar-store-ece"
 X_APPLICATIONNAME_ECE = "mycar-store-ece"
@@ -94,7 +95,7 @@ X_APPLICATIONNAME_AP = "mycar-store-ap"
 
 USE_PROXY = False
 VERIFY_SSL = True
-SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:8080"
+SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:20000"
 
 
 LOGIN_APP_ID = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
@@ -116,7 +117,7 @@ WEBSOCKET_API_BASE = "wss://websocket.emea-prod.mobilesdk.mercedes-benz.com/v2/w
 WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
 WEBSOCKET_API_BASE_PA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
 WEBSOCKET_API_BASE_CN = "wss://websocket.cn-prod.mobilesdk.mercedes-benz.com/ws"
-WEBSOCKET_USER_AGENT = f"MyCar/{RIS_APPLICATION_VERSION} (com.daimler.ris.mercedesme.ece.ios; {RIS_OS_NAME} {RIS_OS_VERSION}) Alamofire/5.4.0"
+WEBSOCKET_USER_AGENT = "MyCar/2168 CFNetwork/1494.0.7 Darwin/23.4.0"
 WEBSOCKET_USER_AGENT_CN = "MyStarCN/1.39.0 (com.daimler.ris.mercedesme.cn.ios; build:1758; iOS 16.3.1) Alamofire/5.4.0"
 WEBSOCKET_USER_AGENT_PA = (
     f"mycar-store-ap v{RIS_APPLICATION_VERSION}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"

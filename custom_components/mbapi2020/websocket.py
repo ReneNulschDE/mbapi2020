@@ -75,6 +75,39 @@ class WebsocketWatchdog:
         self._timer_task = self._loop.call_later(self._timeout, lambda: asyncio.create_task(self.on_expire()))
 
 
+class WebsocketPingWatcher:
+    """Define a watchdog to ping the websocket connection at intervals."""
+
+    def __init__(
+        self,
+        action: Callable[..., Awaitable],
+        *,
+        timeout_seconds: int = DEFAULT_WATCHDOG_TIMEOUT,
+    ):
+        """Initialize."""
+        self._action: Callable[..., Awaitable] = action
+        self._loop = asyncio.get_event_loop()
+        self._timer_task: Optional[asyncio.TimerHandle] = None
+        self._timeout: int = 15
+
+    def cancel(self):
+        """Cancel the watchdog."""
+        if self._timer_task:
+            self._timer_task.cancel()
+            self._timer_task = None
+
+    async def on_expire(self):
+        """Log and act when the watchdog expires."""
+        await self._action()
+
+    async def trigger(self):
+        """Trigger the watchdog."""
+        if self._timer_task:
+            self._timer_task.cancel()
+
+        self._timer_task = self._loop.call_later(self._timeout, lambda: asyncio.create_task(self.on_expire()))
+
+
 class Websocket:
     """Define the websocket."""
 
@@ -89,7 +122,9 @@ class Websocket:
         self.connection_state = "unknown"
         self.is_connecting = False
         self._watchdog: WebsocketWatchdog = WebsocketWatchdog(self.initiatiate_connection_reset)
+        self._pingwatchdog: WebsocketPingWatcher = WebsocketPingWatcher(self.ping)
         self._queue = asyncio.Queue()
+        self.session_id = str(uuid.uuid4()).upper()
 
     async def async_connect(self, on_data) -> None:
         """Connect to the socket."""
@@ -118,6 +153,7 @@ class Websocket:
         """Close connection."""
         self._is_stopping = True
         self._watchdog.cancel()
+        self._pingwatchdog.cancel()
         if self._connection is not None:
             await self._connection.close()
 
@@ -125,6 +161,14 @@ class Websocket:
         """Initiate a connection reset."""
         if self._connection is not None:
             await self._connection.close()
+
+    async def ping(self):
+        """Send a ping to the MB websocket servers."""
+        try:
+            await self._connection.ping()
+            await self._pingwatchdog.trigger()
+        except client_exceptions.ClientError as err:
+            LOGGER.error("remote websocket connection closed: %s", err)
 
     async def call(self, message):
         """Send a message to the MB websocket servers."""
@@ -199,27 +243,30 @@ class Websocket:
 
             self.connection_state = STATE_CONNECTED
 
-            if msg.type in (
-                WSMsgType.CLOSED,
-                WSMsgType.ERROR,
-            ):
+            if msg.type == WSMsgType.CLOSED:
                 LOGGER.info("websocket connection is closing")
+                break
+            elif msg.type == WSMsgType.ERROR:
+                LOGGER.info("websocket connection is closing - message type error.")
                 break
             elif msg.type == WSMsgType.BINARY:
                 self._queue.put_nowait(msg.data)
                 await self._watchdog.trigger()
+                await self._pingwatchdog.trigger()
 
     async def _websocket_connection_headers(self):
         token = await self.oauth.async_get_cached_token()
         header = {
             "Authorization": token["access_token"],
-            "X-SessionId": str(uuid.uuid4()),
-            "X-TrackingId": str(uuid.uuid4()),
-            "ris-os-name": RIS_OS_NAME,
-            "ris-os-version": RIS_OS_VERSION,
-            "ris-sdk-version": RIS_SDK_VERSION,
-            "X-Locale": "en-US",
+            "X-SessionId": self.session_id,
+            "X-TrackingId": str(uuid.uuid4()).upper(),
+            "RIS-OS-Name": RIS_OS_NAME,
+            "RIS-OS-Version": RIS_OS_VERSION,
+            "ris-websocket-type": "ios-native",
+            "RIS-SDK-Version": RIS_SDK_VERSION,
+            "X-Locale": "de-DE",
             "User-Agent": WEBSOCKET_USER_AGENT,
+            "Accept-Language": " de-DE,de;q=0.9",
         }
 
         header = self._get_region_header(header)
