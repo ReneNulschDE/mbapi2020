@@ -159,6 +159,7 @@ class Websocket:
 
     async def initiatiate_connection_reset(self):
         """Initiate a connection reset."""
+        self._pingwatchdog.cancel()
         if self._connection is not None:
             await self._connection.close()
 
@@ -167,8 +168,8 @@ class Websocket:
         try:
             await self._connection.ping()
             await self._pingwatchdog.trigger()
-        except client_exceptions.ClientError as err:
-            LOGGER.error("remote websocket connection closed: %s", err)
+        except (client_exceptions.ClientError, ConnectionResetError):
+            await self._pingwatchdog.trigger()
 
     async def call(self, message):
         """Send a message to the MB websocket servers."""
