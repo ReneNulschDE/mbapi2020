@@ -61,6 +61,7 @@ from .websocket import Websocket
 LOGGER = logging.getLogger(__name__)
 
 DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = False
+GEOFENCING_MAX_RETRIES = 3
 
 
 class Client:  # pylint: disable-too-few-public-methods
@@ -1229,7 +1230,8 @@ class Client:  # pylint: disable-too-few-public-methods
                     geofencing_violotions[-1].get("time"),
                 )
                 car.has_geofencing = True
+                car.geo_fencing_retry_counter = 0
             else:
-                car.has_geofencing = False
-
-            # return geofencing_violotions
+                if car.geo_fencing_retry_counter >= GEOFENCING_MAX_RETRIES:
+                    car.has_geofencing = False
+                car.geo_fencing_retry_counter = car.geo_fencing_retry_counter + 1

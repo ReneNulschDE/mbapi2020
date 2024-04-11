@@ -1,4 +1,5 @@
 """Define the objects to store care data."""
+
 from __future__ import annotations
 
 import collections
@@ -189,6 +190,7 @@ class Car:
     geofence_events: GeofenceEvents
     baumuster_description: str = ""
     has_geofencing: bool = True
+    geo_fencing_retry_counter: int = 0
 
     def __init__(self, vin: str):
         """Initialize the Car instance."""
