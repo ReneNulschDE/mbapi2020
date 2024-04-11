@@ -1,4 +1,5 @@
 """Define an object to interact with the REST API."""
+
 from __future__ import annotations
 
 import asyncio
@@ -181,11 +182,15 @@ class Oauth:  # pylint: disable-too-few-public-methods
                 _LOGGER.warning("No token information - reauth required")
                 return None
         else:
-            token_file = open(self._config_entry_token_path)
-            token_info_string = token_file.read()
-            token_file.close()
-            token_info = json.loads(token_info_string)
-            token_type = "new_file"
+            if self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
+                token_info = self._config_entry.data["token"]
+                token_type = "config_entry"
+            else:
+                token_file = open(self._config_entry_token_path)
+                token_info_string = token_file.read()
+                token_file.close()
+                token_info = json.loads(token_info_string)
+                token_type = "new_file"
 
         if self.is_token_expired(token_info):
             async with self._get_token_lock:
