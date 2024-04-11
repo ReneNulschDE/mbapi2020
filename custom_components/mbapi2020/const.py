@@ -706,6 +706,21 @@ SENSORS = {
         SensorStateClass.MEASUREMENT,
         None,
     ],
+    "tankleveladblue": [
+        "AdBlue Level",
+        None,  # Deprecated: DO NOT USE
+        "odometer",
+        "tankLevelAdBlue",
+        "value",
+        None,
+        {},
+        "mdi:gas-station",
+        SensorDeviceClass.POWER_FACTOR,
+        False,
+        None,
+        SensorStateClass.MEASUREMENT,
+        None,
+    ],
     "odometer": [
         "Odometer",
         None,  # Deprecated: DO NOT USE,
