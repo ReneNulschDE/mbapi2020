@@ -1,4 +1,5 @@
 """Config flow for mbapi2020 integration."""
+
 from __future__ import annotations
 
 from copy import deepcopy
