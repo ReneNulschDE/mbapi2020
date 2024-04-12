@@ -112,3 +112,4 @@ sec_*.txt
 /custom_components/mbapi2020/messages/c*
 /custom_components/mbapi2020/messages/rc*
 /custom_components/mbapi2020/messages/ssu*
+/custom_components/mbapi2020/resources*

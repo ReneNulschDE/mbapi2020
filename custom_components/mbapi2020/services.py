@@ -1,4 +1,5 @@
 """Services for the Blink integration."""
+
 from __future__ import annotations
 
 from homeassistant.core import HomeAssistant
@@ -20,6 +21,7 @@ from .const import (
     SERVICE_CHARGE_PROGRAM_CONFIGURE,
     SERVICE_DOORS_LOCK_URL,
     SERVICE_DOORS_UNLOCK_URL,
+    SERVICE_DOWNLOAD_IMAGES,
     SERVICE_ENGINE_START,
     SERVICE_ENGINE_STOP,
     SERVICE_PREHEAT_START,
@@ -158,6 +160,9 @@ def setup_services(hass: HomeAssistant) -> None:
             call.data.get(CONF_VIN), call.data.get("max_soc")
         )
 
+    async def download_images(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.download_images(call.data.get(CONF_VIN))
+
     # Register all the above services
     service_mapping = [
         (
@@ -175,6 +180,7 @@ def setup_services(hass: HomeAssistant) -> None:
         (SERVICE_CHARGE_PROGRAM_CONFIGURE, charge_program_configure, SERVICE_VIN_CHARGE_PROGRAM_SCHEMA),
         (SERVICE_DOORS_LOCK_URL, doors_lock, SERVICE_VIN_SCHEMA),
         (SERVICE_DOORS_UNLOCK_URL, doors_unlock, SERVICE_VIN_PIN_SCHEMA),
+        (SERVICE_DOWNLOAD_IMAGES, download_images, SERVICE_VIN_SCHEMA),
         (SERVICE_ENGINE_START, engine_start, SERVICE_VIN_SCHEMA),
         (SERVICE_ENGINE_STOP, engine_stop, SERVICE_VIN_SCHEMA),
         (SERVICE_PREHEAT_START, preheat_start, SERVICE_PREHEAT_START_SCHEMA),
@@ -212,6 +218,7 @@ def remove_services(hass: HomeAssistant) -> None:
     hass.services.async_remove(DOMAIN, SERVICE_BATTERY_MAX_SOC_CONFIGURE)
     hass.services.async_remove(DOMAIN, SERVICE_DOORS_LOCK_URL)
     hass.services.async_remove(DOMAIN, SERVICE_DOORS_UNLOCK_URL)
+    hass.services.async_remove(DOMAIN, SERVICE_DOWNLOAD_IMAGES)
     hass.services.async_remove(DOMAIN, SERVICE_ENGINE_START)
     hass.services.async_remove(DOMAIN, SERVICE_ENGINE_STOP)
     hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START)

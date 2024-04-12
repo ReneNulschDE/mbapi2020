@@ -57,6 +57,7 @@ LOGGER = logging.getLogger(__package__)
 UPDATE_INTERVAL = timedelta(seconds=300)
 
 DEFAULT_CACHE_PATH = "custom_components/mbapi2020/messages"
+DEFAULT_DOWNLOAD_PATH = "custom_components/mbapi2020/resources"
 DEFAULT_LOCALE = "en-GB"
 DEFAULT_COUNTRY_CODE = "EN"
 
@@ -148,6 +149,7 @@ SERVICE_PREHEAT_STOP = "preheat_stop"
 SERVICE_WINDOWS_OPEN = "windows_open"
 SERVICE_WINDOWS_CLOSE = "windows_close"
 SERVICE_WINDOWS_MOVE = "windows_move"
+SERVICE_DOWNLOAD_IMAGES = "download_images"
 
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {

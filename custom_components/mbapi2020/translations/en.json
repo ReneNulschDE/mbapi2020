@@ -165,7 +165,17 @@
     },
     "doors_lock": {
       "name": "Doors lock",
-      "description": "Lock a car defined by a vin. PIN setup required. See options dialog of the integration.",
+      "description": "Lock a car defined by a vin",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "download_images": {
+      "name": "Download images",
+      "description": "Downloads the app images to the components resource folder for a car defined by a vin.",
       "fields": {
         "vin": {
           "name": "Vin",

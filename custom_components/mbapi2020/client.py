@@ -49,6 +49,7 @@ from .const import (
     CONF_PIN,
     DEFAULT_CACHE_PATH,
     DEFAULT_COUNTRY_CODE,
+    DEFAULT_DOWNLOAD_PATH,
     DEFAULT_LOCALE,
     DEFAULT_SOCKET_MIN_RETRY,
 )
@@ -719,6 +720,22 @@ class Client:  # pylint: disable-too-few-public-methods
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End Doors_lock for vin %s", loghelper.Mask_VIN(vin))
+
+    async def download_images(self, vin: str):
+        """Download the car related images."""
+        LOGGER.info("Start download_images for vin %s", loghelper.Mask_VIN(vin))
+
+        download_path = self._hass.config.path(DEFAULT_DOWNLOAD_PATH)
+        target_file_name = Path(download_path, f"{vin}.zip")
+        zip_file = await self.webapi.download_images(vin)
+        if zip_file:
+            Path(download_path).mkdir(parents=True, exist_ok=True)
+
+            with open(target_file_name, mode="wb") as zf:
+                zf.write(zip_file)
+                zf.close()
+
+        LOGGER.info("End download_images for vin %s", loghelper.Mask_VIN(vin))
 
     async def auxheat_configure(self, vin: str, time_selection: int, time_1: int, time_2: int, time_3: int):
         """Send the auxheat configure command to the car."""

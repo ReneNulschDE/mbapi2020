@@ -56,6 +56,7 @@ class WebApi:
         endpoint: str,
         rcp_headers: bool = False,
         ignore_errors: bool = False,
+        return_as_json: bool = True,
         **kwargs,
     ):
         """Make a request against the API."""
@@ -94,7 +95,10 @@ class WebApi:
             if "url" in kwargs:
                 async with self._session.request(method, **kwargs) as resp:
                     # resp.raise_for_status()
-                    return await resp.json(content_type=None)
+                    if return_as_json:
+                        return await resp.json(content_type=None)
+                    else:
+                        return await resp.read()
             else:
                 async with self._session.request(method, url, **kwargs) as resp:
                     if 400 <= resp.status < 500:
@@ -112,7 +116,10 @@ class WebApi:
                     else:
                         resp.raise_for_status()
 
-                    return await resp.json(content_type=None)
+                    if return_as_json:
+                        return await resp.json(content_type=None)
+                    else:
+                        return await resp.read()
 
         except ClientError as err:
             LOGGER.debug(traceback.format_exc())
@@ -202,3 +209,8 @@ class WebApi:
             resp_status = resp.status
             await resp.text()
             return bool(resp_status == 200)
+
+    async def download_images(self, vin: str):
+        """Download the car images and store it to the components ressource folder."""
+        url = f"/v1/vehicle/{vin}/topviewimage"
+        return await self._request("get", url, rcp_headers=False, ignore_errors=False, return_as_json=False)

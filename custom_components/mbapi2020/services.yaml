@@ -348,7 +348,6 @@ windows_move:
             - "90"
             - "100"
 
-
 send_route:
   description: "Sends a route to the car. (Single location only)"
   fields:
@@ -391,6 +390,16 @@ send_route:
     street:
       description: "Streetname of the location"
       example: "Pariser Platz"
+      required: True
+      selector:
+        text:
+
+download_images:
+  description: "Download the images and save it to the component folder."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
       required: True
       selector:
         text:
