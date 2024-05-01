@@ -748,7 +748,7 @@ SENSORS = {
         SensorDeviceClass.DISTANCE,
         False,
         None,
-        SensorStateClass.MEASUREMENT,
+        SensorStateClass.TOTAL_INCREASING,
         None,
     ],
     "averageSpeedStart": [
