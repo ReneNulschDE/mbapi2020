@@ -72,7 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             return False
 
         masterdata = await coordinator.client.webapi.get_user_info()
-        coordinator.client.write_debug_json_output(masterdata, "md")
+        hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md")
 
         for car in masterdata.get("assignedVehicles"):
             # Check if the car has a separate VIN key, if not, use the FIN.
@@ -92,7 +92,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             try:
                 car_capabilities = await coordinator.client.webapi.get_car_capabilities(vin)
-                coordinator.client.write_debug_json_output(car_capabilities, "cai")
+                hass.async_add_executor_job(coordinator.client.write_debug_json_output, car_capabilities, "cai")
                 if car_capabilities and "features" in car_capabilities:
                     features.update(car_capabilities["features"])
             except aiohttp.ClientError:
@@ -104,7 +104,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             try:
                 capabilities = await coordinator.client.webapi.get_car_capabilities_commands(vin)
-                coordinator.client.write_debug_json_output(capabilities, "ca")
+                hass.async_add_executor_job(coordinator.client.write_debug_json_output, capabilities, "ca")
                 if capabilities:
                     for feature in capabilities.get("commands"):
                         features[feature.get("commandName")] = bool(feature.get("isAvailable"))
@@ -124,7 +124,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             if rcp_supported:
                 rcp_supported_settings = await coordinator.client.webapi.get_car_rcp_supported_settings(vin)
                 if rcp_supported_settings:
-                    coordinator.client.write_debug_json_output(rcp_supported_settings, "rcs")
+                    hass.async_add_executor_job(
+                        coordinator.client.write_debug_json_output, rcp_supported_settings, "rcs"
+                    )
                     if rcp_supported_settings.get("data"):
                         if rcp_supported_settings.get("data").get("attributes"):
                             if rcp_supported_settings.get("data").get("attributes").get("supportedSettings"):
@@ -147,7 +149,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                                 ):
                                     setting_result = await coordinator.client.webapi.get_car_rcp_settings(vin, setting)
                                     if setting_result is not None:
-                                        coordinator.client.write_debug_json_output(setting_result, f"rcs_{setting}")
+                                        hass.async_add_executor_job(
+                                            coordinator.client.write_debug_json_output, setting_result, f"rcs_{setting}"
+                                        )
 
             current_car = Car(vin)
             current_car.licenseplate = car.get("licensePlate", vin)

@@ -220,6 +220,7 @@ class Client:  # pylint: disable-too-few-public-methods
                     return "ba0100"
                 return
 
+            self._write_debug_output(data, "unk")
             LOGGER.debug("Message Type not implemented: %s", msg_type)
 
         stop_retry_loop: bool = False
@@ -1172,6 +1173,10 @@ class Client:  # pylint: disable-too-few-public-methods
         return False
 
     def _write_debug_output(self, data, datatype):
+        if self.config_entry.options.get(CONF_DEBUG_FILE_SAVE, False):
+            self._hass.async_add_executor_job(self.__write_debug_output, data, datatype)
+
+    def __write_debug_output(self, data, datatype):
         if self.config_entry.options.get(CONF_DEBUG_FILE_SAVE, False):
             # LOGGER.debug("Start _write_debug_output")
 
