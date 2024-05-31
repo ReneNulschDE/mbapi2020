@@ -6,8 +6,6 @@ import asyncio
 from copy import deepcopy
 import json
 import logging
-import os
-import shutil
 import time
 import urllib.parse
 import uuid
@@ -18,7 +16,6 @@ from custom_components.mbapi2020.errors import MBAuthError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.storage import STORAGE_DIR
 
 from .const import (
     DEFAULT_COUNTRY_CODE,
@@ -35,7 +32,6 @@ from .const import (
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
     SYSTEM_PROXY,
-    TOKEN_FILE_PREFIX,
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_CN,
@@ -67,12 +63,6 @@ class Oauth:  # pylint: disable-too-few-public-methods
         self._region: str = region
         self._hass = hass
         self._config_entry = config_entry
-        self._old_token_path = hass.config.path(TOKEN_FILE_PREFIX)
-        self._config_entry_token_path: str = None
-        if config_entry:
-            self._config_entry_token_path = hass.config.path(
-                STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{config_entry.entry_id}"
-            )
         self.token = None
         self._xsessionid = ""
         self._get_token_lock = asyncio.Lock()
@@ -148,8 +138,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
         if token_info is not None:
             token_info = self._add_custom_values_to_token_info(token_info)
-            if self._config_entry_token_path:
-                self._save_token_info(token_info)
+            self._save_token_info(token_info)
             self.token = token_info
             return token_info
 
@@ -159,38 +148,14 @@ class Oauth:  # pylint: disable-too-few-public-methods
         """Get a cached auth token."""
         _LOGGER.debug("Start async_get_cached_token()")
         token_info: dict[str, any]
-        token_type: str = ""
 
         if self.token:
             token_info = self.token
-            token_type = "instance"
-        elif not os.path.exists(self._config_entry_token_path):
-            if os.path.exists(self._old_token_path):
-                _LOGGER.debug("async_get_cached_token: token migration - start copy")
-                shutil.copyfile(self._old_token_path, self._config_entry_token_path)
-                os.remove(self._old_token_path)
-
-                token_file = open(self._config_entry_token_path)
-                token_info_string = token_file.read()
-                token_file.close()
-                token_info = json.loads(token_info_string)
-                token_type = "old_file"
-            elif self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
-                token_info = self._config_entry.data["token"]
-                token_type = "config_entry"
-            else:
-                _LOGGER.warning("No token information - reauth required")
-                return None
+        elif self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
+            token_info = self._config_entry.data["token"]
         else:
-            if self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
-                token_info = self._config_entry.data["token"]
-                token_type = "config_entry"
-            else:
-                token_file = open(self._config_entry_token_path)
-                token_info_string = token_file.read()
-                token_file.close()
-                token_info = json.loads(token_info_string)
-                token_type = "new_file"
+            _LOGGER.warning("No token information - reauth required")
+            return None
 
         if self.is_token_expired(token_info):
             async with self._get_token_lock:
@@ -200,21 +165,6 @@ class Oauth:  # pylint: disable-too-few-public-methods
                     return None
 
                 token_info = await self.async_refresh_access_token(token_info["refresh_token"], is_retry=False)
-
-                if not token_info and token_type == "old_file":
-                    if os.path.exists(self._old_token_path):
-                        _LOGGER.warning("async_get_cached_token: Delete old invalid token file")
-                        os.remove(self._old_token_path)
-                    if self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
-                        token_info = self._config_entry.data["token"]
-                        token_type = "config_entry_2"
-
-                        _LOGGER.warning("Starting Refresh token in fallback mode round 2")
-                        token_info = await self.async_refresh_access_token(token_info["refresh_token"], is_retry=True)
-
-                    if not token_info:
-                        _LOGGER.warning("Refresh token is missing in round 2 - reauth required")
-                        return None
 
         self.token = token_info
         return token_info
@@ -229,19 +179,12 @@ class Oauth:  # pylint: disable-too-few-public-methods
         return True
 
     def _save_token_info(self, token_info):
-        _LOGGER.debug("Start _save_token_info() to %s", self._config_entry_token_path)
+        if self._config_entry:
+            _LOGGER.debug("Start _save_token_info() to config_entry %s", self._config_entry.entry_id)
 
-        new_config_entry_data = deepcopy(dict(self._config_entry.data))
-        new_config_entry_data["token"] = token_info
-        self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
-
-        try:
-            with open(self._config_entry_token_path, "w") as token_file:
-                token_file.write(json.dumps(token_info))
-                token_file.close()
-        except OSError:
-            _LOGGER.error("Couldn't write token cache to %s", self._config_entry_token_path)
-            raise
+            new_config_entry_data = deepcopy(dict(self._config_entry.data))
+            new_config_entry_data["token"] = token_info
+            self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
 
     @classmethod
     def _add_custom_values_to_token_info(cls, token_info):
