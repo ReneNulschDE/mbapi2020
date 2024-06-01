@@ -1066,25 +1066,32 @@ class Client:  # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
-    async def windows_open(self, vin: str):
+    async def windows_open(self, vin: str, pin: str = None):
         """Send a window open command to the car."""
         LOGGER.info("Start windows_open for vin %s", loghelper.Mask_VIN(vin))
 
+        _pin: str = None
+
         if not self._is_car_feature_available(vin, "WINDOWS_OPEN"):
             LOGGER.warning(
-                "Can't open the windows for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't open the windows for car %s. Feature not marked as available for this car.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        if pin and pin.strip():
+            _pin = pin
+        else:
+            _pin = self.pin
+
+        if not _pin:
+            LOGGER.warning(
+                "Can't open the windows - car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
                 loghelper.Mask_VIN(vin),
             )
             return
 
         message = client_pb2.ClientMessage()
-
-        if not self.pin:
-            LOGGER.warning(
-                "Can't open the windows - car %s. PIN not set. Please set the PIN -> Integration, Options",
-                loghelper.Mask_VIN(vin),
-            )
-            return
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())

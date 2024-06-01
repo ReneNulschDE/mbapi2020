@@ -199,7 +199,7 @@ def setup_services(hass: HomeAssistant) -> None:
         (SERVICE_SIGPOS_START, sigpos_start, SERVICE_VIN_SCHEMA),
         (SERVICE_SUNROOF_OPEN, sunroof_open, SERVICE_VIN_SCHEMA),
         (SERVICE_SUNROOF_CLOSE, sunroof_close, SERVICE_VIN_SCHEMA),
-        (SERVICE_WINDOWS_OPEN, windows_open, SERVICE_VIN_SCHEMA),
+        (SERVICE_WINDOWS_OPEN, windows_open, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_WINDOWS_CLOSE, windows_close, SERVICE_VIN_SCHEMA),
         (SERVICE_WINDOWS_MOVE, windows_move, SERVICE_WINDOWS_MOVE_SCHEMA),
     ]

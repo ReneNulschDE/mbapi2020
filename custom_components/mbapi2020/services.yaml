@@ -255,6 +255,12 @@ windows_open:
       required: True
       selector:
         text:
+    pin:
+      description: "security pin"
+      example: "1234"
+      required: False
+      selector:
+        text:
 
 windows_close:
   description: "Close the windows of a car defined by a vin."
