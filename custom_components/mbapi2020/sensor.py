@@ -3,6 +3,7 @@
 For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -97,21 +98,10 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
             return "NOT_RECEIVED"
 
         if self._internal_name == "lastParkEvent":
-            # try:
-            return datetime.fromtimestamp(int(self._state))
-        # finally:
-        #     return None
+            if self._state:
+                return datetime.fromtimestamp(int(self._state))
 
         return self._state
-
-    # async def async_added_to_hass(self) -> None:
-    #     """Call when entity about to be added to Home Assistant."""
-    #     await super().async_added_to_hass()
-    #     # __init__ will set self._state to self._initial, only override
-    #     # if needed.
-
-    #     if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
-    #         self._state = last_sensor_data.native_value
 
 
 class MercedesMESensorPoll(MercedesMeEntity, RestoreSensor):
@@ -130,19 +120,3 @@ class MercedesMESensorPoll(MercedesMeEntity, RestoreSensor):
             return "NOT_RECEIVED"
 
         return self._state
-
-    # async def async_added_to_hass(self) -> None:
-    #     """Call when entity about to be added to Home Assistant."""
-    #     await super().async_added_to_hass()
-    #     # __init__ will set self._state to self._initial, only override
-    #     # if needed.
-    #     if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
-    #         self._state = last_sensor_data.native_value
-
-    # async def async_update(self):
-    #     """Get the latest data and updates the states."""
-    #     LOGGER.debug("Updating %s", self._internal_name)
-
-    #     await self._coordinator.client.update_poll_states(self._vin)
-
-    #     self._state = self._get_car_value(self._feature_name, self._object_name, self._attrib_name, "error")
