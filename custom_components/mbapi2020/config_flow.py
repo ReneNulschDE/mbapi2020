@@ -148,9 +148,7 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
         if user_input is not None:
             if user_input[CONF_DELETE_AUTH_FILE] is True:
                 auth_file = self.hass.config.path(STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{self.config_entry.entry_id}")
-                LOGGER.warning("DELETE Auth File requested %s", auth_file)
-                if os.path.isfile(auth_file):
-                    os.remove(auth_file)
+                LOGGER.warning("DELETE Auth Information requested %s", auth_file)
                 new_config_entry_data = deepcopy(dict(self._config_entry.data))
                 new_config_entry_data["token"] = None
                 changed = self.hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)

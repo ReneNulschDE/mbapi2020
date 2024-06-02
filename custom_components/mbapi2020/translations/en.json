@@ -51,7 +51,7 @@
           "cap_check_disabled": "Disable capabilities check",
           "enable_china_gcj_02": "Enable GCJ-02 translation",
           "country_code": "Country Code",
-          "delete_auth_file": "Delete authentication token file now. require a restart of Home Assistant after save.",
+          "delete_auth_file": "Delete authentication token now. Requires a restart of Home Assistant after save.",
           "excluded_cars": "VINs excluded (comma-sep)",
           "locale": "Locale",
           "pin": "Security PIN (to be created in mobile app) - Enter 0 to delete the value from the configuration",
