@@ -130,7 +130,9 @@ def setup_services(hass: HomeAssistant) -> None:
         )
 
     async def windows_open(call) -> None:
-        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.windows_open(call.data.get(CONF_VIN))
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.windows_open(
+            call.data.get(CONF_VIN), call.data.get(CONF_PIN)
+        )
 
     async def windows_close(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.windows_close(call.data.get(CONF_VIN))

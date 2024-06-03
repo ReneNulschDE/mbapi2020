@@ -1101,7 +1101,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.windows_open.pin = self.pin
+        message.commandRequest.windows_open.pin = _pin
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End windows_open for vin %s", loghelper.Mask_VIN(vin))
