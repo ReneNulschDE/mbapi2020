@@ -97,6 +97,7 @@ DOOR_OPTIONS = [
     "sunroofstatus",
     "engineHoodStatus",
     "chargeFlapDCStatus",
+    "chargeFlapACStatus",
 ]
 
 ELECTRIC_OPTIONS = [

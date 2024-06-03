@@ -52,6 +52,14 @@ async def async_setup_entry(
 class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity):
     """Representation of a Sensor."""
 
+
+    def flip(self, state):
+        """Flip the result."""
+        if self._flip_result:
+            return not state
+        if not self._flip_result:
+            return state
+
     @property
     def is_on(self):
         """Return the state of the binary sensor."""
@@ -60,28 +68,29 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
             self.update()
 
         if self._state == "INACTIVE":
-            return False
+            return self.flip(False)
         if self._state == "ACTIVE":
-            return True
+            return self.flip(True)
         if self._state == "0":
-            return False
+            return self.flip(False)
         if self._state == "1":
-            return True
+            return self.flip(True)
         if self._state == "2":
-            return False
+            return self.flip(False)
         if self._state == 0:
-            return False
+            return self.flip(False)
         if self._state == 1:
-            return True
+            return self.flip(True)
         if self._state == 2:
-            return False
+            return self.flip(False)
         if self._state == "true":
-            return True
+            return self.flip(True)
         if self._state == "false":
-            return False
+            return self.flip(False)
         if self._state is False:
-            return False
+            return self.flip(False)
         if self._state is True:
-            return True
+            return self.flip(True)
 
         return self._state
+

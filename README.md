@@ -95,6 +95,7 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
 * engineState
 
+* chargeFlapACStatus
 
 ### Device Tracker
   

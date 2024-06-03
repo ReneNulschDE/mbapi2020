@@ -414,6 +414,21 @@ BinarySensors = {
         None,
         None,
     ],
+    "chargeflapacstatus": [
+        "Charge Flap AC Status",
+        None,  # Deprecated: DO NOT USE
+        "doors",
+        "chargeFlapACStatus",
+        "value",
+        None,
+        {},
+        None,
+        "door",
+        True,
+        None,
+        None,
+        None,
+    ],
 }
 
 BUTTONS = {

@@ -242,6 +242,7 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
         self._feature_name = sensor_config[scf.OBJECT_NAME.value]
         self._object_name = sensor_config[scf.ATTRIBUTE_NAME.value]
         self._attrib_name = sensor_config[scf.VALUE_FIELD_NAME.value]
+        self._flip_result = sensor_config[scf.FLIP_RESULT.value]
 
         self._car = self._coordinator.client.cars[self._vin]
         self._use_chinese_location_data: bool = self._coordinator.config_entry.options.get(
