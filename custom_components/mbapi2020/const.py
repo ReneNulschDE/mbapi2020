@@ -329,7 +329,7 @@ BinarySensors = {
         {"preWarningBrakeLiningWear"},
         "mdi:car-brake-parking",
         None,
-        True,
+        False,
         None,
         None,
         None,
