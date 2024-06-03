@@ -68,29 +68,29 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
             self.update()
 
         if self._state == "INACTIVE":
-            return self.flip(self._state)
+            return self.flip(False)
         if self._state == "ACTIVE":
-            return self.flip(self._state)
+            return self.flip(True)
         if self._state == "0":
-            return self.flip(self._state)
+            return self.flip(False)
         if self._state == "1":
-            return self.flip(self._state)
+            return self.flip(True)
         if self._state == "2":
-            return self.flip(self._state)
+            return self.flip(False)
         if self._state == 0:
-            return self.flip(self._state)
+            return self.flip(False)
         if self._state == 1:
-            return self.flip(self._state)
+            return self.flip(True)
         if self._state == 2:
-            return self.flip(self._state)
+            return self.flip(False)
         if self._state == "true":
-            return self.flip(self._state)
+            return self.flip(True)
         if self._state == "false":
-            return self.flip(self._state)
+            return self.flip(False)
         if self._state is False:
-            return self.flip(self._state)
+            return self.flip(False)
         if self._state is True:
-            return self.flip(self._state)
+            return self.flip(True)
 
         return self.flip(self._state)
 
