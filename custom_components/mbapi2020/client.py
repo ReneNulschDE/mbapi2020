@@ -732,9 +732,15 @@ class Client:  # pylint: disable-too-few-public-methods
         if zip_file:
             Path(download_path).mkdir(parents=True, exist_ok=True)
 
-            with open(target_file_name, mode="wb") as zf:
-                zf.write(zip_file)
-                zf.close()
+            def save_images() -> None:
+                with open(target_file_name, mode="wb") as zf:
+                    zf.write(zip_file)
+                    zf.close()
+
+            try:
+                await self._hass.async_add_executor_job(save_images)
+            except OSError as err:
+                LOGGER.error("Can't write %s: %s", target_file_name, err)
 
         LOGGER.info("End download_images for vin %s", loghelper.Mask_VIN(vin))
 
