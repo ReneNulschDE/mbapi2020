@@ -92,5 +92,5 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
         if self._state is True:
             return self.flip(True)
 
-        return self.flip(self._state)
+        return self._state
 
