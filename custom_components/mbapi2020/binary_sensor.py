@@ -3,6 +3,7 @@
 For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
+
 from __future__ import annotations
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
@@ -52,7 +53,6 @@ async def async_setup_entry(
 class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity):
     """Representation of a Sensor."""
 
-
     def flip(self, state):
         """Flip the result."""
         if self._flip_result:
@@ -93,4 +93,3 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
             return self.flip(True)
 
         return self._state
-
