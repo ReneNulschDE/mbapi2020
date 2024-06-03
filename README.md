@@ -72,6 +72,14 @@ Depends on your own car or purchased Mercedes Benz licenses.
     tireTemperatureRearRight, tireTemperatureFrontLeft
     ```
 
+* tirepressureRearLeft
+
+* tirepressureRearRight
+
+* tirepressureFrontRight
+
+* tirepressureFrontLeft
+
 * windowsClosed
   
   ```
