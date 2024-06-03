@@ -366,10 +366,6 @@ BinarySensors = {
         "value",
         None,
         {
-            "tirepressureRearLeft",
-            "tirepressureRearRight",
-            "tirepressureFrontRight",
-            "tirepressureFrontLeft",
             "tireMarkerFrontRight",
             "tireMarkerFrontLeft",
             "tireMarkerRearLeft",
