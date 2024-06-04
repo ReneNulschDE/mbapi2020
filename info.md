@@ -68,7 +68,7 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
     ```
     attributes: 
-    tirepressureRearLeft, tirepressureRearRight, tirepressureFrontRight, tirepressureFrontLeft, tireMarkerFrontRight, tireMarkerFrontLeft,tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw, tireTemperatureRearLeft, tireTemperatureFrontRight,
+    tireMarkerFrontRight, tireMarkerFrontLeft,tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw, tireTemperatureRearLeft, tireTemperatureFrontRight,
     tireTemperatureRearRight, tireTemperatureFrontLeft
     ```
 
@@ -145,6 +145,12 @@ Depends on your own car or purchased Mercedes Benz licenses.
   attributes: 
   chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, endofchargetime, precondActive, precondNow, maxrange, selectedChargeProgram
   ```
+
+* Electric consumption start
+
+* Electric consumption reset
+
+* Charging power
 
 * Starter Battery State
   ```

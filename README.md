@@ -156,8 +156,6 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
 * Charging power
 
-
-
 * Starter Battery State
   ```
   Internal Name: starterBatteryState
