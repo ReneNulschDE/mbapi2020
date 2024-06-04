@@ -642,7 +642,7 @@ SENSORS = {
         "soc",
         "value",
         None,
-        {"maxSocLowerLimit", "maxSoc", "max_soc", "selectedChargeProgram"},
+        {"maxSocLowerLimit", "maxSoc", "selectedChargeProgram"},
         None,
         SensorDeviceClass.BATTERY,
         False,
