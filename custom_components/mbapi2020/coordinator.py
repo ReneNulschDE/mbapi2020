@@ -57,9 +57,16 @@ class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Create sensors after the web_socket initial data is complete."""
         LOGGER.info("Car Load complete - start sensor creation")
         if not self.entry_setup_complete:
-            self.hass.async_create_task(
-                self.hass.config_entries.async_late_forward_entry_setups(self.config_entry, MERCEDESME_COMPONENTS)
-            )
+            # prep for warning in HA 2024.07
+            if hasattr(self.hass.config_entries, "async_late_forward_entry_setups"):
+                self.hass.async_create_task(
+                    self.hass.config_entries.async_late_forward_entry_setups(self.config_entry, MERCEDESME_COMPONENTS)
+                )
+            else:
+                for component in MERCEDESME_COMPONENTS:
+                    self.hass.async_create_task(
+                        self.hass.config_entries.async_forward_entry_setup(self.config_entry, component)
+                    )
 
         self.entry_setup_complete = True
 
