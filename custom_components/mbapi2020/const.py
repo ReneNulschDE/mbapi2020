@@ -423,7 +423,7 @@ BinarySensors = {
         None,
         {},
         None,
-        "mdi:door",
+        "door",
         True,
         None,
         None,
