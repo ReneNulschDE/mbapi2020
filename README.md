@@ -156,9 +156,14 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
   ```
   attributes: 
-  rangeelectric, chargingstatus, chargingPower, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature,
-  electricconsumptionstart, electricconsumptionreset, endofchargetime, precondActive, precondNow, maxrange, selectedChargeProgram, soc
+  chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, endofchargetime, precondActive, precondNow, maxrange, selectedChargeProgram
   ```
+
+* Electric consumption start
+
+* Electric consumption reset
+
+* Charging power
 
 * Starter Battery State
   ```
@@ -179,7 +184,7 @@ Depends on your own car or purchased Mercedes Benz licenses.
   State of charge (SoC) is the level of charge of an electric battery relative to its capacity. The units of SoC are percentage points (0% = empty; 100% = full). 
 
   attributes: 
-  maxSocLowerLimit, maxSoc, chargingPower
+  maxSocLowerLimit, maxSoc
 
   ```
 
