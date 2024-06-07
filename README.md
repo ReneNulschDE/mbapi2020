@@ -16,7 +16,7 @@ IMPORTANT:
 * North America: For Cars 2019 or newer only
 * Thailand, India: Please use region "Europe".
 * China: support of China is in early stage
-
+* Discussions, Feature Requests via [HA-Community Forum](https://community.home-assistant.io/t/mercedes-me-component/41911)
 ### Installation
 * First: This is not a Home Assistant Add-On. It's a custom component.
 * There are two ways to install. First you can download the folder custom_component and copy it into your Home-Assistant config folder. Second option is to install HACS (Home Assistant Custom Component Store) and select "MercedesME 2020" from the Integrations catalog.
