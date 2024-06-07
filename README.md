@@ -1,7 +1,7 @@
 
 
 # mercedesme2020
-![HassFest tests](https://github.com/renenulschde/mbapi2020/workflows/Validate%20with%20hassfest/badge.svg) ![Validate with HACS](https://github.com/ReneNulschDE/mbapi2020/workflows/Validate%20with%20HACS/badge.svg)
+![HassFest tests](https://github.com/renenulschde/mbapi2020/workflows/Validate%20with%20hassfest/badge.svg) ![Validate with HACS](https://github.com/ReneNulschDE/mbapi2020/workflows/Validate%20with%20HACS/badge.svg) ![](https://img.shields.io/github/downloads/renenulschde/mbapi2020/total) ![](https://img.shields.io/github/downloads/renenulschde/mbapi2020/latest/total)
 
 
 
