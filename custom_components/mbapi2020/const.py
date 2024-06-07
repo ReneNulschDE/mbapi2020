@@ -1095,6 +1095,21 @@ SENSORS = {
         SensorStateClass.MEASUREMENT,
         None,
     ],
+    "tirewarningsrdk": [
+        "Tires RDK state",
+        None,  # Deprecated: DO NOT USE
+        "tires",
+        "tirewarningsrdk",
+        "value",
+        None,
+        {},
+        None,
+        None,
+        False,
+        None,
+        None,
+        None,
+    ],
     "lastParkEvent": [
         "Last park event",
         None,  # Deprecated: DO NOT USE
