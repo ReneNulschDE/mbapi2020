@@ -1242,7 +1242,7 @@ class Client:  # pylint: disable-too-few-public-methods
             if not car.has_geofencing:
                 return
 
-            LOGGER.debug("start update_poll_states: %s", vin)
+            LOGGER.debug("start update_poll_states: %s", loghelper.Mask_VIN(vin))
 
             if car.geofence_events is None:
                 car.geofence_events = GeofenceEvents()
