@@ -588,7 +588,7 @@ class Client:  # pylint: disable-too-few-public-methods
                     load_complete = False
 
             if load_complete:
-                self._on_dataload_complete()
+                self._hass.async_create_task(self._on_dataload_complete())
                 self._dataload_complete_fired = True
 
     def _process_apptwin_command_status_updates_by_vin(self, data):
