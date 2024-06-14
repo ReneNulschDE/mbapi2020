@@ -644,7 +644,7 @@ class Client:  # pylint: disable-too-few-public-methods
             )
             return
 
-        LOGGER.debug("Start unlock with user provided pin")
+        LOGGER.debug("Start charge_program_configure")
         message = client_pb2.ClientMessage()
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
@@ -811,12 +811,13 @@ class Client:  # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End auxheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
-    async def battery_max_soc_configure(self, vin: str, max_soc: int):
+    async def battery_max_soc_configure(self, vin: str, max_soc: int, charge_program: int = 0):
         """Send the maxsoc configure command to the car."""
         LOGGER.info(
-            "Start battery_max_soc_configure to %s for vin %s",
+            "Start battery_max_soc_configure to %s for vin %s and program %s",
             max_soc,
             loghelper.Mask_VIN(vin),
+            charge_program,
         )
 
         if not self._is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE"):
@@ -832,6 +833,7 @@ class Client:  # pylint: disable-too-few-public-methods
         message.commandRequest.request_id = str(uuid.uuid4())
         charge_program_config = pb2_commands.ChargeProgramConfigure()
         charge_program_config.max_soc.value = max_soc
+        charge_program_config.charge_program = charge_program
         message.commandRequest.charge_program_configure.CopyFrom(charge_program_config)
 
         await self.websocket.call(message.SerializeToString())

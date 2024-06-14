@@ -182,6 +182,7 @@ SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
         vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),  # type: ignore
+        vol.Optional("charge_program", default=0): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),  # type: ignore
     }
 )
 SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})

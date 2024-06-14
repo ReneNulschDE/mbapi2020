@@ -91,6 +91,17 @@ battery_max_soc_configure:
             - "80"
             - "90"
             - "100"
+    charge_program:
+      description: "(optional) Charge Program - (0=Default, 2=Home, 3=Work)"
+      example: "0"
+      default: 0
+      selector:
+        select:
+          options:
+            - "0"
+            - "2"
+            - "3"
+
 charge_program_configure:
   description: "Command to select the charge program."
   fields:
