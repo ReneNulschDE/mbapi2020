@@ -101,6 +101,7 @@ battery_max_soc_configure:
             - "0"
             - "2"
             - "3"
+          translation_key: "charge_program" 
 
 charge_program_configure:
   description: "Command to select the charge program."

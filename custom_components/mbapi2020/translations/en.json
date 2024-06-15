@@ -514,5 +514,14 @@
         "state_attributes": {}
       }
     }
+  },
+  "selector": {
+    "charge_program": {
+      "options": {
+        "0": "Default",
+        "2": "Home",
+        "3": "Work"
+      }
+    }
   }
 }
