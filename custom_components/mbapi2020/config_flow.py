@@ -128,7 +128,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         self._reauth_mode = True
 
-        self._reauth_entry = self.hass.config_entries.async_get_entry(user_input.entry_id)
+        self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
 
         return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER)
 

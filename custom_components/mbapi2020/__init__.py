@@ -23,9 +23,9 @@ from custom_components.mbapi2020.coordinator import MBAPI2020DataUpdateCoordinat
 from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
-from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntry
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType
@@ -62,14 +62,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         if token_info is None:
             LOGGER.error("Authentication failed. Please reauthenticate.")
-            hass.async_create_task(
-                hass.config_entries.flow.async_init(
-                    DOMAIN,
-                    context={"source": SOURCE_REAUTH},
-                    data=config_entry,
-                )
-            )
-            return False
+            raise ConfigEntryAuthFailed()
 
         masterdata = await coordinator.client.webapi.get_user_info()
         hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md")
