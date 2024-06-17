@@ -57,7 +57,7 @@
           "pin": "Security PIN (to be created in mobile app) - Enter 0 to delete the value from the configuration",
           "save_files": "DEBUG ONLY: Enable save server messages to the messages folder"
         },
-        "description": "Configure your options. Some changes require a restart of Home Assistant. Will ignore all other changes. You need to restart HA after PIN change.",
+        "description": "Configure your options. Some changes require a restart of Home Assistant.",
         "title": "Mercedes ME 2020 Options"
       }
     }
