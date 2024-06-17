@@ -159,7 +159,7 @@ def setup_services(hass: HomeAssistant) -> None:
 
     async def battery_max_soc_configure(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.battery_max_soc_configure(
-            call.data.get(CONF_VIN), call.data.get("max_soc")
+            call.data.get(CONF_VIN), call.data.get("max_soc"), call.data.get("charge_program")
         )
 
     async def download_images(call) -> None:
