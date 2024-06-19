@@ -498,7 +498,7 @@
       "sunroofstatus": {
         "state": {
           "0": "Closed",
-          "1": "Opened",
+          "1": "Open",
           "2": "Open lifting",
           "3": "Running",
           "4": "Anti booming",
@@ -512,6 +512,24 @@
           "12": "Closing lifting"
         },
         "state_attributes": {}
+      },
+      "chargeflapacstatus": {
+        "state": {
+          "-1": "Unknown",
+          "0": "Open",
+          "1": "Closed",
+          "2": "Flap pressed",
+          "3": "Unknown"
+        }
+      },
+      "chargeflapdcstatus": {
+        "state": {
+          "-1": "Unknown",
+          "0": "Open",
+          "1": "Closed",
+          "2": "Flap pressed",
+          "3": "Unknown"
+        }
       }
     }
   },
