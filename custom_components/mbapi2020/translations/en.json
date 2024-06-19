@@ -515,7 +515,6 @@
       },
       "chargeflapacstatus": {
         "state": {
-          "-1": "Unknown",
           "0": "Open",
           "1": "Closed",
           "2": "Flap pressed",
@@ -524,7 +523,6 @@
       },
       "chargeflapdcstatus": {
         "state": {
-          "-1": "Unknown",
           "0": "Open",
           "1": "Closed",
           "2": "Flap pressed",
