@@ -952,6 +952,33 @@ class Client:  # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End sunroof_open for vin %s", loghelper.Mask_VIN(vin))
 
+    async def sunroof_tilt(self, vin: str):
+        """Send a sunroof tilt command to the car."""
+        LOGGER.info("Start sunroof_tilt for vin %s", loghelper.Mask_VIN(vin))
+
+        if not self._is_car_feature_available(vin, "SUNROOF_LIFT"):
+            LOGGER.warning(
+                "Can't tilt the sunroof for car %s. VIN unknown or feature not availabe for this car.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        message = client_pb2.ClientMessage()
+
+        if not self.pin:
+            LOGGER.warning(
+                "Can't tilt the sunroof - car %s. PIN not set. Please set the PIN -> Integration, Options ",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.sunroof_lift.pin = self.pin
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End sunroof_open for vin %s", loghelper.Mask_VIN(vin))
+
     async def sunroof_close(self, vin: str):
         """Send a sunroof close command to the car."""
         LOGGER.info("Start sunroof_close for vin %s", loghelper.Mask_VIN(vin))
