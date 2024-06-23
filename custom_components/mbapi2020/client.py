@@ -977,7 +977,7 @@ class Client:  # pylint: disable-too-few-public-methods
         message.commandRequest.sunroof_lift.pin = self.pin
 
         await self.websocket.call(message.SerializeToString())
-        LOGGER.info("End sunroof_open for vin %s", loghelper.Mask_VIN(vin))
+        LOGGER.info("End sunroof_tilt for vin %s", loghelper.Mask_VIN(vin))
 
     async def sunroof_close(self, vin: str):
         """Send a sunroof close command to the car."""
