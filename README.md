@@ -289,6 +289,9 @@ Some services require that the security PIN is created in your mobile Android/IO
 * sunroof_open:
   Open the sunroof of a car defined by a vin. PIN required.
 
+* sunroof_tilt:
+  Tilt the sunroof of a car defined by a vin. PIN required.
+
 * sunroof_close:
   Close the sunroof of a car defined by a vin.
 

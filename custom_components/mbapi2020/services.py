@@ -34,6 +34,7 @@ from .const import (
     SERVICE_SIGPOS_START,
     SERVICE_SUNROOF_CLOSE,
     SERVICE_SUNROOF_OPEN,
+    SERVICE_SUNROOF_TILT,
     SERVICE_VIN_CHARGE_PROGRAM_SCHEMA,
     SERVICE_VIN_PIN_SCHEMA,
     SERVICE_VIN_SCHEMA,
@@ -104,6 +105,9 @@ def setup_services(hass: HomeAssistant) -> None:
 
     async def sunroof_open(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.sunroof_open(call.data.get(CONF_VIN))
+
+    async def sunroof_tilt(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.sunroof_tilt(call.data.get(CONF_VIN))
 
     async def sunroof_close(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.sunroof_close(call.data.get(CONF_VIN))
@@ -200,6 +204,7 @@ def setup_services(hass: HomeAssistant) -> None:
         (SERVICE_SEND_ROUTE, send_route_to_car, SERVICE_SEND_ROUTE_SCHEMA),
         (SERVICE_SIGPOS_START, sigpos_start, SERVICE_VIN_SCHEMA),
         (SERVICE_SUNROOF_OPEN, sunroof_open, SERVICE_VIN_SCHEMA),
+        (SERVICE_SUNROOF_TILT, sunroof_tilt, SERVICE_VIN_SCHEMA),
         (SERVICE_SUNROOF_CLOSE, sunroof_close, SERVICE_VIN_SCHEMA),
         (SERVICE_WINDOWS_OPEN, windows_open, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_WINDOWS_CLOSE, windows_close, SERVICE_VIN_SCHEMA),
@@ -230,6 +235,7 @@ def remove_services(hass: HomeAssistant) -> None:
     hass.services.async_remove(DOMAIN, SERVICE_SEND_ROUTE)
     hass.services.async_remove(DOMAIN, SERVICE_SIGPOS_START)
     hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_OPEN)
+    hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_TILT)
     hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_CLOSE)
     hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_OPEN)
     hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_CLOSE)

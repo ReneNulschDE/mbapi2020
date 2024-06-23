@@ -15,6 +15,7 @@
         "preheat_stop_departure_time": "mdi:car-seat-heater",
         "sigpos_start": "mdi:bugle",
         "sunroof_open": "mdi:car-door",
+	"sunroof_tilt": "mdi:car-door",
         "sunroof_close": "mdi:car-door",
         "windows_open": "mdi:car-door",
         "windows_close": "mdi:car-door",
