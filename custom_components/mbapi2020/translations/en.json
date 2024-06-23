@@ -276,7 +276,7 @@
       }
     },
     "sunroof_tilt": {
-      "name": "Sunroof open",
+      "name": "Sunroof tilt",
       "description": "Tilt the sunroof of a car defined by a vin. PIN setup required. See options dialog of the integration.",
       "fields": {
         "vin": {
