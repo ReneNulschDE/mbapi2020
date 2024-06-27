@@ -102,6 +102,10 @@ DOOR_OPTIONS = [
 
 ELECTRIC_OPTIONS = [
     "rangeelectric",
+    "chargeCouplerACStatus",
+    "chargeCouplerDCStatus",
+    "chargeCouplerACLockStatus",
+    "chargeCouplerDCLockStatus",
     "chargingactive",
     "chargingstatus",
     "chargingPower",
