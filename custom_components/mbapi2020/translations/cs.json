@@ -48,7 +48,8 @@
                     "save_files": "POUZE PRO DEBUG: Povolit ukládání zpráv serveru do složky zpráv",
                     "delete_auth_file": "Odstranit autentizační token. Vyžaduje restart Home Assistant po uložení.",
                     "enable_china_gcj_02": "Povolit překlad GCJ-02 (pouze Čína)",
-                    "pin": "Bezpečnostní PIN (vytvořený v mobilní aplikaci) - Zadejte 0 pro smazání hodnoty z konfigurace"
+                    "pin": "Bezpečnostní PIN (vytvořený v mobilní aplikaci) - Zadejte 0 pro smazání hodnoty z konfigurace",
+                    "cap_check_disabled": "Zakázat kontrolu funkcí"
                 },
                 "description": "Nakonfigurujte své možnosti. Některé změny vyžadují restart Home Assistant.",
                 "title": "Možnosti Mercedes ME 2020"
@@ -74,7 +75,416 @@
         },
         "auxheat_configure": {
             "description": "Příkaz pro nastavení přídavného topení. Je možné definovat tři časy během dne a vybrat jeden aktivní čas.",
-            "name": "Konfigurace přídavného topení"
+            "name": "Konfigurace přídavného topení",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                },
+                "time_selection": {
+                    "name": "Výběr času",
+                    "description": "Aktivovaný přednastavený čas přídavného topení (0=žádný výběr, 1=čas_1, 2=čas_2, 3=čas_3)"
+                },
+                "time_1": {
+                    "description": "Denní doba v minutách po půlnoci. Například platná hodnota pro 8 hodin ráno by byla 480. Rozsah hodnot je od 0 do 1439."
+                },
+                "time_3": {
+                    "description": "Denní doba v minutách po půlnoci. Například platná hodnota pro 8 hodin ráno by byla 480. Rozsah hodnot je od 0 do 1439."
+                },
+                "time_2": {
+                    "description": "Denní doba v minutách po půlnoci. Například platná hodnota pro 8 hodin ráno by byla 480. Rozsah hodnot je od 0 do 1439."
+                }
+            }
+        },
+        "auxheat_start": {
+            "name": "Spustit přídavného topení",
+            "fields": {
+                "vin": {
+                    "description": "VIN/FIN vozu",
+                    "name": "VIN"
+                }
+            },
+            "description": "Spustit přídavné topení vozu definovaného pomocí VIN."
+        },
+        "auxheat_stop": {
+            "name": "Zastavit přídavného topení",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                }
+            },
+            "description": "Zastavit přídavné topení vozu definovaného pomocí VIN."
+        },
+        "battery_max_soc_configure": {
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                },
+                "max_soc": {
+                    "name": "Maximální stav nabití",
+                    "description": "Maximální hodnota pro stav nabití HV baterie (hodnota musí být mezi 50 a 100 a dělitelná deseti)"
+                },
+                "charge_program": {
+                    "name": "Nabíjecí program",
+                    "description": "(Volitelné, Výchozí=0) Nabíjecí program ke změně (0=Výchozí, 2=Domov, 3=Práce)"
+                }
+            },
+            "name": "Konfigurace maximálního stavu nabití baterie",
+            "description": "Konfigurace maximální hodnotu pro stav nabití HV baterie vozu definovaného pomocí VIN."
+        },
+        "charge_program_configure": {
+            "name": "Konfigurace nabíjecího programu",
+            "description": "Příkaz pro výběr nabíjecího programu.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                },
+                "charge_program": {
+                    "name": "Nabíjecí program",
+                    "description": "Aktivovaný nabíjecí program (0=Výchozí, 2=Domov, 3=Práce)"
+                }
+            }
+        },
+        "doors_unlock": {
+            "name": "Odemknutí dveří",
+            "fields": {
+                "vin": {
+                    "description": "VIN/FIN vozu",
+                    "name": "VIN"
+                },
+                "pin": {
+                    "name": "PIN",
+                    "description": "Bezpečnostní PIN, vyžadován, pokud není uložen v nastavení."
+                }
+            },
+            "description": "Odemknutí vozu definovaného pomocí VIN. Vyžaduje nastavení PINu. Viz dialog s možnostmi integrace."
+        },
+        "doors_lock": {
+            "fields": {
+                "vin": {
+                    "description": "VIN/FIN vozu",
+                    "name": "VIN"
+                }
+            },
+            "name": "Zamknutí dveří",
+            "description": "Zamknutí vozu definovaného pomocí VIN."
+        },
+        "engine_start": {
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                }
+            },
+            "description": "Spustit motor vozu definovaného pomocí VIN. Vyžaduje nastavení PINu. Viz dialog s možnostmi integrace.",
+            "name": "Spustit motor"
+        },
+        "engine_stop": {
+            "name": "Zastavit motor",
+            "description": "Zastavit motor vozu definovaného pomocí VIN. Vyžaduje nastavení PINu. Viz dialog s možnostmi integrace.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                }
+            }
+        },
+        "preheat_start": {
+            "name": "Spustit předehřívání",
+            "description": "Spustit předehřívání vozu definovaného pomocí VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                },
+                "type": {
+                    "name": "Typ",
+                    "description": "Metoda použitá pro zahájení startovacího procesu. 0=Nyní (Výchozí), 1=Okamžitě - Použijte \"Okamžitě\" v případě, že váš vůz nepodporuje \"Nyní\"."
+                }
+            }
+        },
+        "preheat_start_departure_time": {
+            "name": "Spustit předehřívání s časem odjezdu",
+            "description": "Spustit předehřívání vozu definovaného pomocí VIN a zadaného času odjezdu.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                },
+                "time": {
+                    "name": "Čas",
+                    "description": "Čas odjezdu v minutách po půlnoci. Například platná hodnota pro 8 hodin ráno by byla 480. Rozsah hodnot je od 0 do 1439."
+                }
+            }
+        },
+        "preheat_stop": {
+            "description": "Zastavit předehřívání vozu definovaného pomocí VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                }
+            },
+            "name": "Zastavit předehřívání"
+        },
+        "preheat_stop_departure_time": {
+            "name": "Zastavit předehřívání s režimem času odjezdu",
+            "description": "Zastavit předehřívání s nastaveným časem odjezdu vozu definovaného pomocí VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                }
+            }
+        },
+        "sigpos_start": {
+            "description": "Spustit světelné signalizace vozu definovaného pomocí VIN.",
+            "name": "Spustit světelné signalizace",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                }
+            }
+        },
+        "sunroof_tilt": {
+            "name": "Naklonit střešní okno",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                }
+            },
+            "description": "Naklonit střešní okno vozu definovaného pomocí VIN. Vyžaduje nastavení PINu. Viz dialog s možnostmi integrace."
+        },
+        "sunroof_close": {
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                }
+            },
+            "name": "Zavřít střešní okno",
+            "description": "Zavřít střešní okno vozu definovaného pomocí VIN."
+        },
+        "windows_open": {
+            "name": "Otevřít okna",
+            "description": "Otevřít okna vozu definovaného pomocí VIN. Vyžaduje nastavení PINu. Viz dialog s možnostmi integrace.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                },
+                "pin": {
+                    "name": "PIN",
+                    "description": "Bezpečnostní PIN, vyžadován, pokud není uložen v nastavení."
+                }
+            }
+        },
+        "windows_move": {
+            "description": "Manipulace okna vozu definovaného pomocí VIN na novou pozici. Vyžaduje nastavení PINu. Viz dialog s možnostmi integrace.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                },
+                "rear_left": {
+                    "name": "Zadní levé",
+                    "description": "Nová pozice předního levého okna (0=zavřené, 10=ventilace, 100=otevřené)"
+                },
+                "front_right": {
+                    "name": "Přední pravé",
+                    "description": "Nová pozice předního levého okna (0=zavřené, 10=ventilace, 100=otevřené)"
+                },
+                "front_left": {
+                    "name": "Přední levé",
+                    "description": "Nová pozice předního levého okna (0=zavřené, 10=ventilační, 100=otevřené)"
+                },
+                "rear_right": {
+                    "description": "Nová pozice předního levého okna (0=zavřené, 10=ventilační, 100=otevřené)",
+                    "name": "Zadní pravé"
+                }
+            },
+            "name": "Pohyb oken"
+        },
+        "send_route": {
+            "fields": {
+                "longitude": {
+                    "name": "Zeměpisná délka",
+                    "description": "Zeměpisná délka místa"
+                },
+                "city": {
+                    "name": "Město",
+                    "description": "Název města na daném místě"
+                },
+                "postcode": {
+                    "name": "PSČ",
+                    "description": "PSČ (Poštovní směrovací číslo) místa"
+                },
+                "street": {
+                    "name": "Ulice",
+                    "description": "Název ulice na daném místě"
+                },
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                },
+                "latitude": {
+                    "description": "Zeměpisná šířka místa",
+                    "name": "Zeměpisná šířka"
+                },
+                "title": {
+                    "name": "Název",
+                    "description": "Název trasy"
+                }
+            },
+            "name": "Odeslat trasu",
+            "description": "Poslat trasu do vozu. (Pouze jedna poloha)"
+        },
+        "download_images": {
+            "name": "Stáhnout obrázky",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                }
+            },
+            "description": "Stáhnout obrázky do složky zdrojů komponenta pro vůz definovaný pomocí VIN."
+        },
+        "sunroof_open": {
+            "description": "Otevřít střešní okno vozu definovaného pomocí VIN. Vyžaduje nastavení PINu. Viz dialog s možnostmi integrace.",
+            "name": "Otevřit střešního okna",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                }
+            }
+        },
+        "windows_close": {
+            "name": "Zavřít okna",
+            "description": "Zavřít okna vozu definovaného pomocí VIN. Vyžaduje nastavení PINu. Viz dialog s možnostmi integrace.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                }
+            }
+        }
+    },
+    "entity": {
+        "sensor": {
+            "lock": {
+                "state": {
+                    "0": "Odemčeno",
+                    "1": "Zamčeno",
+                    "2": "Zamčeno",
+                    "3": "Částečně odemčeno",
+                    "4": "Neznámé"
+                },
+                "state_attributes": {
+                    "decklidstatus": {
+                        "name": "Zavazadlový prostor",
+                        "state": {
+                            "false": "zamčeno",
+                            "true": "otevřeno"
+                        }
+                    },
+                    "doorstatusfrontleft": {
+                        "name": "Přední levý dveře",
+                        "state": {
+                            "false": "zamčeno",
+                            "true": "otevřené"
+                        }
+                    },
+                    "doorstatusfrontright": {
+                        "name": "Přední pravé dveře",
+                        "state": {
+                            "false": "zamčeno",
+                            "true": "otevřeno"
+                        }
+                    },
+                    "doorstatusrearleft": {
+                        "name": "Zadní levé dveře",
+                        "state": {
+                            "true": "otevřené",
+                            "false": "zavřené"
+                        }
+                    },
+                    "doorstatusoverall": {
+                        "state": {
+                            "0": "otevřené",
+                            "1": "zavřené",
+                            "2": "neexistující",
+                            "3": "neznámé"
+                        },
+                        "name": "Celkový stav dveří"
+                    },
+                    "sunroofstatus": {
+                        "state": {
+                            "0": "zavřené",
+                            "1": "otevřené",
+                            "4": "Pozice proti hluku",
+                            "5": "Posuvné střední",
+                            "6": "Zvedání střední",
+                            "3": "běží"
+                        },
+                        "name": "Stav střešního okna"
+                    },
+                    "doorlockstatusfrontright": {
+                        "state": {
+                            "false": "zamčeno",
+                            "true": "odemčeno"
+                        },
+                        "name": "Zámek předního pravého dveře"
+                    },
+                    "doorlockstatusgas": {
+                        "state": {
+                            "false": "zamčeno",
+                            "true": "odemčeno"
+                        },
+                        "name": "Zámek palivové nádrže"
+                    },
+                    "doorlockstatusrearright": {
+                        "name": "Zámek zadního pravého dveře",
+                        "state": {
+                            "true": "odemčeno",
+                            "false": "zamčeno"
+                        }
+                    },
+                    "doorlockstatusrearleft": {
+                        "name": "Zámek zadního levého dveře",
+                        "state": {
+                            "false": "zamčeno",
+                            "true": "odemčeno"
+                        }
+                    },
+                    "enginehoodstatus": {
+                        "name": "Kapota",
+                        "state": {
+                            "false": "zavřené",
+                            "true": "otevřené"
+                        }
+                    },
+                    "doorstatusrearright": {
+                        "state": {
+                            "false": "zavřené",
+                            "true": "otevřené"
+                        },
+                        "name": "Zadní pravé dveře"
+                    },
+                    "doorlockstatusfrontleft": {
+                        "name": "Zámek přední levého dveře",
+                        "state": {
+                            "true": "odemčeno",
+                            "false": "zamčeno"
+                        }
+                    }
+                }
+            }
         }
     }
 }
