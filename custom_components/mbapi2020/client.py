@@ -639,7 +639,7 @@ class Client:  # pylint: disable-too-few-public-methods
         """Send the selected charge program to the car."""
         if not self._is_car_feature_available(vin, "CHARGE_PROGRAM_CONFIGURE"):
             LOGGER.warning(
-                "Can't set the charge program of the  car %s. VIN unknown or feature CHARGE_PROGRAM_CONFIGURE not availabe for this car.",
+                "Can't set the charge program of the  car %s. Feature CHARGE_PROGRAM_CONFIGURE not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -659,7 +659,7 @@ class Client:  # pylint: disable-too-few-public-methods
         """Send the doors unlock command to the car."""
         if not self._is_car_feature_available(vin, "DOORS_UNLOCK"):
             LOGGER.warning(
-                "Can't unlock car %s. VIN unknown or feature not availabe for this car.",
+                "Can't unlock car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -684,7 +684,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "DOORS_UNLOCK"):
             LOGGER.warning(
-                "Can't unlock car %s. VIN unknown or feature not availabe for this car.",
+                "Can't unlock car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -708,7 +708,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "DOORS_LOCK"):
             LOGGER.warning(
-                "Can't lock car %s. VIN unknown or feature not availabe for this car.",
+                "Can't lock car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -750,7 +750,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "AUXHEAT_START"):
             LOGGER.warning(
-                "Can't start auxheat for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't start auxheat for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -775,7 +775,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "AUXHEAT_START"):
             LOGGER.warning(
-                "Can't start auxheat for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't start auxheat for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -796,7 +796,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "AUXHEAT_STOP"):
             LOGGER.warning(
-                "Can't stop auxheat for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't stop auxheat for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -822,7 +822,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE"):
             LOGGER.warning(
-                "Can't configure battery_max_soc for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't configure battery_max_soc for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -845,7 +845,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "ENGINE_START"):
             LOGGER.warning(
-                "Can't start engine for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't start engine for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -872,7 +872,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "ENGINE_STOP"):
             LOGGER.warning(
-                "Can't stop engine for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't stop engine for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -910,7 +910,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "SIGPOS_START"):
             LOGGER.warning(
-                "Can't start signaling for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't start signaling for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -931,7 +931,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "SUNROOF_OPEN"):
             LOGGER.warning(
-                "Can't open the sunroof for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't open the sunroof for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -958,7 +958,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "SUNROOF_LIFT"):
             LOGGER.warning(
-                "Can't tilt the sunroof for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't tilt the sunroof for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -985,7 +985,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "SUNROOF_CLOSE"):
             LOGGER.warning(
-                "Can't close the sunroof for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't close the sunroof for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -1006,7 +1006,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
             LOGGER.warning(
-                "Can't start PreCond for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't start PreCond for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -1027,7 +1027,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
             LOGGER.warning(
-                "Can't start PreCond for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't start PreCond for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -1048,7 +1048,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
             LOGGER.warning(
-                "Can't start PreCond for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't start PreCond for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -1069,7 +1069,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
             LOGGER.warning(
-                "Can't stop PreCond for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't stop PreCond for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -1088,7 +1088,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
             LOGGER.warning(
-                "Can't stop PreCond for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't stop PreCond for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -1141,7 +1141,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "WINDOWS_CLOSE"):
             LOGGER.warning(
-                "Can't close the windows for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't close the windows for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -1169,7 +1169,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if not self._is_car_feature_available(vin, "variableOpenableWindow"):
             LOGGER.warning(
-                "Can't move windows for car %s. VIN unknown or feature not availabe for this car.",
+                "Can't move windows for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
