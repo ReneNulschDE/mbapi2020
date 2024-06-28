@@ -12,7 +12,6 @@ from homeassistant.components.sensor import RestoreSensor
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import MercedesMeEntity
 from .const import (
@@ -54,7 +53,7 @@ async def async_setup_entry(
                     vin=car.finorvin,
                     coordinator=coordinator,
                 )
-                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] or (
+                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED", "3", 3] or (
                     value[scf.DEFAULT_VALUE_MODE.value] is not None
                     and value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
                 ):

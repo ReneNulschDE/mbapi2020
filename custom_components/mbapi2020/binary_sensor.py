@@ -44,7 +44,7 @@ async def async_setup_entry(
                     vin=car.finorvin,
                     coordinator=coordinator,
                 )
-                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"]:
+                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED", "3", 3]:
                     sensors.append(device)
 
     async_add_entities(sensors, True)
