@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 import time
 
@@ -178,7 +179,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         LOGGER.error("Websocket error: %s", err)
         raise ConfigEntryNotReady from err
 
-    # config_entry.add_update_listener(config_entry_update_listener)
+    while not coordinator.entry_setup_complete:
+        # async websocket data load not complete, wait 0.5 seconds
+        await asyncio.sleep(0.5)
 
     return True
 
