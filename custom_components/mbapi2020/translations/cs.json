@@ -22,7 +22,9 @@
             }
         },
         "error": {
-            "unknown": "Neznámá chyba. Pro více informací zkontrolujte logy Home Assistant."
+            "unknown": "Neznámá chyba. Pro více informací zkontrolujte logy Home Assistant.",
+            "cannot_connect": "cannot_connect",
+            "invalid_auth": "invalid_auth"
         }
     },
     "issues": {
