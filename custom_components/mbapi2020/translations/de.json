@@ -1,1 +1,8 @@
-{}
+{
+    "config": {
+        "abort": {
+            "already_configured": "Komponente ist bereits konfiguriert.",
+            "reauth_successful": "Neuanmeldung erfolgreich! Komponente wird neu geladen."
+        }
+    }
+}
