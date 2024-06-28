@@ -14,6 +14,11 @@
                     "password": "Pin"
                 },
                 "description": "Du erhältst einen Pin-Code via email/SMS. Bitte gib den sechsstelligen Code ein."
+            },
+            "user": {
+                "data": {
+                    "region": "Region"
+                }
             }
         }
     },
