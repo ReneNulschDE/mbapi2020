@@ -1172,6 +1172,36 @@ SENSORS = {
         None,
         None,
     ],
+    "departuretimemode": [
+        "Departure Time Mode",
+        None,  # Deprecated: DO NOT USE
+        "electric",
+        "departureTimeMode",
+        "value",
+        None,
+        {},
+        "mdi:ev-station",
+        None,
+        False,
+        EntityCategory.DIAGNOSTIC,
+        None,
+        None,
+    ],
+    # "endofchargetime": [
+    #     "End of charge",
+    #     None,  # Deprecated: DO NOT USE
+    #     "electric",
+    #     "endofchargetime",
+    #     "display_value",
+    #     None,
+    #     {},
+    #     "mdi:ev-station",
+    #     None,
+    #     False,
+    #     None,
+    #     None,
+    #     None,
+    # ],
 }
 
 LOCKS = {
