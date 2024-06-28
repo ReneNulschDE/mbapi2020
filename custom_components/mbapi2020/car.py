@@ -109,6 +109,7 @@ ELECTRIC_OPTIONS = [
     "chargingactive",
     "chargingstatus",
     "chargingPower",
+    "departureTimeMode",
     "distanceElectricalReset",
     "distanceElectricalStart",
     "ecoElectricBatteryTemperature",
