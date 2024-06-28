@@ -537,7 +537,7 @@
           "3": "Unknown"
         }
       },
-      "departuretimeMode": {
+      "departuretimemode": {
         "state": {
           "0": "Disabled",
           "1": "Daily",
