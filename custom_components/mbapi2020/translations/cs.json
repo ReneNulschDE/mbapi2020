@@ -430,7 +430,14 @@
                             "4": "Pozice proti hluku",
                             "5": "Posuvné střední",
                             "6": "Zvedání střední",
-                            "3": "běží"
+                            "3": "běží",
+                            "2": "Zvedání otevřené",
+                            "7": "Otevírání",
+                            "8": "Zavírání",
+                            "9": "Zvedání proti hluku",
+                            "10": "Střední poloha",
+                            "11": "Zvedání otevírání",
+                            "12": "Zvedání zavírání"
                         },
                         "name": "Stav střešního okna"
                     },
@@ -484,6 +491,62 @@
                         }
                     }
                 }
+            },
+            "departuretimemode": {
+                "state": {
+                    "1": "Denně",
+                    "0": "Deaktivováno",
+                    "2": "Týdně"
+                }
+            },
+            "interiorprotectionsensorstatus": {
+                "state": {
+                    "0": "Neaktivní",
+                    "1": "Neaktivní",
+                    "2": "Aktvní"
+                }
+            },
+            "sunroofstatus": {
+                "state": {
+                    "2": "Otevření zvednutí",
+                    "4": "Anti-booming",
+                    "5": "Střední posuv",
+                    "7": "Otevírání",
+                    "10": "Střední poloha",
+                    "11": "Zvedání otevírání",
+                    "12": "Zvedání zavírání",
+                    "0": "Zavřeno",
+                    "1": "Otevřeno",
+                    "3": "Běží",
+                    "6": "Střední zvedání",
+                    "8": "Zavírání",
+                    "9": "Zvedání proti hluku"
+                }
+            },
+            "chargeflapacstatus": {
+                "state": {
+                    "0": "Otevřené",
+                    "1": "Zavřené",
+                    "3": "Neznámé",
+                    "2": "Klapka stisknuta"
+                }
+            },
+            "chargeflapdcstatus": {
+                "state": {
+                    "0": "Otevřené",
+                    "1": "Zavřené",
+                    "2": "Klapka stisknuta",
+                    "3": "Neznámé"
+                }
+            }
+        }
+    },
+    "selector": {
+        "charge_program": {
+            "options": {
+                "0": "V ýchozí",
+                "2": "Doma",
+                "3": "Práce"
             }
         }
     }
