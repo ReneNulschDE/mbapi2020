@@ -17,8 +17,10 @@
             },
             "user": {
                 "data": {
-                    "region": "Region"
-                }
+                    "region": "Region",
+                    "username": "MB-Benutzername - E-Mail-Adresse (oder Mobiltelefon einschließlich Ländercode z. B. +44)"
+                },
+                "description": "Gib dein Mercedes ME-Anmelde-Konto ein (E-Mail-Adresse)"
             }
         }
     },
