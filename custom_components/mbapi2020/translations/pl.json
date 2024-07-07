@@ -1,1 +1,245 @@
-{}
+{
+    "config": {
+        "step": {
+            "pin": {
+                "data": {
+                    "password": "PIN"
+                },
+                "description": "Otrzymałeś kod PIN w wiadomości email. Proszę wprowadzić kod PIN (sześć cyfr)"
+            },
+            "user": {
+                "data": {
+                    "region": "Region"
+                }
+            }
+        },
+        "error": {
+            "unknown": "Nieznany błąd. Proszę sprawdzić logi Home Assistanta."
+        },
+        "abort": {
+            "already_configured": "Komponent jest już skonfigurowany."
+        }
+    },
+    "issues": {
+        "restart_required": {
+            "title": "Wymagane ponowne uruchomienie",
+            "fix_flow": {
+                "step": {
+                    "confirm_restart": {
+                        "title": "Wymagane ponowne uruchomienie"
+                    }
+                }
+            }
+        }
+    },
+    "options": {
+        "abort": {
+            "already_configured": "Komponent jest już skonfigurowany.",
+            "reauth_successful": "Ponowne uwierzytelnianie powiodło się. Trwa ponowne ładowanie komponentu."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "delete_auth_file": "Usuń dane uwierzytelniania. Wymaga ponownego uruchomienia Home Assistanta po zapisaniu.",
+                    "excluded_cars": "Wykluczone VINy (oddzielone przecinkami)"
+                },
+                "title": "Opcje Mercedes ME 2020",
+                "description": "Ustaw swoje opcje. Część zmian wymaga ponownego uruchomienia Home Assistanta."
+            }
+        }
+    },
+    "system_health": {
+        "info": {
+            "cars_connected": "Połączone samochody",
+            "version": "Wersja"
+        }
+    },
+    "services": {
+        "download_images": {
+            "name": "Pobierz obrazy"
+        },
+        "doors_unlock": {
+            "name": "Odblokowanie drzwi"
+        },
+        "doors_lock": {
+            "name": "Zablokowanie drzwi"
+        },
+        "send_route": {
+            "fields": {
+                "street": {
+                    "name": "Ulica",
+                    "description": "Nazwa ulicy lokalizacji"
+                },
+                "city": {
+                    "name": "Miejscowość",
+                    "description": "Nazwa miejscowości lokalizacji"
+                }
+            }
+        },
+        "engine_start": {
+            "name": "Uruchom silnik"
+        },
+        "engine_stop": {
+            "name": "Zatrzymaj silnik"
+        }
+    },
+    "entity": {
+        "sensor": {
+            "lock": {
+                "state": {
+                    "0": "Odblokowany",
+                    "2": "Zablokowany",
+                    "4": "Nieznany",
+                    "1": "Zablokowany od środka",
+                    "3": "Częściowo odblokowany"
+                },
+                "state_attributes": {
+                    "doorstatusfrontleft": {
+                        "name": "Drzwi przednie lewe",
+                        "state": {
+                            "false": "zamknięte",
+                            "true": "otwarte"
+                        }
+                    },
+                    "decklidstatus": {
+                        "name": "Klapa bagażnika",
+                        "state": {
+                            "false": "zamknięta",
+                            "true": "otwarta"
+                        }
+                    },
+                    "doorstatusfrontright": {
+                        "name": "Drzwi przednie prawe",
+                        "state": {
+                            "false": "zamknięte",
+                            "true": "otwarte"
+                        }
+                    },
+                    "doorstatusrearleft": {
+                        "name": "Drzwi tylne lewe",
+                        "state": {
+                            "false": "zamknięte",
+                            "true": "Otwarte"
+                        }
+                    },
+                    "doorstatusrearright": {
+                        "name": "Drzwi tylne prawe",
+                        "state": {
+                            "false": "zamknięte",
+                            "true": "otwarte"
+                        }
+                    },
+                    "doorlockstatusfrontleft": {
+                        "name": "Zamek drzwi przednich lewych",
+                        "state": {
+                            "false": "zablokowany",
+                            "true": "odblokowany"
+                        }
+                    },
+                    "doorlockstatusfrontright": {
+                        "name": "Zamek drzwi przednich prawych",
+                        "state": {
+                            "false": "zablokowany",
+                            "true": "odblokowany"
+                        }
+                    },
+                    "doorlockstatusrearleft": {
+                        "name": "Zamek drzwi tylnych lewych",
+                        "state": {
+                            "false": "zablokowany",
+                            "true": "odblokowany"
+                        }
+                    },
+                    "doorlockstatusrearright": {
+                        "name": "Zamek drzwi tylnych prawych",
+                        "state": {
+                            "false": "zablokowany",
+                            "true": "odblokowany"
+                        }
+                    },
+                    "doorlockstatusgas": {
+                        "name": "Klapka wlewu paliwa",
+                        "state": {
+                            "false": "zablokowana",
+                            "true": "odblokowana"
+                        }
+                    },
+                    "enginehoodstatus": {
+                        "name": "Maska silnika",
+                        "state": {
+                            "false": "zamknięta",
+                            "true": "otwarta"
+                        }
+                    },
+                    "doorstatusoverall": {
+                        "name": "Ogólny stan drzwi",
+                        "state": {
+                            "0": "otwarte",
+                            "1": "zamknięte",
+                            "2": "nieistniejące",
+                            "3": "nieznany"
+                        }
+                    },
+                    "sunroofstatus": {
+                        "name": "Stan szyberdachu",
+                        "state": {
+                            "0": "zamknięty",
+                            "1": "otwarty",
+                            "7": "otwieranie",
+                            "8": "zamykanie",
+                            "10": "pozycja pośrednia"
+                        }
+                    }
+                }
+            },
+            "interiorprotectionsensorstatus": {
+                "state": {
+                    "1": "Nieaktywne",
+                    "2": "Aktywne",
+                    "0": "Nieaktywne"
+                }
+            },
+            "sunroofstatus": {
+                "state": {
+                    "7": "Otwieranie",
+                    "8": "Zamykanie",
+                    "0": "Zamknięty",
+                    "1": "Otwarty",
+                    "10": "Pozycja pośrednia"
+                }
+            },
+            "chargeflapacstatus": {
+                "state": {
+                    "0": "Otwarta",
+                    "1": "Zamknięta",
+                    "2": "Klapa naciśnięta",
+                    "3": "Nieznany"
+                }
+            },
+            "chargeflapdcstatus": {
+                "state": {
+                    "0": "Otwarta",
+                    "1": "Zamknięta",
+                    "2": "Klapa naciśnięta",
+                    "3": "Nieznany"
+                }
+            },
+            "departuretimemode": {
+                "state": {
+                    "0": "Wyłączony",
+                    "2": "Tygodniowy",
+                    "1": "Dzienny"
+                }
+            }
+        }
+    },
+    "selector": {
+        "charge_program": {
+            "options": {
+                "3": "Praca",
+                "0": "Domyślny",
+                "2": "Dom"
+            }
+        }
+    }
+}
