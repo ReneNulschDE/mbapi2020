@@ -83,7 +83,7 @@
                 },
                 "time_selection": {
                     "name": "Výběr času",
-                    "description": "Aktivovaný přednastavený čas přídavného topení (0=žádný výběr, 1=čas_1, 2=čas_2, 3=čas_3)"
+                    "description": "Aktivovaný přednastavený čas přídavného topení (0=zadny_vyber, 1=cas_1, 2=cas_2, 3=cas_3)"
                 },
                 "time_1": {
                     "description": "Denní doba v minutách po půlnoci. Například platná hodnota pro 8 hodin ráno by byla 480. Rozsah hodnot je od 0 do 1439."
@@ -169,7 +169,7 @@
                     "name": "VIN"
                 }
             },
-            "name": "Zamknutí dveří",
+            "name": "Zapezpečení",
             "description": "Zamknutí vozu definovaného pomocí VIN."
         },
         "engine_start": {
@@ -508,19 +508,19 @@
             },
             "sunroofstatus": {
                 "state": {
-                    "2": "Otevření zvednutí",
-                    "4": "Anti-booming",
+                    "2": "Otevřená ventilace",
+                    "4": "Protihluková clona",
                     "5": "Střední posuv",
                     "7": "Otevírání",
                     "10": "Střední poloha",
-                    "11": "Zvedání otevírání",
-                    "12": "Zvedání zavírání",
+                    "11": "Otevření ventilace",
+                    "12": "Zavírání ventilace",
                     "0": "Zavřeno",
                     "1": "Otevřeno",
                     "3": "Běží",
                     "6": "Střední zvedání",
                     "8": "Zavírání",
-                    "9": "Zvedání proti hluku"
+                    "9": "Zvednutí protihlukové clony"
                 }
             },
             "chargeflapacstatus": {

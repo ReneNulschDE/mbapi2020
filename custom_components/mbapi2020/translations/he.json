@@ -1,0 +1,200 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "הרכיב כבר מוגדר.",
+            "reauth_successful": "האימות החוזר הצליח! הרכיב בתהליך טעינה."
+        },
+        "error": {
+            "unknown": "שגיאה לא מוכרת, בדוק את יומן המערכת לפרטים נוספים."
+        },
+        "step": {
+            "pin": {
+                "data": {
+                    "password": "קוד"
+                },
+                "description": "התקבל קוד לכתובת הדואר האלטרוני, אנא הזן קוד 6 ספרות.",
+                "title": "הגדרות חיבור - קוד"
+            },
+            "user": {
+                "data": {
+                    "region": "אזור",
+                    "username": "שם משתמש - דואר אלקטורני או טלפון המתחיל ב+44"
+                },
+                "description": "הקש את פרטי החיבור שלך למרצדס",
+                "title": "הגדרת החיבור אל מרצדדס"
+            }
+        }
+    },
+    "issues": {
+        "restart_required": {
+            "fix_flow": {
+                "step": {
+                    "confirm_restart": {
+                        "title": "דרושה הפעלה מחדש",
+                        "description": "בצע הפעלה מחדש למערכת על מנת לסיים את עדכון האימות."
+                    }
+                }
+            },
+            "title": "דרושה הפעלה מחדש"
+        }
+    },
+    "options": {
+        "abort": {
+            "already_configured": "הרכיב כבר מוגדר.",
+            "reauth_successful": "האימות החוזר הצליח! הרכיב בתהליך טעינה."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "cap_check_disabled": "בטל בדיקת תאימות",
+                    "excluded_cars": "מספר VIN להתעלמות",
+                    "pin": "PIN אבטחה( צריך ליצור באפליקציה) - הקש 0 למחיקת הערך מההגדרות",
+                    "delete_auth_file": "מחק טוקן אימות עכשיו, מצריך הפעלה מחדש לאחר השמירה."
+                },
+                "title": "אפשרויות Mercedes ME 2020",
+                "description": "הגדר את האפשרויות. חלק מהשינויים מצריכים הפעלה מחדש."
+            }
+        }
+    },
+    "system_health": {
+        "info": {
+            "api_endpoint_reachable": "MB API זמין",
+            "websocket_connection_state": "MB WS מצב",
+            "cars_connected": "רכבים מחוברים",
+            "version": "גרסא"
+        }
+    },
+    "services": {
+        "refresh_access_token": {
+            "name": "רענן טוקן חיבור",
+            "description": "רענן טוקן API"
+        },
+        "auxheat_configure": {
+            "fields": {
+                "vin": {
+                    "name": "vin",
+                    "description": "vin/fin של הרכב"
+                },
+                "time_selection": {
+                    "name": "בחר זמן"
+                }
+            },
+            "name": "הגדרות חימום",
+            "description": "פקודה להגדרת חימום. אפשרי להגדיר 3 מצבי יום ואחד פעיל"
+        }
+    },
+    "entity": {
+        "sensor": {
+            "lock": {
+                "state_attributes": {
+                    "doorlockstatusfrontright": {
+                        "state": {
+                            "false": "נעול",
+                            "true": "לא נעול"
+                        },
+                        "name": "נעילת דלת קדמית ימנית"
+                    },
+                    "doorlockstatusrearleft": {
+                        "name": "נעילת דלת שמאלית אחורית",
+                        "state": {
+                            "false": "נעול",
+                            "true": "לא נעול"
+                        }
+                    },
+                    "doorlockstatusrearright": {
+                        "name": "נעילת דלת אחורית ימנית",
+                        "state": {
+                            "false": "נעול",
+                            "true": "לא נעול"
+                        }
+                    },
+                    "doorlockstatusfrontleft": {
+                        "state": {
+                            "false": "נעול",
+                            "true": "לא נעול"
+                        }
+                    },
+                    "doorlockstatusgas": {
+                        "state": {
+                            "false": "נעול",
+                            "true": "לא נעול"
+                        },
+                        "name": "נעילת פתח דלק"
+                    },
+                    "enginehoodstatus": {
+                        "state": {
+                            "false": "סגור",
+                            "true": "פתוח"
+                        },
+                        "name": "מכסה מנוע"
+                    },
+                    "doorstatusoverall": {
+                        "name": "מצב נעילת דלתות",
+                        "state": {
+                            "0": "פתוח",
+                            "1": "סגור",
+                            "2": "לא קיים",
+                            "3": "לא ידוע"
+                        }
+                    },
+                    "sunroofstatus": {
+                        "name": "מצב סאנרוף",
+                        "state": {
+                            "0": "סגור",
+                            "1": "פתוח",
+                            "2": "אורוור פתוח",
+                            "3": "בפתיחה",
+                            "7": "פותח",
+                            "8": "סוגר"
+                        }
+                    }
+                }
+            },
+            "interiorprotectionsensorstatus": {
+                "state": {
+                    "0": "לא פעיל",
+                    "2": "פעיל",
+                    "1": "לא פעיל"
+                }
+            },
+            "sunroofstatus": {
+                "state": {
+                    "0": "סגור",
+                    "7": "פותח",
+                    "8": "סוגר",
+                    "1": "פתוח"
+                }
+            },
+            "chargeflapacstatus": {
+                "state": {
+                    "3": "לא ידוע",
+                    "1": "סגור",
+                    "0": "פתוח"
+                }
+            },
+            "chargeflapdcstatus": {
+                "state": {
+                    "0": "פתוח",
+                    "3": "לא ידוע",
+                    "1": "סגור"
+                }
+            },
+            "departuretimemode": {
+                "state": {
+                    "2": "שבועי",
+                    "0": "מושבת",
+                    "1": "יומי"
+                }
+            }
+        }
+    },
+    "selector": {
+        "charge_program": {
+            "options": {
+                "0": "ברירת מחדל",
+                "2": "בית",
+                "3": "עבודה"
+            }
+        }
+    }
+}
