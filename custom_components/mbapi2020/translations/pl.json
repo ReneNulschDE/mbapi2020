@@ -5,19 +5,24 @@
                 "data": {
                     "password": "PIN"
                 },
-                "description": "Otrzymałeś kod PIN w wiadomości email. Proszę wprowadzić kod PIN (sześć cyfr)"
+                "description": "Otrzymałeś kod PIN w wiadomości email. Proszę wprowadzić kod PIN (sześć cyfr)",
+                "title": "Ustawienia połączenia - PIN"
             },
             "user": {
                 "data": {
-                    "region": "Region"
-                }
+                    "region": "Region",
+                    "username": "Nazwa użytkownika MB - adres email (lub numer telefonu zawierający kod kierunkowy np +48)"
+                },
+                "description": "Wpisz login konta użytkownika Mercedes ME (adres email)",
+                "title": "Ustanów połączenie z Mercedes ME 2020"
             }
         },
         "error": {
             "unknown": "Nieznany błąd. Proszę sprawdzić logi Home Assistanta."
         },
         "abort": {
-            "already_configured": "Komponent jest już skonfigurowany."
+            "already_configured": "Komponent jest już skonfigurowany.",
+            "reauth_successful": "Re-autoryzacja udana. Trwa ponowne ładowanie komponentu."
         }
     },
     "issues": {
@@ -26,7 +31,8 @@
             "fix_flow": {
                 "step": {
                     "confirm_restart": {
-                        "title": "Wymagane ponowne uruchomienie"
+                        "title": "Wymagane ponowne uruchomienie",
+                        "description": "Ponowne uruchomienie Home Assistant jest wymagane aby ukończyć aktualizację autoryzacji. Kliknij \"wyślij\" aby uruchomić teraz."
                     }
                 }
             }
@@ -41,7 +47,11 @@
             "init": {
                 "data": {
                     "delete_auth_file": "Usuń dane uwierzytelniania. Wymaga ponownego uruchomienia Home Assistanta po zapisaniu.",
-                    "excluded_cars": "Wykluczone VINy (oddzielone przecinkami)"
+                    "excluded_cars": "Wykluczone VINy (oddzielone przecinkami)",
+                    "cap_check_disabled": "Wyłącz sprawdzanie funkcji",
+                    "enable_china_gcj_02": "Włącz transkrypcję GCJ-02 (tylko dla Chin)",
+                    "pin": "PIN zabezpieczający (utworzony w aplikacji mobilnej). Wpisz 0 aby usunąć zapisaną wartość z konfiguracji",
+                    "save_files": "TRYB DEBUGOWANIA: Zezwól na zapisywanie wiadomości z serwera do folderu"
                 },
                 "title": "Opcje Mercedes ME 2020",
                 "description": "Ustaw swoje opcje. Część zmian wymaga ponownego uruchomienia Home Assistanta."
@@ -51,18 +61,45 @@
     "system_health": {
         "info": {
             "cars_connected": "Połączone samochody",
-            "version": "Wersja"
+            "version": "Wersja",
+            "api_endpoint_reachable": "MB API dostępne",
+            "websocket_connection_state": "Stan MB WS"
         }
     },
     "services": {
         "download_images": {
-            "name": "Pobierz obrazy"
+            "name": "Pobierz obrazy",
+            "description": "Pobierz zdjęcia pojazdu do folderu komponentu dla pojazdu zdefiniowanego VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                }
+            }
         },
         "doors_unlock": {
-            "name": "Odblokowanie drzwi"
+            "name": "Odblokowanie drzwi",
+            "description": "Odblokuj pojazd zdefiniowany VIN. Wymagany PIN. Sprawdź opcje w ustawieniach integracji.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                },
+                "pin": {
+                    "name": "PIN",
+                    "description": "PIN bezpieczeństwa, wymagany gdy nie jest zapisany w ustawieniach."
+                }
+            }
         },
         "doors_lock": {
-            "name": "Zablokowanie drzwi"
+            "name": "Zablokowanie drzwi",
+            "description": "Zablokuj pojazd zdefiniowany VIN",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                }
+            }
         },
         "send_route": {
             "fields": {
@@ -73,14 +110,267 @@
                 "city": {
                     "name": "Miejscowość",
                     "description": "Nazwa miejscowości lokalizacji"
+                },
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                },
+                "title": {
+                    "name": "Nazwa",
+                    "description": "Nazwa trasy"
+                },
+                "latitude": {
+                    "name": "Szerokość geograficzna",
+                    "description": "Szerokość geograficzna celu"
+                },
+                "longitude": {
+                    "name": "Długość geograficzna",
+                    "description": "Długość geograficzna celu"
+                },
+                "postcode": {
+                    "description": "Kod pocztowy celu",
+                    "name": "Kod pocztowy"
+                }
+            },
+            "name": "Wyślij trasę",
+            "description": "Wyślij trasę do pojazdu (Tylko jeden cel)"
+        },
+        "engine_start": {
+            "name": "Uruchom silnik",
+            "description": "Uruchom silnik pojazdu zdefiniowanego VIN. Wymagany PIN. Sprawdź opcje w ustawieniach integracji.",
+            "fields": {
+                "vin": {
+                    "description": "VIN/FIN pojazdu",
+                    "name": "VIN"
                 }
             }
         },
-        "engine_start": {
-            "name": "Uruchom silnik"
-        },
         "engine_stop": {
-            "name": "Zatrzymaj silnik"
+            "name": "Zatrzymaj silnik",
+            "description": "Wyłącz silnik pojazdu zdefiniowanego VIN. Wymagany PIN. Sprawdź opcje w ustawieniach integracji.",
+            "fields": {
+                "vin": {
+                    "description": "VIN/FIN pojazdu",
+                    "name": "VIN"
+                }
+            }
+        },
+        "refresh_access_token": {
+            "name": "Odśwież token dostępu",
+            "description": "Odśwież token dostępu do API"
+        },
+        "auxheat_configure": {
+            "name": "Ustawienia ogrzewania dodatkowego",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                },
+                "time_selection": {
+                    "name": "Wybór czasu",
+                    "description": "Wybrany czas startu ogrzewania dodatkowego (0=brak_wyboru, 1=czas_1, 2=czas_2, 3=czas_3)"
+                },
+                "time_1": {
+                    "description": "Czas w minutach po północy. Np. dla 8:00 jest to 480. Dostępne wartości 0 do 1439."
+                },
+                "time_3": {
+                    "description": "Czas w minutach po północy. Np. dla 8:00 jest to 480. Dostępne wartości 0 do 1439."
+                },
+                "time_2": {
+                    "description": "Czas w minutach po północy. Np. dla 8:00 jest to 480. Dostępne wartości 0 do 1439."
+                }
+            },
+            "description": "Komendy do konfiguracji ogrzewania dodatkowego. Można zdefiniować trzy czasy uruchomienia i wybrać jeden aktywny."
+        },
+        "auxheat_start": {
+            "name": "Włącz ogrzewanie dodatkowe",
+            "description": "Włącz ogrzewanie dodatkowe pojazdu zdefiniowanego VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                }
+            }
+        },
+        "auxheat_stop": {
+            "name": "Wyłącz ogrzewanie dodatkowe",
+            "description": "Wyłącz ogrzewanie dodatkowe pojazdu zdefiniowanego VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                }
+            }
+        },
+        "battery_max_soc_configure": {
+            "name": "Ustawienie maksymalnego stanu naładowania baterii",
+            "description": "Ustaw wartość maksymalnego stanu naładowania baterii pojazdu zdefiniowanego VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                },
+                "max_soc": {
+                    "name": "Maksymalny stan naładowania",
+                    "description": "Maksymalna wartość naładowania baterii pojazdu (Wartość musi zawierać się między 50 a 100 i być podzielna przez 10)"
+                },
+                "charge_program": {
+                    "description": "(Opcjonalnie, Domyślnie=0) Zmiana programu ładowania (0=Domyślny, 2=Dom, 3=Praca)",
+                    "name": "Program ładowania"
+                }
+            }
+        },
+        "charge_program_configure": {
+            "name": "Konfiguracja programu ładowania",
+            "description": "Komenda wyboru programu ładowania.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                },
+                "charge_program": {
+                    "name": "Program ładowania",
+                    "description": "Aktywny program ładowania (0=domyślny, 2=Dom, 3=Praca)"
+                }
+            }
+        },
+        "preheat_start": {
+            "name": "Włącz klimatyzację wstępną",
+            "description": "Włącz klimatyzację wstępną pojazdu zdefiniowanego VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                },
+                "type": {
+                    "name": "Wpisz",
+                    "description": "Metoda używana do włączania. 0=Teraz(Domyślne), 1=Natychmiast - Użyj Natychmiast w przypadku gdy Twój pojazd nie obsługuje Teraz."
+                }
+            }
+        },
+        "preheat_start_departure_time": {
+            "name": "Klimatyzacja wstępna o czasie odjazdu",
+            "description": "Ustaw klimatyzację wstępną pojazdu zdefiniowanego VIN na podaną godzinę.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                },
+                "time": {
+                    "name": "Czas",
+                    "description": "Czas odjazdu w minutach po północy. Np. dla 8:00 wartość to 480. Dostępne wartości od 0 do 1439."
+                }
+            }
+        },
+        "preheat_stop": {
+            "name": "Wyłącz wstępną klimatyzację",
+            "description": "Wyłącz wstępną klimatyzację pojazdu zdefiniowanego VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                }
+            }
+        },
+        "preheat_stop_departure_time": {
+            "name": "Wyłącz wstępną klimatyzację dla trybu z czasem odjazdu",
+            "description": "Wyłącz wstępną klimatyzację z czasem odjazdu dla pojazdu zdefiniowanego VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                }
+            }
+        },
+        "sigpos_start": {
+            "name": "Włącz sygnalizację światłami",
+            "description": "Włącz sygnalizację światłami pojazdu zdefiniowanego VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                }
+            }
+        },
+        "windows_open": {
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                },
+                "pin": {
+                    "name": "PIN",
+                    "description": "PIN bezpieczeństwa, wymagany gdy nie zapisano w ustawieniach."
+                }
+            },
+            "name": "Otwórz okna",
+            "description": "Otwórz okna pojazdu zdefiniowanego VIN. Wymagany PIN. Sprawdź opcje w ustawieniach integracji."
+        },
+        "windows_close": {
+            "name": "Zamknij okna",
+            "description": "Zamknij okna pojazdu zdefiniowanego VIN. Wymagany PIN. Sprawdź opcje w ustawieniach integracji.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                }
+            }
+        },
+        "windows_move": {
+            "name": "Ruch okien",
+            "description": "Ruch okien pojazdu zdefiniowanego VIN. Wymagany PIN. Sprawdź opcje w ustawieniach integracji.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                },
+                "front_right": {
+                    "name": "Prawe przednie",
+                    "description": "Nowa pozycja przedniego prawego okna (0=zamknięte, 10=wentylacja, 100=otwarte)"
+                },
+                "front_left": {
+                    "name": "Lewe przednie",
+                    "description": "Nowa pozycja przedniego lewego okna (0=zamknięte, 10=wentylacja, 100=otwarte)"
+                },
+                "rear_left": {
+                    "name": "Lewe tylne",
+                    "description": "Nowa pozycja tylnego lewego okna (0=zamknięte, 10=wentylacja, 100=otwarte)"
+                },
+                "rear_right": {
+                    "name": "Prawe tylne",
+                    "description": "Nowa pozycja tylnego lewego okna (0=zamknięte, 10=wentylacja, 100=otwarte)"
+                }
+            }
+        },
+        "sunroof_open": {
+            "name": "Otwórz szyberdach",
+            "description": "Otwórz szyberdach pojazdu zdefiniowanego VIN. Wymagany PIN. Sprawdź opcje w ustawieniach integracji.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                }
+            }
+        },
+        "sunroof_tilt": {
+            "description": "Uchyl szyberdach pojazdu zdefiniowanego VIN. Wymagany PIN. Sprawdź opcje w ustawieniach integracji.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN pojazdu"
+                }
+            },
+            "name": "Uchyl szyberdach"
+        },
+        "sunroof_close": {
+            "name": "Zamknij szyberdach",
+            "fields": {
+                "vin": {
+                    "description": "VIN/FIN pojazdu",
+                    "name": "VIN"
+                }
+            },
+            "description": "Zamknij szyberdach pojazdu zdefiniowanego VIN."
         }
     },
     "entity": {
@@ -187,7 +477,15 @@
                             "1": "otwarty",
                             "7": "otwieranie",
                             "8": "zamykanie",
-                            "10": "pozycja pośrednia"
+                            "10": "pozycja pośrednia",
+                            "2": "uchylanie",
+                            "3": "działa",
+                            "5": "przesuwanie średnie",
+                            "6": "unoszenie średnie",
+                            "4": "pozycja cicha",
+                            "11": "otwieranie unoszenie",
+                            "12": "zamykanie podnoszące",
+                            "9": "unoszenie do pozycji cichej"
                         }
                     }
                 }
@@ -205,7 +503,15 @@
                     "8": "Zamykanie",
                     "0": "Zamknięty",
                     "1": "Otwarty",
-                    "10": "Pozycja pośrednia"
+                    "10": "Pozycja pośrednia",
+                    "2": "Otwarty unoszący",
+                    "3": "W ruchu",
+                    "5": "Średnie przesuwanie",
+                    "6": "Średnie unoszenie",
+                    "4": "Pozycja cicha",
+                    "11": "Otwieranie uchylenia",
+                    "9": "Uchylony do pozycji cichej",
+                    "12": "Zamykanie uchylenia"
                 }
             },
             "chargeflapacstatus": {
