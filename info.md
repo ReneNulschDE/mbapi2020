@@ -1,31 +1,29 @@
-
-
 # mercedesme2020
+
 ![HassFest tests](https://github.com/renenulschde/mbapi2020/workflows/Validate%20with%20hassfest/badge.svg) ![Validate with HACS](https://github.com/ReneNulschDE/mbapi2020/workflows/Validate%20with%20HACS/badge.svg)
-
-
 
 MercedesME platform as a Custom Component for Home Assistant.
 
 IMPORTANT:
 
-* Please login once in the MercedesME IOS or Android app before you install this component. (For North America, the app name is Mercedes Me Connect)
+- Please login once in the MercedesME IOS or Android app before you install this component. (For North America, the app name is Mercedes Me Connect)
 
-* Tested Countries: AT, AU, BE, CA, CH, CN, DE, DK, ES, FI, FR, IN, IT, IR, NL, NO, NZ, PT, SE, TH, UK, US
+- Tested Countries: AT, AU, BE, CA, CH, CN, DE, DK, ES, FI, FR, IN, IT, IR, NL, NO, NZ, PT, SE, TH, UK, US
 
-* North America: For Cars 2019 or newer only
-* Thailand, India: Please use region "Europe".
-* China: support of China is in early stage
+- North America: For Cars 2019 or newer only
+- Thailand, India: Please use region "Europe".
+- China: support of China is in early stage
 
 ### Installation
-* First: This is not a Home Assistant Add-On. It's a custom component.
-* There are two ways to install. First you can download the folder custom_component and copy it into your Home-Assistant config folder. Second option is to install HACS (Home Assistant Custom Component Store) and select "MercedesME 2020" from the Integrations catalog.
-* [How to install a custom component?](https://www.google.com/search?q=how+to+install+custom+components+home+assistant) 
-* [How to install HACS?](https://hacs.xyz/docs/installation/prerequisites)
-* Restart HA after the installation
-* Make sure that you refresh your browser window too
-* Use the "Add Integration" in Home Assistant, Settings, Devices & Services and select "MercedesME 2020".
-* Use your MB-login email address. Your will receive a 6-digit code via email (valid for 15min).
+
+- First: This is not a Home Assistant Add-On. It's a custom component.
+- There are two ways to install. First you can download the folder custom_component and copy it into your Home-Assistant config folder. Second option is to install HACS (Home Assistant Custom Component Store) and select "MercedesME 2020" from the Integrations catalog.
+- [How to install a custom component?](https://www.google.com/search?q=how+to+install+custom+components+home+assistant)
+- [How to install HACS?](https://hacs.xyz/docs/installation/prerequisites)
+- Restart HA after the installation
+- Make sure that you refresh your browser window too
+- Use the "Add Integration" in Home Assistant, Settings, Devices & Services and select "MercedesME 2020".
+- Use your MB-login email address. Your will receive a 6-digit code via email (valid for 15min).
 
 ### Optional configuration values
 
@@ -38,72 +36,70 @@ Disable Capability Check: By default the component checks the capabilities of a 
 Debug Save Messages: Enable this option to save all relevant received message into the messages folder of the component
 ```
 
-## Available components 
-Depends on your own car or purchased Mercedes Benz licenses.
+## Available components
 
+Depends on your own car or purchased Mercedes Benz licenses.
 
 ### Binary Sensors
 
-* warningwashwater
-  
-* warningcoolantlevellow
-  
-* warningbrakefluid
+- warningwashwater
 
-* warningenginelight
+- warningcoolantlevellow
 
-    ```
-    attributes: 
-    warningbrakefluid, warningwashwater, warningcoolantlevellow, warninglowbattery
-    ```
+- warningbrakefluid
 
-* parkbrakestatus
+- warningenginelight
 
-    ```
-    attributes: 
-    preWarningBrakeLiningWear
-    ```
-
-* tirewarninglamp
-
-    ```
-    attributes: 
-    tireMarkerFrontRight, tireMarkerFrontLeft,tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw, tireTemperatureRearLeft, tireTemperatureFrontRight,
-    tireTemperatureRearRight, tireTemperatureFrontLeft
-    ```
-
-* windowsClosed
-  
   ```
-  attributes: 
+  attributes:
+  warningbrakefluid, warningwashwater, warningcoolantlevellow, warninglowbattery
+  ```
+
+- parkbrakestatus
+
+  ```
+  attributes:
+  preWarningBrakeLiningWear
+  ```
+
+- tirewarninglamp
+
+  ```
+  attributes:
+  tireMarkerFrontRight, tireMarkerFrontLeft,tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw, tireTemperatureRearLeft, tireTemperatureFrontRight,
+  tireTemperatureRearRight, tireTemperatureFrontLeft
+  ```
+
+- windowsClosed
+
+  ```
+  attributes:
   windowstatusrearleft, windowstatusrearright, windowstatusfrontright, windowstatusfrontleft
   ```
 
-* remoteStartActive
+- remoteStartActive
 
-* engineState
-
+- engineState
 
 ### Device Tracker
-  
-  ```
-  attributes:
-  positionHeading
-  ```
+
+```
+attributes:
+positionHeading
+```
 
 ### Locks
 
-* lock
+- lock
 
   PIN setup in MB App is required. If the pin is not set in the integration options then the lock asks for the PIN.
 
-
 ### Sensors
 
-* lock
+- lock
 
   ```
-  attributes: 
+  attributes:
   decklidstatus, doorStatusOverall, doorLockStatusOverall, doorlockstatusgas, doorlockstatusvehicle, doorlockstatusfrontleft,doorlockstatusfrontright, doorlockstatusrearright, doorlockstatusrearleft, doorlockstatusdecklid, doorstatusrearleft, doorstatusfrontright, doorstatusrearright, doorstatusfrontleft, rooftopstatus, sunroofstatus, engineHoodStatus
   ```
 
@@ -115,47 +111,49 @@ Depends on your own car or purchased Mercedes Benz licenses.
   2: vehicle external locked
   3: vehicle selective unlocked
 
-* Fuel Level (%)
+- Fuel Level (%)
 
   ```
-  attributes: 
+  attributes:
   tankLevelAdBlue
   ```
 
-* Geofencing Violation
+- Geofencing Violation
 
   ```
-  attributes: 
+  attributes:
   Last_event_zone
   ```
+
   Values:
   ENTER
   LEAVE
 
-* odometer
-  
+- odometer
+
   ```
-  attributes: 
+  attributes:
   distanceReset, distanceStart, averageSpeedReset, averageSpeedStart, distanceZEReset, drivenTimeZEReset, drivenTimeReset, drivenTimeStart, ecoscoretotal, ecoscorefreewhl, ecoscorebonusrange, ecoscoreconst, ecoscoreaccel, gasconsumptionstart, gasconsumptionreset, gasTankRange, gasTankLevel, liquidconsumptionstart, liquidconsumptionreset, liquidRangeSkipIndication, rangeliquid, serviceintervaldays, tanklevelpercent, tankReserveLamp, batteryState, tankLevelAdBlue
   ```
 
-* Range Electric
+- Range Electric
 
   ```
-  attributes: 
+  attributes:
   chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, endofchargetime, precondActive, precondNow, maxrange, selectedChargeProgram
   ```
 
-* Electric consumption start
+- Electric consumption start
 
-* Electric consumption reset
+- Electric consumption reset
 
-* Charging power
+- Charging power
 
-* Starter Battery State
+- Starter Battery State
+
   ```
   Internal Name: starterBatteryState
-  
+
   Values     Description_short     Description_long
   "0"        "green"               "Vehicle ok"
   "1"        "yellow"              "Battery partly charged"
@@ -164,18 +162,20 @@ Depends on your own car or purchased Mercedes Benz licenses.
   "4"        "vehicleNotAvalable"  "Vehicle no longer available"
   ```
 
-* State of Charge (soc)
+- State of Charge (soc)
+
   ```
   Internal Name: soc
 
-  State of charge (SoC) is the level of charge of an electric battery relative to its capacity. The units of SoC are percentage points (0% = empty; 100% = full). 
+  State of charge (SoC) is the level of charge of an electric battery relative to its capacity. The units of SoC are percentage points (0% = empty; 100% = full).
 
-  attributes: 
+  attributes:
   maxSocLowerLimit, maxSoc
 
   ```
 
-* Ignition state
+- Ignition state
+
   ```
   Internal Name: ignitionstate
 
@@ -187,12 +187,14 @@ Depends on your own car or purchased Mercedes Benz licenses.
   "5"        "start"               "Ignition start"
   ```
 
-* Oil Level in percent
+- Oil Level in percent
+
   ```
-  attributes: 
+  attributes:
   ```
 
-* Aux Heat Status
+- Aux Heat Status
+
   ```
   Internal Name: auxheatstatus
 
@@ -204,88 +206,93 @@ Depends on your own car or purchased Mercedes Benz licenses.
   "4"       post heating
   "5"       post ventilation
   "6"       auto heating
-  
+
   attributes:
   auxheattime1, auxheattime2, auxheattime3, auxheattimeselection, auxheatActive, auxheatwarnings, auxheattime2: '00:00'
 
   ```
 
-### Diagnostic Sensors 
+### Diagnostic Sensors
+
 [Diagnostic sensors](https://www.home-assistant.io/blog/2021/11/03/release-202111/#entity-categorization) are hidden by default, check the devices page to see the current values
 
-* Car
+- Car
+
   ```
-  attributes: 
+  attributes:
   full_update_messages_received, partital_update_messages_received, last_message_received, last_command_type, last_command_state, last_command_error_code, last_command_error_message
   ```
 
-* RCP_Features
+- RCP_Features
 
   Sensor shows true if extended configuration like interior lighting is available. This feature requires a reauthentication in case you used a version <0.6 before (We need some more permissions...). Shows False in case reauthentication has not happened or the feature is not available for your car.
+
   ```
-  attributes: 
+  attributes:
   rcp_supported_settings (List of all remote configuration options, I'll implement them step by step as services or buttons)
   ```
+
 ### Services
-Some services require that the security PIN is created in your mobile Android/IOS app. Please store the pin to the options-dialog of the integration 
-* refresh_access_token:
+
+Some services require that the security PIN is created in your mobile Android/IOS app. Please store the pin to the options-dialog of the integration
+
+- refresh_access_token:
   Refresh the API access token
 
-* auxheat_start:
+- auxheat_start:
   Start the auxiliary heating of a car defined by a vin.
 
-* auxheat_stop:
+- auxheat_stop:
   Stop the auxiliary heating of a car defined by a vin.
 
-* battery_max_soc_configure:
+- battery_max_soc_configure:
   Configure the maximum value for the state of charge of the HV battery of a car defined by a vin.
 
-* doors_unlock:
+- doors_unlock:
   Unlock a car defined by a vin. PIN required.
 
-* doors_lock:
+- doors_lock:
   Lock a car defined by a vin.
 
-* engine_start:
+- engine_start:
   Start the engine of a car defined by a vin. PIN required.
 
-* engine_stop:
+- engine_stop:
   Stop the engine of a car defined by a vin.
 
-* preheat_start:
+- preheat_start:
   Start the preheating of a zero emission car defined by a vin.
 
-* preheat_start_departure_time:
+- preheat_start_departure_time:
   Start the preheating of a zero emission car defined by a vin and the departure time in minutes since midnight
 
-* preheat_stop:
+- preheat_stop:
   Stop the preheating of a zero emission car defined by a vin.
 
-* send_route:
+- send_route:
   Send a route to a car defined by a vin.
 
-* sigpos_start:
+- sigpos_start:
   Start light signaling of a car defined by a vin.
 
-* sunroof_open:
+- sunroof_open:
   Open the sunroof of a car defined by a vin. PIN required.
 
-* sunroof_tilt:
+- sunroof_tilt:
   Tilt the sunroof of a car defined by a vin. PIN required.
 
-* sunroof_close:
+- sunroof_close:
   Close the sunroof of a car defined by a vin.
 
-* windows_open:
+- windows_open:
   Open the windows of a car defined by a vin. PIN required.
 
-* windows_close:
+- windows_close:
   Close the windows of a car defined by a vin.
-
 
 ### Switches
 
-* AuxHeat - Start/Stop the auxiliary heating of the car
+- AuxHeat - Start/Stop the auxiliary heating of the car
 
 ### Logging
 
@@ -299,12 +306,26 @@ logger:
 ```
 
 ### Open Items
-* Add missing Sensors (Theft)
 
+- Add missing Sensors (Theft)
 
 ### Backup and Restore
-* In case of problems after a restore of Home Assistant, please delete the file .mercedesme-token-cache in your HA-config folder and restart HA
+
+- In case of problems after a restore of Home Assistant, please delete the file .mercedesme-token-cache in your HA-config folder and restart HA
 
 ### Useful links
 
-* [Forum post](https://community.home-assistant.io/t/mercedes-me-component/41911/520)
+- [Forum post](https://community.home-assistant.io/t/mercedes-me-component/41911/520)
+
+## Custom Lovelace Card
+
+Enhance your experience with this integration by using [VEHICLE INFO CARD](https://github.com/ngocjohn/vehicle-info-card). This card is designed to work seamlessly with the integration, providing a beautiful and intuitive interface to display the data in your Home Assistant dashboard.
+
+### Key Features
+
+- **Seamless Integration**: Automatically pulls in data from the integration.
+- **Customizable**: Easily modify the card’s appearance to fit your theme.
+- **Interactive**: Includes controls to interact with the data directly from your dashboard.
+- **Multilingual Support**: The card includes various translations, making it accessible in multiple languages.
+
+[Check out the Custom Lovelace Card](https://github.com/ngocjohn/vehicle-info-card) for more details and installation instructions.
