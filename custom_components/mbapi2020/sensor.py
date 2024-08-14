@@ -10,6 +10,7 @@ from datetime import datetime
 
 from homeassistant.components.sensor import RestoreSensor
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -53,7 +54,12 @@ async def async_setup_entry(
                     vin=car.finorvin,
                     coordinator=coordinator,
                 )
-                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED", "3", 3] or (
+                if device.device_retrieval_status() in [
+                    "VALID",
+                    "NOT_RECEIVED",
+                    "3",
+                    3,
+                ] or (
                     value[scf.DEFAULT_VALUE_MODE.value] is not None
                     and value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
                 ):
@@ -96,6 +102,9 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
         if self.device_retrieval_status() == "NOT_RECEIVED":
             return "NOT_RECEIVED"
 
+        if self.device_retrieval_status() == 3:
+            return STATE_UNKNOWN
+
         if self._internal_name == "lastParkEvent":
             if self._state:
                 return datetime.fromtimestamp(int(self._state))
@@ -116,6 +125,9 @@ class MercedesMESensorPoll(MercedesMeEntity, RestoreSensor):
         """Return the state of the sensor."""
 
         if self.device_retrieval_status() == "NOT_RECEIVED":
-            return "NOT_RECEIVED"
+            return STATE_UNKNOWN
+
+        if self.device_retrieval_status() == 3:
+            return STATE_UNKNOWN
 
         return self._state
