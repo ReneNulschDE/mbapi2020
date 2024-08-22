@@ -2,5 +2,6 @@
     "name": "MercedesME 2020",
     "homeassistant": "2024.02.0",
     "zip_release": true,
-    "filename": "mbapi2020.zip"
+    "filename": "mbapi2020.zip",
+    "render_readme": true
 }
