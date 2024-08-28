@@ -532,6 +532,7 @@ SENSORS = {
             "last_command_error_code",
             "last_command_error_message",
             "is_owner",
+            "chargingBreakClockTimer",
         },
         "mdi:car",
         None,

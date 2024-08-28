@@ -106,6 +106,7 @@ ELECTRIC_OPTIONS = [
     "chargeCouplerACLockStatus",
     "chargeCouplerDCLockStatus",
     "chargingactive",
+    "chargingBreakClockTimer",
     "chargingstatus",
     "chargingPower",
     "departureTimeMode",

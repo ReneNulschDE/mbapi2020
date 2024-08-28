@@ -381,13 +381,20 @@ class Client:  # pylint: disable-too-few-public-methods
                 curr = car_detail["attributes"].get(option)
                 if curr is not None or option == "max_soc":
                     if option != "max_soc":
-                        value = curr.get(
-                            "value",
-                            curr.get(
-                                "int_value",
-                                curr.get("double_value", curr.get("bool_value", 0)),
-                            ),
-                        )
+                        if option == "chargingBreakClockTimer":
+                            chargingbreak_clocktimer_value = curr.get("chargingbreak_clocktimer_value")
+                            if chargingbreak_clocktimer_value:
+                                value = chargingbreak_clocktimer_value.get("chargingbreak_clocktimer_entry")
+
+                        else:
+                            value = curr.get(
+                                "value",
+                                curr.get(
+                                    "int_value",
+                                    curr.get("double_value", curr.get("bool_value", 0)),
+                                ),
+                            )
+
                         status = curr.get("status", "VALID")
                         time_stamp = curr.get("timestamp", 0)
                         curr_unit = curr.get(
