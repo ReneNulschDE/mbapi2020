@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
 import json
 import logging
 from pathlib import Path
@@ -660,6 +661,102 @@ class Client:  # pylint: disable-too-few-public-methods
         message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
 
         await self.websocket.call(message.SerializeToString())
+        return
+
+    async def charging_break_clocktimer_configure(
+        self,
+        vin: str,
+        status_t1: str,
+        start_t1: datetime.timedelta,
+        stop_t1: datetime.timedelta,
+        status_t2: str,
+        start_t2: datetime.timedelta,
+        stop_t2: datetime.timedelta,
+        status_t3: str,
+        start_t3: datetime.timedelta,
+        stop_t3: datetime.timedelta,
+        status_t4: str,
+        start_t4: datetime.timedelta,
+        stop_t4: datetime.timedelta,
+    ) -> None:
+        """Send the charging_break_clocktimer_configure command to the car."""
+        if not self._is_car_feature_available(vin, "chargingClockTimer"):
+            LOGGER.warning(
+                "Can't send charging_break_clocktimer_configure for car %s. Feature not availabe for this car.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        config = pb2_commands.ChargingBreakClocktimerConfigure()
+        entry_set: bool = False
+
+        if status_t1 and start_t1 and stop_t1 and status_t1 in ("Active", "Inactive"):
+            t1 = config.chargingbreak_clocktimer_configure_entry.add()
+            t1.timerId = 1
+            if status_t1 == "Active":
+                t1.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
+            else:
+                t1.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
+
+            t1.startTimeHour = start_t1.seconds // 3600
+            t1.startTimeMin = (start_t1.seconds % 3600) // 60
+            t1.endTimeHour = stop_t1.seconds // 3600
+            t1.endTimeMinute = (stop_t1.seconds % 3600) // 60
+            entry_set = True
+
+        if status_t2 and start_t2 and stop_t2 and status_t2 in ("Active", "Inactive"):
+            t2 = config.chargingbreak_clocktimer_configure_entry.add()
+            t2.timerId = 2
+            if status_t2 == "Active":
+                t2.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
+            else:
+                t2.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
+
+            t2.startTimeHour = start_t2.seconds // 3600
+            t2.startTimeMin = (start_t2.seconds % 3600) // 60
+            t2.endTimeHour = stop_t2.seconds // 3600
+            t2.endTimeMinute = (stop_t2.seconds % 3600) // 60
+            entry_set = True
+
+        if status_t3 and start_t3 and stop_t3 and status_t3 in ("Active", "Inactive"):
+            t3 = config.chargingbreak_clocktimer_configure_entry.add()
+            t3.timerId = 3
+            if status_t3 == "Active":
+                t3.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
+            else:
+                t3.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
+
+            t3.startTimeHour = start_t3.seconds // 3600
+            t3.startTimeMin = (start_t3.seconds % 3600) // 60
+            t3.endTimeHour = stop_t3.seconds // 3600
+            t3.endTimeMinute = (stop_t3.seconds % 3600) // 60
+            entry_set = True
+
+        if status_t4 and start_t4 and stop_t4 and status_t4 in ("Active", "Inactive"):
+            t4 = config.chargingbreak_clocktimer_configure_entry.add()
+            t4.timerId = 4
+            if status_t4 == "Active":
+                t4.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
+            else:
+                t4.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
+
+            t4.startTimeHour = start_t4.seconds // 3600
+            t4.startTimeMin = (start_t4.seconds % 3600) // 60
+            t4.endTimeHour = stop_t4.seconds // 3600
+            t4.endTimeMinute = (stop_t4.seconds % 3600) // 60
+            entry_set = True
+
+        if entry_set:
+            message.commandRequest.chargingbreak_clocktimer_configure.CopyFrom(config)
+            await self.websocket.call(message.SerializeToString())
+            LOGGER.info("End charging_break_clocktimer_configure for vin %s", loghelper.Mask_VIN(vin))
+        else:
+            LOGGER.info("End charging_break_clocktimer_configure for vin %s - No actions", loghelper.Mask_VIN(vin))
+
         return
 
     async def doors_unlock(self, vin: str, pin: str = ""):

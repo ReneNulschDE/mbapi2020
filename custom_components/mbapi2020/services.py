@@ -19,6 +19,8 @@ from .const import (
     SERVICE_BATTERY_MAX_SOC_CONFIGURE,
     SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA,
     SERVICE_CHARGE_PROGRAM_CONFIGURE,
+    SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE,
+    SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE_SCHEMA,
     SERVICE_DOORS_LOCK_URL,
     SERVICE_DOORS_UNLOCK_URL,
     SERVICE_DOWNLOAD_IMAGES,
@@ -89,6 +91,23 @@ def setup_services(hass: HomeAssistant) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.charge_program_configure(
             call.data.get(CONF_VIN),
             call.data.get("charge_program"),
+        )
+
+    async def charging_break_clocktimer_configure(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.charging_break_clocktimer_configure(
+            call.data.get(CONF_VIN),
+            call.data.get("status_timer_1"),
+            call.data.get("starttime_timer_1"),
+            call.data.get("stoptime_timer_1"),
+            call.data.get("status_timer_2"),
+            call.data.get("starttime_timer_2"),
+            call.data.get("stoptime_timer_2"),
+            call.data.get("status_timer_3"),
+            call.data.get("starttime_timer_3"),
+            call.data.get("stoptime_timer_3"),
+            call.data.get("status_timer_4"),
+            call.data.get("starttime_timer_4"),
+            call.data.get("stoptime_timer_4"),
         )
 
     async def doors_lock(call) -> None:
@@ -184,6 +203,11 @@ def setup_services(hass: HomeAssistant) -> None:
             SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA,
         ),
         (SERVICE_CHARGE_PROGRAM_CONFIGURE, charge_program_configure, SERVICE_VIN_CHARGE_PROGRAM_SCHEMA),
+        (
+            SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE,
+            charging_break_clocktimer_configure,
+            SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE_SCHEMA,
+        ),
         (SERVICE_DOORS_LOCK_URL, doors_lock, SERVICE_VIN_SCHEMA),
         (SERVICE_DOORS_UNLOCK_URL, doors_unlock, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_DOWNLOAD_IMAGES, download_images, SERVICE_VIN_SCHEMA),
@@ -223,6 +247,8 @@ def remove_services(hass: HomeAssistant) -> None:
     hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_START)
     hass.services.async_remove(DOMAIN, SERVICE_AUXHEAT_STOP)
     hass.services.async_remove(DOMAIN, SERVICE_BATTERY_MAX_SOC_CONFIGURE)
+    hass.services.async_remove(DOMAIN, SERVICE_CHARGE_PROGRAM_CONFIGURE)
+    hass.services.async_remove(DOMAIN, SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE)
     hass.services.async_remove(DOMAIN, SERVICE_DOORS_LOCK_URL)
     hass.services.async_remove(DOMAIN, SERVICE_DOORS_UNLOCK_URL)
     hass.services.async_remove(DOMAIN, SERVICE_DOWNLOAD_IMAGES)

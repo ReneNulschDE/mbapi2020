@@ -97,7 +97,7 @@ X_APPLICATIONNAME_AP = "mycar-store-ap"
 
 USE_PROXY = False
 VERIFY_SSL = True
-SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:20000"
+SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:9090"
 
 
 LOGIN_APP_ID = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
@@ -135,6 +135,7 @@ SERVICE_AUXHEAT_START = "auxheat_start"
 SERVICE_AUXHEAT_STOP = "auxheat_stop"
 SERVICE_BATTERY_MAX_SOC_CONFIGURE = "battery_max_soc_configure"
 SERVICE_CHARGE_PROGRAM_CONFIGURE = "charge_program_configure"
+SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE = "charging_break_clocktimer_configure"
 SERVICE_DOORS_LOCK_URL = "doors_lock"
 SERVICE_DOORS_UNLOCK_URL = "doors_unlock"
 SERVICE_ENGINE_START = "engine_start"
@@ -160,6 +161,23 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
         vol.Required("time_1"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_2"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_3"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
+    }
+)
+SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Optional("status_timer_1"): cv.string,
+        vol.Optional("starttime_timer_1"): cv.time_period,
+        vol.Optional("stoptime_timer_1"): cv.time_period,
+        vol.Optional("status_timer_2"): cv.string,
+        vol.Optional("starttime_timer_2"): cv.time_period,
+        vol.Optional("stoptime_timer_2"): cv.time_period,
+        vol.Optional("status_timer_3"): cv.string,
+        vol.Optional("starttime_timer_3"): cv.time_period,
+        vol.Optional("stoptime_timer_3"): cv.time_period,
+        vol.Optional("status_timer_4"): cv.string,
+        vol.Optional("starttime_timer_4"): cv.time_period,
+        vol.Optional("stoptime_timer_4"): cv.time_period,
     }
 )
 SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
@@ -986,19 +1004,19 @@ SENSORS = {
             "carAlarmReason",
             "collisionAlarmTimestamp",
             "interiorSensor",
-            "interiorProtectionStatus",  #
+            "interiorProtectionStatus",
             "interiorMonitoringLastEvent",
-            "interiorMonitoringStatus",  #
+            "interiorMonitoringStatus",
             "exteriorMonitoringLastEvent",
-            "exteriorMonitoringStatus",  #
+            "exteriorMonitoringStatus",
             "lastParkEvent",
             "lastTheftWarning",
-            "lastTheftWarningReason",  #
-            "parkEventLevel",  #
-            "parkEventType",  #
-            "theftAlarmActive",  ##
+            "lastTheftWarningReason",
+            "parkEventLevel",
+            "parkEventType",
+            "theftAlarmActive",
             "theftSystemArmed",
-            "towProtectionSensorStatus",  #
+            "towProtectionSensorStatus",
             "towSensor",
         },
         "mdi:alarm-light",

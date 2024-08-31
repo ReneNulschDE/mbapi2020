@@ -431,3 +431,87 @@ download_images:
       required: True
       selector:
         text:
+
+charging_break_clocktimer_configure:
+  description: "Configure charging breaks (AC only)"
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
+    status_timer_1:
+      description: "Status Timer 1"
+      default: "Not set"
+      selector:
+        select:
+          translation_key: "charging_break_clocktimer_configure_action"
+          options:
+            - "Not set"
+            - "Active"
+            - "Inactive"
+    starttime_timer_1:
+      description: "Start time (Timer 1)"
+      selector:
+        time:
+    stoptime_timer_1:
+      description: "Stop time (Timer 1)"
+      selector:
+        time:
+    status_timer_2:
+      description: "Status Timer 2"
+      default: "Not set"
+      selector:
+        select:
+          translation_key: "charging_break_clocktimer_configure_action"
+          options:
+            - "Not set"
+            - "Active"
+            - "Inactive"
+    starttime_timer_2:
+      description: "Start time (Timer 2)"
+      selector:
+        time:
+    stoptime_timer_2:
+      description: "Stop time (Timer 2)"
+      selector:
+        time:
+    status_timer_3:
+      description: "Status Timer 3"
+      default: "Not set"
+      selector:
+        select:
+          translation_key: "charging_break_clocktimer_configure_action"
+          options:
+            - "Not set"
+            - "Active"
+            - "Inactive"
+    starttime_timer_3:
+      description: "Start time (Timer 3)"
+      selector:
+        time:
+    stoptime_timer_3:
+      description: "Stop time (Timer 3)"
+      selector:
+        time:
+    status_timer_4:
+      description: "Status Timer 4"
+      default: "Not set"
+      selector:
+        select:
+          translation_key: "charging_break_clocktimer_configure_action"
+          options:
+            - "Not set"
+            - "Active"
+            - "Inactive"
+    starttime_timer_4:
+      description: "Start time (Timer 4)"
+      selector:
+        time:
+    stoptime_timer_4:
+      description: "Stop time (Timer 4)"
+      selector:
+        time:
+        
+

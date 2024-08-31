@@ -376,6 +376,60 @@
           "description": "Street name of the location"
         }
       }
+    },
+    "charging_break_clocktimer_configure": {
+      "name": "Charging Break Clocktimer Configure",
+      "description": "Configure charging breaks (AC only). This will overwrite the complete config for all slots in your car.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "status_timer_1": {
+          "name": "Status (Timer 1)"
+        },
+        "starttime_timer_1": {
+          "name": "Start time (Timer 1)",
+          "description": "Start time of the charge break window (Timer 1)"
+        },
+        "stoptime_timer_1": {
+          "name": "End Time (Timer 1)",
+          "description": "End time of the charge break window (Timer 1)"
+        },
+        "status_timer_2": {
+          "name": "Status (Timer 2)"
+        },
+        "starttime_timer_2": {
+          "name": "Start time (Timer 2)",
+          "description": "Start time of the charge break window (Timer 2)"
+        },
+        "stoptime_timer_2": {
+          "name": "End Time (Timer 2)",
+          "description": "End time of the charge break window (Timer 2)"
+        },
+        "status_timer_3": {
+          "name": "Status (Timer 3)"
+        },
+        "starttime_timer_3": {
+          "name": "Start time (Timer 3)",
+          "description": "Start time of the charge break window (Timer 3)"
+        },
+        "stoptime_timer_3": {
+          "name": "End Time (Timer 3)",
+          "description": "End time of the charge break window (Timer 3)"
+        },
+        "status_timer_4": {
+          "name": "Status (Timer 4)"
+        },
+        "starttime_timer_4": {
+          "name": "Start time (Timer 4)",
+          "description": "Start time of the charge break window (Timer 4)"
+        },
+        "stoptime_timer_4": {
+          "name": "End Time (Timer 4)",
+          "description": "End time of the charge break window (Timer 4)"
+        }
+      }
     }
   },
   "entity": {
@@ -552,6 +606,13 @@
         "0": "Default",
         "2": "Home",
         "3": "Work"
+      }
+    },
+    "charging_break_clocktimer_configure_action": {
+      "options": {
+        "Not set": "Not set",
+        "Active": "Active",
+        "Inactive": "Inactive"
       }
     }
   }
