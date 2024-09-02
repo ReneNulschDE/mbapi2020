@@ -443,14 +443,14 @@ charging_break_clocktimer_configure:
         text:
     status_timer_1:
       description: "Status Timer 1"
-      default: "Notset"
+      default: "notset"
       selector:
         select:
           translation_key: "charging_break_clocktimer_configure_action"
           options:
-            - "Notset"
-            - "Active"
-            - "Inactive"
+            - "notset"
+            - "active"
+            - "inactive"
     starttime_timer_1:
       description: "Start time (Timer 1)"
       selector:
@@ -461,14 +461,14 @@ charging_break_clocktimer_configure:
         time:
     status_timer_2:
       description: "Status Timer 2"
-      default: "Notset"
+      default: "notset"
       selector:
         select:
           translation_key: "charging_break_clocktimer_configure_action"
           options:
-            - "Notset"
-            - "Active"
-            - "Inactive"
+            - "notset"
+            - "active"
+            - "inactive"
     starttime_timer_2:
       description: "Start time (Timer 2)"
       selector:
@@ -479,14 +479,14 @@ charging_break_clocktimer_configure:
         time:
     status_timer_3:
       description: "Status Timer 3"
-      default: "Notset"
+      default: "notset"
       selector:
         select:
           translation_key: "charging_break_clocktimer_configure_action"
           options:
-            - "Notset"
-            - "Active"
-            - "Inactive"
+            - "notset"
+            - "active"
+            - "inactive"
     starttime_timer_3:
       description: "Start time (Timer 3)"
       selector:
@@ -497,14 +497,14 @@ charging_break_clocktimer_configure:
         time:
     status_timer_4:
       description: "Status Timer 4"
-      default: "Notset"
+      default: "notset"
       selector:
         select:
           translation_key: "charging_break_clocktimer_configure_action"
           options:
-            - "Notset"
-            - "Active"
-            - "Inactive"
+            - "notset"
+            - "active"
+            - "inactive"
     starttime_timer_4:
       description: "Start time (Timer 4)"
       selector:
