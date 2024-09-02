@@ -443,12 +443,12 @@ charging_break_clocktimer_configure:
         text:
     status_timer_1:
       description: "Status Timer 1"
-      default: "Not set"
+      default: "Notset"
       selector:
         select:
           translation_key: "charging_break_clocktimer_configure_action"
           options:
-            - "Not set"
+            - "Notset"
             - "Active"
             - "Inactive"
     starttime_timer_1:
@@ -461,12 +461,12 @@ charging_break_clocktimer_configure:
         time:
     status_timer_2:
       description: "Status Timer 2"
-      default: "Not set"
+      default: "Notset"
       selector:
         select:
           translation_key: "charging_break_clocktimer_configure_action"
           options:
-            - "Not set"
+            - "Notset"
             - "Active"
             - "Inactive"
     starttime_timer_2:
@@ -479,12 +479,12 @@ charging_break_clocktimer_configure:
         time:
     status_timer_3:
       description: "Status Timer 3"
-      default: "Not set"
+      default: "Notset"
       selector:
         select:
           translation_key: "charging_break_clocktimer_configure_action"
           options:
-            - "Not set"
+            - "Notset"
             - "Active"
             - "Inactive"
     starttime_timer_3:
@@ -497,12 +497,12 @@ charging_break_clocktimer_configure:
         time:
     status_timer_4:
       description: "Status Timer 4"
-      default: "Not set"
+      default: "Notset"
       selector:
         select:
           translation_key: "charging_break_clocktimer_configure_action"
           options:
-            - "Not set"
+            - "Notset"
             - "Active"
             - "Inactive"
     starttime_timer_4:
