@@ -386,7 +386,8 @@
           "description": "Vin/Fin of the car"
         },
         "status_timer_1": {
-          "name": "Status (Timer 1)"
+          "name": "Status (Timer 1)",
+          "description": ""
         },
         "starttime_timer_1": {
           "name": "Start time (Timer 1)",
@@ -397,7 +398,8 @@
           "description": "End time of the charge break window (Timer 1)"
         },
         "status_timer_2": {
-          "name": "Status (Timer 2)"
+          "name": "Status (Timer 2)",
+          "description": ""
         },
         "starttime_timer_2": {
           "name": "Start time (Timer 2)",
@@ -408,7 +410,8 @@
           "description": "End time of the charge break window (Timer 2)"
         },
         "status_timer_3": {
-          "name": "Status (Timer 3)"
+          "name": "Status (Timer 3)",
+          "description": ""
         },
         "starttime_timer_3": {
           "name": "Start time (Timer 3)",
@@ -419,7 +422,8 @@
           "description": "End time of the charge break window (Timer 3)"
         },
         "status_timer_4": {
-          "name": "Status (Timer 4)"
+          "name": "Status (Timer 4)",
+          "description": ""
         },
         "starttime_timer_4": {
           "name": "Start time (Timer 4)",
