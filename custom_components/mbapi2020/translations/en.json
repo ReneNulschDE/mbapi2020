@@ -610,7 +610,7 @@
     },
     "charging_break_clocktimer_configure_action": {
       "options": {
-        "Not set": "Not set",
+        "Notset": "Not set",
         "Active": "Active",
         "Inactive": "Inactive"
       }
