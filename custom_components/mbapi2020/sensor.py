@@ -62,6 +62,7 @@ async def async_setup_entry(
                 ] or (
                     value[scf.DEFAULT_VALUE_MODE.value] is not None
                     and value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
+                    and str(device.device_retrieval_status()) != "4"
                 ):
                     sensor_list.append(device)
 
@@ -81,6 +82,7 @@ async def async_setup_entry(
                 if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] or (
                     value[scf.DEFAULT_VALUE_MODE.value] is not None
                     and value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
+                    and str(device.device_retrieval_status()) != "4"
                 ):
                     sensor_list.append(device)
 
@@ -99,11 +101,17 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
     def state(self):
         """Return the state of the sensor."""
 
-        if self.device_retrieval_status() == "NOT_RECEIVED":
-            return "NOT_RECEIVED"
+        if self.device_retrieval_status() in ("NOT_RECEIVED", "4", 4):
+            return STATE_UNKNOWN
 
         if self.device_retrieval_status() == 3:
-            return STATE_UNKNOWN
+            if self._sensor_config[scf.DEFAULT_VALUE_MODE.value]:
+                if self._sensor_config[scf.DEFAULT_VALUE_MODE.value] == "Zero":
+                    return 0
+                else:
+                    return STATE_UNKNOWN
+            else:
+                return STATE_UNKNOWN
 
         if self._internal_name == "lastParkEvent":
             if self._state:
