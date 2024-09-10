@@ -697,7 +697,7 @@ class Client:  # pylint: disable-too-few-public-methods
         if status_t1 and start_t1 and stop_t1 and status_t1 in ("active", "inactive"):
             t1 = config.chargingbreak_clocktimer_configure_entry.add()
             t1.timerId = 1
-            if status_t1 == "Active":
+            if status_t1 == "active":
                 t1.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
             else:
                 t1.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
@@ -711,7 +711,7 @@ class Client:  # pylint: disable-too-few-public-methods
         if status_t2 and start_t2 and stop_t2 and status_t2 in ("active", "inactive"):
             t2 = config.chargingbreak_clocktimer_configure_entry.add()
             t2.timerId = 2
-            if status_t2 == "Active":
+            if status_t2 == "active":
                 t2.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
             else:
                 t2.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
@@ -725,7 +725,7 @@ class Client:  # pylint: disable-too-few-public-methods
         if status_t3 and start_t3 and stop_t3 and status_t3 in ("active", "inactive"):
             t3 = config.chargingbreak_clocktimer_configure_entry.add()
             t3.timerId = 3
-            if status_t3 == "Active":
+            if status_t3 == "active":
                 t3.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
             else:
                 t3.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
@@ -739,7 +739,7 @@ class Client:  # pylint: disable-too-few-public-methods
         if status_t4 and start_t4 and stop_t4 and status_t4 in ("active", "inactive"):
             t4 = config.chargingbreak_clocktimer_configure_entry.add()
             t4.timerId = 4
-            if status_t4 == "Active":
+            if status_t4 == "active":
                 t4.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
             else:
                 t4.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
