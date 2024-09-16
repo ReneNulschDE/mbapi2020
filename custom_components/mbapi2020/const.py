@@ -550,7 +550,7 @@ SENSORS = {
             "last_command_error_code",
             "last_command_error_message",
             "is_owner",
-            "chargingBreakClockTimer",
+            "electric.chargingBreakClockTimer",
         },
         "mdi:car",
         None,

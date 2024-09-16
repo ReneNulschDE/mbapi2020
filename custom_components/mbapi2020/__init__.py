@@ -285,15 +285,21 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
 
         if self._sensor_config[scf.EXTENDED_ATTRIBUTE_LIST.value] is not None:
             for attrib in sorted(self._sensor_config[scf.EXTENDED_ATTRIBUTE_LIST.value]):
-                retrievalstatus = self._get_car_value(self._feature_name, attrib, "retrievalstatus", "error")
+                if "." in attrib:
+                    object_name = attrib.split(".")[0]
+                    attrib_name = attrib.split(".")[1]
+                else:
+                    object_name = self._feature_name
+                    attrib_name = attrib
+                retrievalstatus = self._get_car_value(object_name, attrib_name, "retrievalstatus", "error")
 
                 if retrievalstatus == "VALID":
-                    state[attrib] = self._get_car_value(self._feature_name, attrib, "display_value", None)
-                    if not state[attrib]:
-                        state[attrib] = self._get_car_value(self._feature_name, attrib, "value", "error")
+                    state[attrib_name] = self._get_car_value(object_name, attrib_name, "display_value", None)
+                    if not state[attrib_name]:
+                        state[attrib_name] = self._get_car_value(object_name, attrib_name, "value", "error")
 
-                if retrievalstatus == "NOT_RECEIVED":
-                    state[attrib] = "NOT_RECEIVED"
+                if retrievalstatus in ["NOT_RECEIVED"]:
+                    state[attrib_name] = "NOT_RECEIVED"
         return state
 
     @property
