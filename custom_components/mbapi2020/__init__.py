@@ -26,7 +26,7 @@ from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType
@@ -179,9 +179,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         LOGGER.error("Websocket error: %s", err)
         raise ConfigEntryNotReady from err
 
+    retry_counter: int = 0
     while not coordinator.entry_setup_complete:
-        # async websocket data load not complete, wait 0.5 seconds
+        # async websocket data load not complete, wait 0.5 seconds or break up after 60 checks (30sec)
+        if retry_counter > 60:
+            raise HomeAssistantError(
+                "No car information registered for this account. Check the MB website with the same account. Giving up..."
+            )
         await asyncio.sleep(0.5)
+        retry_counter += 1
 
     return True
 
