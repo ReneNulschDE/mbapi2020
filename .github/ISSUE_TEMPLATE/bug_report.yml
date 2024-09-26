@@ -63,7 +63,7 @@ body:
       label: Diagnostics information
       placeholder: "drag-and-drop the diagnostics data file here (do not copy-and-paste the content)"
       description: >-
-        The MBAPI2020 integration provides the ability to [download diagnostic data](https://www.home-assistant.io/docs/configuration/troubleshooting/#debug-logs-and-diagnostics).
+        The MBAPI2020 integration provides the ability to [download diagnostic data](https://www.home-assistant.io/docs/configuration/troubleshooting/#download-diagnostics).
 
         **It would really help if you could download the diagnostics data for the account/hub you are having issues with,
         and <ins>drag-and-drop that file into the textbox below.</ins>**
