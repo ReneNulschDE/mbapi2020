@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
+
 from homeassistant import data_entry_flow
 from homeassistant.components.repairs import RepairsFlow
 from homeassistant.core import HomeAssistant
@@ -21,7 +22,7 @@ class RestartRequiredFixFlow(RepairsFlow):
     async def async_step_init(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:
         """Handle the first step of a fix flow."""
 
-        return await (self.async_step_confirm_restart())
+        return await self.async_step_confirm_restart()
 
     async def async_step_confirm_restart(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:
         """Handle the confirm step of a fix flow."""
