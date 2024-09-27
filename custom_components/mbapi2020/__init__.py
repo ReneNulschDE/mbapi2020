@@ -277,8 +277,6 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
 
         state = {"car": self._car.licenseplate, "vin": self._vin}
 
-        state = self._extend_attributes(state)
-
         if self._attrib_name == "display_value":
             value = self._get_car_value(self._feature_name, self._object_name, "value", None)
             if value:
@@ -392,58 +390,3 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
         """Entity being removed from hass."""
         await super().async_will_remove_from_hass()
         self._car.remove_update_callback(self.pushdata_update_callback)
-
-    def _extend_attributes(self, extended_attributes):
-        def default_extender(extended_attributes):
-            return extended_attributes
-
-        def starterBatteryState(extended_attributes):
-            extended_attributes["value_short"] = starterBatteryState_values.get(self._state, ["unknown", "unknown"])[0]
-            extended_attributes["value_description"] = starterBatteryState_values.get(
-                self._state, ["unknown", "unknown"]
-            )[1]
-            return extended_attributes
-
-        def ignitionstate_state(extended_attributes):
-            extended_attributes["value_short"] = ignitionstate_values.get(self._state, ["unknown", "unknown"])[0]
-            extended_attributes["value_description"] = ignitionstate_values.get(self._state, ["unknown", "unknown"])[1]
-            return extended_attributes
-
-        def auxheatstatus_state(extended_attributes):
-            extended_attributes["value_short"] = auxheatstatus_values.get(self._state, ["unknown", "unknown"])[0]
-            extended_attributes["value_description"] = auxheatstatus_values.get(self._state, ["unknown", "unknown"])[1]
-            return extended_attributes
-
-        attribut_extender = {
-            "starterBatteryState": starterBatteryState,
-            "ignitionstate": ignitionstate_state,
-            "auxheatstatus": auxheatstatus_state,
-        }
-
-        ignitionstate_values = {
-            "0": ["lock", "Ignition lock"],
-            "1": ["off", "Ignition off"],
-            "2": ["accessory", "Ignition accessory"],
-            "4": ["on", "Ignition on"],
-            "5": ["start", "Ignition start"],
-        }
-        starterBatteryState_values = {
-            "0": ["green", "Vehicle ok"],
-            "1": ["yellow", "Battery partly charged"],
-            "2": ["red", "Vehicle not available"],
-            "3": ["serviceDisabled", "Remote service disabled"],
-            "4": ["vehicleNotAvalable", "Vehicle no longer available"],
-        }
-
-        auxheatstatus_values = {
-            "0": ["inactive", "inactive"],
-            "1": ["normal heating", "normal heating"],
-            "2": ["normal ventilation", "normal ventilation"],
-            "3": ["manual heating", "manual heating"],
-            "4": ["post heating", "post heating"],
-            "5": ["post ventilation", "post ventilation"],
-            "6": ["auto heating", "auto heating"],
-        }
-
-        func = attribut_extender.get(self._internal_name, default_extender)
-        return func(extended_attributes)

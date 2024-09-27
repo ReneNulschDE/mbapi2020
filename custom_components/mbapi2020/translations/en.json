@@ -438,6 +438,57 @@
   },
   "entity": {
     "sensor": {
+      "auxheatstatus": {
+        "state": {
+          "0": "Inactive",
+          "1": "Normal heating",
+          "2": "Normal ventilation",
+          "3": "Manual heating",
+          "4": "Post heating",
+          "5": "Post ventilation",
+          "6": "Auto heating"
+        }
+      },
+      "chargeflapacstatus": {
+        "state": {
+          "0": "Open",
+          "1": "Closed",
+          "2": "Flap pressed",
+          "3": "Unknown"
+        }
+      },
+      "chargeflapdcstatus": {
+        "state": {
+          "0": "Open",
+          "1": "Closed",
+          "2": "Flap pressed",
+          "3": "Unknown"
+        }
+      },
+      "departuretimemode": {
+        "state": {
+          "0": "Disabled",
+          "1": "Daily",
+          "2": "Weekly"
+        }
+      },
+      "ignitionstate": {
+        "state": {
+          "0": "Locked",
+          "1": "Off",
+          "2": "Accessory",
+          "4": "On",
+          "5": "Start"
+        }
+      },
+      "interiorprotectionsensorstatus": {
+        "state": {
+          "0": "Not active",
+          "1": "Not active",
+          "2": "Active"
+        },
+        "state_attributes": {}
+      },
       "lock": {
         "state": {
           "0": "Unlocked",
@@ -553,14 +604,6 @@
           }
         }
       },
-      "interiorprotectionsensorstatus": {
-        "state": {
-          "0": "Not active",
-          "1": "Not active",
-          "2": "Active"
-        },
-        "state_attributes": {}
-      },
       "sunroofstatus": {
         "state": {
           "0": "Closed",
@@ -579,27 +622,19 @@
         },
         "state_attributes": {}
       },
-      "chargeflapacstatus": {
+      "starterbatterystate": {
         "state": {
-          "0": "Open",
-          "1": "Closed",
-          "2": "Flap pressed",
-          "3": "Unknown"
+          "0": "Green",
+          "1": "Yellow",
+          "2": "Red"
         }
       },
-      "chargeflapdcstatus": {
+      "tirewarningsrdk": {
         "state": {
-          "0": "Open",
-          "1": "Closed",
-          "2": "Flap pressed",
-          "3": "Unknown"
-        }
-      },
-      "departuretimemode": {
-        "state": {
-          "0": "Disabled",
-          "1": "Daily",
-          "2": "Weekly"
+          "0": "No warning",
+          "1": "Soft warning",
+          "2": "Low pressure",
+          "3": "Deflation"
         }
       }
     }
