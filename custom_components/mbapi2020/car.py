@@ -223,7 +223,6 @@ class Car:
         self.windows = None
         self.rcp_options = None
         self.auxheat = None
-        self.precond = None
         self.electric = None
         self.caralarm = None
         self.last_full_message = None
@@ -329,13 +328,6 @@ class Auxheat:
     """Stores the Auxheat values at runtime."""
 
     name: str = "Auxheat"
-
-
-@dataclass(init=False)
-class Precond:
-    """Stores the Precond values at runtime."""
-
-    name = "Precond"
 
 
 @dataclass(init=False)
