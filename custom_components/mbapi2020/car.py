@@ -166,6 +166,7 @@ AUX_HEAT_OPTIONS = [
 ]
 
 PRE_COND_OPTIONS = [
+    "precondStatus",
     "precondOperatingMode",
     "precondState",
     "precondActive",

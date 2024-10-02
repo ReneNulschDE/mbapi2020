@@ -22,16 +22,15 @@ from homeassistant.helpers import system_info
 
 from .car import (
     AUX_HEAT_OPTIONS,
-    PRE_COND_OPTIONS,
     BINARY_SENSOR_OPTIONS,
     DOOR_OPTIONS,
     ELECTRIC_OPTIONS,
     LOCATION_OPTIONS,
     ODOMETER_OPTIONS,
+    PRE_COND_OPTIONS,
     TIRE_OPTIONS,
     WINDOW_OPTIONS,
     Auxheat,
-    Precond,
     BinarySensors,
     Car,
     CarAlarm,
@@ -42,6 +41,7 @@ from .car import (
     GeofenceEvents,
     Location,
     Odometer,
+    Precond,
     Tires,
     Windows,
 )
@@ -374,122 +374,170 @@ class Client:  # pylint: disable-too-few-public-methods
         self.cars[car.finorvin] = car
 
     def _get_car_values(self, car_detail, car_id, class_instance, options, update):
-        # LOGGER.debug(
-        #     "get_car_values %s for %s called",
-        #     class_instance.name,
-        #     loghelper.Mask_VIN(car_id),
-        # )
+        # Define handlers for specific options and the generic case
+        option_handlers = {
+            "max_soc": self._get_car_values_handle_max_soc,
+            "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
+            "precondStatus": self._get_car_values_handle_precond_status,
+        }
+
+        if car_detail is None or not car_detail.get("attributes"):
+            LOGGER.debug(
+                "get_car_values %s has incomplete update data – attributes not found",
+                loghelper.Mask_VIN(car_id),
+            )
+            return class_instance
 
         for option in options:
-            if car_detail is not None:
-                if not car_detail.get("attributes"):
-                    LOGGER.debug(
-                        "get_car_values %s has incomplete update set - attributes not found",
-                        loghelper.Mask_VIN(car_id),
-                    )
-                    return
+            # Select the specific handler or the generic handler
+            handler = option_handlers.get(option, self._get_car_values_handle_generic)
 
-                curr = car_detail["attributes"].get(option)
-                if curr is not None or option == "max_soc":
-                    if option != "max_soc":
-                        if option == "chargingBreakClockTimer":
-                            chargingbreak_clocktimer_value = curr.get("chargingbreak_clocktimer_value")
-                            if chargingbreak_clocktimer_value:
-                                value = chargingbreak_clocktimer_value.get("chargingbreak_clocktimer_entry")
+            curr_status = handler(car_detail, class_instance, option, update)
+            if curr_status is None:
+                continue
 
-                        else:
-                            value = curr.get(
-                                "value",
-                                curr.get(
-                                    "int_value",
-                                    curr.get("double_value", curr.get("bool_value", 0)),
-                                ),
-                            )
-
-                        status = curr.get("status", "VALID")
-                        time_stamp = curr.get("timestamp", 0)
-                        curr_unit = curr.get(
-                            "distance_unit",
-                            curr.get(
-                                "ratio_unit",
-                                curr.get(
-                                    "clock_hour_unit",
-                                    curr.get(
-                                        "gas_consumption_unit",
-                                        curr.get(
-                                            "pressure_unit",
-                                            curr.get(
-                                                "electricity_consumption_unit",
-                                                curr.get(
-                                                    "distance_unit",
-                                                    curr.get(
-                                                        "combustion_consumption_unit",
-                                                        curr.get("speed_unit", None),
-                                                    ),
-                                                ),
-                                            ),
-                                        ),
-                                    ),
-                                ),
-                            ),
-                        )
-                        curr_display_value = curr.get("display_value", None)
-                    else:
-                        # special EQA/B max_soc handling
-                        chargeprograms = car_detail["attributes"].get("chargePrograms")
-                        if chargeprograms is not None:
-                            time_stamp = chargeprograms.get("timestamp", 0)
-                            charge_programs_value = chargeprograms.get("charge_programs_value")
-                            if charge_programs_value is not None:
-                                charge_program_parameters = charge_programs_value.get("charge_program_parameters")
-                                if charge_program_parameters is not None and len(charge_program_parameters) > 0:
-                                    value = charge_program_parameters[
-                                        int(
-                                            self._get_car_value(
-                                                class_instance,
-                                                "selectedChargeProgram",
-                                                "value",
-                                                0,
-                                            )
-                                        )
-                                    ].get("max_soc")
-                                    status = "VALID"
-                                    curr_unit = "PERCENT"
-                                    curr_display_value = value
-                                else:
-                                    # charge_program_parameters does not exists, continue with the next option
-                                    continue
-                            else:
-                                # charge_programs_value does not exists, continue with the next option
-                                continue
-                        else:
-                            # chargePrograms does not exists, continue with the next option
-                            continue
-
-                    curr_status = CarAttribute(
-                        value,
-                        status,
-                        time_stamp,
-                        display_value=curr_display_value,
-                        unit=curr_unit,
-                    )
-                    # Set the value only if the timestamp is higher
-                    if float(time_stamp) > float(self._get_car_value(class_instance, option, "ts", 0)):
-                        setattr(class_instance, option, curr_status)
-                    else:
-                        LOGGER.warning(
-                            "get_car_values %s older attribute %s data received. ignoring value.",
-                            loghelper.Mask_VIN(car_id),
-                            option,
-                        )
-                elif not update:
-                    # Do not set status for non existing values on partial update
-                    curr_status = CarAttribute(0, 4, 0)
-                    setattr(class_instance, option, curr_status)
-            else:
-                setattr(class_instance, option, CarAttribute(0, -1, None))
+            # Set the value only if the timestamp is newer
+            curr_timestamp = float(curr_status.timestamp or 0)
+            car_value_timestamp = float(self._get_car_value(class_instance, option, "ts", 0))
+            if curr_timestamp > car_value_timestamp:
+                setattr(class_instance, option, curr_status)
+            elif curr_timestamp < car_value_timestamp:
+                LOGGER.warning(
+                    "get_car_values %s received older attribute data for %s. Ignoring value.",
+                    loghelper.Mask_VIN(car_id),
+                    option,
+                )
 
         return class_instance
+
+    def _get_car_values_handle_generic(self, car_detail, class_instance, option, update):
+        curr = car_detail.get("attributes", {}).get(option)
+        if curr:
+            # Simplify value extraction by checking for existing keys
+            value = next(
+                (curr[key] for key in ("value", "int_value", "double_value", "bool_value") if key in curr),
+                0
+            )
+            status = curr.get("status", "VALID")
+            time_stamp = curr.get("timestamp", 0)
+            curr_display_value = curr.get("display_value")
+
+            unit_keys = [
+                "distance_unit",
+                "ratio_unit",
+                "clock_hour_unit",
+                "gas_consumption_unit",
+                "pressure_unit",
+                "electricity_consumption_unit",
+                "combustion_consumption_unit",
+                "speed_unit",
+            ]
+            unit = next((curr[key] for key in unit_keys if key in curr), None)
+
+            return CarAttribute(
+                value=value,
+                retrievalstatus=status,
+                timestamp=time_stamp,
+                display_value=curr_display_value,
+                unit=unit,
+            )
+        elif not update:
+            # Set status for non-existing values when no update occurs
+            return CarAttribute(0, 4, 0)
+        else:
+            return None
+
+    def _get_car_values_handle_max_soc(self, car_detail, class_instance, option, update):
+        # special EQA/B max_soc handling
+        attributes = car_detail.get("attributes", {})
+        charge_programs = attributes.get("chargePrograms")
+        if not charge_programs:
+            return None
+
+        time_stamp = charge_programs.get("timestamp", 0)
+        charge_programs_value = charge_programs.get("charge_programs_value", {})
+        charge_program_parameters = charge_programs_value.get("charge_program_parameters", [])
+
+        selected_program_index = int(
+            self._get_car_value(class_instance, "selectedChargeProgram", "value", 0)
+        )
+
+        # Ensure the selected index is within bounds
+        if 0 <= selected_program_index < len(charge_program_parameters):
+            program_parameters = charge_program_parameters[selected_program_index]
+            max_soc = program_parameters.get("max_soc")
+            if max_soc is not None:
+                return CarAttribute(
+                    value=max_soc,
+                    retrievalstatus="VALID",
+                    timestamp=time_stamp,
+                    display_value=max_soc,
+                    unit="PERCENT",
+                )
+
+        return None
+
+    def _get_car_values_handle_charging_break_clock_timer(self, car_detail, class_instance, option, update):
+        attributes = car_detail.get("attributes", {})
+        curr = attributes.get(option)
+        if not curr:
+            return None
+
+        charging_timer_value = curr.get("chargingbreak_clocktimer_value", {})
+        value = charging_timer_value.get("chargingbreak_clocktimer_entry")
+        if value is None:
+            return None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+        curr_display_value = curr.get("display_value")
+
+        return CarAttribute(
+            value=value,
+            retrievalstatus=status,
+            timestamp=time_stamp,
+            display_value=curr_display_value,
+            unit=None,
+        )
+
+    def _get_car_values_handle_precond_status(self, car_detail, class_instance, option, update):
+        attributes = car_detail.get("attributes", {})
+
+        # Retrieve attributes with defaults to handle missing keys
+        precond_now_attr = attributes.get("precondNow", {})
+        precond_active_attr = attributes.get("precondActive", {})
+        precond_operating_mode_attr = attributes.get("precondOperatingMode", {})
+
+        # Extract values and convert to boolean where necessary
+        precond_now_value = precond_now_attr.get("bool_value", False)
+        precond_active_value = precond_active_attr.get("bool_value", False)
+        precond_operating_mode_value = precond_operating_mode_attr.get("int_value", 0)
+        precond_operating_mode_bool = int(precond_operating_mode_value) > 0
+
+        # Calculate precondStatus
+        value = precond_now_value or precond_active_value or precond_operating_mode_bool
+
+        # Determine if any of the attributes are present
+        if precond_now_attr or precond_active_attr or precond_operating_mode_attr:
+            status = "VALID"
+            time_stamp = max(
+                int(precond_now_attr.get("timestamp", 0)),
+                int(precond_active_attr.get("timestamp", 0)),
+                int(precond_operating_mode_attr.get("timestamp", 0)),
+            )
+            return CarAttribute(
+                value=value,
+                retrievalstatus=status,
+                timestamp=time_stamp,
+                display_value=str(value),
+                unit=None,
+            )
+
+        if not update:
+            # Set status for non-existing values when no update occurs
+            return CarAttribute(False, 4, 0)
+
+        return None
 
     def _get_car_value(self, class_instance, object_name, attrib_name, default_value):
         value = None
