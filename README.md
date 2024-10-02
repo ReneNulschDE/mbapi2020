@@ -156,7 +156,8 @@ positionHeading
 
   ```
   attributes:
-  chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, endofchargetime, precondActive, precondNow, maxrange, selectedChargeProgram
+  chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, endofchargetime, maxrange, selectedChargeProgram, precondActive [DEPRECATED], precondNow [DEPRECATED], precondDuration [DEPRECATED]
+  
   ```
 
 - Electric consumption start
@@ -222,7 +223,7 @@ positionHeading
 
   ```
 
-  - Precliamte / Preconditioning Status
+  - Preclimate Status (Preconditioning)
 
   ```
   Internal Name: precondOperatingMode
