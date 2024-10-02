@@ -22,6 +22,7 @@ from homeassistant.helpers import system_info
 
 from .car import (
     AUX_HEAT_OPTIONS,
+    PRE_COND_OPTIONS,
     BINARY_SENSOR_OPTIONS,
     DOOR_OPTIONS,
     ELECTRIC_OPTIONS,
@@ -30,6 +31,7 @@ from .car import (
     TIRE_OPTIONS,
     WINDOW_OPTIONS,
     Auxheat,
+    Precond,
     BinarySensors,
     Car,
     CarAlarm,
@@ -346,6 +348,14 @@ class Client:  # pylint: disable-too-few-public-methods
             car.finorvin,
             Auxheat() if not car.auxheat else car.auxheat,
             AUX_HEAT_OPTIONS,
+            update_mode,
+        )
+
+        car.precond = self._get_car_values(
+            received_car_data,
+            car.finorvin,
+            Precond() if not car.precond else car.precond,
+            PRE_COND_OPTIONS,
             update_mode,
         )
 
