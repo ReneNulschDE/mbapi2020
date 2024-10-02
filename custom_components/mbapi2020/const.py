@@ -1267,6 +1267,23 @@ SENSORS = {
         None,
         None,
     ],
+    "wiperHealthPercent": [
+        "Wiper Health",
+        None,  # Deprecated: DO NOT USE
+        "wipers",
+        "wiperHealthPercent",
+        "value",
+        None,
+        {
+            "wiperLifetimeExceeded",
+        },
+        "mdi:wiper",
+        None,
+        False,
+        None,
+        None,
+        None,
+    ],
 }
 
 LOCKS = {

@@ -30,6 +30,7 @@ from .car import (
     PRE_COND_OPTIONS,
     TIRE_OPTIONS,
     WINDOW_OPTIONS,
+    WIPER_OPTIONS,
     Auxheat,
     BinarySensors,
     Car,
@@ -44,6 +45,7 @@ from .car import (
     Precond,
     Tires,
     Windows,
+    Wipers,
 )
 from .const import (
     CONF_DEBUG_FILE_SAVE,
@@ -300,6 +302,14 @@ class Client:  # pylint: disable-too-few-public-methods
             car.finorvin,
             Tires() if not car.tires else car.tires,
             TIRE_OPTIONS,
+            update_mode,
+        )
+
+        car.wipers = self._get_car_values(
+            received_car_data,
+            car.finorvin,
+            Wipers() if not car.wipers else car.wipers,
+            WIPER_OPTIONS,
             update_mode,
         )
 

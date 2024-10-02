@@ -157,6 +157,8 @@ AUX_HEAT_OPTIONS = [
     "auxheattime3",
 ]
 
+WIPER_OPTIONS = ["wiperLifetimeExceeded", "wiperHealthPercent"]
+
 PRE_COND_OPTIONS = [
     "precondStatus",
     "precondOperatingMode",
@@ -224,6 +226,7 @@ class Car:
 
         self.binarysensors = None
         self.tires = None
+        self.wipers = None
         self.odometer = None
         self.doors = None
         self.location = None
@@ -295,6 +298,11 @@ class Tires:
 
     name: str = "Tires"
 
+@dataclass(init=False)
+class Wipers:
+    """Stores the Wiper values at runtime."""
+
+    name: str = "Wipers"
 
 @dataclass(init=False)
 class Odometer:
