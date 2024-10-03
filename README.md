@@ -97,6 +97,13 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
 - chargeFlapACStatus
 
+- Preclimate Status (Preconditioning)
+
+  ```
+  attributes:
+  precondState, precondActive, precondError, precondNow, precondNowError, precondDuration, precondatdeparture, precondAtDepartureDisable, precondSeatFrontLeft, precondSeatFrontRight, precondSeatRearLeft, precondSeatRearRight
+  ```
+
 ### Device Tracker
 
 ```
@@ -220,21 +227,6 @@ positionHeading
 
   attributes:
   auxheattime1, auxheattime2, auxheattime3, auxheattimeselection, auxheatActive, auxheatwarnings, auxheattime2: '00:00'
-
-  ```
-
-  - Preclimate Status (Preconditioning)
-
-  ```
-  Internal Name: precondOperatingMode
-
-  Values    Description
-  "0"       inactive
-  "1"       active
-  ???       TODO: More research required
-
-  attributes:
-  precondState, precondActive, precondError, precondNow, precondNowError, precondDuration, precondatdeparture, precondAtDepartureDisable, precondSeatFrontLeft, precondSeatFrontRight, precondSeatRearLeft, precondSeatRearRight
 
   ```
 
@@ -490,6 +482,16 @@ logger:
   3=PROCESSING
   4=UNKNOWN
   ```
+
+- precondOperatingMode
+
+  ```
+  0=OFF
+  1=HEAT
+  2=COOL
+  3=VENTILATE
+  ```
+
 
 ## Custom Lovelace Card
 
