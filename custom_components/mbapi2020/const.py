@@ -1320,6 +1320,21 @@ SWITCHES = {
         None,
         None,
     ],
+    "preheat": [
+        "Preclimate",
+        None,  # Deprecated: DO NOT USE
+        "precond",
+        "precondStatus",
+        "value",
+        None,
+        None,
+        "mdi:hvac",
+        None,
+        False,
+        None,
+        None,
+        None,
+    ],
 }
 
 SENSORS_POLL = {

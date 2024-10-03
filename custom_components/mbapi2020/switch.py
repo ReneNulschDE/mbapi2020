@@ -4,6 +4,7 @@ For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
 from __future__ import annotations
+import asyncio
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
@@ -56,17 +57,29 @@ async def async_setup_entry(
 
 
 class MercedesMESwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
-    """Representation of a Sensor."""
+    """Representation of a Mercedes Me Switch."""
 
     async def async_turn_on(self, **kwargs):
-        """Turn a device component on."""
-        await getattr(self._coordinator.client, self._internal_name + "_start")(self._vin)
+        """Turn the device component on."""
+        await getattr(self._coordinator.client, f"{self._internal_name}_start")(self._vin)
+        await self._async_wait_for_state(True)
 
     async def async_turn_off(self, **kwargs):
-        """Turn a device component off."""
-        await getattr(self._coordinator.client, self._internal_name + "_stop")(self._vin)
+        """Turn the device component off."""
+        await getattr(self._coordinator.client, f"{self._internal_name}_stop")(self._vin)
+        await self._async_wait_for_state(False)
+
+    async def _async_wait_for_state(self, desired_state, max_attempts=30, delay=1):
+        """Wait until the device reaches the desired state."""
+        for _ in range(max_attempts):
+            current_state = self._get_car_value(self._feature_name, self._object_name, self._attrib_name, False)
+            if current_state == desired_state:
+                break
+            await asyncio.sleep(delay)
+        else:
+            pass
 
     @property
     def is_on(self):
-        """Return true if device is locked."""
+        """Return True if the device is on."""
         return self._get_car_value(self._feature_name, self._object_name, self._attrib_name, False)
