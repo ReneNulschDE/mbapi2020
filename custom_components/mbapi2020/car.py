@@ -165,7 +165,22 @@ AUX_HEAT_OPTIONS = [
     "auxheattime3",
 ]
 
-PRE_COND_OPTIONS = ["preconditionState", "precondimmediate"]
+PRE_COND_OPTIONS = [
+    "precondStatus",
+    "precondOperatingMode",
+    "precondState",
+    "precondActive",
+    "precondError",
+    "precondNow",
+    "precondNowError",
+    "precondDuration",
+    "precondatdeparture",
+    "precondAtDepartureDisable",
+    "precondSeatFrontLeft",
+    "precondSeatFrontRight",
+    "precondSeatRearLeft",
+    "precondSeatRearRight",
+]
 
 RemoteStart_OPTIONS = ["remoteEngine", "remoteStartEndtime", "remoteStartTemperature"]
 
@@ -223,6 +238,7 @@ class Car:
         self.windows = None
         self.rcp_options = None
         self.auxheat = None
+        self.precond = None
         self.electric = None
         self.caralarm = None
         self.last_full_message = None
@@ -328,6 +344,13 @@ class Auxheat:
     """Stores the Auxheat values at runtime."""
 
     name: str = "Auxheat"
+
+
+@dataclass(init=False)
+class Precond:
+    """Stores the Precondining values at runtime."""
+
+    name: str = "Precond"
 
 
 @dataclass(init=False)

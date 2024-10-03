@@ -156,7 +156,8 @@ positionHeading
 
   ```
   attributes:
-  chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, endofchargetime, precondActive, precondNow, maxrange, selectedChargeProgram
+  chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, endofchargetime, maxrange, selectedChargeProgram, precondActive [DEPRECATED], precondNow [DEPRECATED], precondDuration [DEPRECATED]
+  
   ```
 
 - Electric consumption start
@@ -219,6 +220,21 @@ positionHeading
 
   attributes:
   auxheattime1, auxheattime2, auxheattime3, auxheattimeselection, auxheatActive, auxheatwarnings, auxheattime2: '00:00'
+
+  ```
+
+  - Preclimate Status (Preconditioning)
+
+  ```
+  Internal Name: precondOperatingMode
+
+  Values    Description
+  "0"       inactive
+  "1"       active
+  ???       TODO: More research required
+
+  attributes:
+  precondState, precondActive, precondError, precondNow, precondNowError, precondDuration, precondatdeparture, precondAtDepartureDisable, precondSeatFrontLeft, precondSeatFrontRight, precondSeatRearLeft, precondSeatRearRight
 
   ```
 

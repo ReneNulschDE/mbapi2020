@@ -450,6 +450,35 @@ BinarySensors = {
         None,
         None,
     ],
+    "preclimateStatus": [
+        "Preclimate Status",
+        None,  # Deprecated: DO NOT USE
+        "precond",
+        "precondStatus",
+        "value",
+        None,
+        {
+            "precondOperatingMode",
+            "precondState",
+            "precondActive",
+            "precondError",
+            "precondNow",
+            "precondNowError",
+            "precondDuration",
+            "precondatdeparture",
+            "precondAtDepartureDisable",
+            "precondSeatFrontLeft",
+            "precondSeatFrontRight",
+            "precondSeatRearLeft",
+            "precondSeatRearRight",
+        },
+        "mdi:car-seat-heater",
+        BinarySensorDeviceClass.RUNNING,
+        False,
+        None,
+        None,
+        None,
+    ],
 }
 
 BUTTONS = {
@@ -625,9 +654,9 @@ SENSORS = {
             "ecoElectricBatteryTemperature",
             "endofchargetime",
             "endofChargeTimeWeekday",
-            "precondActive",
-            "precondNow",
-            "precondDuration",
+            "precondActive", # DEPRECATED
+            "precondNow", # DEPRECATED
+            "precondDuration", # DEPRECATED
             "maxrange",
             "selectedChargeProgram",
             "electricRatioStart",
