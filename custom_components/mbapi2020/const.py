@@ -654,9 +654,9 @@ SENSORS = {
             "ecoElectricBatteryTemperature",
             "endofchargetime",
             "endofChargeTimeWeekday",
-            "precondActive", # DEPRECATED
-            "precondNow", # DEPRECATED
-            "precondDuration", # DEPRECATED
+            "precond.precondActive",  # DEPRECATED
+            "precond.precondNow",  # DEPRECATED
+            "precond.precondDuration",  # DEPRECATED
             "maxrange",
             "selectedChargeProgram",
             "electricRatioStart",
