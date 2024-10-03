@@ -43,7 +43,6 @@ ODOMETER_OPTIONS = [
     "oilLevel",
     "departuretime",
     "departureTimeWeekday",
-    "precondatdeparture",
 ]
 
 LOCATION_OPTIONS = ["positionLat", "positionLong", "positionHeading"]
@@ -121,13 +120,6 @@ ELECTRIC_OPTIONS = [
     "electricRatioOverall",
     "endofchargetime",
     "endofChargeTimeWeekday",
-    "precondActive",
-    "precondDuration",
-    "precondState",
-    "precondatdeparture",
-    "precondNow",
-    "precondNowError",
-    "precondAtDepartureDisable",
     "selectedChargeProgram",
     "maxrange",
     "maxSocLowerLimit",
