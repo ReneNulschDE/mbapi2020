@@ -80,7 +80,6 @@ JSON_EXPORT_IGNORED_KEYS = (
     "dealers",
     "positionLong",
     "positionLat",
-    "positionHeading",
 )
 
 
