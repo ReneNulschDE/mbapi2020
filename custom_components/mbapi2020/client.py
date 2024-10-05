@@ -424,10 +424,7 @@ class Client:  # pylint: disable-too-few-public-methods
         curr = car_detail.get("attributes", {}).get(option)
         if curr:
             # Simplify value extraction by checking for existing keys
-            value = next(
-                (curr[key] for key in ("value", "int_value", "double_value", "bool_value") if key in curr),
-                0
-            )
+            value = next((curr[key] for key in ("value", "int_value", "double_value", "bool_value") if key in curr), 0)
             status = curr.get("status", "VALID")
             time_stamp = curr.get("timestamp", 0)
             curr_display_value = curr.get("display_value")
@@ -468,9 +465,7 @@ class Client:  # pylint: disable-too-few-public-methods
         charge_programs_value = charge_programs.get("charge_programs_value", {})
         charge_program_parameters = charge_programs_value.get("charge_program_parameters", [])
 
-        selected_program_index = int(
-            self._get_car_value(class_instance, "selectedChargeProgram", "value", 0)
-        )
+        selected_program_index = int(self._get_car_value(class_instance, "selectedChargeProgram", "value", 0))
 
         # Ensure the selected index is within bounds
         if 0 <= selected_program_index < len(charge_program_parameters):
@@ -771,7 +766,7 @@ class Client:  # pylint: disable-too-few-public-methods
                 t1.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
 
             t1.startTimeHour = start_t1.seconds // 3600
-            t1.startTimeMin = (start_t1.seconds % 3600) // 60
+            t1.startTimeMinute = (start_t1.seconds % 3600) // 60
             t1.endTimeHour = stop_t1.seconds // 3600
             t1.endTimeMinute = (stop_t1.seconds % 3600) // 60
             entry_set = True
@@ -785,7 +780,7 @@ class Client:  # pylint: disable-too-few-public-methods
                 t2.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
 
             t2.startTimeHour = start_t2.seconds // 3600
-            t2.startTimeMin = (start_t2.seconds % 3600) // 60
+            t2.startTimeMinute = (start_t2.seconds % 3600) // 60
             t2.endTimeHour = stop_t2.seconds // 3600
             t2.endTimeMinute = (stop_t2.seconds % 3600) // 60
             entry_set = True
@@ -799,7 +794,7 @@ class Client:  # pylint: disable-too-few-public-methods
                 t3.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
 
             t3.startTimeHour = start_t3.seconds // 3600
-            t3.startTimeMin = (start_t3.seconds % 3600) // 60
+            t3.startTimeMinute = (start_t3.seconds % 3600) // 60
             t3.endTimeHour = stop_t3.seconds // 3600
             t3.endTimeMinute = (stop_t3.seconds % 3600) // 60
             entry_set = True
@@ -813,7 +808,7 @@ class Client:  # pylint: disable-too-few-public-methods
                 t4.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
 
             t4.startTimeHour = start_t4.seconds // 3600
-            t4.startTimeMin = (start_t4.seconds % 3600) // 60
+            t4.startTimeMinute = (start_t4.seconds % 3600) // 60
             t4.endTimeHour = stop_t4.seconds // 3600
             t4.endTimeMinute = (stop_t4.seconds % 3600) // 60
             entry_set = True
