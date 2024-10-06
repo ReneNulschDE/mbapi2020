@@ -57,6 +57,10 @@ LOGGER = logging.getLogger(__package__)
 
 UPDATE_INTERVAL = timedelta(seconds=300)
 
+STATE_CONFIRMATION_DURATION = (
+    60  # Duration to wait for state confirmation of interactive entitiess in seconds
+)
+
 DEFAULT_CACHE_PATH = "custom_components/mbapi2020/messages"
 DEFAULT_DOWNLOAD_PATH = "custom_components/mbapi2020/resources"
 DEFAULT_LOCALE = "en-GB"
@@ -1296,39 +1300,6 @@ LOCKS = {
         None,
         {},
         None,
-        None,
-        False,
-        None,
-        None,
-        None,
-    ],
-}
-
-SWITCHES = {
-    "auxheat": [
-        "AuxHeat",
-        None,  # Deprecated: DO NOT USE
-        "auxheat",
-        "auxheatActive",
-        "value",
-        "AUXHEAT_START",
-        {},
-        None,
-        None,
-        False,
-        None,
-        None,
-        None,
-    ],
-    "preheat": [
-        "Preclimate",
-        None,  # Deprecated: DO NOT USE
-        "precond",
-        "precondStatus",
-        "value",
-        "ZEV_PRECONDITIONING_START",
-        None,
-        "mdi:hvac",
         None,
         False,
         None,

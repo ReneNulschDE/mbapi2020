@@ -38,7 +38,7 @@ async def async_setup_entry(
             ):
                 device = MercedesMEButton(
                     internal_name=key,
-                    sensor_config=value,
+                    config=value,
                     vin=car.finorvin,
                     coordinator=coordinator,
                 )

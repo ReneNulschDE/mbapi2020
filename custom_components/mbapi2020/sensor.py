@@ -50,7 +50,7 @@ async def async_setup_entry(
             ):
                 device = MercedesMESensor(
                     internal_name=key,
-                    sensor_config=value,
+                    config=value,
                     vin=car.finorvin,
                     coordinator=coordinator,
                 )
@@ -74,7 +74,7 @@ async def async_setup_entry(
             ):
                 device = MercedesMESensorPoll(
                     internal_name=key,
-                    sensor_config=value,
+                    config=value,
                     vin=car.finorvin,
                     coordinator=coordinator,
                     should_poll=True,
