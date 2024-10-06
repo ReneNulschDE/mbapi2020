@@ -298,6 +298,9 @@ Some services require that the security PIN is created in your mobile Android/IO
 - engine_stop:
   Stop the engine of a car defined by a vin.
 
+- preconditioning_configure_seats:
+  Configure which seats should be preconditioned of a car defined by a vin.
+
 - preheat_start:
   Start the preheating of a zero emission car defined by a vin.
 

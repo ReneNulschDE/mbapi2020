@@ -154,6 +154,7 @@ SERVICE_WINDOWS_OPEN = "windows_open"
 SERVICE_WINDOWS_CLOSE = "windows_close"
 SERVICE_WINDOWS_MOVE = "windows_move"
 SERVICE_DOWNLOAD_IMAGES = "download_images"
+SERVICE_PRECONDITIONING_CONFIGURE_SEATS = "preconditioning_configure_seats"
 
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {
@@ -241,7 +242,15 @@ SERVICE_WINDOWS_MOVE_SCHEMA = vol.Schema(
         ),  # type: ignore
     }
 )
-
+SERVICE_PRECONDITIONING_CONFIGURE_SEATS_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Required("front_left"): cv.boolean,
+        vol.Required("front_right"): cv.boolean,
+        vol.Required("rear_left"): cv.boolean,
+        vol.Required("rear_right"): cv.boolean,
+    }
+)
 
 ATTR_MB_MANUFACTURER = "Mercedes Benz"
 

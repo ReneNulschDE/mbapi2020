@@ -1194,6 +1194,31 @@ class Client:  # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End sunroof_close for vin %s", loghelper.Mask_VIN(vin))
 
+    async def preconditioning_configure_seats(
+        self, vin: str, front_left: bool, front_right: bool, rear_left: bool, rear_right: bool
+    ):
+        """Send a preconditioning seat configuration command to the car."""
+        LOGGER.info("Start preconditioning_configure_seats for vin %s", loghelper.Mask_VIN(vin))
+
+        if not self._is_car_feature_available(vin, "ZEV_PRECONDITION_CONFIGURE_SEATS"):
+            LOGGER.warning(
+                "Can't configure seats for PreCond for car %s. Feature %s not availabe for this car.",
+                loghelper.Mask_VIN(vin),
+                "ZEV_PRECONDITION_CONFIGURE_SEATS",
+            )
+            return
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.zev_precondition_configure_seats.front_left = front_left
+        message.commandRequest.zev_precondition_configure_seats.front_right = front_right
+        message.commandRequest.zev_precondition_configure_seats.rear_left = rear_left
+        message.commandRequest.zev_precondition_configure_seats.rear_right = rear_right
+
+        await self.websocket.call(message.SerializeToString())
+        LOGGER.info("End preconditioning_configure_seats for vin %s", loghelper.Mask_VIN(vin))
+
     async def preheat_start(self, vin: str):
         """Send a preconditioning start command to the car."""
         LOGGER.info("Start preheat_start for vin %s", loghelper.Mask_VIN(vin))

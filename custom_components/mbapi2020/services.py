@@ -26,6 +26,8 @@ from .const import (
     SERVICE_DOWNLOAD_IMAGES,
     SERVICE_ENGINE_START,
     SERVICE_ENGINE_STOP,
+    SERVICE_PRECONDITIONING_CONFIGURE_SEATS,
+    SERVICE_PRECONDITIONING_CONFIGURE_SEATS_SCHEMA,
     SERVICE_PREHEAT_START,
     SERVICE_PREHEAT_START_DEPARTURE_TIME,
     SERVICE_PREHEAT_START_SCHEMA,
@@ -131,6 +133,15 @@ def setup_services(hass: HomeAssistant) -> None:
     async def sunroof_close(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.sunroof_close(call.data.get(CONF_VIN))
 
+    async def preconditioning_configure_seats(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.preconditioning_configure_seats(
+            call.data.get(CONF_VIN),
+            call.data.get("front_left"),
+            call.data.get("front_right"),
+            call.data.get("rear_left"),
+            call.data.get("rear_right"),
+        )
+
     async def preheat_start(call) -> None:
         if call.data.get("type", 0) == 0:
             await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.preheat_start(call.data.get(CONF_VIN))
@@ -213,6 +224,11 @@ def setup_services(hass: HomeAssistant) -> None:
         (SERVICE_DOWNLOAD_IMAGES, download_images, SERVICE_VIN_SCHEMA),
         (SERVICE_ENGINE_START, engine_start, SERVICE_VIN_SCHEMA),
         (SERVICE_ENGINE_STOP, engine_stop, SERVICE_VIN_SCHEMA),
+        (
+            SERVICE_PRECONDITIONING_CONFIGURE_SEATS,
+            preconditioning_configure_seats,
+            SERVICE_PRECONDITIONING_CONFIGURE_SEATS_SCHEMA,
+        ),
         (SERVICE_PREHEAT_START, preheat_start, SERVICE_PREHEAT_START_SCHEMA),
         (
             SERVICE_PREHEAT_START_DEPARTURE_TIME,
@@ -254,6 +270,7 @@ def remove_services(hass: HomeAssistant) -> None:
     hass.services.async_remove(DOMAIN, SERVICE_DOWNLOAD_IMAGES)
     hass.services.async_remove(DOMAIN, SERVICE_ENGINE_START)
     hass.services.async_remove(DOMAIN, SERVICE_ENGINE_STOP)
+    hass.services.async_remove(DOMAIN, SERVICE_PRECONDITIONING_CONFIGURE_SEATS)
     hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START)
     hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START_DEPARTURE_TIME)
     hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_STOP)

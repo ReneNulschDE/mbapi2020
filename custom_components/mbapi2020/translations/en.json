@@ -205,6 +205,32 @@
         }
       }
     },
+    "preconditioning_configure_seats": {
+      "name": "Preconditioning configure seats",
+      "description": "Send a preconditioning seat configuration command to a car defined by a VIN.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "front_left": {
+          "name": "Front left",
+          "description": "Activate if the front left seat should be preconditioned."
+        },
+        "front_right": {
+          "name": "Front right",
+          "description": "Activate if the front right seat should be preconditioned."
+        },
+        "rear_left": {
+          "name": "Rear left",
+          "description": "Activate if the rear left seat should be preconditioned."
+        },
+        "rear_right": {
+          "name": "Rear right",
+          "description": "Activate if the rear right seat should be preconditioned."
+        }
+      }
+    },
     "preheat_start": {
       "name": "Preconditioning start",
       "description": "Start the preconditioning of a car defined by a vin.",

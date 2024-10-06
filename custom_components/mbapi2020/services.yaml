@@ -513,5 +513,33 @@ charging_break_clocktimer_configure:
       description: "Stop time (Timer 4)"
       selector:
         time:
-        
 
+preconditioning_configure_seats:
+  description: "Configure which seats should be preconditioned of a car defined by a vin."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
+    front_left:
+      description: "Activate if the front left seat should be preconditioned."
+      required: True
+      selector:
+        boolean:
+    front_right:
+      description: "Activate if the front right seat should be preconditioned."
+      required: True
+      selector:
+        boolean:
+    rear_left:
+      description: "Activate if the rear left seat should be preconditioned."
+      required: True
+      selector:
+        boolean:
+    rear_right:
+      description: "Activate if the rear right seat should be preconditioned."
+      required: True
+      selector:
+        boolean:
