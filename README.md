@@ -101,7 +101,8 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
   ```
   attributes:
-  precondState, precondActive, precondError, precondNow, precondNowError, precondDuration, precondatdeparture, precondAtDepartureDisable, precondSeatFrontLeft, precondSeatFrontRight, precondSeatRearLeft, precondSeatRearRight
+  precondState, precondActive, precondError, precondNow, precondNowError, precondDuration, precondatdeparture, precondAtDepartureDisable, precondSeatFrontLeft, precondSeatFrontRight, precondSeatRearLeft, precondSeatRearRight, temperature_points_frontLeft, temperature_points_frontRight, temperature_points_rearLeft, temperature_points_rearRight,
+
   ```
 
 - wiperHealth
@@ -171,7 +172,7 @@ positionHeading
   ```
   attributes:
   chargingstatus, distanceElectricalReset, distanceElectricalStart, ecoElectricBatteryTemperature, endofchargetime, maxrange, selectedChargeProgram, precondActive [DEPRECATED], precondNow [DEPRECATED], precondDuration [DEPRECATED]
-  
+
   ```
 
 - Electric consumption start
@@ -498,7 +499,6 @@ logger:
   2=COOL
   3=VENTILATE
   ```
-
 
 ## Custom Lovelace Card
 

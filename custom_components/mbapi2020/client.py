@@ -389,6 +389,10 @@ class Client:  # pylint: disable-too-few-public-methods
             "max_soc": self._get_car_values_handle_max_soc,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
             "precondStatus": self._get_car_values_handle_precond_status,
+            "temperature_points_frontLeft": self._get_car_values_temperature_points,
+            "temperature_points_frontRight": self._get_car_values_temperature_points,
+            "temperature_points_rearLeft": self._get_car_values_temperature_points,
+            "temperature_points_rearRight": self._get_car_values_temperature_points,
         }
 
         if car_detail is None or not car_detail.get("attributes"):
@@ -541,6 +545,29 @@ class Client:  # pylint: disable-too-few-public-methods
         if not update:
             # Set status for non-existing values when no update occurs
             return CarAttribute(False, 4, 0)
+
+        return None
+
+    def _get_car_values_temperature_points(self, car_detail, class_instance, option: str, update):
+        curr_zone = option.replace("temperature_points_", "")
+        attributes = car_detail.get("attributes", {})
+        temperaturePoints = attributes.get("temperaturePoints")
+        if not temperaturePoints:
+            return None
+
+        time_stamp = temperaturePoints.get("timestamp", 0)
+        temperature_points_value = temperaturePoints.get("temperature_points_value", {})
+        temperature_points = temperature_points_value.get("temperature_points", [])
+
+        for point in temperature_points:
+            if point.get("zone", "") == curr_zone:
+                return CarAttribute(
+                    value=point.get("temperature", 0),
+                    retrievalstatus="VALID",
+                    timestamp=time_stamp,
+                    display_value=point.get("temperature_display_value"),
+                    unit=temperaturePoints.get("temperature_unit", None),
+                )
 
         return None
 

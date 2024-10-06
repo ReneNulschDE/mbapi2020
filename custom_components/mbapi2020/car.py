@@ -174,6 +174,10 @@ PRE_COND_OPTIONS = [
     "precondSeatFrontRight",
     "precondSeatRearLeft",
     "precondSeatRearRight",
+    "temperature_points_frontLeft",
+    "temperature_points_frontRight",
+    "temperature_points_rearLeft",
+    "temperature_points_rearRight",
 ]
 
 RemoteStart_OPTIONS = ["remoteEngine", "remoteStartEndtime", "remoteStartTemperature"]
@@ -298,11 +302,13 @@ class Tires:
 
     name: str = "Tires"
 
+
 @dataclass(init=False)
 class Wipers:
     """Stores the Wiper values at runtime."""
 
     name: str = "Wipers"
+
 
 @dataclass(init=False)
 class Odometer:
