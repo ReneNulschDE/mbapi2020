@@ -319,7 +319,7 @@
         }
       }
     },
-    "temperature_configure:": {
+    "temperature_configure": {
       "name": "Target temperature configure (precond/auxheat)",
       "description": "Configure the target preconditioning/auxheat temperatures for zones in a car defined by a VIN.",
       "fields": {
