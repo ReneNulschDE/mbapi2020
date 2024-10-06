@@ -325,6 +325,9 @@ Some services require that the security PIN is created in your mobile Android/IO
 - sunroof_close:
   Close the sunroof of a car defined by a vin.
 
+- temperature_configure:
+  Configure the target preconditioning/auxheat temperatures for zones in a car defined by a VIN.
+
 - windows_open:
   Open the windows of a car defined by a vin. PIN required.
 

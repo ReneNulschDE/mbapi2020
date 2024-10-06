@@ -155,6 +155,7 @@ SERVICE_WINDOWS_CLOSE = "windows_close"
 SERVICE_WINDOWS_MOVE = "windows_move"
 SERVICE_DOWNLOAD_IMAGES = "download_images"
 SERVICE_PRECONDITIONING_CONFIGURE_SEATS = "preconditioning_configure_seats"
+SERVICE_TEMPERATURE_CONFIGURE = "temperature_configure"
 
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {
@@ -239,6 +240,151 @@ SERVICE_WINDOWS_MOVE_SCHEMA = vol.Schema(
         ),  # type: ignore
         vol.Optional("rear_right", default=None): vol.Any(
             None, vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]))
+        ),  # type: ignore
+    }
+)
+SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Optional("front_left", default=None): vol.Any(
+            None,
+            vol.All(
+                vol.Coerce(int),
+                vol.In(
+                    [
+                        16,
+                        16.5,
+                        17,
+                        17.5,
+                        18,
+                        18.5,
+                        19,
+                        19.5,
+                        20,
+                        20.5,
+                        21,
+                        21.5,
+                        22,
+                        22.5,
+                        23,
+                        23.5,
+                        24,
+                        24.5,
+                        25,
+                        25.5,
+                        26,
+                        26.5,
+                        27,
+                        27.5,
+                        28,
+                    ]
+                ),
+            ),
+        ),  # type: ignore
+        vol.Optional("front_right", default=None): vol.Any(
+            None,
+            vol.All(
+                vol.Coerce(int),
+                vol.In(
+                    [
+                        16,
+                        16.5,
+                        17,
+                        17.5,
+                        18,
+                        18.5,
+                        19,
+                        19.5,
+                        20,
+                        20.5,
+                        21,
+                        21.5,
+                        22,
+                        22.5,
+                        23,
+                        23.5,
+                        24,
+                        24.5,
+                        25,
+                        25.5,
+                        26,
+                        26.5,
+                        27,
+                        27.5,
+                        28,
+                    ]
+                ),
+            ),
+        ),  # type: ignore
+        vol.Optional("rear_left", default=None): vol.Any(
+            None,
+            vol.All(
+                vol.Coerce(int),
+                vol.In(
+                    [
+                        16,
+                        16.5,
+                        17,
+                        17.5,
+                        18,
+                        18.5,
+                        19,
+                        19.5,
+                        20,
+                        20.5,
+                        21,
+                        21.5,
+                        22,
+                        22.5,
+                        23,
+                        23.5,
+                        24,
+                        24.5,
+                        25,
+                        25.5,
+                        26,
+                        26.5,
+                        27,
+                        27.5,
+                        28,
+                    ]
+                ),
+            ),
+        ),  # type: ignore
+        vol.Optional("rear_right", default=None): vol.Any(
+            None,
+            vol.All(
+                vol.Coerce(int),
+                vol.In(
+                    [
+                        16,
+                        16.5,
+                        17,
+                        17.5,
+                        18,
+                        18.5,
+                        19,
+                        19.5,
+                        20,
+                        20.5,
+                        21,
+                        21.5,
+                        22,
+                        22.5,
+                        23,
+                        23.5,
+                        24,
+                        24.5,
+                        25,
+                        25.5,
+                        26,
+                        26.5,
+                        27,
+                        27.5,
+                        28,
+                    ]
+                ),
+            ),
         ),  # type: ignore
     }
 )

@@ -39,6 +39,8 @@ from .const import (
     SERVICE_SUNROOF_CLOSE,
     SERVICE_SUNROOF_OPEN,
     SERVICE_SUNROOF_TILT,
+    SERVICE_TEMPERATURE_CONFIGURE,
+    SERVICE_TEMPERATURE_CONFIGURE_SCHEMA,
     SERVICE_VIN_CHARGE_PROGRAM_SCHEMA,
     SERVICE_VIN_PIN_SCHEMA,
     SERVICE_VIN_SCHEMA,
@@ -168,6 +170,15 @@ def setup_services(hass: HomeAssistant) -> None:
             call.data.get(CONF_VIN), call.data.get(CONF_PIN)
         )
 
+    async def temperature_configure(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.temperature_configure(
+            call.data.get(CONF_VIN),
+            call.data.get("front_left"),
+            call.data.get("front_right"),
+            call.data.get("rear_left"),
+            call.data.get("rear_right"),
+        )
+
     async def windows_close(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.windows_close(call.data.get(CONF_VIN))
 
@@ -246,6 +257,7 @@ def setup_services(hass: HomeAssistant) -> None:
         (SERVICE_SUNROOF_OPEN, sunroof_open, SERVICE_VIN_SCHEMA),
         (SERVICE_SUNROOF_TILT, sunroof_tilt, SERVICE_VIN_SCHEMA),
         (SERVICE_SUNROOF_CLOSE, sunroof_close, SERVICE_VIN_SCHEMA),
+        (SERVICE_TEMPERATURE_CONFIGURE, temperature_configure, SERVICE_TEMPERATURE_CONFIGURE_SCHEMA),
         (SERVICE_WINDOWS_OPEN, windows_open, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_WINDOWS_CLOSE, windows_close, SERVICE_VIN_SCHEMA),
         (SERVICE_WINDOWS_MOVE, windows_move, SERVICE_WINDOWS_MOVE_SCHEMA),
@@ -280,6 +292,7 @@ def remove_services(hass: HomeAssistant) -> None:
     hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_OPEN)
     hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_TILT)
     hass.services.async_remove(DOMAIN, SERVICE_SUNROOF_CLOSE)
+    hass.services.async_remove(DOMAIN, SERVICE_TEMPERATURE_CONFIGURE)
     hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_OPEN)
     hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_CLOSE)
     hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_MOVE)

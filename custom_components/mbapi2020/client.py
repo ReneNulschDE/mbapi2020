@@ -1320,6 +1320,63 @@ class Client:  # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
+    async def temperature_configure(
+        self,
+        vin: str,
+        front_left: int | None = None,
+        front_right: int | None = None,
+        rear_left: int | None = None,
+        rear_right: int | None = None,
+    ):
+        """Send a temperature_configure  command to the car."""
+        LOGGER.info("Start temperature_configure for vin %s", loghelper.Mask_VIN(vin))
+
+        if not self._is_car_feature_available(vin, "TEMPERATURE_CONFIGURE"):
+            LOGGER.warning(
+                "Can't configure the temperature zones for car %s. Feature %s not availabe for this car.",
+                loghelper.Mask_VIN(vin),
+                "TEMPERATURE_CONFIGURE",
+            )
+            return
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+
+        config = pb2_commands.TemperatureConfigure()
+        entry_set: bool = False
+
+        if front_left:
+            zone_front_left = config.temperature_points.add()
+            zone_front_left.zone = 1
+            zone_front_left.temperature_in_celsius = front_left
+            entry_set = True
+
+        if front_right:
+            zone_front_right = config.temperature_points.add()
+            zone_front_right.zone = 2
+            zone_front_right.temperature_in_celsius = front_right
+            entry_set = True
+
+        if rear_left:
+            zone_rear_left = config.temperature_points.add()
+            zone_rear_left.zone = 3
+            zone_rear_left.temperature_in_celsius = rear_left
+            entry_set = True
+
+        if rear_right:
+            zone_rear_right = config.temperature_points.add()
+            zone_rear_right.zone = 4
+            zone_rear_right.temperature_in_celsius = rear_right
+            entry_set = True
+
+        if entry_set:
+            message.commandRequest.temperature_configure.CopyFrom(config)
+            await self.websocket.call(message.SerializeToString())
+            LOGGER.info("End temperature_configure for vin %s", loghelper.Mask_VIN(vin))
+        else:
+            LOGGER.info("End temperature_configure for vin %s - No actions", loghelper.Mask_VIN(vin))
+
     async def windows_open(self, vin: str, pin: str = None):
         """Send a window open command to the car."""
         LOGGER.info("Start windows_open for vin %s", loghelper.Mask_VIN(vin))

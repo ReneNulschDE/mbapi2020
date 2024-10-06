@@ -543,3 +543,45 @@ preconditioning_configure_seats:
       required: True
       selector:
         boolean:
+
+temperature_configure:
+  description: "Configure the temperature for the allowed zones in a car. "
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
+    front_left:
+      description: "Target temperature for the zone front_left in CELSIUS"
+      required: False
+      selector:
+        number:
+          min: 16
+          max: 28
+          step: 0.5
+    front_right:
+      description: "Target temperature for the zone front_right in CELSIUS"
+      required: False
+      selector:
+        number:
+          min: 16
+          max: 28
+          step: 0.5
+    rear_left:
+      description: "Target temperature for the zone rear_left in CELSIUS. (if available)"
+      required: False
+      selector:
+        number:
+          min: 16
+          max: 28
+          step: 0.5
+    rear_right:
+      description: "Target temperature for the zone rear_right in CELSIUS. (if available)"
+      required: False
+      selector:
+        number:
+          min: 16
+          max: 28
+          step: 0.5

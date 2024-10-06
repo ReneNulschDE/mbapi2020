@@ -319,6 +319,32 @@
         }
       }
     },
+    "temperature_configure:": {
+      "name": "Target temperature configure (precond/auxheat)",
+      "description": "Configure the target preconditioning/auxheat temperatures for zones in a car defined by a VIN.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "front_left": {
+          "name": "Front left",
+          "description": "Target temperature for the zone front_left in CELSIUS."
+        },
+        "front_right": {
+          "name": "Front right",
+          "description": "Target temperature for the zone front_right in CELSIUS."
+        },
+        "rear_left": {
+          "name": "Rear left",
+          "description": "Target temperature for the zone rear_left in CELSIUS. (if available)"
+        },
+        "rear_right": {
+          "name": "Rear right",
+          "description": "Target temperature for the zone rear_right in CELSIUS. (if available)"
+        }
+      }
+    },
     "windows_open": {
       "name": "Windows open",
       "description": "Open the windows of a car defined by a vin. PIN setup required. See options dialog of the integration.",
