@@ -9,6 +9,8 @@ import time
 from typing import Protocol
 
 import aiohttp
+import voluptuous as vol
+
 from custom_components.mbapi2020.car import Car, CarAttribute, RcpOptions
 from custom_components.mbapi2020.const import (
     ATTR_MB_MANUFACTURER,
@@ -24,16 +26,10 @@ from custom_components.mbapi2020.coordinator import MBAPI2020DataUpdateCoordinat
 from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
-import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import (
-    ConfigEntryAuthFailed,
-    ConfigEntryNotReady,
-    HomeAssistantError,
-)
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType
@@ -274,6 +270,7 @@ class MercedesMeEntityConfig:
             f"icon={self.icon!r}, "
             f"entity_category={self.entity_category!r})"
         )
+
 
 class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity):
     """Entity class for MercedesMe devices."""

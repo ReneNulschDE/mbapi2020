@@ -1,11 +1,12 @@
 """Provide info to system health."""
+
 from __future__ import annotations
 
 from homeassistant.components import system_health
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.loader import async_get_integration
 
-from .const import DOMAIN, REST_API_BASE, WEBSOCKET_API_BASE
+from .const import DOMAIN, REST_API_BASE
 from .coordinator import MBAPI2020DataUpdateCoordinator
 
 

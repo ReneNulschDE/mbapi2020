@@ -3,6 +3,7 @@
 For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
 """
+
 from __future__ import annotations
 
 from homeassistant.components.button import ButtonEntity

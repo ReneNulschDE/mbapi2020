@@ -1,4 +1,5 @@
 """Diagnostics support for MBAPI2020."""
+
 from __future__ import annotations
 
 import json

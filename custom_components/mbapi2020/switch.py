@@ -17,12 +17,7 @@ from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity, MercedesMeEntityConfig
-from .const import (
-    CONF_FT_DISABLE_CAPABILITY_CHECK,
-    DOMAIN,
-    LOGGER,
-    STATE_CONFIRMATION_DURATION,
-)
+from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, STATE_CONFIRMATION_DURATION
 from .coordinator import MBAPI2020DataUpdateCoordinator
 from .helper import LogHelper as loghelper, check_capabilities
 
@@ -42,18 +37,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up the switch platform for Mercedes ME."""
 
-    coordinator: MBAPI2020DataUpdateCoordinator = hass.data[DOMAIN][
-        config_entry.entry_id
-    ]
+    coordinator: MBAPI2020DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     if not coordinator.client.cars:
         LOGGER.info("No cars found during the switch creation process")
         return
 
     entities: list[MercedesMESwitch] = []
-    skip_capability_check = config_entry.options.get(
-        CONF_FT_DISABLE_CAPABILITY_CHECK, False
-    )
+    skip_capability_check = config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
 
     for car in coordinator.client.cars.values():
         car_vin_masked = loghelper.Mask_VIN(car.finorvin)
@@ -76,9 +67,7 @@ async def async_setup_entry(
                 continue
 
             try:
-                entity = MercedesMESwitch(
-                    config=config, vin=car.finorvin, coordinator=coordinator
-                )
+                entity = MercedesMESwitch(config=config, vin=car.finorvin, coordinator=coordinator)
                 entities.append(entity)
                 LOGGER.debug(
                     "Created switch entity for car '%s': Internal Name='%s', Entity Name='%s'",
@@ -246,6 +235,7 @@ class MercedesMESwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
         """Return True if the state is being assumed during the confirmation duration."""
         return self._expected_state is not None
 
+
 SWITCH_CONFIGS: list[MercedesMeSwitchEntityConfig] = [
     MercedesMeSwitchEntityConfig(
         id="preheat",
@@ -254,12 +244,9 @@ SWITCH_CONFIGS: list[MercedesMeSwitchEntityConfig] = [
         object_name="precondStatus",
         attribute_name="value",
         icon="mdi:hvac",
-        capability_check=lambda car: check_capabilities(
-            car, ["ZEV_PRECONDITIONING_START", "ZEV_PRECONDITIONING_STOP"]
-        ),
+        capability_check=lambda car: check_capabilities(car, ["ZEV_PRECONDITIONING_START", "ZEV_PRECONDITIONING_STOP"]),
         turn_on=async_turn_on_preheat,
         turn_off=lambda self, **kwargs: self._coordinator.client.preheat_stop(self._vin),
-        
     ),
     MercedesMeSwitchEntityConfig(
         id="auxheat",
@@ -268,11 +255,8 @@ SWITCH_CONFIGS: list[MercedesMeSwitchEntityConfig] = [
         object_name="auxheatActive",
         attribute_name="value",
         icon="mdi:hvac",
-        capability_check=lambda car: check_capabilities(
-            car, ["AUXHEAT_START", "AUXHEAT_STOP"]
-        ),
+        capability_check=lambda car: check_capabilities(car, ["AUXHEAT_START", "AUXHEAT_STOP"]),
         turn_on=lambda self, **kwargs: self._coordinator.client.auxheat_start(self._vin),
         turn_off=lambda self, **kwargs: self._coordinator.client.auxheat_stop(self._vin),
-       
     ),
 ]

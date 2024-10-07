@@ -1,4 +1,5 @@
 """Define package errors."""
+
 from __future__ import annotations
 
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
