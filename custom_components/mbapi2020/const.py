@@ -1326,7 +1326,7 @@ SWITCHES = {
         "precond",
         "precondStatus",
         "value",
-        None,
+        "ZEV_PRECONDITIONING_START",
         None,
         "mdi:hvac",
         None,
