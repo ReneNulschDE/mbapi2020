@@ -1507,7 +1507,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
             self.write_debug_json_output(MessageToJson(data, preserving_proto_field_name=True), datatype)
 
-    def write_debug_json_output(self, data, datatype):
+    def write_debug_json_output(self, data, datatype, use_dumps: bool = False):
         """Write text to files based on datatype."""
         # LOGGER.debug(self.config_entry.options)
         if self.config_entry.options.get(CONF_DEBUG_FILE_SAVE, False):
@@ -1515,7 +1515,10 @@ class Client:  # pylint: disable-too-few-public-methods
             Path(path).mkdir(parents=True, exist_ok=True)
 
             current_file = open(f"{path}/{datatype}{int(round(time.time() * 1000))}.json", "w")
-            current_file.write(f"{data}")
+            if use_dumps:
+                current_file.write(f"{json.dumps(data, indent=4)}")
+            else:
+                current_file.write(f"{data}")
             current_file.close()
 
     async def _set_rlock_mode(self):

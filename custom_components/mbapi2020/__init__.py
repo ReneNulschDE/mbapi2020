@@ -66,7 +66,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             raise ConfigEntryAuthFailed()
 
         masterdata = await coordinator.client.webapi.get_user_info()
-        hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md")
+        hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md", True)
 
         for car in masterdata.get("assignedVehicles"):
             # Check if the car has a separate VIN key, if not, use the FIN.
@@ -87,7 +87,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             try:
                 car_capabilities = await coordinator.client.webapi.get_car_capabilities(vin)
                 hass.async_add_executor_job(
-                    coordinator.client.write_debug_json_output, car_capabilities, f"cai-{loghelper.Mask_VIN(vin)}-"
+                    coordinator.client.write_debug_json_output,
+                    car_capabilities,
+                    f"cai-{loghelper.Mask_VIN(vin)}-",
+                    True,
                 )
                 if car_capabilities and "features" in car_capabilities:
                     features.update(car_capabilities["features"])
@@ -101,7 +104,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             try:
                 capabilities = await coordinator.client.webapi.get_car_capabilities_commands(vin)
                 hass.async_add_executor_job(
-                    coordinator.client.write_debug_json_output, capabilities, f"ca-{loghelper.Mask_VIN(vin)}-"
+                    coordinator.client.write_debug_json_output, capabilities, f"ca-{loghelper.Mask_VIN(vin)}-", True
                 )
                 if capabilities:
                     for feature in capabilities.get("commands"):
