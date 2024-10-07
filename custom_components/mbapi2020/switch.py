@@ -9,25 +9,22 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from homeassistant.components.switch import SwitchEntity
+from config.custom_components.mbapi2020 import MercedesMeEntity, MercedesMeEntityConfig
+from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from . import MercedesMeEntity, MercedesMeEntityConfig
-from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, STATE_CONFIRMATION_DURATION
+from .const import (
+    CONF_FT_DISABLE_CAPABILITY_CHECK,
+    DOMAIN,
+    LOGGER,
+    STATE_CONFIRMATION_DURATION,
+)
 from .coordinator import MBAPI2020DataUpdateCoordinator
 from .helper import LogHelper as loghelper, check_capabilities
-
-
-async def async_turn_on_preheat(self: MercedesMESwitch, **kwargs) -> None:
-    """Turn on preheat."""
-    if self._car.features.get("precondNow"):
-        await self._coordinator.client.preheat_start(self._vin)
-    else:
-        await self._coordinator.client.preheat_start_immediate(self._vin)
 
 
 async def async_setup_entry(
@@ -37,14 +34,18 @@ async def async_setup_entry(
 ) -> None:
     """Set up the switch platform for Mercedes ME."""
 
-    coordinator: MBAPI2020DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: MBAPI2020DataUpdateCoordinator = hass.data[DOMAIN][
+        config_entry.entry_id
+    ]
 
     if not coordinator.client.cars:
         LOGGER.info("No cars found during the switch creation process")
         return
 
     entities: list[MercedesMESwitch] = []
-    skip_capability_check = config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
+    skip_capability_check = config_entry.options.get(
+        CONF_FT_DISABLE_CAPABILITY_CHECK, False
+    )
 
     for car in coordinator.client.cars.values():
         car_vin_masked = loghelper.Mask_VIN(car.finorvin)
@@ -67,7 +68,9 @@ async def async_setup_entry(
                 continue
 
             try:
-                entity = MercedesMESwitch(config=config, vin=car.finorvin, coordinator=coordinator)
+                entity = MercedesMESwitch(
+                    config=config, vin=car.finorvin, coordinator=coordinator
+                )
                 entities.append(entity)
                 LOGGER.debug(
                     "Created switch entity for car '%s': Internal Name='%s', Entity Name='%s'",
@@ -108,7 +111,7 @@ class SwitchIsOn(Protocol):
 
 
 @dataclass(frozen=True)
-class MercedesMeSwitchEntityConfig(MercedesMeEntityConfig):
+class MercedesMeSwitchConfig(MercedesMeEntityConfig):
     """Configuration class for MercedesMe switch entities."""
 
     turn_on: SwitchTurnOn | None = None
@@ -147,7 +150,7 @@ class MercedesMeSwitchEntityConfig(MercedesMeEntityConfig):
 class MercedesMESwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
     """Representation of a Mercedes Me Switch."""
 
-    def __init__(self, config: MercedesMeSwitchEntityConfig, vin, coordinator) -> None:
+    def __init__(self, config: MercedesMeSwitchConfig, vin, coordinator) -> None:
         """Initialize the switch with methods for handling on/off commands."""
         self._turn_on_method = config.turn_on
         self._turn_off_method = config.turn_off
@@ -235,28 +238,33 @@ class MercedesMESwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
         """Return True if the state is being assumed during the confirmation duration."""
         return self._expected_state is not None
 
-
-SWITCH_CONFIGS: list[MercedesMeSwitchEntityConfig] = [
-    MercedesMeSwitchEntityConfig(
-        id="preheat",
-        entity_name="Preclimate",
+SWITCH_CONFIGS: list[MercedesMeSwitchConfig] = [
+    MercedesMeSwitchConfig(
+        id="pre_entry_climate_control",
+        entity_name="Pre-entry climate control",
         feature_name="precond",
         object_name="precondStatus",
         attribute_name="value",
         icon="mdi:hvac",
-        capability_check=lambda car: check_capabilities(car, ["ZEV_PRECONDITIONING_START", "ZEV_PRECONDITIONING_STOP"]),
-        turn_on=async_turn_on_preheat,
+        device_class=SwitchDeviceClass.SWITCH,
+        turn_on=lambda self, **kwargs: self._coordinator.client.preheat_start_universal(self._vin),
         turn_off=lambda self, **kwargs: self._coordinator.client.preheat_stop(self._vin),
+        capability_check=lambda car: check_capabilities(
+            car, ["ZEV_PRECONDITIONING_START", "ZEV_PRECONDITIONING_STOP"]
+        ),
     ),
-    MercedesMeSwitchEntityConfig(
+    MercedesMeSwitchConfig(
         id="auxheat",
         entity_name="Auxiliary Heating",
         feature_name="auxheat",
         object_name="auxheatActive",
         attribute_name="value",
         icon="mdi:hvac",
-        capability_check=lambda car: check_capabilities(car, ["AUXHEAT_START", "AUXHEAT_STOP"]),
+        device_class=SwitchDeviceClass.SWITCH,
         turn_on=lambda self, **kwargs: self._coordinator.client.auxheat_start(self._vin),
         turn_off=lambda self, **kwargs: self._coordinator.client.auxheat_stop(self._vin),
+        capability_check=lambda car: check_capabilities(
+            car, ["AUXHEAT_START", "AUXHEAT_STOP"]
+        ),
     ),
 ]

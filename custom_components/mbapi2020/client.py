@@ -1261,6 +1261,13 @@ class Client:  # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End preheat_start_immediate for vin %s", loghelper.Mask_VIN(vin))
 
+    async def preheat_start_universal(self,vin: str) -> None:
+        """Turn on preheat universally for any car model."""
+        if self._is_car_feature_available(vin, "precondNow"):
+            await self.preheat_start(vin)
+        else:
+            await self.preheat_start_immediate(vin)
+
     async def preheat_start_departure_time(self, vin: str, departure_time: int):
         """Send a preconditioning start by time command to the car."""
         LOGGER.info("Start preheat_start_departure_time for vin %s", loghelper.Mask_VIN(vin))
