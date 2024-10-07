@@ -42,7 +42,7 @@ async def async_setup_entry(
         for key, value in sorted(DEVICE_TRACKER.items()):
             device = MercedesMEDeviceTracker(
                 internal_name=key,
-                sensor_config=value,
+                config=value,
                 vin=car.finorvin,
                 coordinator=coordinator,
             )
