@@ -9,8 +9,6 @@ import time
 from typing import Protocol
 
 import aiohttp
-import voluptuous as vol
-
 from custom_components.mbapi2020.car import Car, CarAttribute, RcpOptions
 from custom_components.mbapi2020.const import (
     ATTR_MB_MANUFACTURER,
@@ -26,12 +24,18 @@ from custom_components.mbapi2020.coordinator import MBAPI2020DataUpdateCoordinat
 from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
+import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, HomeAssistantError
+from homeassistant.exceptions import (
+    ConfigEntryAuthFailed,
+    ConfigEntryNotReady,
+    HomeAssistantError,
+)
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
@@ -69,7 +73,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             raise ConfigEntryAuthFailed()
 
         masterdata = await coordinator.client.webapi.get_user_info()
-        hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md", True)
+        hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md")
 
         for car in masterdata.get("assignedVehicles"):
             # Check if the car has a separate VIN key, if not, use the FIN.
@@ -89,12 +93,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             try:
                 car_capabilities = await coordinator.client.webapi.get_car_capabilities(vin)
-                hass.async_add_executor_job(
-                    coordinator.client.write_debug_json_output,
-                    car_capabilities,
-                    f"cai-{loghelper.Mask_VIN(vin)}-",
-                    True,
-                )
+                hass.async_add_executor_job(coordinator.client.write_debug_json_output, car_capabilities, "cai")
                 if car_capabilities and "features" in car_capabilities:
                     features.update(car_capabilities["features"])
             except aiohttp.ClientError:
@@ -106,17 +105,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             try:
                 capabilities = await coordinator.client.webapi.get_car_capabilities_commands(vin)
-                hass.async_add_executor_job(
-                    coordinator.client.write_debug_json_output, capabilities, f"ca-{loghelper.Mask_VIN(vin)}-", True
-                )
+                hass.async_add_executor_job(coordinator.client.write_debug_json_output, capabilities, "ca")
                 if capabilities:
                     for feature in capabilities.get("commands"):
                         features[feature.get("commandName")] = bool(feature.get("isAvailable"))
-                        if feature.get("commandName", "") == "ZEV_PRECONDITION_CONFIGURE_SEATS":
-                            capabilityInformation = feature.get("capabilityInformation", None)
-                            if capabilityInformation and len(capabilityInformation) > 0:
-                                features[feature.get("capabilityInformation")[0]] = bool(feature.get("isAvailable"))
-
             except aiohttp.ClientError:
                 # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
                 # We just ignore the capabilities
@@ -231,47 +223,6 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     return unload_ok
 
 
-class CapabilityCheckFunc(Protocol):
-    """Protocol for a callable that checks if a capability is available for a given car."""
-
-    def __call__(self, car: Car) -> bool:
-        """Check if the capability is available for the specified car."""
-
-
-@dataclass(frozen=True)
-class MercedesMeEntityConfig:
-    """Configuration class for MercedesMe entities."""
-
-    id: str
-    entity_name: str
-    feature_name: str
-    object_name: str
-    attribute_name: str
-
-    attributes: list[str] | None = None
-    icon: str | None = None
-    device_class: str | None = None
-    entity_category: EntityCategory | None = None
-
-    capability_check: CapabilityCheckFunc | None = None
-
-    def __repr__(self) -> str:
-        """Return a string representation of the MercedesMeEntityConfig instance."""
-        return (
-            f"{self.__class__.__name__}("
-            f"internal_name={self.id!r}, "
-            f"entity_name={self.entity_name!r}, "
-            f"feature_name={self.feature_name!r}, "
-            f"object_name={self.object_name!r}, "
-            f"attribute_name={self.attribute_name!r}, "
-            f"capability_check={self.capability_check!r}, "
-            f"attributes={self.attributes!r}, "
-            f"device_class={self.device_class!r}, "
-            f"icon={self.icon!r}, "
-            f"entity_category={self.entity_category!r})"
-        )
-
-
 class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity):
     """Entity class for MercedesMe devices."""
 
@@ -280,7 +231,7 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
     def __init__(
         self,
         internal_name: str,
-        config: list | MercedesMeEntityConfig,
+        config: list | EntityDescription,
         vin: str,
         coordinator: MBAPI2020DataUpdateCoordinator,
         should_poll: bool = False,
@@ -297,12 +248,12 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
         self._state = None
 
         # Temporary workaround: If PR get's approved, all entity types should be migrated to the new config classes
-        if isinstance(config, MercedesMeEntityConfig):
-            self._sensor_name = config.entity_name
+        if isinstance(config, EntityDescription):
+            self._sensor_name = config.translation_key
             self._internal_unit = None
-            self._feature_name = config.feature_name
-            self._object_name = config.object_name
-            self._attrib_name = config.attribute_name
+            self._feature_name = None
+            self._object_name = None
+            self._attrib_name = None
             self._flip_result = False
             self._attr_device_class = config.device_class
             self._attr_icon = config.icon
@@ -404,15 +355,29 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             )
             return reported_unit
 
-        if isinstance(self._sensor_config, MercedesMeEntityConfig):
+        if isinstance(self._sensor_config, EntityDescription):
             return None
         return self._sensor_config[scf.UNIT_OF_MEASUREMENT.value]
 
     def update(self):
         """Get the latest data and updates the states."""
+        if not self.enabled:
+            return
 
-        self._state = self._get_car_value(self._feature_name, self._object_name, self._attrib_name, "error")
-        self.async_write_ha_state()
+        if isinstance(self._sensor_config, EntityDescription):
+            try:
+                self._mercedes_me_update()
+            except Exception as err:
+                LOGGER.error("Error while updating entity %s: %s", self.name, err)
+        else:
+            self._state = self._get_car_value(
+                self._feature_name, self._object_name, self._attrib_name, "error"
+            )
+            self.async_write_ha_state()
+
+    def _mercedes_me_update(self) -> None:
+        """Update Mercedes Me entity."""
+        raise NotImplementedError
 
     def _get_car_value(self, feature, object_name, attrib_name, default_value):
         value = None

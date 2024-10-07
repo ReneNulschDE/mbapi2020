@@ -295,6 +295,10 @@ class Car:
         for callback in self._update_listeners:
             callback()
 
+    def check_capabilities(self, required_capabilities: list[str]) -> bool:
+        """Check if the car has the required capabilities."""
+        return all(self.features.get(capability) is True for capability in required_capabilities)
+
 
 @dataclass(init=False)
 class Tires:
