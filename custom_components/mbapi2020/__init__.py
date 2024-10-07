@@ -86,7 +86,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             try:
                 car_capabilities = await coordinator.client.webapi.get_car_capabilities(vin)
-                hass.async_add_executor_job(coordinator.client.write_debug_json_output, car_capabilities, "cai")
+                hass.async_add_executor_job(
+                    coordinator.client.write_debug_json_output, car_capabilities, f"cai-{loghelper.Mask_VIN(vin)}-"
+                )
                 if car_capabilities and "features" in car_capabilities:
                     features.update(car_capabilities["features"])
             except aiohttp.ClientError:
@@ -98,10 +100,17 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             try:
                 capabilities = await coordinator.client.webapi.get_car_capabilities_commands(vin)
-                hass.async_add_executor_job(coordinator.client.write_debug_json_output, capabilities, "ca")
+                hass.async_add_executor_job(
+                    coordinator.client.write_debug_json_output, capabilities, f"ca-{loghelper.Mask_VIN(vin)}-"
+                )
                 if capabilities:
                     for feature in capabilities.get("commands"):
                         features[feature.get("commandName")] = bool(feature.get("isAvailable"))
+                        if feature.get("commandName", "") == "ZEV_PRECONDITION_CONFIGURE_SEATS":
+                            capabilityInformation = feature.get("capabilityInformation", None)
+                            if capabilityInformation and len(capabilityInformation) > 0:
+                                features[feature.get("capabilityInformation")[0]] = bool(feature.get("isAvailable"))
+
             except aiohttp.ClientError:
                 # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
                 # We just ignore the capabilities
