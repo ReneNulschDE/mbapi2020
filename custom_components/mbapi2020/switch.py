@@ -42,7 +42,7 @@ class MercedesMeSwitchEntityDescription(SwitchEntityDescription):
 SWITCH_CONFIGS: list[MercedesMeSwitchEntityDescription] = [
     MercedesMeSwitchEntityDescription(
         key="precond",
-        translation_key="Pre-entry climate control",
+        translation_key="precond",
         icon="mdi:hvac",
         is_on_fn=lambda self: self._get_car_value("precond", "precondStatus", "value", default_value=False),
         turn_on_fn=lambda self,**kwargs: self._coordinator.client.preheat_start_universal(self._vin),
@@ -51,7 +51,7 @@ SWITCH_CONFIGS: list[MercedesMeSwitchEntityDescription] = [
     ),
     MercedesMeSwitchEntityDescription(
         key="auxheat",
-        translation_key="Auxiliary Heating",
+        translation_key="auxheat",
         icon="mdi:hvac",
         is_on_fn=lambda self: self._get_car_value("auxheat", "auxheatActive", "value", default_value=False),
         turn_on_fn=lambda self, **kwargs: self._coordinator.client.auxheat_start(self._vin),
