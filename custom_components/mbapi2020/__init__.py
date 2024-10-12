@@ -9,6 +9,8 @@ import time
 from typing import Protocol
 
 import aiohttp
+import voluptuous as vol
+
 from custom_components.mbapi2020.car import Car, CarAttribute, RcpOptions
 from custom_components.mbapi2020.const import (
     ATTR_MB_MANUFACTURER,
@@ -24,16 +26,10 @@ from custom_components.mbapi2020.coordinator import MBAPI2020DataUpdateCoordinat
 from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
-import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import (
-    ConfigEntryAuthFailed,
-    ConfigEntryNotReady,
-    HomeAssistantError,
-)
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.typing import ConfigType
@@ -73,7 +69,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             raise ConfigEntryAuthFailed()
 
         masterdata = await coordinator.client.webapi.get_user_info()
-        hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md")
+        hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md", True)
 
         for car in masterdata.get("assignedVehicles"):
             # Check if the car has a separate VIN key, if not, use the FIN.
@@ -93,7 +89,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             try:
                 car_capabilities = await coordinator.client.webapi.get_car_capabilities(vin)
-                hass.async_add_executor_job(coordinator.client.write_debug_json_output, car_capabilities, "cai")
+                hass.async_add_executor_job(
+                    coordinator.client.write_debug_json_output,
+                    car_capabilities,
+                    f"cai-{loghelper.Mask_VIN(vin)}-",
+                    True,
+                )
                 if car_capabilities and "features" in car_capabilities:
                     features.update(car_capabilities["features"])
             except aiohttp.ClientError:
@@ -105,10 +106,16 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             try:
                 capabilities = await coordinator.client.webapi.get_car_capabilities_commands(vin)
-                hass.async_add_executor_job(coordinator.client.write_debug_json_output, capabilities, "ca")
+                hass.async_add_executor_job(
+                    coordinator.client.write_debug_json_output, capabilities, f"ca-{loghelper.Mask_VIN(vin)}-", True
+                )
                 if capabilities:
                     for feature in capabilities.get("commands"):
                         features[feature.get("commandName")] = bool(feature.get("isAvailable"))
+                        if feature.get("commandName", "") == "ZEV_PRECONDITION_CONFIGURE_SEATS":
+                            capabilityInformation = feature.get("capabilityInformation", None)
+                            if capabilityInformation and len(capabilityInformation) > 0:
+                                features[feature.get("capabilityInformation")[0]] = bool(feature.get("isAvailable"))
             except aiohttp.ClientError:
                 # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
                 # We just ignore the capabilities
@@ -370,9 +377,7 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             except Exception as err:
                 LOGGER.error("Error while updating entity %s: %s", self.name, err)
         else:
-            self._state = self._get_car_value(
-                self._feature_name, self._object_name, self._attrib_name, "error"
-            )
+            self._state = self._get_car_value(self._feature_name, self._object_name, self._attrib_name, "error")
             self.async_write_ha_state()
 
     def _mercedes_me_update(self) -> None:
