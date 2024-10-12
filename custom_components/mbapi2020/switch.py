@@ -10,8 +10,6 @@ from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import Any
 
-from config.custom_components.mbapi2020 import MercedesMeEntity
-from config.custom_components.mbapi2020.car import Car
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -19,12 +17,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import (
-    CONF_FT_DISABLE_CAPABILITY_CHECK,
-    DOMAIN,
-    LOGGER,
-    STATE_CONFIRMATION_DURATION,
-)
+from . import MercedesMeEntity
+from .car import Car
+from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, STATE_CONFIRMATION_DURATION
 from .coordinator import MBAPI2020DataUpdateCoordinator
 from .helper import LogHelper as loghelper
 
@@ -39,15 +34,18 @@ class MercedesMeSwitchEntityDescription(SwitchEntityDescription):
     turn_off_fn: Callable[[MercedesMESwitch], Callable[[], Coroutine[Any, Any, None]]]
     check_capability_fn: Callable[[Car], Callable[[], Coroutine[Any, Any, bool]]]
 
+
 SWITCH_CONFIGS: list[MercedesMeSwitchEntityDescription] = [
     MercedesMeSwitchEntityDescription(
         key="precond",
         translation_key="precond",
         icon="mdi:hvac",
         is_on_fn=lambda self: self._get_car_value("precond", "precondStatus", "value", default_value=False),
-        turn_on_fn=lambda self,**kwargs: self._coordinator.client.preheat_start_universal(self._vin),
+        turn_on_fn=lambda self, **kwargs: self._coordinator.client.preheat_start_universal(self._vin),
         turn_off_fn=lambda self, **kwargs: self._coordinator.client.preheat_stop(self._vin),
-        check_capability_fn=lambda car: car.check_capabilities(["ZEV_PRECONDITIONING_START", "ZEV_PRECONDITIONING_STOP"]),
+        check_capability_fn=lambda car: car.check_capabilities(
+            ["ZEV_PRECONDITIONING_START", "ZEV_PRECONDITIONING_STOP"]
+        ),
     ),
     MercedesMeSwitchEntityDescription(
         key="auxheat",
@@ -60,14 +58,13 @@ SWITCH_CONFIGS: list[MercedesMeSwitchEntityDescription] = [
     ),
 ]
 
+
 class MercedesMESwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
     """Representation of a Mercedes Me Switch."""
 
     _entity_description: MercedesMeSwitchEntityDescription
 
-    def __init__(
-        self, description: MercedesMeSwitchEntityDescription, vin, coordinator
-    ) -> None:
+    def __init__(self, description: MercedesMeSwitchEntityDescription, vin, coordinator) -> None:
         """Initialize the switch with methods for handling on/off commands."""
         self._entity_description = description
 
@@ -109,9 +106,7 @@ class MercedesMESwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
 
         except Exception as e:
             # Log the error and reset state if needed
-            LOGGER.error(
-                "Error changing state to %s: %s", "on" if state else "off", str(e)
-            )
+            LOGGER.error("Error changing state to %s: %s", "on" if state else "off", str(e))
             self._expected_state = None
             if self._confirmation_handle:
                 self._confirmation_handle()
@@ -153,6 +148,7 @@ class MercedesMESwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
         """Return True if the state is assumed."""
         return self._expected_state is not None
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -160,9 +156,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the switch platform for Mercedes ME."""
 
-    coordinator: MBAPI2020DataUpdateCoordinator = hass.data[DOMAIN][
-        config_entry.entry_id
-    ]
+    coordinator: MBAPI2020DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     if not coordinator.client.cars:
         LOGGER.info("No cars found during the switch creation process")
