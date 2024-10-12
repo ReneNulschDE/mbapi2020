@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from datetime import datetime
 import time
-from typing import Protocol
+from typing import Any
 
 import aiohttp
-import voluptuous as vol
-
 from custom_components.mbapi2020.car import Car, CarAttribute, RcpOptions
 from custom_components.mbapi2020.const import (
     ATTR_MB_MANUFACTURER,
@@ -26,10 +25,17 @@ from custom_components.mbapi2020.coordinator import MBAPI2020DataUpdateCoordinat
 from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
+import voluptuous as vol
+
+from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, HomeAssistantError
+from homeassistant.exceptions import (
+    ConfigEntryAuthFailed,
+    ConfigEntryNotReady,
+    HomeAssistantError,
+)
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.typing import ConfigType
@@ -229,6 +235,12 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     LOGGER.debug("unload result: %s", unload_ok)
     return unload_ok
 
+@dataclass(frozen=True, kw_only=True)
+class MercedesMeEntityDescription(SwitchEntityDescription):
+    """Configuration class for MercedesMe entities."""
+
+    attributes: list[str] | None = None
+    check_capability_fn: Callable[[Car], Callable[[], Coroutine[Any, Any, bool]]]
 
 class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity):
     """Entity class for MercedesMe devices."""

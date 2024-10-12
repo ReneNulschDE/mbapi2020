@@ -17,7 +17,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from . import MercedesMeEntity
+from . import MercedesMeEntity, MercedesMeEntityDescription
 from .car import Car
 from .const import (
     CONF_FT_DISABLE_CAPABILITY_CHECK,
@@ -30,15 +30,12 @@ from .helper import LogHelper as loghelper
 
 
 @dataclass(frozen=True, kw_only=True)
-class MercedesMeSwitchEntityDescription(SwitchEntityDescription):
+class MercedesMeSwitchEntityDescription(MercedesMeEntityDescription, SwitchEntityDescription):
     """Configuration class for MercedesMe switch entities."""
 
-    attributes: list[str] | None = None
     is_on_fn: Callable[[MercedesMeSwitch], Callable[[], Coroutine[Any, Any, bool]]]
     turn_on_fn: Callable[[MercedesMeSwitch], Callable[[], Coroutine[Any, Any, None]]]
     turn_off_fn: Callable[[MercedesMeSwitch], Callable[[], Coroutine[Any, Any, None]]]
-    check_capability_fn: Callable[[Car], Callable[[], Coroutine[Any, Any, bool]]]
-
 
 SWITCH_DESCRIPTIONS: list[MercedesMeSwitchEntityDescription] = [
     MercedesMeSwitchEntityDescription(
