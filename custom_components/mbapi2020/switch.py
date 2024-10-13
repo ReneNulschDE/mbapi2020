@@ -19,12 +19,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity, MercedesMeEntityDescription
 from .car import Car
-from .const import (
-    CONF_FT_DISABLE_CAPABILITY_CHECK,
-    DOMAIN,
-    LOGGER,
-    STATE_CONFIRMATION_DURATION,
-)
+from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, STATE_CONFIRMATION_DURATION
 from .coordinator import MBAPI2020DataUpdateCoordinator
 from .helper import LogHelper as loghelper
 
@@ -37,6 +32,7 @@ class MercedesMeSwitchEntityDescription(MercedesMeEntityDescription, SwitchEntit
     turn_on_fn: Callable[[MercedesMeSwitch], Callable[[], Coroutine[Any, Any, None]]]
     turn_off_fn: Callable[[MercedesMeSwitch], Callable[[], Coroutine[Any, Any, None]]]
 
+
 SWITCH_DESCRIPTIONS: list[MercedesMeSwitchEntityDescription] = [
     MercedesMeSwitchEntityDescription(
         key="precond",
@@ -45,7 +41,9 @@ SWITCH_DESCRIPTIONS: list[MercedesMeSwitchEntityDescription] = [
         is_on_fn=lambda self: self._get_car_value("precond", "precondStatus", "value", default_value=False),
         turn_on_fn=lambda self, **kwargs: self._coordinator.client.preheat_start_universal(self._vin),
         turn_off_fn=lambda self, **kwargs: self._coordinator.client.preheat_stop(self._vin),
-        check_capability_fn=lambda car: car.check_capabilities(["ZEV_PRECONDITIONING_START", "ZEV_PRECONDITIONING_STOP"]),
+        check_capability_fn=lambda car: car.check_capabilities(
+            ["ZEV_PRECONDITIONING_START", "ZEV_PRECONDITIONING_STOP"]
+        ),
     ),
     MercedesMeSwitchEntityDescription(
         key="auxheat",
@@ -110,7 +108,7 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
                 "Error changing state to %s for entity '%s': %s",
                 "on" if state else "off",
                 self._entity_description.translation_key,
-                str(e)
+                str(e),
             )
             self._expected_state = None
             if self._confirmation_handle:
@@ -154,7 +152,9 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
         return self._expected_state is not None
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
     """Set up the switch platform for Mercedes Me."""
 
     coordinator: MBAPI2020DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
@@ -164,7 +164,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
         """Check if the car supports the necessary capability for the given feature description."""
         if not skip_capability_check and not description.check_capability_fn(car):
             vin_masked = loghelper.Mask_VIN(car.finorvin)
-            LOGGER.debug("Skipping feature '%s' for VIN '%s' due to lack of required capability", description.key, vin_masked)
+            LOGGER.debug(
+                "Skipping feature '%s' for VIN '%s' due to lack of required capability", description.key, vin_masked
+            )
             return False
         return True
 
@@ -175,17 +177,22 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
             entity = MercedesMeSwitch(description, car.finorvin, coordinator)
             LOGGER.debug("Created switch entity for VIN: '%s', feature: '%s'", vin_masked, description.key)
         except Exception as e:
-            LOGGER.error("Error creating switch entity for VIN: '%s', feature: '%s'. Exception:", vin_masked, description.key, exc_info=True)
+            LOGGER.error(
+                "Error creating switch entity for VIN: '%s', feature: '%s'. Exception:",
+                vin_masked,
+                description.key,
+                exc_info=True,
+            )
             return None
         else:
             return entity
 
     entities: list[MercedesMeSwitch] = [
         entity
-        for car in coordinator.client.cars.values()     # Iterate over all cars
-        for description in SWITCH_DESCRIPTIONS          # Iterate over all feature descriptions
-        if check_capability(car, description)           # Check if the car supports the feature
-        and (entity := create_entity(description, car)) # Create the entity if possible
+        for car in coordinator.client.cars.values()  # Iterate over all cars
+        for description in SWITCH_DESCRIPTIONS  # Iterate over all feature descriptions
+        if check_capability(car, description)  # Check if the car supports the feature
+        and (entity := create_entity(description, car))  # Create the entity if possible
     ]
 
     async_add_entities(entities)

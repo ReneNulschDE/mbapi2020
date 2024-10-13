@@ -10,6 +10,8 @@ import time
 from typing import Any
 
 import aiohttp
+import voluptuous as vol
+
 from custom_components.mbapi2020.car import Car, CarAttribute, RcpOptions
 from custom_components.mbapi2020.const import (
     ATTR_MB_MANUFACTURER,
@@ -25,17 +27,11 @@ from custom_components.mbapi2020.coordinator import MBAPI2020DataUpdateCoordinat
 from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
-import voluptuous as vol
-
 from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import (
-    ConfigEntryAuthFailed,
-    ConfigEntryNotReady,
-    HomeAssistantError,
-)
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.typing import ConfigType
@@ -113,7 +109,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             try:
                 capabilities = await coordinator.client.webapi.get_car_capabilities_commands(vin)
                 hass.async_add_executor_job(
-                    coordinator.client.write_debug_json_output, capabilities, f"ca-{loghelper.Mask_VIN(vin)}-", True
+                    coordinator.client.write_debug_json_output,
+                    capabilities,
+                    f"ca-{loghelper.Mask_VIN(vin)}-",
+                    True,
                 )
                 if capabilities:
                     for feature in capabilities.get("commands"):
@@ -139,7 +138,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 rcp_supported_settings = await coordinator.client.webapi.get_car_rcp_supported_settings(vin)
                 if rcp_supported_settings:
                     hass.async_add_executor_job(
-                        coordinator.client.write_debug_json_output, rcp_supported_settings, "rcs"
+                        coordinator.client.write_debug_json_output,
+                        rcp_supported_settings,
+                        "rcs",
                     )
                     if rcp_supported_settings.get("data"):
                         if rcp_supported_settings.get("data").get("attributes"):
@@ -164,7 +165,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                                     setting_result = await coordinator.client.webapi.get_car_rcp_settings(vin, setting)
                                     if setting_result is not None:
                                         hass.async_add_executor_job(
-                                            coordinator.client.write_debug_json_output, setting_result, f"rcs_{setting}"
+                                            coordinator.client.write_debug_json_output,
+                                            setting_result,
+                                            f"rcs_{setting}",
                                         )
 
             current_car = Car(vin)
@@ -235,12 +238,14 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     LOGGER.debug("unload result: %s", unload_ok)
     return unload_ok
 
+
 @dataclass(frozen=True, kw_only=True)
 class MercedesMeEntityDescription(SwitchEntityDescription):
     """Configuration class for MercedesMe entities."""
 
     attributes: list[str] | None = None
     check_capability_fn: Callable[[Car], Callable[[], Coroutine[Any, Any, bool]]]
+
 
 class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity):
     """Entity class for MercedesMe devices."""
@@ -256,32 +261,25 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
         should_poll: bool = False,
     ) -> None:
         """Initialize the MercedesMe entity."""
-        super().__init__(coordinator)
 
         self._hass = coordinator.hass
         self._coordinator = coordinator
         self._vin = vin
         self._internal_name = internal_name
         self._sensor_config = config
+        self._car = self._coordinator.client.cars[self._vin]
+        self._feature_name = None
+        self._object_name = None
+        self._attrib_name = None
 
+        self._flip_result = False
         self._state = None
 
         # Temporary workaround: If PR get's approved, all entity types should be migrated to the new config classes
         if isinstance(config, EntityDescription):
-            self._sensor_name = config.translation_key
-            self._internal_unit = None
-            self._feature_name = None
-            self._object_name = None
-            self._attrib_name = None
-            self._flip_result = False
-            self._attr_device_class = config.device_class
-            self._attr_icon = config.icon
-            self._attr_state_class = None
-            self._attr_entity_category = config.entity_category
             self._attributes = config.attributes
+            self.entity_description = config
         else:
-            self._sensor_name = config[scf.DISPLAY_NAME.value]
-            self._internal_unit = config[scf.UNIT_OF_MEASUREMENT.value]
             self._feature_name = config[scf.OBJECT_NAME.value]
             self._object_name = config[scf.ATTRIBUTE_NAME.value]
             self._attrib_name = config[scf.VALUE_FIELD_NAME.value]
@@ -291,25 +289,23 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             self._attr_state_class = self._sensor_config[scf.STATE_CLASS.value]
             self._attr_entity_category = self._sensor_config[scf.ENTITY_CATEGORY.value]
             self._attributes = self._sensor_config[scf.EXTENDED_ATTRIBUTE_LIST.value]
-
-        self._car = self._coordinator.client.cars[self._vin]
-        self._use_chinese_location_data: bool = self._coordinator.config_entry.options.get(
-            CONF_ENABLE_CHINA_GCJ_02, False
-        )
-
-        self._name = f"{self._car.licenseplate} {self._sensor_name}"
+            self._attr_native_unit_of_measurement = self.unit_of_measurement
+            self._use_chinese_location_data: bool = self._coordinator.config_entry.options.get(
+                CONF_ENABLE_CHINA_GCJ_02, False
+            )
+            self._attr_translation_key = self._internal_name.lower()
+            self._attr_name = config[scf.DISPLAY_NAME.value]
+            self._name = f"{self._car.licenseplate} {config[scf.DISPLAY_NAME.value]}"
 
         self._attr_device_info = {"identifiers": {(DOMAIN, self._vin)}}
         self._attr_should_poll = should_poll
-
-        self._attr_native_unit_of_measurement = self.unit_of_measurement
-        self._attr_translation_key = self._internal_name.lower()
         self._attr_unique_id = slugify(f"{self._vin}_{self._internal_name}")
-        self._attr_name = self._sensor_name
+
+        super().__init__(coordinator)
 
     def device_retrieval_status(self):
         """Return the retrieval_status of the sensor."""
-        if self._sensor_name == "Car":
+        if self._internal_name == "car":
             return "VALID"
 
         return self._get_car_value(self._feature_name, self._object_name, "retrievalstatus", "error")
