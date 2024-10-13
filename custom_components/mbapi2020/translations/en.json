@@ -689,6 +689,14 @@
           "3": "Deflation"
         }
       }
+    },
+    "switch": {
+      "auxheat": {
+        "name": "Auxiliary Heating"
+      },
+      "precond": {
+        "name": "Pre-entry climate control"
+      }
     }
   },
   "selector": {

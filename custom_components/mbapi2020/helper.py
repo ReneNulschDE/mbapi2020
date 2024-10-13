@@ -229,8 +229,3 @@ class MBJSONEncoder(json.JSONEncoder):
             retval.update({p: getattr(o, p) for p in get_class_property_names(o)})
             return {k: v for k, v in retval.items() if k not in JSON_EXPORT_IGNORED_KEYS}
         return str(o)
-
-
-def check_capabilities(car, required_capabilities):
-    """Check if the car has the required capabilities."""
-    return all(car.features.get(capability) is True for capability in required_capabilities)
