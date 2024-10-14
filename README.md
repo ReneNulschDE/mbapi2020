@@ -63,6 +63,13 @@ Depends on your own car or purchased Mercedes Benz licenses.
   preWarningBrakeLiningWear
   ```
 
+- theftsystemarmed
+
+  ```
+  attributes:
+  carAlarmLastTime, carAlarmReason, collisionAlarmTimestamp, interiorSensor, interiorProtectionStatus, interiorMonitoringLastEvent, interiorMonitoringStatus, exteriorMonitoringLastEvent, exteriorMonitoringStatus, lastParkEvent, lastTheftWarning, lastTheftWarningReason, parkEventLevel, parkEventType, theftAlarmActive, towProtectionSensorStatus, towSensor,
+  ```
+
 - tirewarninglamp
 
   ```
@@ -70,14 +77,6 @@ Depends on your own car or purchased Mercedes Benz licenses.
   tireMarkerFrontRight, tireMarkerFrontLeft,tireMarkerRearLeft, tireMarkerRearRight, tirewarningsrdk, tirewarningsprw, tireTemperatureRearLeft, tireTemperatureFrontRight,
   tireTemperatureRearRight, tireTemperatureFrontLeft
   ```
-
-- tirepressureRearLeft
-
-- tirepressureRearRight
-
-- tirepressureFrontRight
-
-- tirepressureFrontLeft
 
 - windowsClosed
 
@@ -193,6 +192,14 @@ positionHeading
   "3"        "serviceDisabled"     "Remote service disabled"
   "4"        "vehicleNotAvalable"  "Vehicle no longer available"
   ```
+
+- tirepressureRearLeft
+
+- tirepressureRearRight
+
+- tirepressureFrontRight
+
+- tirepressureFrontLeft
 
 - State of Charge (soc)
 
