@@ -60,11 +60,8 @@ SWITCH_DESCRIPTIONS: list[MercedesMeSwitchEntityDescription] = [
 class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
     """Representation of a Mercedes Me Switch."""
 
-    _entity_description: MercedesMeSwitchEntityDescription
-
     def __init__(self, description: MercedesMeSwitchEntityDescription, vin, coordinator) -> None:
         """Initialize the switch with methods for handling on/off commands."""
-        self._entity_description = description
 
         # Initialize command tracking variables
         self._expected_state = None  # True for on, False for off, or None
@@ -89,9 +86,9 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
         try:
             # Execute the appropriate method and handle any exceptions
             if state:
-                await self._entity_description.turn_on_fn(self, **kwargs)
+                await self.entity_description.turn_on_fn(self, **kwargs)
             else:
-                await self._entity_description.turn_off_fn(self, **kwargs)
+                await self.entity_description.turn_off_fn(self, **kwargs)
 
             # Cancel any existing confirmation handle
             if self._confirmation_handle:
@@ -107,7 +104,7 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
             LOGGER.error(
                 "Error changing state to %s for entity '%s': %s",
                 "on" if state else "off",
-                self._entity_description.translation_key,
+                self.entity_description.translation_key,
                 str(e),
             )
             self._expected_state = None
@@ -126,7 +123,7 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
     def _mercedes_me_update(self) -> None:
         """Update Mercedes Me entity."""
         try:
-            actual_state = self._entity_description.is_on_fn(self)
+            actual_state = self.entity_description.is_on_fn(self)
         except Exception as e:
             LOGGER.error("Error getting actual state for %s: %s", self.name, str(e))
             self._attr_available = False
