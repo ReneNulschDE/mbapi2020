@@ -241,7 +241,7 @@ positionHeading
   "6"       auto heating
 
   attributes:
-  auxheattime1, auxheattime2, auxheattime3, auxheattimeselection, auxheatActive, auxheatwarnings, auxheattime2: '00:00'
+  auxheattime1, auxheattime2, auxheattime3, auxheattimeselection, auxheatActive, auxheatwarnings, auxheattime2, temperature_points_frontLeft, temperature_points_frontRight
 
   ```
 

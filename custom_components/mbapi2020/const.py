@@ -940,6 +940,8 @@ SENSORS = {
             "auxheattime1",
             "auxheattime2",
             "auxheattime3",
+            "temperature_points_frontLeft",
+            "temperature_points_frontRight",
         },
         "mdi:radiator",
         None,
