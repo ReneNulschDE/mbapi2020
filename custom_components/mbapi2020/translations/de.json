@@ -47,5 +47,15 @@
                 }
             }
         }
+    },
+    "entity": {
+        "switch": {
+            "auxheat": {
+                "name": "Standheizung"
+            },
+            "precond": {
+                "name": "Vorklimatisierung"
+            }
+        }
     }
 }
