@@ -27,9 +27,7 @@ from custom_components.mbapi2020.coordinator import MBAPI2020DataUpdateCoordinat
 from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
-from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -240,7 +238,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
 
 @dataclass(frozen=True, kw_only=True)
-class MercedesMeEntityDescription(SwitchEntityDescription):
+class MercedesMeEntityDescription(EntityDescription):
     """Configuration class for MercedesMe entities."""
 
     attributes: list[str] | None = None
