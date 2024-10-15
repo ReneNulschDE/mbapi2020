@@ -225,6 +225,14 @@ class Client:  # pylint: disable-too-few-public-methods
                     return "ba0100"
                 return
 
+            if msg_type == "data_change_event":
+                self._write_debug_output(data, "dce")
+                sequence_number = data.data_change_event.sequence_number
+                LOGGER.debug("data_change_event: %s", sequence_number)
+                ack_command = client_pb2.ClientMessage()
+                ack_command.acknowledge_data_change_event.sequence_number = sequence_number
+                return ack_command
+
             self._write_debug_output(data, "unk")
             LOGGER.debug("Message Type not implemented: %s", msg_type)
 
@@ -1261,7 +1269,7 @@ class Client:  # pylint: disable-too-few-public-methods
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End preheat_start_immediate for vin %s", loghelper.Mask_VIN(vin))
 
-    async def preheat_start_universal(self,vin: str) -> None:
+    async def preheat_start_universal(self, vin: str) -> None:
         """Turn on preheat universally for any car model."""
         if self._is_car_feature_available(vin, "precondNow"):
             await self.preheat_start(vin)
