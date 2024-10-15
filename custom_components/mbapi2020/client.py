@@ -397,10 +397,10 @@ class Client:  # pylint: disable-too-few-public-methods
             "max_soc": self._get_car_values_handle_max_soc,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
             "precondStatus": self._get_car_values_handle_precond_status,
-            "temperature_points_frontLeft": self._get_car_values_temperature_points,
-            "temperature_points_frontRight": self._get_car_values_temperature_points,
-            "temperature_points_rearLeft": self._get_car_values_temperature_points,
-            "temperature_points_rearRight": self._get_car_values_temperature_points,
+            "temperature_points_frontLeft": self._get_car_values_handle_temperature_points,
+            "temperature_points_frontRight": self._get_car_values_handle_temperature_points,
+            "temperature_points_rearLeft": self._get_car_values_handle_temperature_points,
+            "temperature_points_rearRight": self._get_car_values_handle_temperature_points,
         }
 
         if car_detail is None or not car_detail.get("attributes"):
@@ -556,7 +556,7 @@ class Client:  # pylint: disable-too-few-public-methods
 
         return None
 
-    def _get_car_values_temperature_points(self, car_detail, class_instance, option: str, update):
+    def _get_car_values_handle_temperature_points(self, car_detail, class_instance, option: str, update):
         curr_zone = option.replace("temperature_points_", "")
         attributes = car_detail.get("attributes", {})
         temperaturePoints = attributes.get("temperaturePoints")
