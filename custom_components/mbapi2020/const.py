@@ -88,7 +88,7 @@ RIS_APPLICATION_VERSION_NA = "3.49.0"
 RIS_APPLICATION_VERSION_CN = "1.49.0"
 RIS_APPLICATION_VERSION_PA = "1.48.0"
 RIS_APPLICATION_VERSION = "1.49.1"
-RIS_SDK_VERSION = "2.128.0"
+RIS_SDK_VERSION = "2.128.1"
 RIS_SDK_VERSION_CN = "2.128.0"
 RIS_OS_VERSION = "17.4.1"
 RIS_OS_NAME = "ios"
@@ -119,9 +119,9 @@ REST_API_BASE_CN = "https://bff.cn-prod.mobilesdk.mercedes-benz.com"
 REST_API_BASE_NA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
 REST_API_BASE_PA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
 WEBSOCKET_API_BASE = "wss://websocket.emea-prod.mobilesdk.mercedes-benz.com/v2/ws"
-WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
-WEBSOCKET_API_BASE_PA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/ws"
-WEBSOCKET_API_BASE_CN = "wss://websocket.cn-prod.mobilesdk.mercedes-benz.com/ws"
+WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v2/ws"
+WEBSOCKET_API_BASE_PA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v2/ws"
+WEBSOCKET_API_BASE_CN = "wss://websocket.cn-prod.mobilesdk.mercedes-benz.com/v2/ws"
 WEBSOCKET_USER_AGENT = "MyCar/2168 CFNetwork/1494.0.7 Darwin/23.4.0"
 WEBSOCKET_USER_AGENT_CN = "MyStarCN/1.47.0 (com.daimler.ris.mercedesme.cn.ios; build:1758; iOS 16.3.1) Alamofire/5.4.0"
 WEBSOCKET_USER_AGENT_PA = (
@@ -1442,7 +1442,7 @@ SENSORS = {
             "wiperLifetimeExceeded",
         },
         "mdi:wiper",
-        None,
+        SensorDeviceClass.POWER_FACTOR,
         False,
         None,
         None,
