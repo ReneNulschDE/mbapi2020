@@ -24,6 +24,6 @@
         "windows_close": "mdi:car-door",
         "windows_move": "mdi:car-door",
         "send_route": "mdi:routes",
-        "temperature_configure": "mdi:temperature-approve"
+        "temperature_configure": "mdi:temperature-check"
     }
 }
