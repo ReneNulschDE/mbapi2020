@@ -373,6 +373,112 @@
                     "description": "VIN/FIN vozu"
                 }
             }
+        },
+        "preconditioning_configure_seats": {
+            "name": "Předkondicionování nastavení sedadel⬤",
+            "description": "Odeslat příkaz k předkondicionování sedadel do vozu definovaného podle VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                },
+                "front_left": {
+                    "description": "Aktivovat, pokud by mělo být předkondicionováno přední levé sedadlo.",
+                    "name": "Přední levé"
+                },
+                "front_right": {
+                    "name": "Přední pravé",
+                    "description": "Aktivovat, pokud by mělo být předkondicionováno přední pravé sedadlo."
+                },
+                "rear_left": {
+                    "name": "Zadní levé",
+                    "description": "Aktivovat, pokud by mělo být předkondicionováno zadní levé sedadlo."
+                },
+                "rear_right": {
+                    "name": "Zadní pravé",
+                    "description": "Aktivovat, pokud by mělo být předkondicionováno zadní pravé sedadlo."
+                }
+            }
+        },
+        "charging_break_clocktimer_configure": {
+            "fields": {
+                "starttime_timer_4": {
+                    "description": "Čas začátku okna přestávky nabíjení (Časovač 4)",
+                    "name": "Čas začátku (Časovač 4)"
+                },
+                "stoptime_timer_2": {
+                    "description": "Čas ukončení okna přestávky nabíjení (Časovač 2)",
+                    "name": "Čas ukončení (Časovač 2)"
+                },
+                "starttime_timer_3": {
+                    "name": "Čas začátku (Časovač 3)",
+                    "description": "Čas začátku okna přestávky nabíjení (Časovač 3)"
+                },
+                "status_timer_3": {
+                    "name": "Stav (Časovač 3)"
+                },
+                "stoptime_timer_3": {
+                    "description": "Čas ukončení okna přestávky nabíjení (Časovač 3)",
+                    "name": "Čas ukončení (Časovač 3)"
+                },
+                "stoptime_timer_4": {
+                    "name": "Čas ukončení (Časovač 4)",
+                    "description": "Čas ukončení okna přestávky nabíjení (Časovač 4)"
+                },
+                "status_timer_4": {
+                    "name": "Stav (Časovač 4)"
+                },
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                },
+                "starttime_timer_1": {
+                    "description": "Čas začátku okna přestávky nabíjení (Časovač 1)",
+                    "name": "Čas začátku (Časovač 1)"
+                },
+                "status_timer_1": {
+                    "name": "Stav (Časovač 1)"
+                },
+                "stoptime_timer_1": {
+                    "name": "Čas ukončení (Časovač 1)",
+                    "description": "Čas ukončení okna přestávky nabíjení (Časovač 1)"
+                },
+                "status_timer_2": {
+                    "name": "Stav (Časovač 2)"
+                },
+                "starttime_timer_2": {
+                    "name": "Čas začátku (Časovač 2)",
+                    "description": "Čas začátku okna přestávky nabíjení (Časovač 2)"
+                }
+            },
+            "description": "Nastavte přestávky při nabíjení (pouze AC). Tímto přepíšete celé nastavení pro všechny časové sloty ve vašem voze.",
+            "name": "Nastavení časovače přestávky nabíjení"
+        },
+        "temperature_configure": {
+            "name": "Nastavení cílové teploty (předkondicionování/přídavné topení)",
+            "description": "Nakonfigurujte cílové teploty pro předkondicionování/přídavné topení pro zóny ve voze definovaném podle VIN.",
+            "fields": {
+                "vin": {
+                    "name": "VIN",
+                    "description": "VIN/FIN vozu"
+                },
+                "front_left": {
+                    "name": "Přední levé",
+                    "description": "Cílová teplota pro zónu přední_levo v CELSIA."
+                },
+                "front_right": {
+                    "name": "Přední pravé",
+                    "description": "Cílová teplota pro zónu přední_pravo v CELSIA."
+                },
+                "rear_left": {
+                    "name": "Zadní levé",
+                    "description": "Cílová teplota pro zónu zadní_levo v CELSIA. (pokud je k dispozici)⬤"
+                },
+                "rear_right": {
+                    "name": "Zadní levé",
+                    "description": "Cílová teplota pro zónu zadní_pravo v CELSIA. (pokud je k dispozici)⬤"
+                }
+            }
         }
     },
     "entity": {
@@ -537,6 +643,26 @@
                     "1": "Zavřené",
                     "2": "Klapka stisknuta",
                     "3": "Neznámé"
+                }
+            },
+            "auxheatstatus": {
+                "state": {
+                    "1": "Normální vytápění",
+                    "0": "Neaktivní",
+                    "2": "Normální větrání",
+                    "3": "Manualní vytápění",
+                    "4": "Dodatečné vytápění",
+                    "5": "Dodatečné větrání",
+                    "6": "Auto vytápění"
+                }
+            },
+            "ignitionstate": {
+                "state": {
+                    "1": "Vypnuté",
+                    "2": "Příslušenství",
+                    "4": "Spuštěné",
+                    "5": "Start",
+                    "0": "Zamknuté"
                 }
             }
         }
