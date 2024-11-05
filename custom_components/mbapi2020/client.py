@@ -155,14 +155,23 @@ class Client:  # pylint: disable-too-few-public-methods
                     "service_status_update - Data: %s",
                     MessageToJson(data, preserving_proto_field_name=True),
                 )
-                return
+
+                sequence_number = data.service_status_update.sequence_number
+                LOGGER.debug("service_status_update Sequence: %s", sequence_number)
+                ack_command = client_pb2.ClientMessage()
+                ack_command.acknowledge_service_status_update.sequence_number = sequence_number
+                return ack_command
 
             if msg_type == "user_data_update":
                 LOGGER.debug(
                     "user_data_update - Data: %s",
                     MessageToJson(data, preserving_proto_field_name=True),
                 )
-                return
+                sequence_number = data.user_data_update.sequence_number
+                LOGGER.debug("acknowledge_user_data_update Sequence: %s", sequence_number)
+                ack_command = client_pb2.ClientMessage()
+                ack_command.acknowledge_user_data_update.sequence_number = sequence_number
+                return ack_command
 
             if msg_type == "user_vehicle_auth_changed_update":
                 LOGGER.debug(
