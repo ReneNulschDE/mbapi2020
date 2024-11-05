@@ -1375,18 +1375,21 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if rear_left:
             zone_rear_left = config.temperature_points.add()
-            zone_rear_left.zone = 3
+            zone_rear_left.zone = 4
             zone_rear_left.temperature_in_celsius = rear_left
             entry_set = True
 
         if rear_right:
             zone_rear_right = config.temperature_points.add()
-            zone_rear_right.zone = 4
+            zone_rear_right.zone = 5
             zone_rear_right.temperature_in_celsius = rear_right
             entry_set = True
 
         if entry_set:
             message.commandRequest.temperature_configure.CopyFrom(config)
+            self.write_debug_json_output(
+                MessageToJson(message, preserving_proto_field_name=True), "out_temperature_", False
+            )
             await self.websocket.call(message.SerializeToString())
             LOGGER.info("End temperature_configure for vin %s", loghelper.Mask_VIN(vin))
         else:
