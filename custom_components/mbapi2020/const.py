@@ -251,7 +251,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
         vol.Optional("front_left", default=None): vol.Any(
             None,
             vol.All(
-                vol.Coerce(int),
+                vol.Coerce(float),
                 vol.In(
                     [
                         16,
@@ -286,7 +286,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
         vol.Optional("front_right", default=None): vol.Any(
             None,
             vol.All(
-                vol.Coerce(int),
+                vol.Coerce(float),
                 vol.In(
                     [
                         16,
@@ -321,7 +321,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
         vol.Optional("rear_left", default=None): vol.Any(
             None,
             vol.All(
-                vol.Coerce(int),
+                vol.Coerce(float),
                 vol.In(
                     [
                         16,
@@ -356,7 +356,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
         vol.Optional("rear_right", default=None): vol.Any(
             None,
             vol.All(
-                vol.Coerce(int),
+                vol.Coerce(float),
                 vol.In(
                     [
                         16,

@@ -1370,22 +1370,33 @@ class Client:  # pylint: disable-too-few-public-methods
         config = pb2_commands.TemperatureConfigure()
         entry_set: bool = False
 
-        if front_left:
+        car = self.cars.get(vin)
+
+        if front_left or front_right or rear_left or rear_right:
             zone_front_left = config.temperature_points.add()
             zone_front_left.zone = 1
-            zone_front_left.temperature_in_celsius = front_left
+            if front_left:
+                zone_front_left.temperature_in_celsius = front_left
+            elif car.precond.temperature_points_frontLeft:
+                zone_front_left.temperature_in_celsius = car.precond.temperature_points_frontLeft.value
             entry_set = True
 
-        if front_right:
+        if front_right or rear_left or rear_right:
             zone_front_right = config.temperature_points.add()
             zone_front_right.zone = 2
-            zone_front_right.temperature_in_celsius = front_right
+            if front_right:
+                zone_front_right.temperature_in_celsius = front_right
+            elif car.precond.temperature_points_frontRight:
+                zone_front_right.temperature_in_celsius = car.precond.temperature_points_frontRight.value
             entry_set = True
 
-        if rear_left:
+        if rear_left or rear_right:
             zone_rear_left = config.temperature_points.add()
             zone_rear_left.zone = 4
-            zone_rear_left.temperature_in_celsius = rear_left
+            if rear_left:
+                zone_rear_left.temperature_in_celsius = rear_left
+            elif car.precond.temperature_points_rearLeft:
+                zone_rear_left.temperature_in_celsius = car.precond.temperature_points_rearLeft.value
             entry_set = True
 
         if rear_right:
@@ -1396,8 +1407,11 @@ class Client:  # pylint: disable-too-few-public-methods
 
         if entry_set:
             message.commandRequest.temperature_configure.CopyFrom(config)
-            self.write_debug_json_output(
-                MessageToJson(message, preserving_proto_field_name=True), "out_temperature_", False
+            self._hass.async_add_executor_job(
+                self.write_debug_json_output,
+                MessageToJson(message, preserving_proto_field_name=True),
+                "out_temperature_",
+                False,
             )
             await self.websocket.call(message.SerializeToString())
             LOGGER.info("End temperature_configure for vin %s", loghelper.Mask_VIN(vin))
