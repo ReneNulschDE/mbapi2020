@@ -1399,10 +1399,13 @@ class Client:  # pylint: disable-too-few-public-methods
                 zone_rear_left.temperature_in_celsius = car.precond.temperature_points_rearLeft.value
             entry_set = True
 
-        if rear_right:
+        if rear_right or rear_left:
             zone_rear_right = config.temperature_points.add()
             zone_rear_right.zone = 5
-            zone_rear_right.temperature_in_celsius = rear_right
+            if rear_right:
+                zone_rear_right.temperature_in_celsius = rear_right
+            elif car.precond.temperature_points_rearRight:
+                zone_rear_right.temperature_in_celsius = car.precond.temperature_points_rearRight.value
             entry_set = True
 
         if entry_set:
