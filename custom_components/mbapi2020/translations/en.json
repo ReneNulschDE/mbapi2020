@@ -713,6 +713,12 @@
         "active": "Active",
         "inactive": "Inactive"
       }
+    },
+    "temperature_configure": {
+      "options": {
+        "0": "Low",
+        "30": "High"
+      }
     }
   }
 }

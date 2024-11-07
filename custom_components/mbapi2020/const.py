@@ -254,6 +254,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                 vol.Coerce(float),
                 vol.In(
                     [
+                        0,
                         16,
                         16.5,
                         17,
@@ -279,6 +280,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                         27,
                         27.5,
                         28,
+                        30,
                     ]
                 ),
             ),
@@ -289,6 +291,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                 vol.Coerce(float),
                 vol.In(
                     [
+                        0,
                         16,
                         16.5,
                         17,
@@ -314,6 +317,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                         27,
                         27.5,
                         28,
+                        30,
                     ]
                 ),
             ),
@@ -324,6 +328,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                 vol.Coerce(float),
                 vol.In(
                     [
+                        0,
                         16,
                         16.5,
                         17,
@@ -349,6 +354,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                         27,
                         27.5,
                         28,
+                        30,
                     ]
                 ),
             ),
@@ -359,6 +365,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                 vol.Coerce(float),
                 vol.In(
                     [
+                        0,
                         16,
                         16.5,
                         17,
@@ -384,6 +391,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                         27,
                         27.5,
                         28,
+                        30,
                     ]
                 ),
             ),
