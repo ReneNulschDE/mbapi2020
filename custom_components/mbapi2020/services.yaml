@@ -560,7 +560,7 @@ temperature_configure:
         select:
           translation_key: "temperature_configure"
           options:
-            - 0
+            - "0"
             - 16
             - 16.5
             - 17
