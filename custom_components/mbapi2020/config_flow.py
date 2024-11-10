@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from copy import deepcopy
-import os
 import uuid
 
+from awesomeversion import AwesomeVersion
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, __version__ as HAVERSION
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
@@ -40,6 +40,10 @@ SCHEMA_STEP_USER = vol.Schema(
 )
 
 SCHEMA_STEP_PIN = vol.Schema({vol.Required(CONF_PASSWORD): str})
+
+# Version threshold for config_entry setting in options flow
+# See: https://github.com/home-assistant/core/pull/129562
+HA_OPTIONS_FLOW_VERSION_THRESHOLD = "2024.11.99"
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -139,8 +143,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return OptionsFlowHandler(config_entry)
 
 
-class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
+class OptionsFlowHandler(config_entries.OptionsFlow):
     """Options flow handler."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize MBAI2020 options flow."""
+        self.options = dict(config_entry.options)
+        # See: https://github.com/home-assistant/core/pull/129562
+        if AwesomeVersion(HAVERSION) < HA_OPTIONS_FLOW_VERSION_THRESHOLD:
+            self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
@@ -178,12 +189,11 @@ class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
                 await self.hass.config_entries.async_reload(self.config_entry.entry_id)
             return self.async_create_entry(title=DOMAIN, data=self.options)
 
-        options = self.config_entry.options
-        excluded_cars = options.get(CONF_EXCLUDED_CARS, "")
-        pin = options.get(CONF_PIN, "")
-        cap_check_disabled = options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
-        save_debug_files = options.get(CONF_DEBUG_FILE_SAVE, False)
-        enable_china_gcj_02 = options.get(CONF_ENABLE_CHINA_GCJ_02, False)
+        excluded_cars = self.options.get(CONF_EXCLUDED_CARS, "")
+        pin = self.options.get(CONF_PIN, "")
+        cap_check_disabled = self.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
+        save_debug_files = self.options.get(CONF_DEBUG_FILE_SAVE, False)
+        enable_china_gcj_02 = self.options.get(CONF_ENABLE_CHINA_GCJ_02, False)
 
         return self.async_show_form(
             step_id="init",
