@@ -1,1 +1,2 @@
 protobuf>=3.19.1
+pre-commit
