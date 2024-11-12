@@ -84,12 +84,12 @@ JSON_EXPORT_IGNORED_KEYS = (
 )
 
 
-RIS_APPLICATION_VERSION_NA = "3.49.0"
-RIS_APPLICATION_VERSION_CN = "1.49.0"
-RIS_APPLICATION_VERSION_PA = "1.48.0"
+RIS_APPLICATION_VERSION_NA = "3.50.0"
+RIS_APPLICATION_VERSION_CN = "1.50.0"
+RIS_APPLICATION_VERSION_PA = "1.50.0"
 RIS_APPLICATION_VERSION = "1.49.1"
-RIS_SDK_VERSION = "2.128.1"
-RIS_SDK_VERSION_CN = "2.128.0"
+RIS_SDK_VERSION = "2.130.0"
+RIS_SDK_VERSION_CN = "2.130.0"
 RIS_OS_VERSION = "17.4.1"
 RIS_OS_NAME = "ios"
 X_APPLICATIONNAME = "mycar-store-ece"
@@ -118,6 +118,8 @@ REST_API_BASE = "https://bff.emea-prod.mobilesdk.mercedes-benz.com"
 REST_API_BASE_CN = "https://bff.cn-prod.mobilesdk.mercedes-benz.com"
 REST_API_BASE_NA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
 REST_API_BASE_PA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
+DEVICE_TOKEN_URL = "https://link.emea-prod.mobilesdk.mercedes-benz.com/device-login?userCode={userCode}deviceType=watch"
+
 WEBSOCKET_API_BASE = "wss://websocket.emea-prod.mobilesdk.mercedes-benz.com/v2/ws"
 WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v2/ws"
 WEBSOCKET_API_BASE_PA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v2/ws"
