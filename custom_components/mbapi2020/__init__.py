@@ -61,7 +61,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         try:
             token_info = await coordinator.client.oauth.async_get_cached_token()
         except aiohttp.ClientError as err:
-            LOGGER.debug("Can not connect to MB OAuth API %s. Will try again.", LOGIN_BASE_URI)
+            LOGGER.warning("Can not connect to MB OAuth API %s. Will try again.", LOGIN_BASE_URI)
+            LOGGER.debug("Can not connect to MB OAuth API %s. Will try again. %s", LOGIN_BASE_URI, err)
             raise ConfigEntryNotReady from err
 
         if token_info is None:
