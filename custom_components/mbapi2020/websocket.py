@@ -34,7 +34,7 @@ from .helper import UrlHelper as helper
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
-DEFAULT_WATCHDOG_TIMEOUT = 6600
+DEFAULT_WATCHDOG_TIMEOUT = 720
 STATE_CONNECTED = "connected"
 STATE_RECONNECTING = "reconnecting"
 
@@ -64,11 +64,12 @@ class WebsocketWatchdog:
 
     async def on_expire(self):
         """Log and act when the watchdog expires."""
-        LOGGER.info("Watchdog expired – calling %s", self._action.__name__)
+        LOGGER.debug("Watchdog expired – calling %s", self._action.__name__)
         await self._action()
 
     async def trigger(self):
         """Trigger the watchdog."""
+        LOGGER.debug("Watchdog trigger")
         if self._timer_task:
             self._timer_task.cancel()
 
@@ -82,13 +83,13 @@ class WebsocketPingWatcher:
         self,
         action: Callable[..., Awaitable],
         *,
-        timeout_seconds: int = DEFAULT_WATCHDOG_TIMEOUT,
+        timeout_seconds: int = 30,
     ):
         """Initialize."""
         self._action: Callable[..., Awaitable] = action
         self._loop = asyncio.get_event_loop()
         self._timer_task: Optional[asyncio.TimerHandle] = None
-        self._timeout: int = 15
+        self._timeout: int = 30
 
     def cancel(self):
         """Cancel the watchdog."""
@@ -238,6 +239,8 @@ class Websocket:
         self._connection = await session.ws_connect(websocket_url, headers=headers, proxy=SYSTEM_PROXY)
         LOGGER.info("Connected to mercedes websocket at %s", websocket_url)
 
+        await self._watchdog.trigger()
+
         while not self._connection.closed:
             self.is_connecting = False
             msg = await self._connection.receive()
@@ -252,7 +255,7 @@ class Websocket:
                 break
             elif msg.type == WSMsgType.BINARY:
                 self._queue.put_nowait(msg.data)
-                await self._watchdog.trigger()
+                # await self._watchdog.trigger()
                 await self._pingwatchdog.trigger()
 
     async def _websocket_connection_headers(self):
