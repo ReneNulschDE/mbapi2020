@@ -39,7 +39,11 @@ REGION_NORAM = "North America"
 REGION_APAC = "Asia-Pacific"
 REGION_CHINA = "China"
 
+AUTH_METHOD_PIN = "auth_method_pin"
+AUTH_METHOD_DEVICE_CODE = "auth_method_device_code"
+
 CONF_ALLOWED_REGIONS = [REGION_EUROPE, REGION_NORAM, REGION_APAC, REGION_CHINA]
+CONF_ALLOWED_AUTH_METHODS = [AUTH_METHOD_PIN, AUTH_METHOD_DEVICE_CODE]
 CONF_LOCALE = "locale"
 CONF_COUNTRY_CODE = "country_code"
 CONF_EXCLUDED_CARS = "excluded_cars"
@@ -51,6 +55,7 @@ CONF_DEBUG_FILE_SAVE = "save_files"
 CONF_FT_DISABLE_CAPABILITY_CHECK = "cap_check_disabled"
 CONF_DELETE_AUTH_FILE = "delete_auth_file"
 CONF_ENABLE_CHINA_GCJ_02 = "enable_china_gcj_02"
+CONF_AUTH_METHOD = "auth_method"
 
 DOMAIN = "mbapi2020"
 LOGGER = logging.getLogger(__package__)
