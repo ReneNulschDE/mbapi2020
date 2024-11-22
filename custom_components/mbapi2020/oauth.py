@@ -45,8 +45,6 @@ from .helper import UrlHelper as helper
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT = 10
-
 
 class Oauth:  # pylint: disable-too-few-public-methods
     """define the client."""
@@ -66,6 +64,31 @@ class Oauth:  # pylint: disable-too-few-public-methods
         self.token = None
         self._xsessionid = ""
         self._get_token_lock = asyncio.Lock()
+
+    async def async_request_device_code(self):
+        """Refresh the device code."""
+        _LOGGER.info("Start request_device_code")
+
+        _LOGGER.info("Auth token refresh preflight request 1")
+        headers = self._get_header()
+        url = f"{helper.Rest_url(self._region)}/v1/config"
+        await self._async_request("get", url, headers=headers)
+
+        url = f"{helper.Login_Base_Url(self._region)}/as/device_authz.oauth2"
+        data = f"client_id={helper.Login_App_Id(self._region)}&scope=openid email phone profile offline_access ciam-uid"
+        headers = self._get_header()
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+        headers["Stage"] = "prod"
+        headers["X-Device-Id"] = str(uuid.uuid4())
+        headers["X-Request-Id"] = str(uuid.uuid4())
+        device_code_result = None
+        try:
+            device_code_result = await self._async_request(method="post", url=url, data=data, headers=headers)
+        except Exception as e:
+            _LOGGER.error(e)
+
+        _LOGGER.debug(device_code_result)
+        return device_code_result
 
     async def request_pin(self, email: str, nonce: str):
         """Initiate a PIN request."""
@@ -180,7 +203,10 @@ class Oauth:  # pylint: disable-too-few-public-methods
 
     def _save_token_info(self, token_info):
         if self._config_entry:
-            _LOGGER.debug("Start _save_token_info() to config_entry %s", self._config_entry.entry_id)
+            _LOGGER.debug(
+                "Start _save_token_info() to config_entry %s",
+                self._config_entry.entry_id,
+            )
 
             new_config_entry_data = deepcopy(dict(self._config_entry.data))
             new_config_entry_data["token"] = token_info
