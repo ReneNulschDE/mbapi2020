@@ -241,7 +241,7 @@
         },
         "type": {
           "name": "Type",
-          "description": "Method that is used to initiate the start process. 0=Now (Default), 1=Immediate - Use Immediate in case your does not support now."
+          "description": "Method that is used to initiate the start process. 0=Now (Default), 1=Immediate - Use Immediate in case your car does not support now."
         }
       }
     },
