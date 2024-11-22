@@ -150,25 +150,18 @@ class Client:  # pylint: disable-too-few-public-methods
 
                 return
 
-            if msg_type == "service_status_update":
-                LOGGER.debug(
-                    "service_status_update - Data: %s",
-                    MessageToJson(data, preserving_proto_field_name=True),
-                )
-
-                sequence_number = data.service_status_update.sequence_number
+            if msg_type == "service_status_upd":
+                self._write_debug_output(data, "ssu")
+                sequence_number = data.service_status_updates_by_vin.sequence_number
                 LOGGER.debug("service_status_update Sequence: %s", sequence_number)
                 ack_command = client_pb2.ClientMessage()
-                ack_command.acknowledge_service_status_update.sequence_number = sequence_number
+                ack_command.acknowledge_service_status_updates_by_vin.sequence_number = sequence_number
                 return ack_command
 
             if msg_type == "user_data_update":
-                LOGGER.debug(
-                    "user_data_update - Data: %s",
-                    MessageToJson(data, preserving_proto_field_name=True),
-                )
+                self._write_debug_output(data, "udu")
                 sequence_number = data.user_data_update.sequence_number
-                LOGGER.debug("acknowledge_user_data_update Sequence: %s", sequence_number)
+                LOGGER.debug("user_data_update Sequence: %s", sequence_number)
                 ack_command = client_pb2.ClientMessage()
                 ack_command.acknowledge_user_data_update.sequence_number = sequence_number
                 return ack_command
@@ -181,32 +174,36 @@ class Client:  # pylint: disable-too-few-public-methods
                 return
 
             if msg_type == "user_picture_update":
-                LOGGER.debug(
-                    "user_picture_update - Data: %s",
-                    MessageToJson(data, preserving_proto_field_name=True),
-                )
-                return
+                self._write_debug_output(data, "upu")
+                sequence_number = data.user_picture_update.sequence_number
+                LOGGER.debug("user_picture_update Sequence: %s", sequence_number)
+                ack_command = client_pb2.ClientMessage()
+                ack_command.acknowledge_user_picture_update.sequence_number = sequence_number
+                return ack_command
 
             if msg_type == "user_pin_update":
-                LOGGER.debug(
-                    "user_pin_update - Data: %s",
-                    MessageToJson(data, preserving_proto_field_name=True),
-                )
-                return
+                self._write_debug_output(data, "upu")
+                sequence_number = data.user_pin_update.sequence_number
+                LOGGER.debug("user_pin_update Sequence: %s", sequence_number)
+                ack_command = client_pb2.ClientMessage()
+                ack_command.acknowledge_user_pin_update.sequence_number = sequence_number
+                return ack_command
 
             if msg_type == "vehicle_updated":
-                LOGGER.debug(
-                    "vehicle_updated - Data: %s",
-                    MessageToJson(data, preserving_proto_field_name=True),
-                )
-                return
+                self._write_debug_output(data, "vup")
+                sequence_number = data.vehicle_updated.sequence_number
+                LOGGER.debug("vehicle_updated Sequence: %s", sequence_number)
+                ack_command = client_pb2.ClientMessage()
+                ack_command.acknowledge_vehicle_updated.sequence_number = sequence_number
+                return ack_command
 
             if msg_type == "preferred_dealer_change":
-                LOGGER.debug(
-                    "preferred_dealer_change - Data: %s",
-                    MessageToJson(data, preserving_proto_field_name=True),
-                )
-                return
+                self._write_debug_output(data, "pdc")
+                sequence_number = data.preferred_dealer_change.sequence_number
+                LOGGER.debug("preferred_dealer_change Sequence: %s", sequence_number)
+                ack_command = client_pb2.ClientMessage()
+                ack_command.acknowledge_preferred_dealer_change.sequence_number = sequence_number
+                return ack_command
 
             if msg_type == "apptwin_command_status_updates_by_vin":
                 LOGGER.debug(
