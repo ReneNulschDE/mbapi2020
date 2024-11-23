@@ -93,10 +93,10 @@ class Client:  # pylint: disable-too-few-public-methods
         self.config_entry = config_entry
         self._locale: str = DEFAULT_LOCALE
         self._country_code: str = DEFAULT_COUNTRY_CODE
-        self.session_id = str(uuid.uuid4()).upper()
+        self.session_id = str(uuid.UUID(config_entry.entry_id) if config_entry else uuid.uuid4()).upper()
 
         self.oauth: Oauth = Oauth(
-            self._hass,
+            hass=self._hass,
             session=session,
             region=self._region,
             config_entry=config_entry,
@@ -104,7 +104,9 @@ class Client:  # pylint: disable-too-few-public-methods
         self.oauth.session_id = self.session_id
         self.webapi: WebApi = WebApi(self._hass, session=session, oauth=self.oauth, region=self._region)
         self.webapi.session_id = self.session_id
-        self.websocket: Websocket = Websocket(self._hass, self.oauth, region=self._region)
+        self.websocket: Websocket = Websocket(
+            hass=self._hass, oauth=self.oauth, region=self._region, session_id=self.session_id
+        )
         self.cars: dict[str, Car] = {}
 
     @property
@@ -123,144 +125,155 @@ class Client:  # pylint: disable-too-few-public-methods
                 return self.config_entry.options.get(CONF_EXCLUDED_CARS, [])
         return []
 
+    def on_data(self, data):
+        """Define a handler to fire when the data is received."""
+
+        msg_type = data.WhichOneof("msg")
+
+        if msg_type == "vepUpdate":  # VEPUpdate
+            LOGGER.debug("vepUpdate")
+            return
+
+        if msg_type == "vepUpdates":  # VEPUpdatesByVIN
+            self._process_vep_updates(data)
+
+            sequence_number = data.vepUpdates.sequence_number
+            LOGGER.debug("vepUpdates Sequence: %s", sequence_number)
+            ack_command = client_pb2.ClientMessage()
+            ack_command.acknowledge_vep_updates_by_vin.sequence_number = sequence_number
+            return ack_command
+
+        if msg_type == "debugMessage":  # DebugMessage
+            if data.debugMessage:
+                LOGGER.debug("debugMessage - Data: %s", data.debugMessage.message)
+
+            return
+
+        if msg_type == "service_status_upd":
+            self._write_debug_output(data, "ssu")
+            sequence_number = data.service_status_updates_by_vin.sequence_number
+            LOGGER.debug("service_status_update Sequence: %s", sequence_number)
+            ack_command = client_pb2.ClientMessage()
+            ack_command.acknowledge_service_status_updates_by_vin.sequence_number = sequence_number
+            return ack_command
+
+        if msg_type == "user_data_update":
+            self._write_debug_output(data, "udu")
+            sequence_number = data.user_data_update.sequence_number
+            LOGGER.debug("user_data_update Sequence: %s", sequence_number)
+            ack_command = client_pb2.ClientMessage()
+            ack_command.acknowledge_user_data_update.sequence_number = sequence_number
+            return ack_command
+
+        if msg_type == "user_vehicle_auth_changed_update":
+            LOGGER.debug(
+                "user_vehicle_auth_changed_update - Data: %s",
+                MessageToJson(data, preserving_proto_field_name=True),
+            )
+            return
+
+        if msg_type == "user_picture_update":
+            self._write_debug_output(data, "upu")
+            sequence_number = data.user_picture_update.sequence_number
+            LOGGER.debug("user_picture_update Sequence: %s", sequence_number)
+            ack_command = client_pb2.ClientMessage()
+            ack_command.acknowledge_user_picture_update.sequence_number = sequence_number
+            return ack_command
+
+        if msg_type == "user_pin_update":
+            self._write_debug_output(data, "upu")
+            sequence_number = data.user_pin_update.sequence_number
+            LOGGER.debug("user_pin_update Sequence: %s", sequence_number)
+            ack_command = client_pb2.ClientMessage()
+            ack_command.acknowledge_user_pin_update.sequence_number = sequence_number
+            return ack_command
+
+        if msg_type == "vehicle_updated":
+            self._write_debug_output(data, "vup")
+            sequence_number = data.vehicle_updated.sequence_number
+            LOGGER.debug("vehicle_updated Sequence: %s", sequence_number)
+            ack_command = client_pb2.ClientMessage()
+            ack_command.acknowledge_vehicle_updated.sequence_number = sequence_number
+            return ack_command
+
+        if msg_type == "preferred_dealer_change":
+            self._write_debug_output(data, "pdc")
+            sequence_number = data.preferred_dealer_change.sequence_number
+            LOGGER.debug("preferred_dealer_change Sequence: %s", sequence_number)
+            ack_command = client_pb2.ClientMessage()
+            ack_command.acknowledge_preferred_dealer_change.sequence_number = sequence_number
+            return ack_command
+
+        if msg_type == "apptwin_command_status_updates_by_vin":
+            LOGGER.debug(
+                "apptwin_command_status_updates_by_vin - Data: %s",
+                MessageToJson(data, preserving_proto_field_name=True),
+            )
+
+            self._process_apptwin_command_status_updates_by_vin(data)
+
+            sequence_number = data.apptwin_command_status_updates_by_vin.sequence_number
+            LOGGER.debug("apptwin_command_status_updates_by_vin: %s", sequence_number)
+            ack_command = client_pb2.ClientMessage()
+            ack_command.acknowledge_apptwin_command_status_update_by_vin.sequence_number = sequence_number
+            return ack_command
+
+        if msg_type == "apptwin_pending_command_request":
+            self._process_assigned_vehicles(data)
+            if self._dataload_complete_fired:
+                return "aa0100"
+            return
+
+        if msg_type == "assigned_vehicles":
+            self._process_assigned_vehicles(data)
+            if self._dataload_complete_fired:
+                return "ba0100"
+            return
+
+        if msg_type == "data_change_event":
+            self._write_debug_output(data, "dce")
+            sequence_number = data.data_change_event.sequence_number
+            LOGGER.debug("data_change_event: %s", sequence_number)
+            ack_command = client_pb2.ClientMessage()
+            ack_command.acknowledge_data_change_event.sequence_number = sequence_number
+            return ack_command
+
+        self._write_debug_output(data, "unk")
+        LOGGER.debug("Message Type not implemented: %s", msg_type)
+
     async def attempt_connect(self, callback_dataload_complete):
         """Attempt to connect to the socket (retrying later on fail)."""
 
-        def on_data(data):
-            """Define a handler to fire when the data is received."""
-
-            msg_type = data.WhichOneof("msg")
-
-            if msg_type == "vepUpdate":  # VEPUpdate
-                LOGGER.debug("vepUpdate")
-                return
-
-            if msg_type == "vepUpdates":  # VEPUpdatesByVIN
-                self._process_vep_updates(data)
-
-                sequence_number = data.vepUpdates.sequence_number
-                LOGGER.debug("vepUpdates Sequence: %s", sequence_number)
-                ack_command = client_pb2.ClientMessage()
-                ack_command.acknowledge_vep_updates_by_vin.sequence_number = sequence_number
-                return ack_command
-
-            if msg_type == "debugMessage":  # DebugMessage
-                if data.debugMessage:
-                    LOGGER.debug("debugMessage - Data: %s", data.debugMessage.message)
-
-                return
-
-            if msg_type == "service_status_upd":
-                self._write_debug_output(data, "ssu")
-                sequence_number = data.service_status_updates_by_vin.sequence_number
-                LOGGER.debug("service_status_update Sequence: %s", sequence_number)
-                ack_command = client_pb2.ClientMessage()
-                ack_command.acknowledge_service_status_updates_by_vin.sequence_number = sequence_number
-                return ack_command
-
-            if msg_type == "user_data_update":
-                self._write_debug_output(data, "udu")
-                sequence_number = data.user_data_update.sequence_number
-                LOGGER.debug("user_data_update Sequence: %s", sequence_number)
-                ack_command = client_pb2.ClientMessage()
-                ack_command.acknowledge_user_data_update.sequence_number = sequence_number
-                return ack_command
-
-            if msg_type == "user_vehicle_auth_changed_update":
-                LOGGER.debug(
-                    "user_vehicle_auth_changed_update - Data: %s",
-                    MessageToJson(data, preserving_proto_field_name=True),
-                )
-                return
-
-            if msg_type == "user_picture_update":
-                self._write_debug_output(data, "upu")
-                sequence_number = data.user_picture_update.sequence_number
-                LOGGER.debug("user_picture_update Sequence: %s", sequence_number)
-                ack_command = client_pb2.ClientMessage()
-                ack_command.acknowledge_user_picture_update.sequence_number = sequence_number
-                return ack_command
-
-            if msg_type == "user_pin_update":
-                self._write_debug_output(data, "upu")
-                sequence_number = data.user_pin_update.sequence_number
-                LOGGER.debug("user_pin_update Sequence: %s", sequence_number)
-                ack_command = client_pb2.ClientMessage()
-                ack_command.acknowledge_user_pin_update.sequence_number = sequence_number
-                return ack_command
-
-            if msg_type == "vehicle_updated":
-                self._write_debug_output(data, "vup")
-                sequence_number = data.vehicle_updated.sequence_number
-                LOGGER.debug("vehicle_updated Sequence: %s", sequence_number)
-                ack_command = client_pb2.ClientMessage()
-                ack_command.acknowledge_vehicle_updated.sequence_number = sequence_number
-                return ack_command
-
-            if msg_type == "preferred_dealer_change":
-                self._write_debug_output(data, "pdc")
-                sequence_number = data.preferred_dealer_change.sequence_number
-                LOGGER.debug("preferred_dealer_change Sequence: %s", sequence_number)
-                ack_command = client_pb2.ClientMessage()
-                ack_command.acknowledge_preferred_dealer_change.sequence_number = sequence_number
-                return ack_command
-
-            if msg_type == "apptwin_command_status_updates_by_vin":
-                LOGGER.debug(
-                    "apptwin_command_status_updates_by_vin - Data: %s",
-                    MessageToJson(data, preserving_proto_field_name=True),
-                )
-
-                self._process_apptwin_command_status_updates_by_vin(data)
-
-                sequence_number = data.apptwin_command_status_updates_by_vin.sequence_number
-                LOGGER.debug("apptwin_command_status_updates_by_vin: %s", sequence_number)
-                ack_command = client_pb2.ClientMessage()
-                ack_command.acknowledge_apptwin_command_status_update_by_vin.sequence_number = sequence_number
-                return ack_command
-
-            if msg_type == "apptwin_pending_command_request":
-                self._process_assigned_vehicles(data)
-                if self._dataload_complete_fired:
-                    return "aa0100"
-                return
-
-            if msg_type == "assigned_vehicles":
-                self._process_assigned_vehicles(data)
-                if self._dataload_complete_fired:
-                    return "ba0100"
-                return
-
-            if msg_type == "data_change_event":
-                self._write_debug_output(data, "dce")
-                sequence_number = data.data_change_event.sequence_number
-                LOGGER.debug("data_change_event: %s", sequence_number)
-                ack_command = client_pb2.ClientMessage()
-                ack_command.acknowledge_data_change_event.sequence_number = sequence_number
-                return ack_command
-
-            self._write_debug_output(data, "unk")
-            LOGGER.debug("Message Type not implemented: %s", msg_type)
-
         stop_retry_loop: bool = False
-        ws_connect_retry_counter: int = 0
+        self._ws_connect_retry_counter: int = 0
         self._on_dataload_complete = callback_dataload_complete
         while not stop_retry_loop:
             try:
-                if ws_connect_retry_counter == 0:
-                    await self.websocket.async_connect(on_data)
+                if self._ws_connect_retry_counter == 0:
+                    await self.websocket.async_connect(self.on_data)
                 else:
-                    await asyncio.sleep(self._ws_reconnect_delay)
-                    await self.websocket.async_connect(on_data)
+                    LOGGER.debug(
+                        "Websocket reconnect handler loop - round %s - waiting %s sec",
+                        self._ws_connect_retry_counter,
+                        self._ws_reconnect_delay * self._ws_connect_retry_counter * self._ws_connect_retry_counter,
+                    )
+                    await asyncio.sleep(
+                        self._ws_reconnect_delay * self._ws_connect_retry_counter * self._ws_connect_retry_counter
+                    )
+                    self.websocket = None
+                    self.websocket = Websocket(self._hass, self.oauth, self._region, session_id=self.session_id)
+                    await self.websocket.async_connect(self.on_data)
             except WebsocketError as err:
                 if self.websocket._is_stopping:
                     stop_retry_loop = True
                     break
                 else:
                     LOGGER.error(
-                        "Error with the websocket connection (retry counter: %s): %s", ws_connect_retry_counter, err
+                        "Error with the websocket connection (retry counter: %s): %s",
+                        self._ws_connect_retry_counter,
+                        err,
                     )
-                    ws_connect_retry_counter = ws_connect_retry_counter + 1
+                    self._ws_connect_retry_counter = self._ws_connect_retry_counter + 1
             except Exception as err:
                 if self.websocket._is_stopping:
                     stop_retry_loop = True
@@ -268,20 +281,21 @@ class Client:  # pylint: disable-too-few-public-methods
                 else:
                     LOGGER.error(
                         "Unkown error with the websocket connection (retry counter: %s): %s",
-                        ws_connect_retry_counter,
+                        self._ws_connect_retry_counter,
                         err,
                     )
-                    ws_connect_retry_counter = ws_connect_retry_counter + 1
-                    if ws_connect_retry_counter > 10:
+                    self._ws_connect_retry_counter = self._ws_connect_retry_counter + 1
+                    if self._ws_connect_retry_counter > 10:
                         LOGGER.error(
-                            "Retry counter: %s - Giving up and initiate component reload.", ws_connect_retry_counter
+                            "Retry counter: %s - Giving up and initiate component reload.",
+                            self._ws_connect_retry_counter,
                         )
             if self.websocket._is_stopping:
                 LOGGER.info("Client WS Handler loop - stopping")
                 stop_retry_loop = True
                 break
             else:
-                LOGGER.info("Client WS Handler loop - loop end round %s", ws_connect_retry_counter)
+                LOGGER.info("Client WS Handler loop - loop end round %s", self._ws_connect_retry_counter - 1)
 
     def _build_car(self, received_car_data, update_mode):
         if received_car_data.get("vin") in self.excluded_cars:

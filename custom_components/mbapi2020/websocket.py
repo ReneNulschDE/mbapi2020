@@ -112,7 +112,7 @@ class WebsocketPingWatcher:
 class Websocket:
     """Define the websocket."""
 
-    def __init__(self, hass, oauth, region) -> None:
+    def __init__(self, hass, oauth, region, session_id=str(uuid.uuid4()).upper()) -> None:
         """Initialize."""
         self.oauth: Oauth = oauth
         self._hass: HomeAssistant = hass
@@ -125,7 +125,7 @@ class Websocket:
         self._watchdog: WebsocketWatchdog = WebsocketWatchdog(self.initiatiate_connection_reset)
         self._pingwatchdog: WebsocketPingWatcher = WebsocketPingWatcher(self.ping)
         self._queue = asyncio.Queue()
-        self.session_id = str(uuid.uuid4()).upper()
+        self.session_id = session_id
 
     async def async_connect(self, on_data) -> None:
         """Connect to the socket."""

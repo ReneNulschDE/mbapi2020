@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from datetime import datetime
@@ -201,15 +200,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         LOGGER.error("Websocket error: %s", err)
         raise ConfigEntryNotReady from err
 
-    retry_counter: int = 0
-    while not coordinator.entry_setup_complete:
-        # async websocket data load not complete, wait 0.5 seconds or break up after 60 checks (30sec)
-        if retry_counter > 60:
-            raise HomeAssistantError(
-                "No car information registered for this account. Check the MB website with the same account. Giving up..."
-            )
-        await asyncio.sleep(0.5)
-        retry_counter += 1
+    # retry_counter: int = 0
+    # while not coordinator.entry_setup_complete:
+    #     # async websocket data load not complete, wait 0.5 seconds or break up after 60 checks (30sec)
+    #     if retry_counter > 60:
+    #         raise HomeAssistantError(
+    #             "No car information registered for this account. Check the MB website with the same account. Giving up..."
+    #         )
+    #     await asyncio.sleep(0.5)
+    #     retry_counter += 1
 
     return True
 
