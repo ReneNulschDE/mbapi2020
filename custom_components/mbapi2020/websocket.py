@@ -89,7 +89,7 @@ class WebsocketPingWatcher:
         self._action: Callable[..., Awaitable] = action
         self._loop = asyncio.get_event_loop()
         self._timer_task: Optional[asyncio.TimerHandle] = None
-        self._timeout: int = 30
+        self._timeout: int = timeout_seconds
 
     def cancel(self):
         """Cancel the watchdog."""

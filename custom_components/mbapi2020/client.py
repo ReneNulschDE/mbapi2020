@@ -93,7 +93,7 @@ class Client:  # pylint: disable-too-few-public-methods
         self.config_entry = config_entry
         self._locale: str = DEFAULT_LOCALE
         self._country_code: str = DEFAULT_COUNTRY_CODE
-        self.session_id = str(uuid.UUID(config_entry.entry_id) if config_entry else uuid.uuid4()).upper()
+        self.session_id = str(uuid.uuid4()).upper()
 
         self.oauth: Oauth = Oauth(
             hass=self._hass,
