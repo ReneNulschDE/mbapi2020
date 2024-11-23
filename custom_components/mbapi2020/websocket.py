@@ -176,7 +176,12 @@ class Websocket:
     async def call(self, message):
         """Send a message to the MB websocket servers."""
         try:
-            await self._connection.send_bytes(message)
+            if self._connection:
+                await self._connection.send_bytes(message)
+            else:
+                raise HomeAssistantError(
+                    "MB-Websocket connection is not active. Can't execute the call. Check the homeassistant.log for more details."
+                )
         except client_exceptions.ClientError as err:
             raise HomeAssistantError(
                 "MB-Websocket connection is not active. Can't execute the call. Check the homeassistant.log for more details Error: %s",
