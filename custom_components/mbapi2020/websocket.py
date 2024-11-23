@@ -12,6 +12,7 @@ from aiohttp import ClientSession, WSMsgType, client_exceptions
 
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
@@ -34,7 +35,7 @@ from .helper import UrlHelper as helper
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
-DEFAULT_WATCHDOG_TIMEOUT = 720
+DEFAULT_WATCHDOG_TIMEOUT = 1440
 STATE_CONNECTED = "connected"
 STATE_RECONNECTING = "reconnecting"
 
@@ -177,7 +178,10 @@ class Websocket:
         try:
             await self._connection.send_bytes(message)
         except client_exceptions.ClientError as err:
-            LOGGER.error("remote websocket connection closed: %s", err)
+            raise HomeAssistantError(
+                "MB-Websocket connection is not active. Can't execute the call. Check the homeassistant.log for more details Error: %s",
+                err,
+            ) from err
 
     async def _start_queue_handler(self):
         while not self._is_stopping:

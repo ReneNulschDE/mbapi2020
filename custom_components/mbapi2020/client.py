@@ -272,6 +272,7 @@ class Client:  # pylint: disable-too-few-public-methods
                         "Error with the websocket connection (retry counter: %s): %s",
                         self._ws_connect_retry_counter,
                         err,
+                        exc_info=err,
                     )
                     self._ws_connect_retry_counter = self._ws_connect_retry_counter + 1
             except Exception as err:
@@ -283,13 +284,9 @@ class Client:  # pylint: disable-too-few-public-methods
                         "Unkown error with the websocket connection (retry counter: %s): %s",
                         self._ws_connect_retry_counter,
                         err,
+                        exc_info=err,
                     )
                     self._ws_connect_retry_counter = self._ws_connect_retry_counter + 1
-                    if self._ws_connect_retry_counter > 10:
-                        LOGGER.error(
-                            "Retry counter: %s - Giving up and initiate component reload.",
-                            self._ws_connect_retry_counter,
-                        )
             if self.websocket._is_stopping:
                 LOGGER.info("Client WS Handler loop - stopping")
                 stop_retry_loop = True
