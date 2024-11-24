@@ -242,18 +242,14 @@ class MBJSONEncoder(json.JSONEncoder):
 class Watchdog:
     """Define a watchdog to run actions at intervals."""
 
-    def __init__(
-        self,
-        action: Callable[..., Awaitable],
-        timeout_seconds: int,
-        topic: str,
-    ):
+    def __init__(self, action: Callable[..., Awaitable], timeout_seconds: int, topic: str, log_events: bool = False):
         """Initialize."""
         self._action: Callable[..., Awaitable] = action
         self._loop = asyncio.get_event_loop()
         self._timer_task: Optional[asyncio.TimerHandle] = None
         self._timeout: int = timeout_seconds
         self._topic: str = topic
+        self._log_events: bool = log_events
 
     def cancel(self):
         """Cancel the watchdog."""
@@ -263,12 +259,14 @@ class Watchdog:
 
     async def on_expire(self):
         """Log and act when the watchdog expires."""
-        LOGGER.debug("%s Watchdog expired – calling %s", self._topic, self._action.__name__)
+        if self._log_events:
+            LOGGER.debug("%s Watchdog expired – calling %s", self._topic, self._action.__name__)
         await self._action()
 
     async def trigger(self):
         """Trigger the watchdog."""
-        LOGGER.debug("%s Watchdog trigger", self._topic)
+        if self._log_events:
+            LOGGER.debug("%s Watchdog trigger", self._topic)
         if self._timer_task:
             self._timer_task.cancel()
 
