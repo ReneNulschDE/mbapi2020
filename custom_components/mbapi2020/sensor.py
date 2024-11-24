@@ -117,7 +117,7 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
             if self._state:
                 return datetime.fromtimestamp(int(self._state))
         elif self._internal_name == "chargingpowerkw":
-            if self._state:
+            if self._state and isinstance(self._state, (int, float)):
                 return round(float(self._state), 1)
 
         return self._state
