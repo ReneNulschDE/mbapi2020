@@ -1,12 +1,16 @@
+"""Helper functions for MBAPI2020 integration."""
+
 from __future__ import annotations
 
+import asyncio
+from collections.abc import Awaitable, Callable
 import datetime
 from enum import Enum
 import inspect
 import json
 import math
 import time
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 
 from .const import (
     JSON_EXPORT_IGNORED_KEYS,
@@ -34,6 +38,8 @@ from .const import (
 
 
 class LogHelper:
+    """Helper functions for MBAPI2020 logging."""
+
     @staticmethod
     def Mask_VIN(vin: str) -> str:
         if len(vin) > 12:
@@ -42,6 +48,8 @@ class LogHelper:
 
 
 class UrlHelper:
+    """Helper functions for MBAPI2020 url handling."""
+
     @staticmethod
     def Rest_url(region: str) -> str:
         match region:
@@ -224,8 +232,44 @@ class MBJSONEncoder(json.JSONEncoder):
     def default(self, o) -> Union[str, dict]:  # noqa: D102
         if isinstance(o, (datetime.datetime, datetime.date, datetime.time)):
             return o.isoformat()
-        if not isinstance(o, Enum) and hasattr(o, "__dict__") and isinstance(o.__dict__, Dict):
-            retval: Dict = o.__dict__
+        if not isinstance(o, Enum) and hasattr(o, "__dict__") and isinstance(o.__dict__, dict):
+            retval: dict = o.__dict__
             retval.update({p: getattr(o, p) for p in get_class_property_names(o)})
             return {k: v for k, v in retval.items() if k not in JSON_EXPORT_IGNORED_KEYS}
         return str(o)
+
+
+class Watchdog:
+    """Define a watchdog to run actions at intervals."""
+
+    def __init__(
+        self,
+        action: Callable[..., Awaitable],
+        timeout_seconds: int,
+        topic: str,
+    ):
+        """Initialize."""
+        self._action: Callable[..., Awaitable] = action
+        self._loop = asyncio.get_event_loop()
+        self._timer_task: Optional[asyncio.TimerHandle] = None
+        self._timeout: int = timeout_seconds
+        self._topic: str = topic
+
+    def cancel(self):
+        """Cancel the watchdog."""
+        if self._timer_task:
+            self._timer_task.cancel()
+            self._timer_task = None
+
+    async def on_expire(self):
+        """Log and act when the watchdog expires."""
+        LOGGER.debug("%s Watchdog expired – calling %s", self._topic, self._action.__name__)
+        await self._action()
+
+    async def trigger(self):
+        """Trigger the watchdog."""
+        LOGGER.debug("%s Watchdog trigger", self._topic)
+        if self._timer_task:
+            self._timer_task.cancel()
+
+        self._timer_task = self._loop.call_later(self._timeout, lambda: asyncio.create_task(self.on_expire()))
