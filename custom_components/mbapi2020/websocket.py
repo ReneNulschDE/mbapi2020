@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable
 import logging
-from typing import Optional
 import uuid
 
 from aiohttp import ClientSession, WSMsgType, client_exceptions
@@ -31,83 +30,16 @@ from .const import (
     WEBSOCKET_USER_AGENT_PA,
 )
 from .errors import WebsocketError
-from .helper import UrlHelper as helper
+from .helper import UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
 DEFAULT_WATCHDOG_TIMEOUT = 1440
+PING_WATCHDOG_TIMEOUT = 30
 STATE_CONNECTED = "connected"
 STATE_RECONNECTING = "reconnecting"
 
 LOGGER = logging.getLogger(__name__)
-
-
-class WebsocketWatchdog:
-    """Define a watchdog to kick the websocket connection at intervals."""
-
-    def __init__(
-        self,
-        action: Callable[..., Awaitable],
-        *,
-        timeout_seconds: int = DEFAULT_WATCHDOG_TIMEOUT,
-    ):
-        """Initialize."""
-        self._action: Callable[..., Awaitable] = action
-        self._loop = asyncio.get_event_loop()
-        self._timer_task: Optional[asyncio.TimerHandle] = None
-        self._timeout: int = timeout_seconds
-
-    def cancel(self):
-        """Cancel the watchdog."""
-        if self._timer_task:
-            self._timer_task.cancel()
-            self._timer_task = None
-
-    async def on_expire(self):
-        """Log and act when the watchdog expires."""
-        LOGGER.debug("Watchdog expired – calling %s", self._action.__name__)
-        await self._action()
-
-    async def trigger(self):
-        """Trigger the watchdog."""
-        LOGGER.debug("Watchdog trigger")
-        if self._timer_task:
-            self._timer_task.cancel()
-
-        self._timer_task = self._loop.call_later(self._timeout, lambda: asyncio.create_task(self.on_expire()))
-
-
-class WebsocketPingWatcher:
-    """Define a watchdog to ping the websocket connection at intervals."""
-
-    def __init__(
-        self,
-        action: Callable[..., Awaitable],
-        *,
-        timeout_seconds: int = 30,
-    ):
-        """Initialize."""
-        self._action: Callable[..., Awaitable] = action
-        self._loop = asyncio.get_event_loop()
-        self._timer_task: Optional[asyncio.TimerHandle] = None
-        self._timeout: int = timeout_seconds
-
-    def cancel(self):
-        """Cancel the watchdog."""
-        if self._timer_task:
-            self._timer_task.cancel()
-            self._timer_task = None
-
-    async def on_expire(self):
-        """Log and act when the watchdog expires."""
-        await self._action()
-
-    async def trigger(self):
-        """Trigger the watchdog."""
-        if self._timer_task:
-            self._timer_task.cancel()
-
-        self._timer_task = self._loop.call_later(self._timeout, lambda: asyncio.create_task(self.on_expire()))
 
 
 class Websocket:
@@ -123,8 +55,10 @@ class Websocket:
         self._region = region
         self.connection_state = "unknown"
         self.is_connecting = False
-        self._watchdog: WebsocketWatchdog = WebsocketWatchdog(self.initiatiate_connection_reset)
-        self._pingwatchdog: WebsocketPingWatcher = WebsocketPingWatcher(self.ping)
+        self._watchdog: Watchdog = Watchdog(
+            self.initiatiate_connection_reset, topic="Connection", timeout_seconds=DEFAULT_WATCHDOG_TIMEOUT
+        )
+        self._pingwatchdog: Watchdog = Watchdog(self.ping, topic="Ping", timeout_seconds=PING_WATCHDOG_TIMEOUT)
         self._queue = asyncio.Queue()
         self.session_id = session_id
 
@@ -264,7 +198,6 @@ class Websocket:
                 break
             elif msg.type == WSMsgType.BINARY:
                 self._queue.put_nowait(msg.data)
-                # await self._watchdog.trigger()
                 await self._pingwatchdog.trigger()
 
     async def _websocket_connection_headers(self):
