@@ -26,6 +26,23 @@ IMPORTANT:
 - Use the "Add Integration" in Home Assistant, Settings, Devices & Services and select "MercedesME 2020".
 - Use your MB-login email address. Your will receive a 6-digit code via email (valid for 15min).
 
+### How to Prevent Account Blocking
+
+To reduce the risk of your account being blocked, please follow these recommendations:
+
+1. **Create a separate MB user account for use with this component.**
+2. **Invite the new user to the vehicle:**  
+   The primary user of the vehicle can invite the new HA-MB account to access the vehicle. Up to six additional users can be invited to each vehicle.
+3. **Use each account in a single environment only:**  
+   Use one account exclusively in HA or in the official MB tools, but never in both simultaneously.
+
+#### Important Notes
+
+- Certain features, such as geofencing data, are available only to the primary user.
+- If geofencing is required in your HA environment, use the primary user account in HA and the secondary accounts in the official MB apps.
+
+---
+
 ### Optional configuration values
 
 See Options dialog in the Integration under Home-Assistant/Configuration/Integration.
