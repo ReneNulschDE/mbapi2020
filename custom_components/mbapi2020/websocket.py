@@ -56,9 +56,14 @@ class Websocket:
         self.connection_state = "unknown"
         self.is_connecting = False
         self._watchdog: Watchdog = Watchdog(
-            self.initiatiate_connection_reset, topic="Connection", timeout_seconds=DEFAULT_WATCHDOG_TIMEOUT
+            self.initiatiate_connection_reset,
+            topic="Connection",
+            timeout_seconds=DEFAULT_WATCHDOG_TIMEOUT,
+            log_events=True,
         )
-        self._pingwatchdog: Watchdog = Watchdog(self.ping, topic="Ping", timeout_seconds=PING_WATCHDOG_TIMEOUT)
+        self._pingwatchdog: Watchdog = Watchdog(
+            self.ping, topic="Ping", timeout_seconds=PING_WATCHDOG_TIMEOUT, log_events=False
+        )
         self._queue = asyncio.Queue()
         self.session_id = session_id
 
