@@ -7,7 +7,7 @@ from collections.abc import Awaitable, Callable
 import logging
 import uuid
 
-from aiohttp import ClientSession, WSMsgType, client_exceptions
+from aiohttp import ClientSession, WSMsgType, WSServerHandshakeError, client_exceptions
 
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
@@ -29,7 +29,6 @@ from .const import (
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_PA,
 )
-from .errors import WebsocketError
 from .helper import UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
@@ -174,9 +173,11 @@ class Websocket:
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)
                 retry_in = retry_in * 2 if retry_in < 120 else 120
+            except WSServerHandshakeError as error:
+                raise error
             except Exception as error:
                 LOGGER.error("Other error %s", error)
-                raise WebsocketError from error
+                raise error
 
     async def _websocket_handler(self, session: ClientSession):
         websocket_url = helper.Websocket_url(self._region)

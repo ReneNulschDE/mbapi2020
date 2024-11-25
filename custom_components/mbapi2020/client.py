@@ -11,7 +11,7 @@ import threading
 import time
 import uuid
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, WSServerHandshakeError
 from google.protobuf.json_format import MessageToJson
 
 from custom_components.mbapi2020.proto import client_pb2
@@ -58,8 +58,7 @@ from .const import (
     DEFAULT_LOCALE,
     DEFAULT_SOCKET_MIN_RETRY,
 )
-from .errors import WebsocketError
-from .helper import LogHelper as loghelper
+from .helper import LogHelper as loghelper, Watchdog
 from .oauth import Oauth
 from .webapi import WebApi
 from .websocket import Websocket
@@ -70,7 +69,7 @@ DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = False
 GEOFENCING_MAX_RETRIES = 3
 
 
-class Client:  # pylint: disable-too-few-public-methods
+class Client:
     """define the client."""
 
     def __init__(
@@ -94,6 +93,9 @@ class Client:  # pylint: disable-too-few-public-methods
         self._locale: str = DEFAULT_LOCALE
         self._country_code: str = DEFAULT_COUNTRY_CODE
         self.session_id = str(uuid.uuid4()).upper()
+        self._ws_connect_retry_counter: int = 0
+        self._ws_connect_retry_counter_reseted: bool = False
+        self._account_blocked: bool = False
 
         self.oauth: Oauth = Oauth(
             hass=self._hass,
@@ -107,6 +109,11 @@ class Client:  # pylint: disable-too-few-public-methods
         self.websocket: Websocket = Websocket(
             hass=self._hass, oauth=self.oauth, region=self._region, session_id=self.session_id
         )
+
+        self._component_reload_watcher: Watchdog = Watchdog(
+            self._blocked_account_reload_check, 30, "Blocked_account_reload", False
+        )
+
         self.cars: dict[str, Car] = {}
 
     @property
@@ -129,6 +136,10 @@ class Client:  # pylint: disable-too-few-public-methods
         """Define a handler to fire when the data is received."""
 
         msg_type = data.WhichOneof("msg")
+
+        if self._ws_connect_retry_counter > 0:
+            self._ws_connect_retry_counter = 0
+            self._ws_connect_retry_counter_reseted = True
 
         if msg_type == "vepUpdate":  # VEPUpdate
             LOGGER.debug("vepUpdate")
@@ -241,11 +252,18 @@ class Client:  # pylint: disable-too-few-public-methods
         self._write_debug_output(data, "unk")
         LOGGER.debug("Message Type not implemented: %s", msg_type)
 
+    async def _blocked_account_reload_check(self):
+        if self._account_blocked and self._ws_connect_retry_counter_reseted:
+            LOGGER.info("Initiating component reload after account got unblocked...")
+            self._hass.async_create_task(self._hass.config_entries.async_reload(self.config_entry.entry_id))
+
+        self._component_reload_watcher.cancel()
+
     async def attempt_connect(self, callback_dataload_complete):
         """Attempt to connect to the socket (retrying later on fail)."""
 
         stop_retry_loop: bool = False
-        self._ws_connect_retry_counter: int = 0
+
         self._on_dataload_complete = callback_dataload_complete
         while not stop_retry_loop:
             try:
@@ -260,20 +278,25 @@ class Client:  # pylint: disable-too-few-public-methods
                     await asyncio.sleep(
                         self._ws_reconnect_delay * self._ws_connect_retry_counter * self._ws_connect_retry_counter
                     )
+
+                    await self._component_reload_watcher.trigger()
+
                     self.websocket = None
                     self.websocket = Websocket(self._hass, self.oauth, self._region, session_id=self.session_id)
                     await self.websocket.async_connect(self.on_data)
-            except WebsocketError as err:
+            except WSServerHandshakeError as err:
                 if self.websocket._is_stopping:
                     stop_retry_loop = True
                     break
                 else:
                     LOGGER.error(
-                        "Error with the websocket connection (retry counter: %s): %s",
+                        "Error with the websocket connection (retry counter: %s): %s - %s",
                         self._ws_connect_retry_counter,
-                        err,
-                        exc_info=err,
+                        err.code,
+                        err.message,
                     )
+                    if "429" in str(err.code):
+                        self._account_blocked = True
                     self._ws_connect_retry_counter = self._ws_connect_retry_counter + 1
             except Exception as err:
                 if self.websocket._is_stopping:
