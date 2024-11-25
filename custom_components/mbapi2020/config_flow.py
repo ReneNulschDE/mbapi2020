@@ -13,11 +13,14 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, __version__ as HAV
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
+from homeassistant.helpers.selector import QrCodeSelector, QrCodeSelectorConfig, QrErrorCorrectionLevel
 from homeassistant.helpers.storage import STORAGE_DIR
 
 from .client import Client
 from .const import (
+    CONF_ALLOWED_AUTH_METHODS,
     CONF_ALLOWED_REGIONS,
+    CONF_AUTH_METHOD,
     CONF_DEBUG_FILE_SAVE,
     CONF_DELETE_AUTH_FILE,
     CONF_ENABLE_CHINA_GCJ_02,
@@ -85,6 +88,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return await self.async_step_pin()
 
             LOGGER.error("Request PIN error: %s", errors)
+
+        # data_schema = SCHEMA_STEP_USER.extend(
+        #     {
+        #         vol.Optional("qr_code"): QrCodeSelector(
+        #             config=QrCodeSelectorConfig(
+        #                 data="https://link.emea-prod.mobilesdk.mercedes-benz.com/device-login?userCode=OTdOTi1CTVhX&deviceType=watch",
+        #                 scale=6,
+        #                 error_correction_level=QrErrorCorrectionLevel.QUARTILE,
+        #             )
+        #         )
+        #     }
+        # )
 
         return self.async_show_form(
             step_id="user",
@@ -160,9 +175,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             if user_input[CONF_DELETE_AUTH_FILE] is True:
                 auth_file = self.hass.config.path(STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{self.config_entry.entry_id}")
                 LOGGER.warning("DELETE Auth Information requested %s", auth_file)
-                new_config_entry_data = deepcopy(dict(self._config_entry.data))
+                new_config_entry_data = deepcopy(dict(self.config_entry.data))
                 new_config_entry_data["token"] = None
-                changed = self.hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
+                changed = self.hass.config_entries.async_update_entry(self.config_entry, data=new_config_entry_data)
 
                 LOGGER.debug("%s Creating restart_required issue", DOMAIN)
                 async_create_issue(
