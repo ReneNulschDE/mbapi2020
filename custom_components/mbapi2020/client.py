@@ -53,9 +53,7 @@ from .const import (
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     CONF_PIN,
     DEFAULT_CACHE_PATH,
-    DEFAULT_COUNTRY_CODE,
     DEFAULT_DOWNLOAD_PATH,
-    DEFAULT_LOCALE,
     DEFAULT_SOCKET_MIN_RETRY,
 )
 from .helper import LogHelper as loghelper, Watchdog
@@ -90,8 +88,6 @@ class Client:
         self.__lock = None
         self._debug_save_path = self._hass.config.path(DEFAULT_CACHE_PATH)
         self.config_entry = config_entry
-        self._locale: str = DEFAULT_LOCALE
-        self._country_code: str = DEFAULT_COUNTRY_CODE
         self.session_id = str(uuid.uuid4()).upper()
         self._ws_connect_retry_counter: int = 0
         self._ws_connect_retry_counter_reseted: bool = False
@@ -192,7 +188,7 @@ class Client:
             return ack_command
 
         if msg_type == "user_pin_update":
-            self._write_debug_output(data, "upu")
+            self._write_debug_output(data, "pin")
             sequence_number = data.user_pin_update.sequence_number
             LOGGER.debug("user_pin_update Sequence: %s", sequence_number)
             ack_command = client_pb2.ClientMessage()
@@ -231,15 +227,12 @@ class Client:
 
         if msg_type == "apptwin_pending_command_request":
             self._process_assigned_vehicles(data)
-            if self._dataload_complete_fired:
-                return "aa0100"
-            return
+            return "aa0100"
 
         if msg_type == "assigned_vehicles":
+            self._write_debug_output(data, "asv")
             self._process_assigned_vehicles(data)
-            if self._dataload_complete_fired:
-                return "ba0100"
-            return
+            return "ba0100"
 
         if msg_type == "data_change_event":
             self._write_debug_output(data, "dce")
@@ -254,10 +247,16 @@ class Client:
 
     async def _blocked_account_reload_check(self):
         if self._account_blocked and self._ws_connect_retry_counter_reseted:
-            LOGGER.info("Initiating component reload after account got unblocked...")
-            self._hass.async_create_task(self._hass.config_entries.async_reload(self.config_entry.entry_id))
+            self._account_blocked = False
+            self._ws_connect_retry_counter_reseted
 
-        self._component_reload_watcher.cancel()
+            if not self._dataload_complete_fired:
+                LOGGER.info("Initiating component reload after account got unblocked...")
+                self._hass.async_create_task(self._hass.config_entries.async_reload(self.config_entry.entry_id))
+
+            self._component_reload_watcher.cancel()
+        elif self._account_blocked and not self._ws_connect_retry_counter_reseted:
+            self._component_reload_watcher.trigger()
 
     async def attempt_connect(self, callback_dataload_complete):
         """Attempt to connect to the socket (retrying later on fail)."""
@@ -674,13 +673,20 @@ class Client:
                     current_car.publish_updates()
 
         if not self._dataload_complete_fired:
+            fire_complete_event: bool = True
             for car in self.cars.values():
+                if not car.entry_setup_complete:
+                    fire_complete_event = False
                 LOGGER.debug(
                     "_process_vep_updates - %s - complete: %s - %s",
                     loghelper.Mask_VIN(car.finorvin),
                     car.entry_setup_complete,
                     car.messages_received,
                 )
+            if fire_complete_event:
+                LOGGER.debug("_process_vep_updates - all completed - fire event: _on_dataload_complete")
+                self._hass.async_create_task(self._on_dataload_complete())
+                self._dataload_complete_fired = True
 
     def _process_assigned_vehicles(self, data):
         if not self._dataload_complete_fired:
@@ -712,7 +718,6 @@ class Client:
                         current_car.licenseplate = vin
                         self.cars[vin] = current_car
 
-            load_complete = True
             current_time = int(round(time.time() * 1000))
             for key, value in self.cars.items():
                 LOGGER.debug(
@@ -722,20 +727,6 @@ class Client:
                     value.messages_received,
                     current_time - value._last_message_received,
                 )
-
-                if value._last_message_received > 0 and current_time - value._last_message_received > 30000:
-                    LOGGER.debug(
-                        "No Full Update Message received - Force car entry setup complete for car %s",
-                        loghelper.Mask_VIN(key),
-                    )
-                    value.entry_setup_complete = True
-
-                if not value.entry_setup_complete:
-                    load_complete = False
-
-            if load_complete:
-                self._hass.async_create_task(self._on_dataload_complete())
-                self._dataload_complete_fired = True
 
     def _process_apptwin_command_status_updates_by_vin(self, data):
         LOGGER.debug("Start _process_assigned_vehicles")
