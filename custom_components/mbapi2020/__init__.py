@@ -208,9 +208,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             LOGGER.warning("Account is blocked. Reload will happen after unblock at midnight (GMT).")
             break
         elif retry_counter == 60 and not coordinator.client._account_blocked:
-            raise HomeAssistantError(
-                "No car information registered for this account. Check the MB website with the same account."
+            LOGGER.warning(
+                "No car information received via websocket for this account. Check the MB website with the same account."
             )
+            break
 
         await asyncio.sleep(0.5)
         retry_counter += 1
