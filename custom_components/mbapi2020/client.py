@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import logging
 from pathlib import Path
@@ -64,7 +64,7 @@ from .websocket import Websocket
 LOGGER = logging.getLogger(__name__)
 
 DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = False
-GEOFENCING_MAX_RETRIES = 3
+GEOFENCING_MAX_RETRIES = 2
 
 
 class Client:
@@ -92,6 +92,9 @@ class Client:
         self._ws_connect_retry_counter: int = 0
         self._ws_connect_retry_counter_reseted: bool = False
         self._account_blocked: bool = False
+        self._first_vepupdates_processed: bool = False
+        self._vepupdates_timeout_reached: bool = False
+        self._vepupdates_timeout_seconds: int = 30
 
         self.oauth: Oauth = Oauth(
             hass=self._hass,
@@ -637,6 +640,10 @@ class Client:
         vep_json = json.loads(MessageToJson(data, preserving_proto_field_name=True))
         cars = vep_json["vepUpdates"]["updates"]
 
+        if not self._first_vepupdates_processed:
+            self._vepupdates_time_first_message = datetime.now()
+            self._first_vepupdates_processed = True
+
         for vin in cars:
             if vin in self.excluded_cars:
                 continue
@@ -687,6 +694,15 @@ class Client:
                 LOGGER.debug("_process_vep_updates - all completed - fire event: _on_dataload_complete")
                 self._hass.async_create_task(self._on_dataload_complete())
                 self._dataload_complete_fired = True
+
+        if not self._dataload_complete_fired and (datetime.now() - self._vepupdates_time_first_message) > timedelta(
+            seconds=self._vepupdates_timeout_seconds
+        ):
+            LOGGER.debug(
+                "_process_vep_updates - not all data received, timeout reached - fire event: _on_dataload_complete"
+            )
+            self._hass.async_create_task(self._on_dataload_complete())
+            self._dataload_complete_fired = True
 
     def _process_assigned_vehicles(self, data):
         if not self._dataload_complete_fired:
