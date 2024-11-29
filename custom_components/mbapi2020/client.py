@@ -257,7 +257,6 @@ class Client:
                 LOGGER.info("Initiating component reload after account got unblocked...")
                 self._hass.async_create_task(self._hass.config_entries.async_reload(self.config_entry.entry_id))
 
-            await self._component_reload_watcher.cancel()
         elif self._account_blocked and not self._ws_connect_retry_counter_reseted:
             await self._component_reload_watcher.trigger()
 
