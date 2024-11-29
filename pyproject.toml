@@ -440,7 +440,7 @@ voluptuous = "vol"
 
 [tool.ruff.per-file-ignores]
 "script/*" = ["T20"]
-
+"script/burp-*" = ["W0410"]
 
 [tool.ruff.isort]
 required-imports = ["from __future__ import annotations"]
