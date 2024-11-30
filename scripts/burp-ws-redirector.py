@@ -33,6 +33,4 @@ class BurpExtender(IBurpExtender, IHttpListener):
 
         # if the host is HOST_FROM, change it to HOST_TO
         if HOST_FROM == httpService.getHost():
-            messageInfo.setHttpService(
-                self._helpers.buildHttpService(HOST_TO, 8001, httpService.getProtocol())
-            )
+            messageInfo.setHttpService(self._helpers.buildHttpService(HOST_TO, 8001, httpService.getProtocol()))

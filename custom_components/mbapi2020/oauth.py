@@ -3,19 +3,19 @@
 from __future__ import annotations
 
 import asyncio
-from copy import deepcopy
 import json
 import logging
 import time
 import urllib.parse
 import uuid
+from copy import deepcopy
 
 from aiohttp import ClientSession
-
-from custom_components.mbapi2020.errors import MBAuthError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+from custom_components.mbapi2020.errors import MBAuthError
 
 from .const import (
     DEFAULT_COUNTRY_CODE,
@@ -62,7 +62,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         self._hass = hass
         self._config_entry = config_entry
         self.token = None
-        self._xsessionid = ""
+        self._sessionid = ""
         self._get_token_lock = asyncio.Lock()
 
     async def async_request_device_code(self):
@@ -219,8 +219,8 @@ class Oauth:  # pylint: disable-too-few-public-methods
         return token_info
 
     def _get_header(self):
-        if not self._xsessionid:
-            self._xsessionid = str(uuid.uuid4())
+        if not self._sessionid:
+            self._sessionid = str(uuid.uuid4())
 
         header = {
             "Ris-Os-Name": RIS_OS_NAME,
@@ -228,7 +228,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
             "Ris-Sdk-Version": RIS_SDK_VERSION,
             "X-Locale": DEFAULT_LOCALE,
             "X-Trackingid": str(uuid.uuid4()),
-            "X-Sessionid": self._xsessionid,
+            "X-Sessionid": self._sessionid,
             "User-Agent": WEBSOCKET_USER_AGENT,
             "Content-Type": "application/json",
             "Accept-Language": "en-GB",

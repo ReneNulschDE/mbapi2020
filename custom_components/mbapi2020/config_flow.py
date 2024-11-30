@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 import uuid
+from copy import deepcopy
 
-from awesomeversion import AwesomeVersion
 import voluptuous as vol
-
+from awesomeversion import AwesomeVersion
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, __version__ as HAVERSION
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import __version__ as HAVERSION
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue

@@ -22,7 +22,7 @@ from custom_components.mbapi2020.proto import client_pb2
 
 from .car import (
     AUX_HEAT_OPTIONS,
-    BINARY_SENSOR_OPTIONS, 
+    BINARY_SENSOR_OPTIONS,
     DOOR_OPTIONS,
     ELECTRIC_OPTIONS,
     LOCATION_OPTIONS,
@@ -104,9 +104,7 @@ class Client:
             config_entry=config_entry,
         )
         self.oauth.session_id = self.session_id
-        self.webapi: WebApi = WebApi(
-            self._hass, session=session, oauth=self.oauth, region=self._region
-        )
+        self.webapi: WebApi = WebApi(self._hass, session=session, oauth=self.oauth, region=self._region)
         self.webapi.session_id = self.session_id
         self.websocket: Websocket = Websocket(
             hass=self._hass,
@@ -171,9 +169,7 @@ class Client:
             sequence_number = data.service_status_updates_by_vin.sequence_number
             LOGGER.debug("service_status_update Sequence: %s", sequence_number)
             ack_command = client_pb2.ClientMessage()
-            ack_command.acknowledge_service_status_updates_by_vin.sequence_number = (
-                sequence_number
-            )
+            ack_command.acknowledge_service_status_updates_by_vin.sequence_number = sequence_number
             return ack_command
 
         if msg_type == "user_data_update":
@@ -196,9 +192,7 @@ class Client:
             sequence_number = data.user_picture_update.sequence_number
             LOGGER.debug("user_picture_update Sequence: %s", sequence_number)
             ack_command = client_pb2.ClientMessage()
-            ack_command.acknowledge_user_picture_update.sequence_number = (
-                sequence_number
-            )
+            ack_command.acknowledge_user_picture_update.sequence_number = sequence_number
             return ack_command
 
         if msg_type == "user_pin_update":
@@ -222,9 +216,7 @@ class Client:
             sequence_number = data.preferred_dealer_change.sequence_number
             LOGGER.debug("preferred_dealer_change Sequence: %s", sequence_number)
             ack_command = client_pb2.ClientMessage()
-            ack_command.acknowledge_preferred_dealer_change.sequence_number = (
-                sequence_number
-            )
+            ack_command.acknowledge_preferred_dealer_change.sequence_number = sequence_number
             return ack_command
 
         if msg_type == "apptwin_command_status_updates_by_vin":
@@ -267,12 +259,8 @@ class Client:
             self._ws_connect_retry_counter_reseted
 
             if not self._dataload_complete_fired:
-                LOGGER.info(
-                    "Initiating component reload after account got unblocked..."
-                )
-                self._hass.async_create_task(
-                    self._hass.config_entries.async_reload(self.config_entry.entry_id)
-                )
+                LOGGER.info("Initiating component reload after account got unblocked...")
+                self._hass.async_create_task(self._hass.config_entries.async_reload(self.config_entry.entry_id))
 
         elif self._account_blocked and not self._ws_connect_retry_counter_reseted:
             await self._component_reload_watcher.trigger()
@@ -291,22 +279,16 @@ class Client:
                     LOGGER.debug(
                         "Websocket reconnect handler loop - round %s - waiting %s sec",
                         self._ws_connect_retry_counter,
-                        self._ws_reconnect_delay
-                        * self._ws_connect_retry_counter
-                        * self._ws_connect_retry_counter,
+                        self._ws_reconnect_delay * self._ws_connect_retry_counter * self._ws_connect_retry_counter,
                     )
                     await asyncio.sleep(
-                        self._ws_reconnect_delay
-                        * self._ws_connect_retry_counter
-                        * self._ws_connect_retry_counter
+                        self._ws_reconnect_delay * self._ws_connect_retry_counter * self._ws_connect_retry_counter
                     )
 
                     await self._component_reload_watcher.trigger()
 
                     self.websocket = None
-                    self.websocket = Websocket(
-                        self._hass, self.oauth, self._region, session_id=self.session_id
-                    )
+                    self.websocket = Websocket(self._hass, self.oauth, self._region, session_id=self.session_id)
                     await self.websocket.async_connect(self.on_data)
             except WSServerHandshakeError as err:
                 if self.websocket._is_stopping:
@@ -346,9 +328,7 @@ class Client:
 
     def _build_car(self, received_car_data, update_mode):
         if received_car_data.get("vin") in self.excluded_cars:
-            LOGGER.debug(
-                "CAR excluded: %s", loghelper.Mask_VIN(received_car_data.get("vin"))
-            )
+            LOGGER.debug("CAR excluded: %s", loghelper.Mask_VIN(received_car_data.get("vin")))
             return
 
         if received_car_data.get("vin") not in self.cars:
@@ -361,9 +341,7 @@ class Client:
             current_car.licenseplate = received_car_data.get("vin")
             self.cars[received_car_data.get("vin")] = current_car
 
-        car: Car = self.cars.get(
-            received_car_data.get("vin"), Car(received_car_data.get("vin"))
-        )
+        car: Car = self.cars.get(received_car_data.get("vin"), Car(received_car_data.get("vin")))
 
         car.messages_received.update("p" if update_mode else "f")
         car._last_message_received = int(round(time.time() * 1000))
@@ -494,9 +472,7 @@ class Client:
 
             # Set the value only if the timestamp is newer
             curr_timestamp = float(curr_status.timestamp or 0)
-            car_value_timestamp = float(
-                self._get_car_value(class_instance, option, "ts", 0)
-            )
+            car_value_timestamp = float(self._get_car_value(class_instance, option, "ts", 0))
             if curr_timestamp > car_value_timestamp:
                 setattr(class_instance, option, curr_status)
             elif curr_timestamp < car_value_timestamp:
@@ -508,18 +484,12 @@ class Client:
 
         return class_instance
 
-    def _get_car_values_handle_generic(
-        self, car_detail, class_instance, option, update
-    ):
+    def _get_car_values_handle_generic(self, car_detail, class_instance, option, update):
         curr = car_detail.get("attributes", {}).get(option)
         if curr:
             # Simplify value extraction by checking for existing keys
             value = next(
-                (
-                    curr[key]
-                    for key in ("value", "int_value", "double_value", "bool_value")
-                    if key in curr
-                ),
+                (curr[key] for key in ("value", "int_value", "double_value", "bool_value") if key in curr),
                 0,
             )
             status = curr.get("status", "VALID")
@@ -551,9 +521,7 @@ class Client:
         else:
             return None
 
-    def _get_car_values_handle_max_soc(
-        self, car_detail, class_instance, option, update
-    ):
+    def _get_car_values_handle_max_soc(self, car_detail, class_instance, option, update):
         # special EQA/B max_soc handling
         attributes = car_detail.get("attributes", {})
         charge_programs = attributes.get("chargePrograms")
@@ -562,13 +530,9 @@ class Client:
 
         time_stamp = charge_programs.get("timestamp", 0)
         charge_programs_value = charge_programs.get("charge_programs_value", {})
-        charge_program_parameters = charge_programs_value.get(
-            "charge_program_parameters", []
-        )
+        charge_program_parameters = charge_programs_value.get("charge_program_parameters", [])
 
-        selected_program_index = int(
-            self._get_car_value(class_instance, "selectedChargeProgram", "value", 0)
-        )
+        selected_program_index = int(self._get_car_value(class_instance, "selectedChargeProgram", "value", 0))
 
         # Ensure the selected index is within bounds
         if 0 <= selected_program_index < len(charge_program_parameters):
@@ -585,9 +549,7 @@ class Client:
 
         return None
 
-    def _get_car_values_handle_charging_break_clock_timer(
-        self, car_detail, class_instance, option, update
-    ):
+    def _get_car_values_handle_charging_break_clock_timer(self, car_detail, class_instance, option, update):
         attributes = car_detail.get("attributes", {})
         curr = attributes.get(option)
         if not curr:
@@ -610,9 +572,7 @@ class Client:
             unit=None,
         )
 
-    def _get_car_values_handle_precond_status(
-        self, car_detail, class_instance, option, update
-    ):
+    def _get_car_values_handle_precond_status(self, car_detail, class_instance, option, update):
         attributes = car_detail.get("attributes", {})
 
         # Retrieve attributes with defaults to handle missing keys
@@ -651,9 +611,7 @@ class Client:
 
         return None
 
-    def _get_car_values_handle_temperature_points(
-        self, car_detail, class_instance, option: str, update
-    ):
+    def _get_car_values_handle_temperature_points(self, car_detail, class_instance, option: str, update):
         curr_zone = option.replace("temperature_points_", "")
         attributes = car_detail.get("attributes", {})
         temperaturePoints = attributes.get("temperaturePoints")
@@ -705,10 +663,7 @@ class Client:
 
             current_car = cars.get(vin)
 
-            if (
-                DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY
-                and current_car.get("full_update", False) is True
-            ):
+            if DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY and current_car.get("full_update", False) is True:
                 current_car["full_update"] = False
                 LOGGER.debug(
                     "DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY mode. %s",
@@ -749,15 +704,13 @@ class Client:
                     car.messages_received,
                 )
             if fire_complete_event:
-                LOGGER.debug(
-                    "_process_vep_updates - all completed - fire event: _on_dataload_complete"
-                )
+                LOGGER.debug("_process_vep_updates - all completed - fire event: _on_dataload_complete")
                 self._hass.async_create_task(self._on_dataload_complete())
                 self._dataload_complete_fired = True
 
-        if not self._dataload_complete_fired and (
-            datetime.now() - self._vepupdates_time_first_message
-        ) > timedelta(seconds=self._vepupdates_timeout_seconds):
+        if not self._dataload_complete_fired and (datetime.now() - self._vepupdates_time_first_message) > timedelta(
+            seconds=self._vepupdates_timeout_seconds
+        ):
             LOGGER.debug(
                 "_process_vep_updates - not all data received, timeout reached - fire event: _on_dataload_complete"
             )
@@ -814,14 +767,8 @@ class Client:
 
         if apptwin_json["apptwin_command_status_updates_by_vin"]:
             if apptwin_json["apptwin_command_status_updates_by_vin"]["updates_by_vin"]:
-                car = list(
-                    apptwin_json["apptwin_command_status_updates_by_vin"][
-                        "updates_by_vin"
-                    ].keys()
-                )[0]
-                car = apptwin_json["apptwin_command_status_updates_by_vin"][
-                    "updates_by_vin"
-                ][car]
+                car = list(apptwin_json["apptwin_command_status_updates_by_vin"]["updates_by_vin"].keys())[0]
+                car = apptwin_json["apptwin_command_status_updates_by_vin"]["updates_by_vin"][car]
                 vin = car.get("vin", None)
                 if vin:
                     if car["updates_by_pid"]:
@@ -848,15 +795,9 @@ class Client:
                             if current_car:
                                 current_car._last_command_type = command_type
                                 current_car._last_command_state = command_state
-                                current_car._last_command_error_code = (
-                                    command_error_code
-                                )
-                                current_car._last_command_error_message = (
-                                    command_error_message
-                                )
-                                current_car._last_command_time_stamp = command.get(
-                                    "timestamp_in_ms", 0
-                                )
+                                current_car._last_command_error_code = command_error_code
+                                current_car._last_command_error_message = command_error_message
+                                current_car._last_command_time_stamp = command.get("timestamp_in_ms", 0)
 
                                 current_car.publish_updates()
 
@@ -1019,9 +960,7 @@ class Client:
         message = client_pb2.ClientMessage()
 
         if not pin:
-            LOGGER.warning(
-                "Can't unlock car %s. Pin is required.", loghelper.Mask_VIN(vin)
-            )
+            LOGGER.warning("Can't unlock car %s. Pin is required.", loghelper.Mask_VIN(vin))
             return
 
         message.commandRequest.vin = vin
@@ -1073,9 +1012,7 @@ class Client:
 
         LOGGER.info("End download_images for vin %s", loghelper.Mask_VIN(vin))
 
-    async def auxheat_configure(
-        self, vin: str, time_selection: int, time_1: int, time_2: int, time_3: int
-    ):
+    async def auxheat_configure(self, vin: str, time_selection: int, time_1: int, time_2: int, time_3: int):
         """Send the auxheat configure command to the car."""
         LOGGER.info("Start auxheat_configure for vin %s", loghelper.Mask_VIN(vin))
 
@@ -1142,9 +1079,7 @@ class Client:
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End auxheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
-    async def battery_max_soc_configure(
-        self, vin: str, max_soc: int, charge_program: int = 0
-    ):
+    async def battery_max_soc_configure(self, vin: str, max_soc: int, charge_program: int = 0):
         """Send the maxsoc configure command to the car."""
         LOGGER.info(
             "Start battery_max_soc_configure to %s for vin %s and program %s",
@@ -1233,9 +1168,7 @@ class Client:
         """Send a route target to the car."""
         LOGGER.info("Start send_route_to_car for vin %s", loghelper.Mask_VIN(vin))
 
-        await self.webapi.send_route_to_car(
-            vin, title, latitude, longitude, city, postcode, street
-        )
+        await self.webapi.send_route_to_car(vin, title, latitude, longitude, city, postcode, street)
 
         LOGGER.info("End send_route_to_car for vin %s", loghelper.Mask_VIN(vin))
 
@@ -1344,9 +1277,7 @@ class Client:
         rear_right: bool,
     ):
         """Send a preconditioning seat configuration command to the car."""
-        LOGGER.info(
-            "Start preconditioning_configure_seats for vin %s", loghelper.Mask_VIN(vin)
-        )
+        LOGGER.info("Start preconditioning_configure_seats for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITION_CONFIGURE_SEATS"):
             LOGGER.warning(
@@ -1360,16 +1291,12 @@ class Client:
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.zev_precondition_configure_seats.front_left = front_left
-        message.commandRequest.zev_precondition_configure_seats.front_right = (
-            front_right
-        )
+        message.commandRequest.zev_precondition_configure_seats.front_right = front_right
         message.commandRequest.zev_precondition_configure_seats.rear_left = rear_left
         message.commandRequest.zev_precondition_configure_seats.rear_right = rear_right
 
         await self.websocket.call(message.SerializeToString())
-        LOGGER.info(
-            "End preconditioning_configure_seats for vin %s", loghelper.Mask_VIN(vin)
-        )
+        LOGGER.info("End preconditioning_configure_seats for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_start(self, vin: str):
         """Send a preconditioning start command to the car."""
@@ -1387,9 +1314,7 @@ class Client:
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.zev_preconditioning_start.departure_time = 0
-        message.commandRequest.zev_preconditioning_start.type = (
-            pb2_commands.ZEVPreconditioningType.now
-        )
+        message.commandRequest.zev_preconditioning_start.type = pb2_commands.ZEVPreconditioningType.now
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End preheat_start for vin %s", loghelper.Mask_VIN(vin))
@@ -1410,9 +1335,7 @@ class Client:
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.zev_preconditioning_start.departure_time = 0
-        message.commandRequest.zev_preconditioning_start.type = (
-            pb2_commands.ZEVPreconditioningType.immediate
-        )
+        message.commandRequest.zev_preconditioning_start.type = pb2_commands.ZEVPreconditioningType.immediate
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End preheat_start_immediate for vin %s", loghelper.Mask_VIN(vin))
@@ -1426,9 +1349,7 @@ class Client:
 
     async def preheat_start_departure_time(self, vin: str, departure_time: int):
         """Send a preconditioning start by time command to the car."""
-        LOGGER.info(
-            "Start preheat_start_departure_time for vin %s", loghelper.Mask_VIN(vin)
-        )
+        LOGGER.info("Start preheat_start_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
             LOGGER.warning(
@@ -1442,14 +1363,10 @@ class Client:
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.zev_preconditioning_start.departure_time = departure_time
-        message.commandRequest.zev_preconditioning_start.type = (
-            pb2_commands.ZEVPreconditioningType.departure
-        )
+        message.commandRequest.zev_preconditioning_start.type = pb2_commands.ZEVPreconditioningType.departure
 
         await self.websocket.call(message.SerializeToString())
-        LOGGER.info(
-            "End preheat_start_departure_time for vin %s", loghelper.Mask_VIN(vin)
-        )
+        LOGGER.info("End preheat_start_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_stop(self, vin: str):
         """Send a preconditioning stop command to the car."""
@@ -1465,18 +1382,14 @@ class Client:
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.zev_preconditioning_stop.type = (
-            pb2_commands.ZEVPreconditioningType.now
-        )
+        message.commandRequest.zev_preconditioning_stop.type = pb2_commands.ZEVPreconditioningType.now
 
         await self.websocket.call(message.SerializeToString())
         LOGGER.info("End preheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_stop_departure_time(self, vin: str):
         """Send a preconditioning stop by time command to the car."""
-        LOGGER.info(
-            "Start preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin)
-        )
+        LOGGER.info("Start preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
             LOGGER.warning(
@@ -1488,14 +1401,10 @@ class Client:
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.zev_preconditioning_stop.type = (
-            pb2_commands.ZEVPreconditioningType.departure
-        )
+        message.commandRequest.zev_preconditioning_stop.type = pb2_commands.ZEVPreconditioningType.departure
 
         await self.websocket.call(message.SerializeToString())
-        LOGGER.info(
-            "End preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin)
-        )
+        LOGGER.info("End preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
     async def temperature_configure(
         self,
@@ -1531,9 +1440,7 @@ class Client:
             if front_left:
                 zone_front_left.temperature_in_celsius = front_left
             elif car.precond.temperature_points_frontLeft:
-                zone_front_left.temperature_in_celsius = (
-                    car.precond.temperature_points_frontLeft.value
-                )
+                zone_front_left.temperature_in_celsius = car.precond.temperature_points_frontLeft.value
             entry_set = True
 
         if front_right or rear_left or rear_right:
@@ -1542,9 +1449,7 @@ class Client:
             if front_right:
                 zone_front_right.temperature_in_celsius = front_right
             elif car.precond.temperature_points_frontRight:
-                zone_front_right.temperature_in_celsius = (
-                    car.precond.temperature_points_frontRight.value
-                )
+                zone_front_right.temperature_in_celsius = car.precond.temperature_points_frontRight.value
             entry_set = True
 
         if rear_left or rear_right:
@@ -1553,9 +1458,7 @@ class Client:
             if rear_left:
                 zone_rear_left.temperature_in_celsius = rear_left
             elif car.precond.temperature_points_rearLeft:
-                zone_rear_left.temperature_in_celsius = (
-                    car.precond.temperature_points_rearLeft.value
-                )
+                zone_rear_left.temperature_in_celsius = car.precond.temperature_points_rearLeft.value
             entry_set = True
 
         if rear_right or rear_left:
@@ -1564,9 +1467,7 @@ class Client:
             if rear_right:
                 zone_rear_right.temperature_in_celsius = rear_right
             elif car.precond.temperature_points_rearRight:
-                zone_rear_right.temperature_in_celsius = (
-                    car.precond.temperature_points_rearRight.value
-                )
+                zone_rear_right.temperature_in_celsius = car.precond.temperature_points_rearRight.value
             entry_set = True
 
         if entry_set:
@@ -1716,15 +1617,11 @@ class Client:
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
 
-            current_file = open(
-                f"{path}/{datatype}{int(round(time.time() * 1000))}", "wb"
-            )
+            current_file = open(f"{path}/{datatype}{int(round(time.time() * 1000))}", "wb")
             current_file.write(data.SerializeToString())
             current_file.close()
 
-            self.write_debug_json_output(
-                MessageToJson(data, preserving_proto_field_name=True), datatype
-            )
+            self.write_debug_json_output(MessageToJson(data, preserving_proto_field_name=True), datatype)
 
     def write_debug_json_output(self, data, datatype, use_dumps: bool = False):
         """Write text to files based on datatype."""
@@ -1733,9 +1630,7 @@ class Client:
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
 
-            current_file = open(
-                f"{path}/{datatype}{int(round(time.time() * 1000))}.json", "w"
-            )
+            current_file = open(f"{path}/{datatype}{int(round(time.time() * 1000))}.json", "w")
             if use_dumps:
                 current_file.write(f"{json.dumps(data, indent=4)}")
             else:
@@ -1749,9 +1644,7 @@ class Client:
         try:
             info = await system_info.async_get_system_info(self._hass)
         except Exception:
-            LOGGER.debug(
-                "WSL detection not possible. Error in HA-Core get_system_info. Force rlock mode."
-            )
+            LOGGER.debug("WSL detection not possible. Error in HA-Core get_system_info. Force rlock mode.")
 
         if info and "WSL" not in str(info.get("os_version")):
             self._disable_rlock = False
@@ -1778,9 +1671,7 @@ class Client:
             if car.geofence_events is None:
                 car.geofence_events = GeofenceEvents()
 
-            geofencing_violotions = await self.webapi.get_car_geofencing_violations(
-                car.finorvin
-            )
+            geofencing_violotions = await self.webapi.get_car_geofencing_violations(car.finorvin)
             if geofencing_violotions and len(geofencing_violotions) > 0:
                 car.geofence_events.last_event_type = CarAttribute(
                     geofencing_violotions[-1].get("type"),

@@ -17,7 +17,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity
-from .const import CONF_ENABLE_CHINA_GCJ_02, DEVICE_TRACKER, DOMAIN, SensorConfigFields as scf
+from .const import CONF_ENABLE_CHINA_GCJ_02, DEVICE_TRACKER, DOMAIN
+from .const import SensorConfigFields as scf
 from .coordinator import MBAPI2020DataUpdateCoordinator
 from .helper import CoordinatesHelper as ch
 

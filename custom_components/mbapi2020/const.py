@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import timedelta
 from enum import Enum, StrEnum
-import logging
 
 import voluptuous as vol
-
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import (
@@ -239,16 +238,20 @@ SERVICE_WINDOWS_MOVE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
         vol.Optional("front_left", default=None): vol.Any(
-            None, vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]))
+            None,
+            vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])),
         ),  # type: ignore
         vol.Optional("front_right", default=None): vol.Any(
-            None, vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]))
+            None,
+            vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])),
         ),  # type: ignore
         vol.Optional("rear_left", default=None): vol.Any(
-            None, vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]))
+            None,
+            vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])),
         ),  # type: ignore
         vol.Optional("rear_right", default=None): vol.Any(
-            None, vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]))
+            None,
+            vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])),
         ),  # type: ignore
     }
 )

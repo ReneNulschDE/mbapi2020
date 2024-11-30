@@ -22,6 +22,8 @@ from .const import (
     SENSORS,
     SENSORS_POLL,
     DefaultValueModeType,
+)
+from .const import (
     SensorConfigFields as scf,
 )
 from .coordinator import MBAPI2020DataUpdateCoordinator

@@ -12,7 +12,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import MercedesMeEntity
-from .const import BUTTONS, CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, SensorConfigFields as scf
+from .const import BUTTONS, CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER
+from .const import SensorConfigFields as scf
 from .coordinator import MBAPI2020DataUpdateCoordinator
 
 

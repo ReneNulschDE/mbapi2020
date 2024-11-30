@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
 import logging
 import uuid
+from collections.abc import Awaitable, Callable
 
 from aiohttp import ClientSession, WSMsgType, WSServerHandshakeError, client_exceptions
-
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -29,11 +28,12 @@ from .const import (
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_PA,
 )
-from .helper import UrlHelper as helper, Watchdog
+from .helper import UrlHelper as helper
+from .helper import Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
-DEFAULT_WATCHDOG_TIMEOUT = 1440
+DEFAULT_WATCHDOG_TIMEOUT = 840
 PING_WATCHDOG_TIMEOUT = 30
 STATE_CONNECTED = "connected"
 STATE_RECONNECTING = "reconnecting"
@@ -210,6 +210,8 @@ class Websocket:
         token = await self.oauth.async_get_cached_token()
         header = {
             "Authorization": token["access_token"],
+            "APP-SESSION-ID": self.session_id,
+            "OUTPUT-FORMAT": "PROTO",
             "X-SessionId": self.session_id,
             "X-TrackingId": str(uuid.uuid4()).upper(),
             "RIS-OS-Name": RIS_OS_NAME,

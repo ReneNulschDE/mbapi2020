@@ -13,7 +13,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity
-from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, BinarySensors, SensorConfigFields as scf
+from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, BinarySensors
+from .const import SensorConfigFields as scf
 from .coordinator import MBAPI2020DataUpdateCoordinator
 
 

@@ -9,7 +9,6 @@ import uuid
 
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientError
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
