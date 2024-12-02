@@ -1,5 +1,4 @@
-"""
-Device Tracker support for Mercedes cars with Mercedes ME.
+"""Device Tracker support for Mercedes cars with Mercedes ME.
 
 For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
@@ -8,7 +7,6 @@ https://github.com/ReneNulschDE/mbapi2020/
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from homeassistant.components.device_tracker import SourceType, TrackerEntity
 from homeassistant.config_entries import ConfigEntry
@@ -17,8 +15,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity
-from .const import CONF_ENABLE_CHINA_GCJ_02, DEVICE_TRACKER, DOMAIN
-from .const import SensorConfigFields as scf
+from .const import DEVICE_TRACKER, DOMAIN
 from .coordinator import MBAPI2020DataUpdateCoordinator
 from .helper import CoordinatesHelper as ch
 
@@ -58,7 +55,7 @@ class MercedesMEDeviceTracker(MercedesMeEntity, TrackerEntity, RestoreEntity):
     """Representation of a Sensor."""
 
     @property
-    def latitude(self) -> Optional[float]:
+    def latitude(self) -> float | None:
         """Return latitude value of the device."""
         lat = self._get_car_value("location", "positionLat", "value", 0)
         lng = self._get_car_value("location", "positionLong", "value", 0)
@@ -69,7 +66,7 @@ class MercedesMEDeviceTracker(MercedesMeEntity, TrackerEntity, RestoreEntity):
         return lat if lat else None
 
     @property
-    def longitude(self) -> Optional[float]:
+    def longitude(self) -> float | None:
         """Return longitude value of the device."""
         lat = self._get_car_value("location", "positionLat", "value", 0)
         lng = self._get_car_value("location", "positionLong", "value", 0)

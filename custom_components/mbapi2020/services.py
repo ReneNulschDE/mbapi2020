@@ -59,13 +59,11 @@ def setup_services(hass: HomeAssistant) -> None:
 
     def _get_config_entryid(vin: str):
         for key in iter(domain):
-            if not isinstance(domain[key], DataUpdateCoordinator):
-                next
-
-            coordinator = domain[key]
-            if coordinator.client and coordinator.client.cars:
-                if vin in coordinator.client.cars:
-                    return key
+            if isinstance(domain[key], DataUpdateCoordinator):
+                coordinator = domain[key]
+                if coordinator.client and coordinator.client.cars:
+                    if vin in coordinator.client.cars:
+                        return key
 
         raise ServiceValidationError(
             "Given VIN/FIN is not managed by any coordinator or excluded in the integration options."

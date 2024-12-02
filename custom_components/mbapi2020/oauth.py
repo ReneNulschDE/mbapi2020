@@ -3,19 +3,19 @@
 from __future__ import annotations
 
 import asyncio
+from copy import deepcopy
 import json
 import logging
 import time
 import urllib.parse
 import uuid
-from copy import deepcopy
 
 from aiohttp import ClientSession
+
+from custom_components.mbapi2020.errors import MBAuthError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-
-from custom_components.mbapi2020.errors import MBAuthError
 
 from .const import (
     DEFAULT_COUNTRY_CODE,
@@ -46,7 +46,7 @@ from .helper import UrlHelper as helper
 _LOGGER = logging.getLogger(__name__)
 
 
-class Oauth:  # pylint: disable-too-few-public-methods
+class Oauth:
     """define the client."""
 
     def __init__(
@@ -69,7 +69,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         """Refresh the device code."""
         _LOGGER.info("Start request_device_code")
 
-        _LOGGER.info("Auth token refresh preflight request 1")
+        _LOGGER.debug("Auth token refresh preflight request 1")
         headers = self._get_header()
         url = f"{helper.Rest_url(self._region)}/v1/config"
         await self._async_request("get", url, headers=headers)
@@ -93,7 +93,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
     async def request_pin(self, email: str, nonce: str):
         """Initiate a PIN request."""
         _LOGGER.info("Start request PIN %s", email)
-        _LOGGER.info("PIN preflight request 1")
+        _LOGGER.debug("PIN preflight request 1")
         headers = self._get_header()
         url = f"{helper.Rest_url(self._region)}/v1/config"
         await self._async_request("get", url, headers=headers)
@@ -108,7 +108,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
         """Refresh the access token."""
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
 
-        _LOGGER.info("Auth token refresh preflight request 1")
+        _LOGGER.debug("Auth token refresh preflight request 1")
         headers = self._get_header()
         url = f"{helper.Rest_url(self._region)}/v1/config"
         await self._async_request("get", url, headers=headers)
@@ -124,13 +124,13 @@ class Oauth:  # pylint: disable-too-few-public-methods
         try:
             token_info = await self._async_request(method="post", url=url, data=data, headers=headers)
 
-        except MBAuthError as err:
+        except MBAuthError:
             if is_retry:
                 if self._config_entry and self._config_entry.data:
                     new_config_entry_data = deepcopy(dict(self._config_entry.data))
                     new_config_entry_data.pop("token", None)
                     self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
-                raise err
+                raise
 
         if token_info is not None:
             if "refresh_token" not in token_info:
@@ -234,9 +234,7 @@ class Oauth:  # pylint: disable-too-few-public-methods
             "Accept-Language": "en-GB",
         }
 
-        header = self._get_region_header(header)
-
-        return header
+        return self._get_region_header(header)
 
     def _get_region_header(self, header):
         if self._region == REGION_EUROPE:

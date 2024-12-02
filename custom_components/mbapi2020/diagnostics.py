@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from json import JSONEncoder
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
@@ -11,8 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN, JSON_EXPORT_IGNORED_KEYS
-from .helper import LogHelper as loghelper
-from .helper import MBJSONEncoder
+from .helper import LogHelper as loghelper, MBJSONEncoder
 
 
 async def async_get_config_entry_diagnostics(

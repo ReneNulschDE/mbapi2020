@@ -22,8 +22,6 @@ from .const import (
     SENSORS,
     SENSORS_POLL,
     DefaultValueModeType,
-)
-from .const import (
     SensorConfigFields as scf,
 )
 from .coordinator import MBAPI2020DataUpdateCoordinator
@@ -110,10 +108,8 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
             if self._sensor_config[scf.DEFAULT_VALUE_MODE.value]:
                 if self._sensor_config[scf.DEFAULT_VALUE_MODE.value] == "Zero":
                     return 0
-                else:
-                    return STATE_UNKNOWN
-            else:
                 return STATE_UNKNOWN
+            return STATE_UNKNOWN
 
         if self._internal_name == "lastParkEvent":
             if self._state:

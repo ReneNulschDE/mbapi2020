@@ -27,15 +27,13 @@ async def system_health_info(hass: HomeAssistant):
         used_cars: int = 0
 
         for key in iter(domain):
-            if not isinstance(domain[key], MBAPI2020DataUpdateCoordinator):
-                next
+            if isinstance(domain[key], MBAPI2020DataUpdateCoordinator):
+                coordinator = domain[key]
+                if not first_coordinator:
+                    first_coordinator = coordinator
 
-            coordinator = domain[key]
-            if not first_coordinator:
-                first_coordinator = coordinator
-
-            if coordinator.client and coordinator.client.cars:
-                used_cars += len(coordinator.client.cars)
+                if coordinator.client and coordinator.client.cars:
+                    used_cars += len(coordinator.client.cars)
 
         if first_coordinator and first_coordinator.client and first_coordinator.client.websocket:
             websocket_connection_state = str(first_coordinator.client.websocket.connection_state)
@@ -48,8 +46,8 @@ async def system_health_info(hass: HomeAssistant):
             "cars_connected": used_cars,
             "version": integration.manifest.get("version"),
         }
-    else:
-        return {
-            "status": "Disabled/Deleted",
-            "version": integration.manifest.get("version"),
-        }
+
+    return {
+        "status": "Disabled/Deleted",
+        "version": integration.manifest.get("version"),
+    }
