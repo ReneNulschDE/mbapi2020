@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import logging
 from datetime import timedelta
 from enum import Enum, StrEnum
+import logging
 
 import voluptuous as vol
+
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import (
@@ -194,7 +195,7 @@ SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE_SCHEMA = vol.Schema(
 SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),  # type: ignore
+        vol.Required("type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),
     }
 )
 SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
@@ -211,8 +212,8 @@ SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
 SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),  # type: ignore
-        vol.Optional("charge_program", default=0): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),  # type: ignore
+        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),
+        vol.Optional("charge_program", default=0): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),
     }
 )
 SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})
@@ -240,19 +241,19 @@ SERVICE_WINDOWS_MOVE_SCHEMA = vol.Schema(
         vol.Optional("front_left", default=None): vol.Any(
             None,
             vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])),
-        ),  # type: ignore
+        ),
         vol.Optional("front_right", default=None): vol.Any(
             None,
             vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])),
-        ),  # type: ignore
+        ),
         vol.Optional("rear_left", default=None): vol.Any(
             None,
             vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])),
-        ),  # type: ignore
+        ),
         vol.Optional("rear_right", default=None): vol.Any(
             None,
             vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])),
-        ),  # type: ignore
+        ),
     }
 )
 SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
@@ -294,7 +295,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                     ]
                 ),
             ),
-        ),  # type: ignore
+        ),
         vol.Optional("front_right", default=None): vol.Any(
             None,
             vol.All(
@@ -331,7 +332,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                     ]
                 ),
             ),
-        ),  # type: ignore
+        ),
         vol.Optional("rear_left", default=None): vol.Any(
             None,
             vol.All(
@@ -368,7 +369,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                     ]
                 ),
             ),
-        ),  # type: ignore
+        ),
         vol.Optional("rear_right", default=None): vol.Any(
             None,
             vol.All(
@@ -405,7 +406,7 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
                     ]
                 ),
             ),
-        ),  # type: ignore
+        ),
     }
 )
 SERVICE_PRECONDITIONING_CONFIGURE_SEATS_SCHEMA = vol.Schema(
