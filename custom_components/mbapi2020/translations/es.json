@@ -241,7 +241,7 @@
                 },
                 "type": {
                     "name": "Tipo",
-                    "description": "Método que se utiliza para iniciar el proceso de inicio. 0=Ahora (Predeterminado), 1=Inmediato - Usa Inmediato en caso de que no soporte ahora."
+                    "description": "Método que se utiliza para iniciar el proceso de arranque. 0=Ahora (por defecto), 1=Inmediato - Utilice Inmediato en caso de que su coche no admita ahora."
                 }
             }
         },
