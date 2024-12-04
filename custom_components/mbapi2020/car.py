@@ -225,8 +225,7 @@ class Car:
         self._last_command_state = ""
         self._last_command_error_code = ""
         self._last_command_error_message = ""
-        self._last_command_time_stamp = 0
-        self._last_full_message = None
+        self.last_command_time_stamp = 0
 
         self.binarysensors = None
         self.tires = None
@@ -249,38 +248,70 @@ class Car:
 
     @property
     def is_owner(self):
+        """Get/set if the account is owner of the car."""
         return CarAttribute(self._is_owner, "VALID", None)
+
+    @is_owner.setter
+    def is_owner(self, value: bool):
+        self._is_owner = value
 
     @property
     def full_updatemessages_received(self):
+        """Get number of received full updates messages."""
         return CarAttribute(self.messages_received["f"], "VALID", None)
 
     @property
     def partital_updatemessages_received(self):
+        """Get number of received partial updates messages."""
         return CarAttribute(self.messages_received["p"], "VALID", None)
 
     @property
     def last_message_received(self):
+        """Get/Set last message received."""
         if self._last_message_received > 0:
             return CarAttribute(datetime.fromtimestamp(int(round(self._last_message_received / 1000))), "VALID", None)
 
         return CarAttribute(None, "NOT_RECEIVED", None)
 
+    @last_message_received.setter
+    def last_message_received(self, value):
+        self._last_message_received = value
+
     @property
     def last_command_type(self):
-        return CarAttribute(self._last_command_type, "VALID", self._last_command_time_stamp)
+        """Get/Set last command type."""
+        return CarAttribute(self._last_command_type, "VALID", self.last_command_time_stamp)
+
+    @last_command_type.setter
+    def last_command_type(self, value):
+        self._last_command_type = value
 
     @property
     def last_command_state(self):
-        return CarAttribute(self._last_command_state, "VALID", self._last_command_time_stamp)
+        """Get/Set last command state."""
+        return CarAttribute(self._last_command_state, "VALID", self.last_command_time_stamp)
+
+    @last_command_state.setter
+    def last_command_state(self, value):
+        self._last_command_state = value
 
     @property
     def last_command_error_code(self):
-        return CarAttribute(self._last_command_error_code, "VALID", self._last_command_time_stamp)
+        """Get/Set last command error code."""
+        return CarAttribute(self._last_command_error_code, "VALID", self.last_command_time_stamp)
+
+    @last_command_error_code.setter
+    def last_command_error_code(self, value):
+        self._last_command_error_code = value
 
     @property
     def last_command_error_message(self):
-        return CarAttribute(self._last_command_error_message, "VALID", self._last_command_time_stamp)
+        """Get/Set last command error message."""
+        return CarAttribute(self._last_command_error_message, "VALID", self.last_command_time_stamp)
+
+    @last_command_error_message.setter
+    def last_command_error_message(self, value):
+        self._last_command_error_message = value
 
     def add_update_listener(self, listener):
         """Add a listener for update notifications."""
@@ -297,7 +328,7 @@ class Car:
 
     def check_capabilities(self, required_capabilities: list[str]) -> bool:
         """Check if the car has the required capabilities."""
-        return all(self.features.get(capability) is True for capability in required_capabilities)
+        return any(self.features.get(capability) is True for capability in required_capabilities)
 
 
 @dataclass(init=False)

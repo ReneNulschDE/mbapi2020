@@ -3,22 +3,14 @@
 from __future__ import annotations
 
 import asyncio
-import time
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from datetime import datetime
+import time
 from typing import Any
 
 import aiohttp
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, HomeAssistantError
-from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import Entity, EntityDescription
-from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.util import slugify
 
 from custom_components.mbapi2020.car import Car, CarAttribute, RcpOptions
 from custom_components.mbapi2020.const import (
@@ -29,14 +21,20 @@ from custom_components.mbapi2020.const import (
     LOGIN_BASE_URI,
     MERCEDESME_COMPONENTS,
     UNITS,
-)
-from custom_components.mbapi2020.const import (
     SensorConfigFields as scf,
 )
 from custom_components.mbapi2020.coordinator import MBAPI2020DataUpdateCoordinator
 from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import Entity, EntityDescription
+from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import slugify
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 
@@ -58,7 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         coordinator = MBAPI2020DataUpdateCoordinator(hass, config_entry)
         hass.data.setdefault(DOMAIN, {})[config_entry.entry_id] = coordinator
 
-        await coordinator.client._set_rlock_mode()
+        await coordinator.client.set_rlock_mode()
 
         try:
             token_info = await coordinator.client.oauth.async_get_cached_token()
@@ -69,7 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         if token_info is None:
             LOGGER.error("Authentication failed. Please reauthenticate.")
-            raise ConfigEntryAuthFailed()
+            raise ConfigEntryAuthFailed
 
         masterdata = await coordinator.client.webapi.get_user_info()
         hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md", True)
@@ -134,42 +132,42 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             rcp_supported = await coordinator.client.webapi.is_car_rcp_supported(vin)
             LOGGER.debug("RCP supported for car %s: %s", loghelper.Mask_VIN(vin), rcp_supported)
             setattr(rcp_options, "rcp_supported", CarAttribute(rcp_supported, "VALID", 0))
-            rcp_supported = False
-            if rcp_supported:
-                rcp_supported_settings = await coordinator.client.webapi.get_car_rcp_supported_settings(vin)
-                if rcp_supported_settings:
-                    hass.async_add_executor_job(
-                        coordinator.client.write_debug_json_output,
-                        rcp_supported_settings,
-                        "rcs",
-                    )
-                    if rcp_supported_settings.get("data"):
-                        if rcp_supported_settings.get("data").get("attributes"):
-                            if rcp_supported_settings.get("data").get("attributes").get("supportedSettings"):
-                                LOGGER.debug(
-                                    "RCP supported settings: %s",
-                                    str(rcp_supported_settings.get("data").get("attributes").get("supportedSettings")),
-                                )
-                                setattr(
-                                    rcp_options,
-                                    "rcp_supported_settings",
-                                    CarAttribute(
-                                        rcp_supported_settings.get("data").get("attributes").get("supportedSettings"),
-                                        "VALID",
-                                        0,
-                                    ),
-                                )
+            # rcp_supported = False
+            # if rcp_supported:
+            #     rcp_supported_settings = await coordinator.client.webapi.get_car_rcp_supported_settings(vin)
+            #     if rcp_supported_settings:
+            #         hass.async_add_executor_job(
+            #             coordinator.client.write_debug_json_output,
+            #             rcp_supported_settings,
+            #             "rcs",
+            #         )
+            #         if rcp_supported_settings.get("data"):
+            #             if rcp_supported_settings.get("data").get("attributes"):
+            #                 if rcp_supported_settings.get("data").get("attributes").get("supportedSettings"):
+            #                     LOGGER.debug(
+            #                         "RCP supported settings: %s",
+            #                         str(rcp_supported_settings.get("data").get("attributes").get("supportedSettings")),
+            #                     )
+            #                     setattr(
+            #                         rcp_options,
+            #                         "rcp_supported_settings",
+            #                         CarAttribute(
+            #                             rcp_supported_settings.get("data").get("attributes").get("supportedSettings"),
+            #                             "VALID",
+            #                             0,
+            #                         ),
+            #                     )
 
-                                for setting in (
-                                    rcp_supported_settings.get("data").get("attributes").get("supportedSettings")
-                                ):
-                                    setting_result = await coordinator.client.webapi.get_car_rcp_settings(vin, setting)
-                                    if setting_result is not None:
-                                        hass.async_add_executor_job(
-                                            coordinator.client.write_debug_json_output,
-                                            setting_result,
-                                            f"rcs_{setting}",
-                                        )
+            #                     for setting in (
+            #                         rcp_supported_settings.get("data").get("attributes").get("supportedSettings")
+            #                     ):
+            #                         setting_result = await coordinator.client.webapi.get_car_rcp_settings(vin, setting)
+            #                         if setting_result is not None:
+            #                             hass.async_add_executor_job(
+            #                                 coordinator.client.write_debug_json_output,
+            #                                 setting_result,
+            #                                 f"rcs_{setting}",
+            #                             )
 
             current_car = Car(vin)
             current_car.licenseplate = car.get("licensePlate", vin)
@@ -181,8 +179,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             current_car.features = features
             current_car.masterdata = car
             current_car.rcp_options = rcp_options
-            current_car._last_message_received = int(round(time.time() * 1000))
-            current_car._is_owner = car.get("isOwner")
+            current_car.last_message_received = int(round(time.time() * 1000))
+            current_car.is_owner = car.get("isOwner")
 
             coordinator.client.cars[vin] = current_car
             # await coordinator.client.update_poll_states(vin)
@@ -206,10 +204,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     retry_counter: int = 0
     while not coordinator.entry_setup_complete:
         # async websocket data load not complete, wait 0.5 seconds or break up after 60 checks (30sec)
-        if retry_counter == 60 and coordinator.client._account_blocked:
+        if retry_counter == 60 and coordinator.client.account_blocked:
             LOGGER.warning("Account is blocked. Reload will happen after unblock at midnight (GMT).")
             break
-        elif retry_counter == 60 and not coordinator.client._account_blocked:
+        if retry_counter == 60 and not coordinator.client.account_blocked:
             LOGGER.warning(
                 "No car information received via websocket for this account. Check the MB website with the same account."
             )
@@ -386,10 +384,7 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             return
 
         if isinstance(self._sensor_config, EntityDescription):
-            try:
-                self._mercedes_me_update()
-            except Exception as err:
-                LOGGER.error("Error while updating entity %s: %s", self.name, err)
+            self._mercedes_me_update()
         else:
             self._state = self._get_car_value(self._feature_name, self._object_name, self._attrib_name, "error")
             self.async_write_ha_state()

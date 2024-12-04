@@ -3,22 +3,22 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timedelta
 import json
 import logging
+from pathlib import Path
 import threading
 import time
 import uuid
-from datetime import datetime, timedelta
-from pathlib import Path
 
 from aiohttp import ClientSession, WSServerHandshakeError
 from google.protobuf.json_format import MessageToJson
+
+from custom_components.mbapi2020.proto import client_pb2
+import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import system_info
-
-import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
-from custom_components.mbapi2020.proto import client_pb2
 
 from .car import (
     AUX_HEAT_OPTIONS,
@@ -56,8 +56,7 @@ from .const import (
     DEFAULT_DOWNLOAD_PATH,
     DEFAULT_SOCKET_MIN_RETRY,
 )
-from .helper import LogHelper as loghelper
-from .helper import Watchdog
+from .helper import LogHelper as loghelper, Watchdog
 from .oauth import Oauth
 from .webapi import WebApi
 from .websocket import Websocket
@@ -66,10 +65,13 @@ LOGGER = logging.getLogger(__name__)
 
 DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = False
 GEOFENCING_MAX_RETRIES = 2
+LONG_RUNNING_OPERATION_TIMEOUT = 180
 
 
 class Client:
     """define the client."""
+
+    long_running_operation_active: bool = False
 
     def __init__(
         self,
@@ -92,7 +94,7 @@ class Client:
         self.session_id = str(uuid.uuid4()).upper()
         self._ws_connect_retry_counter: int = 0
         self._ws_connect_retry_counter_reseted: bool = False
-        self._account_blocked: bool = False
+        self.account_blocked: bool = False
         self._first_vepupdates_processed: bool = False
         self._vepupdates_timeout_reached: bool = False
         self._vepupdates_timeout_seconds: int = 30
@@ -146,7 +148,7 @@ class Client:
 
         if msg_type == "vepUpdate":  # VEPUpdate
             LOGGER.debug("vepUpdate")
-            return
+            return None
 
         if msg_type == "vepUpdates":  # VEPUpdatesByVIN
             self._process_vep_updates(data)
@@ -162,7 +164,7 @@ class Client:
             if data.debugMessage:
                 LOGGER.debug("debugMessage - Data: %s", data.debugMessage.message)
 
-            return
+            return None
 
         if msg_type == "service_status_upd":
             self._write_debug_output(data, "ssu")
@@ -185,7 +187,7 @@ class Client:
                 "user_vehicle_auth_changed_update - Data: %s",
                 MessageToJson(data, preserving_proto_field_name=True),
             )
-            return
+            return None
 
         if msg_type == "user_picture_update":
             self._write_debug_output(data, "upu")
@@ -253,22 +255,31 @@ class Client:
         self._write_debug_output(data, "unk")
         LOGGER.debug("Message Type not implemented: %s", msg_type)
 
+        return None
+
     async def _blocked_account_reload_check(self):
-        if self._account_blocked and self._ws_connect_retry_counter_reseted:
-            self._account_blocked = False
-            self._ws_connect_retry_counter_reseted
+        if self.account_blocked and self._ws_connect_retry_counter_reseted:
+            self.account_blocked = False
+            self._ws_connect_retry_counter_reseted = False
 
             if not self._dataload_complete_fired:
                 LOGGER.info("Initiating component reload after account got unblocked...")
                 self._hass.async_create_task(self._hass.config_entries.async_reload(self.config_entry.entry_id))
 
-        elif self._account_blocked and not self._ws_connect_retry_counter_reseted:
+        elif self.account_blocked and not self._ws_connect_retry_counter_reseted:
             await self._component_reload_watcher.trigger()
 
     async def attempt_connect(self, callback_dataload_complete):
         """Attempt to connect to the socket (retrying later on fail)."""
-
+        LOGGER.debug("attempt_connect")
         stop_retry_loop: bool = False
+
+        self.websocket: Websocket = Websocket(
+            hass=self._hass,
+            oauth=self.oauth,
+            region=self._region,
+            session_id=self.session_id,
+        )
 
         self._on_dataload_complete = callback_dataload_complete
         while not stop_retry_loop:
@@ -291,40 +302,39 @@ class Client:
                     self.websocket = Websocket(self._hass, self.oauth, self._region, session_id=self.session_id)
                     await self.websocket.async_connect(self.on_data)
             except WSServerHandshakeError as err:
-                if self.websocket._is_stopping:
+                if self.websocket.is_stopping:
                     stop_retry_loop = True
                     break
-                else:
-                    LOGGER.error(
-                        "Error with the websocket connection (retry counter: %s): %s - %s",
-                        self._ws_connect_retry_counter,
-                        err.code,
-                        err.message,
-                    )
-                    if "429" in str(err.code):
-                        self._account_blocked = True
-                    self._ws_connect_retry_counter = self._ws_connect_retry_counter + 1
+                LOGGER.error(
+                    "Error with the websocket connection (retry counter: %s): %s - %s",
+                    self._ws_connect_retry_counter,
+                    err.code,
+                    err.message,
+                )
+                if "429" in str(err.code):
+                    self.account_blocked = True
+                self._ws_connect_retry_counter = self._ws_connect_retry_counter + 1
             except Exception as err:
-                if self.websocket._is_stopping:
+                if self.websocket.is_stopping:
                     stop_retry_loop = True
                     break
-                else:
-                    LOGGER.error(
-                        "Unkown error with the websocket connection (retry counter: %s): %s",
-                        self._ws_connect_retry_counter,
-                        err,
-                        exc_info=err,
-                    )
-                    self._ws_connect_retry_counter = self._ws_connect_retry_counter + 1
-            if self.websocket._is_stopping:
+
+                LOGGER.error(
+                    "Unkown error with the websocket connection (retry counter: %s): %s",
+                    self._ws_connect_retry_counter,
+                    err,
+                    exc_info=err,
+                )
+                self._ws_connect_retry_counter = self._ws_connect_retry_counter + 1
+            if self.websocket.is_stopping:
                 LOGGER.info("Client WS Handler loop - stopping")
                 stop_retry_loop = True
                 break
-            else:
-                LOGGER.info(
-                    "Client WS Handler loop - loop end round %s",
-                    self._ws_connect_retry_counter - 1,
-                )
+
+            LOGGER.info(
+                "Client WS Handler loop - loop end round %s",
+                self._ws_connect_retry_counter - 1,
+            )
 
     def _build_car(self, received_car_data, update_mode):
         if received_car_data.get("vin") in self.excluded_cars:
@@ -344,10 +354,10 @@ class Client:
         car: Car = self.cars.get(received_car_data.get("vin"), Car(received_car_data.get("vin")))
 
         car.messages_received.update("p" if update_mode else "f")
-        car._last_message_received = int(round(time.time() * 1000))
+        car.last_message_received = int(round(time.time() * 1000))
 
         if not update_mode:
-            car._last_full_message = received_car_data
+            car.last_full_message = received_car_data
 
         car.odometer = self._get_car_values(
             received_car_data,
@@ -515,11 +525,12 @@ class Client:
                 display_value=curr_display_value,
                 unit=unit,
             )
-        elif not update:
+
+        if not update:
             # Set status for non-existing values when no update occurs
             return CarAttribute(0, 4, 0)
-        else:
-            return None
+
+        return None
 
     def _get_car_values_handle_max_soc(self, car_detail, class_instance, option, update):
         # special EQA/B max_soc handling
@@ -635,14 +646,11 @@ class Client:
         return None
 
     def _get_car_value(self, class_instance, object_name, attrib_name, default_value):
-        value = None
-
-        value = getattr(
+        return getattr(
             getattr(class_instance, object_name, default_value),
             attrib_name,
             default_value,
         )
-        return value
 
     def _process_vep_updates(self, data):
         LOGGER.debug("Start _process_vep_updates")
@@ -754,7 +762,7 @@ class Client:
                     loghelper.Mask_VIN(key),
                     value.entry_setup_complete,
                     value.messages_received,
-                    current_time - value._last_message_received,
+                    current_time - value.last_message_received.value.timestamp(),
                 )
 
     def _process_apptwin_command_status_updates_by_vin(self, data):
@@ -793,11 +801,11 @@ class Client:
                             current_car = self.cars.get(vin)
 
                             if current_car:
-                                current_car._last_command_type = command_type
-                                current_car._last_command_state = command_state
-                                current_car._last_command_error_code = command_error_code
-                                current_car._last_command_error_message = command_error_message
-                                current_car._last_command_time_stamp = command.get("timestamp_in_ms", 0)
+                                current_car.last_command_type = command_type
+                                current_car.last_command_state = command_state
+                                current_car.last_command_error_code = command_error_code
+                                current_car.last_command_error_message = command_error_message
+                                current_car.last_command_time_stamp = command.get("timestamp_in_ms", 0)
 
                                 current_car.publish_updates()
 
@@ -818,7 +826,7 @@ class Client:
         charge_programm.charge_program = program
         message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         return
 
     async def charging_break_clocktimer_configure(
@@ -910,7 +918,7 @@ class Client:
 
         if entry_set:
             message.commandRequest.chargingbreak_clocktimer_configure.CopyFrom(config)
-            await self.websocket.call(message.SerializeToString())
+            await self.execute_car_command(message)
             LOGGER.info(
                 "End charging_break_clocktimer_configure for vin %s",
                 loghelper.Mask_VIN(vin),
@@ -967,7 +975,7 @@ class Client:
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.doors_unlock.pin = pin
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End Doors_unlock for vin %s", loghelper.Mask_VIN(vin))
 
     async def doors_lock(self, vin: str):
@@ -987,7 +995,7 @@ class Client:
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.doors_lock.doors.extend([])
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End Doors_lock for vin %s", loghelper.Mask_VIN(vin))
 
     async def download_images(self, vin: str):
@@ -1001,7 +1009,7 @@ class Client:
             Path(download_path).mkdir(parents=True, exist_ok=True)
 
             def save_images() -> None:
-                with open(target_file_name, mode="wb") as zf:
+                with Path.open(target_file_name, mode="wb") as zf:
                     zf.write(zip_file)
                     zf.close()
 
@@ -1016,9 +1024,9 @@ class Client:
         """Send the auxheat configure command to the car."""
         LOGGER.info("Start auxheat_configure for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self._is_car_feature_available(vin, "AUXHEAT_START"):
+        if not self._is_car_feature_available(vin, feature_list=["AUXHEAT_CONFIGURE", "auxHeat"]):
             LOGGER.warning(
-                "Can't start auxheat for car %s. Feature not availabe for this car.",
+                "Can't start auxheat_configure for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -1034,14 +1042,14 @@ class Client:
         auxheat_configure.time_3 = time_3
         message.commandRequest.auxheat_configure.CopyFrom(auxheat_configure)
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End auxheat_configure for vin %s", loghelper.Mask_VIN(vin))
 
     async def auxheat_start(self, vin: str):
         """Send the auxheat start command to the car."""
         LOGGER.info("Start auxheat start for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self._is_car_feature_available(vin, "AUXHEAT_START"):
+        if not self._is_car_feature_available(vin, feature_list=["AUXHEAT_START", "auxHeat"]):
             LOGGER.warning(
                 "Can't start auxheat for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -1055,14 +1063,14 @@ class Client:
         auxheat_start = pb2_commands.AuxheatStart()
         message.commandRequest.auxheat_start.CopyFrom(auxheat_start)
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End auxheat start for vin %s", loghelper.Mask_VIN(vin))
 
     async def auxheat_stop(self, vin: str):
         """Send the auxheat stop command to the car."""
         LOGGER.info("Start auxheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self._is_car_feature_available(vin, "AUXHEAT_STOP"):
+        if not self._is_car_feature_available(vin, feature_list=["AUXHEAT_STOP", "auxHeat"]):
             LOGGER.warning(
                 "Can't stop auxheat for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -1076,7 +1084,7 @@ class Client:
         auxheat_stop = pb2_commands.AuxheatStop()
         message.commandRequest.auxheat_stop.CopyFrom(auxheat_stop)
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End auxheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
     async def battery_max_soc_configure(self, vin: str, max_soc: int, charge_program: int = 0):
@@ -1104,7 +1112,7 @@ class Client:
         charge_program_config.charge_program = charge_program
         message.commandRequest.charge_program_configure.CopyFrom(charge_program_config)
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End battery_max_soc_configure for vin %s", loghelper.Mask_VIN(vin))
 
     async def engine_start(self, vin: str):
@@ -1131,7 +1139,7 @@ class Client:
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.engine_start.pin = self.pin
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End engine start for vin %s", loghelper.Mask_VIN(vin))
 
     async def engine_stop(self, vin: str):
@@ -1152,7 +1160,7 @@ class Client:
         engine_stop = pb2_commands.EngineStop()
         message.commandRequest.engine_stop.CopyFrom(engine_stop)
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End engine_stop for vin %s", loghelper.Mask_VIN(vin))
 
     async def send_route_to_car(
@@ -1190,7 +1198,7 @@ class Client:
         message.commandRequest.sigpos_start.light_type = 1
         message.commandRequest.sigpos_start.sigpos_type = 0
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End sigpos_start for vin %s", loghelper.Mask_VIN(vin))
 
     async def sunroof_open(self, vin: str):
@@ -1217,7 +1225,7 @@ class Client:
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.sunroof_open.pin = self.pin
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End sunroof_open for vin %s", loghelper.Mask_VIN(vin))
 
     async def sunroof_tilt(self, vin: str):
@@ -1244,7 +1252,7 @@ class Client:
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.sunroof_lift.pin = self.pin
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End sunroof_tilt for vin %s", loghelper.Mask_VIN(vin))
 
     async def sunroof_close(self, vin: str):
@@ -1265,7 +1273,7 @@ class Client:
         sunroof_close = pb2_commands.SunroofClose()
         message.commandRequest.sunroof_close.CopyFrom(sunroof_close)
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End sunroof_close for vin %s", loghelper.Mask_VIN(vin))
 
     async def preconditioning_configure_seats(
@@ -1295,7 +1303,7 @@ class Client:
         message.commandRequest.zev_precondition_configure_seats.rear_left = rear_left
         message.commandRequest.zev_precondition_configure_seats.rear_right = rear_right
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End preconditioning_configure_seats for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_start(self, vin: str):
@@ -1316,7 +1324,7 @@ class Client:
         message.commandRequest.zev_preconditioning_start.departure_time = 0
         message.commandRequest.zev_preconditioning_start.type = pb2_commands.ZEVPreconditioningType.now
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End preheat_start for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_start_immediate(self, vin: str):
@@ -1337,7 +1345,7 @@ class Client:
         message.commandRequest.zev_preconditioning_start.departure_time = 0
         message.commandRequest.zev_preconditioning_start.type = pb2_commands.ZEVPreconditioningType.immediate
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End preheat_start_immediate for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_start_universal(self, vin: str) -> None:
@@ -1365,7 +1373,7 @@ class Client:
         message.commandRequest.zev_preconditioning_start.departure_time = departure_time
         message.commandRequest.zev_preconditioning_start.type = pb2_commands.ZEVPreconditioningType.departure
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End preheat_start_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_stop(self, vin: str):
@@ -1384,7 +1392,7 @@ class Client:
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.zev_preconditioning_stop.type = pb2_commands.ZEVPreconditioningType.now
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End preheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_stop_departure_time(self, vin: str):
@@ -1403,7 +1411,7 @@ class Client:
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.zev_preconditioning_stop.type = pb2_commands.ZEVPreconditioningType.departure
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
     async def temperature_configure(
@@ -1478,7 +1486,7 @@ class Client:
                 "out_temperature_",
                 False,
             )
-            await self.websocket.call(message.SerializeToString())
+            await self.execute_car_command(message)
             LOGGER.info("End temperature_configure for vin %s", loghelper.Mask_VIN(vin))
         else:
             LOGGER.info(
@@ -1486,7 +1494,7 @@ class Client:
                 loghelper.Mask_VIN(vin),
             )
 
-    async def windows_open(self, vin: str, pin: str = None):
+    async def windows_open(self, vin: str, pin: str = ""):
         """Send a window open command to the car."""
         LOGGER.info("Start windows_open for vin %s", loghelper.Mask_VIN(vin))
 
@@ -1517,7 +1525,7 @@ class Client:
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.windows_open.pin = _pin
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End windows_open for vin %s", loghelper.Mask_VIN(vin))
 
     async def windows_close(self, vin: str):
@@ -1538,7 +1546,7 @@ class Client:
         windows_close = pb2_commands.WindowsClose()
         message.commandRequest.windows_close.CopyFrom(windows_close)
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End windows_close for vin %s", loghelper.Mask_VIN(vin))
 
     async def windows_move(
@@ -1592,17 +1600,35 @@ class Client:
             else:
                 message.commandRequest.windows_move.rear_right.value = rear_right
 
-        await self.websocket.call(message.SerializeToString())
+        await self.execute_car_command(message)
         LOGGER.info("End windows_move for vin %s", loghelper.Mask_VIN(vin))
 
-    def _is_car_feature_available(self, vin: str, feature: str) -> bool:
+    async def execute_car_command(self, message):
+        """Execute a car command."""
+        LOGGER.debug("execute_car_command - ws-connection: %s", self.websocket.connection_state)
+        # self.long_running_operation_active = True
+        # if self.websocket.connection_state != "connected":
+        #     await self.attempt_connect(None)
+        #     await asyncio.sleep(1)
+        await self.websocket.call(message.SerializeToString())
+        # async_call_later(
+        #     self.hass,
+        #     LONG_RUNNING_OPERATION_TIMEOUT,
+        #     self._disable_long_running_operation,
+        # )
+
+    def _is_car_feature_available(self, vin: str, feature: str = "", feature_list=None) -> bool:
         if self.config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False):
             return True
 
         current_car = self.cars.get(vin)
 
         if current_car:
-            return current_car.features.get(feature, False)
+            if feature_list:
+                return current_car.check_capabilities(feature_list)
+
+            if feature:
+                return current_car.features.get(feature, False)
 
         return False
 
@@ -1617,7 +1643,7 @@ class Client:
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
 
-            current_file = open(f"{path}/{datatype}{int(round(time.time() * 1000))}", "wb")
+            current_file = Path.open(f"{path}/{datatype}{int(round(time.time() * 1000))}", "wb")
             current_file.write(data.SerializeToString())
             current_file.close()
 
@@ -1630,20 +1656,21 @@ class Client:
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
 
-            current_file = open(f"{path}/{datatype}{int(round(time.time() * 1000))}.json", "w")
+            current_file = Path.open(f"{path}/{datatype}{int(round(time.time() * 1000))}.json", "w")
             if use_dumps:
                 current_file.write(f"{json.dumps(data, indent=4)}")
             else:
                 current_file.write(f"{data}")
             current_file.close()
 
-    async def _set_rlock_mode(self):
+    async def set_rlock_mode(self):
+        """Set thread locking mode on init."""
         # In rare cases the ha-core system_info component runs in error when detecting the supervisor
         # See https://github.com/ReneNulschDE/mbapi2020/issues/126
         info = None
         try:
             info = await system_info.async_get_system_info(self._hass)
-        except Exception:
+        except AttributeError:
             LOGGER.debug("WSL detection not possible. Error in HA-Core get_system_info. Force rlock mode.")
 
         if info and "WSL" not in str(info.get("os_version")):
@@ -1694,3 +1721,9 @@ class Client:
                 if car.geo_fencing_retry_counter >= GEOFENCING_MAX_RETRIES:
                     car.has_geofencing = False
                 car.geo_fencing_retry_counter = car.geo_fencing_retry_counter + 1
+
+    async def _disable_long_running_operation(self, now: datetime = datetime.now()):
+        if self.websocket:
+            await self.websocket.async_stop()
+
+        self.long_running_operation_active = False
