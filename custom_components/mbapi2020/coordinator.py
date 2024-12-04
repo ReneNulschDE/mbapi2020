@@ -5,12 +5,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from aiohttp import ClientSession
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import debounce
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .car import Car
 from .client import Client
@@ -52,6 +50,7 @@ class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         return {}  # self.client.cars
 
+    @callback
     async def on_dataload_complete(self):
         """Create sensors after the web_socket initial data is complete."""
         LOGGER.info("Car Load complete - start sensor creation")
