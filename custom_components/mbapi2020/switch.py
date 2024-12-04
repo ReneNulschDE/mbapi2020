@@ -52,7 +52,7 @@ SWITCH_DESCRIPTIONS: list[MercedesMeSwitchEntityDescription] = [
         is_on_fn=lambda self: self._get_car_value("auxheat", "auxheatActive", "value", default_value=False),
         turn_on_fn=lambda self, **kwargs: self._coordinator.client.auxheat_start(self._vin),
         turn_off_fn=lambda self, **kwargs: self._coordinator.client.auxheat_stop(self._vin),
-        check_capability_fn=lambda car: car.check_capabilities(["AUXHEAT_START", "AUXHEAT_STOP"]),
+        check_capability_fn=lambda car: car.check_capabilities(["AUXHEAT_START", "AUXHEAT_STOP", "auxHeat"]),
     ),
 ]
 
@@ -173,7 +173,7 @@ async def async_setup_entry(
         try:
             entity = MercedesMeSwitch(description, car.finorvin, coordinator)
             LOGGER.debug("Created switch entity for VIN: '%s', feature: '%s'", vin_masked, description.key)
-        except Exception as e:
+        except Exception:
             LOGGER.error(
                 "Error creating switch entity for VIN: '%s', feature: '%s'. Exception:",
                 vin_masked,
