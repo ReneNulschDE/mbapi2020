@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
+from datetime import datetime
 import logging
 import uuid
-from collections.abc import Awaitable, Callable
 
 from aiohttp import ClientSession, WSMsgType, WSServerHandshakeError, client_exceptions
+
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -28,8 +30,7 @@ from .const import (
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_PA,
 )
-from .helper import UrlHelper as helper
-from .helper import Watchdog
+from .helper import UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
@@ -48,12 +49,13 @@ class Websocket:
         """Initialize."""
         self.oauth: Oauth = oauth
         self._hass: HomeAssistant = hass
-        self._is_stopping: bool = False
+        self.is_stopping: bool = False
         self._on_data_received: Callable[..., Awaitable] = None
         self._connection = None
         self._region = region
         self.connection_state = "unknown"
         self.is_connecting = False
+        self.ha_stop_handler = None
         self._watchdog: Watchdog = Watchdog(
             self.initiatiate_connection_reset,
             topic="Connection",
@@ -79,7 +81,10 @@ class Websocket:
         self._on_data_received = on_data
         self.is_connecting = True
 
-        self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_handler)
+        if not self.ha_stop_handler:
+            self.ha_stop_handler = self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_handler)
+            self.ha_stop_handler()
+
         session = async_get_clientsession(self._hass, VERIFY_SSL)
 
         # Tasks erstellen
@@ -89,11 +94,14 @@ class Websocket:
         # Warten, dass Tasks laufen
         await asyncio.gather(queue_task, websocket_task)
 
-    async def async_stop(self):
+    async def async_stop(self, now: datetime = datetime.now()):
         """Close connection."""
-        self._is_stopping = True
+        LOGGER.info("async_stop start - %s", self.connection_state)
+        self.is_stopping = True
         self._watchdog.cancel()
         self._pingwatchdog.cancel()
+        self.connection_state = "closed"
+
         if self._connection is not None:
             await self._connection.close()
 
@@ -127,11 +135,11 @@ class Websocket:
             ) from err
 
     async def _start_queue_handler(self):
-        while not self._is_stopping:
+        while not self.is_stopping:
             await self._queue_handler()
 
     async def _queue_handler(self):
-        while not self._is_stopping:
+        while not self.is_stopping:
             data = await self._queue.get()
 
             try:
@@ -156,7 +164,7 @@ class Websocket:
     async def _start_websocket_handler(self, session: ClientSession):
         retry_in: int = 10
 
-        while not self._is_stopping:
+        while not self.is_stopping:
             LOGGER.debug("_start_websocket_handler: %s", self.oauth._config_entry.entry_id)
 
             try:
@@ -173,36 +181,40 @@ class Websocket:
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)
                 retry_in = retry_in * 2 if retry_in < 120 else 120
-            except WSServerHandshakeError as error:
-                raise error
+            except WSServerHandshakeError:
+                raise
             except Exception as error:
                 LOGGER.error("Other error %s", error)
-                raise error
+                raise
 
     async def _websocket_handler(self, session: ClientSession):
         websocket_url = helper.Websocket_url(self._region)
 
         headers = await self._websocket_connection_headers()
         self.is_connecting = True
-        LOGGER.info("Connecting to %s", websocket_url)
+        LOGGER.debug("Connecting to %s", websocket_url)
         self._connection = await session.ws_connect(websocket_url, headers=headers, proxy=SYSTEM_PROXY)
-        LOGGER.info("Connected to mercedes websocket at %s", websocket_url)
+        LOGGER.debug("Connected to mercedes websocket at %s", websocket_url)
 
         await self._watchdog.trigger()
 
         while not self._connection.closed:
+            if self.is_stopping:
+                break
             self.is_connecting = False
-            msg = await self._connection.receive()
 
+            LOGGER.debug("_start_websocket_handler: setting connection_state to connected.")
             self.connection_state = STATE_CONNECTED
 
+            msg = await self._connection.receive()
+
             if msg.type == WSMsgType.CLOSED:
-                LOGGER.info("websocket connection is closing")
+                LOGGER.debug("websocket connection is closing")
                 break
-            elif msg.type == WSMsgType.ERROR:
-                LOGGER.info("websocket connection is closing - message type error.")
+            if msg.type == WSMsgType.ERROR:
+                LOGGER.debug("websocket connection is closing - message type error.")
                 break
-            elif msg.type == WSMsgType.BINARY:
+            if msg.type == WSMsgType.BINARY:
                 self._queue.put_nowait(msg.data)
                 await self._pingwatchdog.trigger()
 
@@ -223,9 +235,7 @@ class Websocket:
             "Accept-Language": " de-DE,de;q=0.9",
         }
 
-        header = self._get_region_header(header)
-
-        return header
+        return self._get_region_header(header)
 
     def _get_region_header(self, header) -> list:
         if self._region == REGION_EUROPE:
