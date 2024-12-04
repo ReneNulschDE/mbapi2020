@@ -1606,16 +1606,7 @@ class Client:
     async def execute_car_command(self, message):
         """Execute a car command."""
         LOGGER.debug("execute_car_command - ws-connection: %s", self.websocket.connection_state)
-        # self.long_running_operation_active = True
-        # if self.websocket.connection_state != "connected":
-        #     await self.attempt_connect(None)
-        #     await asyncio.sleep(1)
-        await self.websocket.call(message.SerializeToString())
-        # async_call_later(
-        #     self.hass,
-        #     LONG_RUNNING_OPERATION_TIMEOUT,
-        #     self._disable_long_running_operation,
-        # )
+        await self.websocket.call(message.SerializeToString(), car_command=True)
 
     def _is_car_feature_available(self, vin: str, feature: str = "", feature_list=None) -> bool:
         if self.config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False):
@@ -1721,9 +1712,3 @@ class Client:
                 if car.geo_fencing_retry_counter >= GEOFENCING_MAX_RETRIES:
                     car.has_geofencing = False
                 car.geo_fencing_retry_counter = car.geo_fencing_retry_counter + 1
-
-    async def _disable_long_running_operation(self, now: datetime = datetime.now()):
-        if self.websocket:
-            await self.websocket.async_stop()
-
-        self.long_running_operation_active = False

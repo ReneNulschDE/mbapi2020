@@ -224,9 +224,9 @@ class Watchdog:
         self._action: Callable[..., Awaitable] = action
         self._loop = asyncio.get_event_loop()
         self._timer_task: asyncio.TimerHandle | None = None
-        self._timeout: int = timeout_seconds
         self._topic: str = topic
         self._log_events: bool = log_events
+        self.timeout: int = timeout_seconds
 
     def cancel(self):
         """Cancel the watchdog."""
@@ -242,9 +242,9 @@ class Watchdog:
 
     async def trigger(self):
         """Trigger the watchdog."""
-        if self._log_events:
-            LOGGER.debug("%s Watchdog trigger", self._topic)
+        # if self._log_events:
+        #     LOGGER.debug("%s Watchdog trigger", self._topic)
         if self._timer_task:
             self._timer_task.cancel()
 
-        self._timer_task = self._loop.call_later(self._timeout, lambda: asyncio.create_task(self.on_expire()))
+        self._timer_task = self._loop.call_later(self.timeout, lambda: asyncio.create_task(self.on_expire()))

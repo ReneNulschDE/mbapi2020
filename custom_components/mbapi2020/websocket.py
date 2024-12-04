@@ -34,8 +34,10 @@ from .helper import UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
-DEFAULT_WATCHDOG_TIMEOUT = 840
+DEFAULT_WATCHDOG_TIMEOUT = 30
+DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 120
 PING_WATCHDOG_TIMEOUT = 30
+RECONNECT_WATCHDOG_TIMEOUT = 60
 STATE_CONNECTED = "connected"
 STATE_RECONNECTING = "reconnecting"
 
@@ -57,7 +59,7 @@ class Websocket:
         self.is_connecting = False
         self.ha_stop_handler = None
         self._watchdog: Watchdog = Watchdog(
-            self.initiatiate_connection_reset,
+            self.initiatiate_connection_disconnect_with_reconnect,
             topic="Connection",
             timeout_seconds=DEFAULT_WATCHDOG_TIMEOUT,
             log_events=True,
@@ -65,10 +67,13 @@ class Websocket:
         self._pingwatchdog: Watchdog = Watchdog(
             self.ping, topic="Ping", timeout_seconds=PING_WATCHDOG_TIMEOUT, log_events=False
         )
+        self._reconnectwatchdog: Watchdog = Watchdog(
+            self.async_connect, topic="Reconnect", timeout_seconds=RECONNECT_WATCHDOG_TIMEOUT, log_events=True
+        )
         self._queue = asyncio.Queue()
         self.session_id = session_id
 
-    async def async_connect(self, on_data) -> None:
+    async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
 
         if self.is_connecting:
@@ -78,8 +83,12 @@ class Websocket:
             """Stop when Home Assistant is shutting down."""
             await self.async_stop()
 
-        self._on_data_received = on_data
+        if on_data:
+            self._on_data_received = on_data
+
         self.is_connecting = True
+        self.is_stopping = False
+        self._reconnectwatchdog.cancel()
 
         if not self.ha_stop_handler:
             self.ha_stop_handler = self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_handler)
@@ -96,7 +105,6 @@ class Websocket:
 
     async def async_stop(self, now: datetime = datetime.now()):
         """Close connection."""
-        LOGGER.info("async_stop start - %s", self.connection_state)
         self.is_stopping = True
         self._watchdog.cancel()
         self._pingwatchdog.cancel()
@@ -105,11 +113,11 @@ class Websocket:
         if self._connection is not None:
             await self._connection.close()
 
-    async def initiatiate_connection_reset(self):
-        """Initiate a connection reset."""
-        self._pingwatchdog.cancel()
-        if self._connection is not None:
-            await self._connection.close()
+    async def initiatiate_connection_disconnect_with_reconnect(self):
+        """Initiate a connection disconnect."""
+        await self._reconnectwatchdog.trigger()
+        self._watchdog.timeout = DEFAULT_WATCHDOG_TIMEOUT
+        await self.async_stop()
 
     async def ping(self):
         """Send a ping to the MB websocket servers."""
@@ -119,15 +127,26 @@ class Websocket:
         except (client_exceptions.ClientError, ConnectionResetError):
             await self._pingwatchdog.trigger()
 
-    async def call(self, message):
+    async def call(self, message, car_command: bool = False):
         """Send a message to the MB websocket servers."""
         try:
-            if self._connection:
-                await self._connection.send_bytes(message)
-            else:
-                raise HomeAssistantError(
-                    "MB-Websocket connection is not active. Can't execute the call. Check the homeassistant.log for more details."
-                )
+            reconnect_task = None
+
+            if self._connection.closed:
+                reconnect_task = asyncio.create_task(self.async_connect())
+
+            if car_command:
+                self._watchdog.timeout = DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND
+                await self._watchdog.trigger()
+
+            if reconnect_task:
+                for _ in range(50):
+                    if not self._connection.closed:
+                        break
+                    await asyncio.sleep(0.1)
+
+            await self._connection.send_bytes(message)
+
         except client_exceptions.ClientError as err:
             raise HomeAssistantError(
                 "MB-Websocket connection is not active. Can't execute the call. Check the homeassistant.log for more details Error: %s",
@@ -203,7 +222,6 @@ class Websocket:
                 break
             self.is_connecting = False
 
-            LOGGER.debug("_start_websocket_handler: setting connection_state to connected.")
             self.connection_state = STATE_CONNECTED
 
             msg = await self._connection.receive()
@@ -217,6 +235,7 @@ class Websocket:
             if msg.type == WSMsgType.BINARY:
                 self._queue.put_nowait(msg.data)
                 await self._pingwatchdog.trigger()
+                await self._watchdog.trigger()
 
     async def _websocket_connection_headers(self):
         token = await self.oauth.async_get_cached_token()
