@@ -114,16 +114,13 @@ class Websocket:
 
     async def async_stop(self, now: datetime = datetime.now()):
         """Close connection."""
-        LOGGER.debug("async_stop - 1")
         self.is_stopping = True
         self._watchdog.cancel()
         self._pingwatchdog.cancel()
         self.connection_state = "closed"
 
         if self._connection is not None:
-            LOGGER.debug("async_stop - 2")
             await self._connection.close()
-            LOGGER.debug("async_stop - 3")
 
     async def initiatiate_connection_disconnect_with_reconnect(self):
         """Initiate a connection disconnect."""
