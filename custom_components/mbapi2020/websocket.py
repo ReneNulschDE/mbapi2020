@@ -81,6 +81,7 @@ class Websocket:
         self.ws_connect_retry_counter_reseted: bool = False
         self.ws_connect_retry_counter: int = 0
         self.account_blocked: bool = False
+        self.ws_blocked_connection_error_logged = False
 
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
@@ -221,14 +222,17 @@ class Websocket:
                 retry_in = retry_in * 2 if retry_in < 120 else 120
                 self.ws_connect_retry_counter += 1
             except WSServerHandshakeError as error:
-                LOGGER.info("WSS Connection blocked: %s, retry in %s seconds...", error, retry_in)
-                LOGGER.debug(error)
+                if not self.ws_blocked_connection_error_logged:
+                    LOGGER.error("MB-API access blocked. %s, retry in %s seconds...", error, retry_in)
+                    self.ws_blocked_connection_error_logged = True
+                else:
+                    LOGGER.info("WSS Connection blocked: %s, retry in %s seconds...", error, retry_in)
                 if "429" in str(error.code):
                     self.account_blocked = True
                 self.ws_connect_retry_counter += 1
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)
-                retry_in = retry_in * 2 if retry_in < 120 else 120
+                retry_in = retry_in * self.ws_connect_retry_counter * self.ws_connect_retry_counter
             except Exception as error:
                 LOGGER.error("Other error %s", error)
                 raise
