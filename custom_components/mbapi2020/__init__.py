@@ -129,7 +129,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 )
 
             rcp_options = RcpOptions()
-            rcp_supported = await coordinator.client.webapi.is_car_rcp_supported(vin)
+            rcp_supported = False  # await coordinator.client.webapi.is_car_rcp_supported(vin)
             LOGGER.debug("RCP supported for car %s: %s", loghelper.Mask_VIN(vin), rcp_supported)
             setattr(rcp_options, "rcp_supported", CarAttribute(rcp_supported, "VALID", 0))
             # rcp_supported = False
@@ -204,7 +204,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     retry_counter: int = 0
     while not coordinator.entry_setup_complete:
         # async websocket data load not complete, wait 0.5 seconds or break up after 60 checks (30sec)
-        if retry_counter == 60 and coordinator.client.account_blocked:
+        if retry_counter == 60 and coordinator.client.websocket.account_blocked:
             LOGGER.warning("Account is blocked. Reload will happen after unblock at midnight (GMT).")
             break
         if retry_counter == 60 and not coordinator.client.account_blocked:

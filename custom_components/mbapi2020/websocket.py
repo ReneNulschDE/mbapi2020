@@ -47,7 +47,9 @@ LOGGER = logging.getLogger(__name__)
 class Websocket:
     """Define the websocket."""
 
-    def __init__(self, hass, oauth, region, session_id=str(uuid.uuid4()).upper()) -> None:
+    def __init__(
+        self, hass, oauth, region, session_id=str(uuid.uuid4()).upper(), ignition_states: dict[str, bool] = {}
+    ) -> None:
         """Initialize."""
         self.oauth: Oauth = oauth
         self._hass: HomeAssistant = hass
@@ -70,8 +72,15 @@ class Websocket:
         self._reconnectwatchdog: Watchdog = Watchdog(
             self.async_connect, topic="Reconnect", timeout_seconds=RECONNECT_WATCHDOG_TIMEOUT, log_events=True
         )
+        self.component_reload_watcher: Watchdog = Watchdog(
+            self._blocked_account_reload_check, 30, "Blocked_account_reload", False
+        )
         self._queue = asyncio.Queue()
         self.session_id = session_id
+        self._ignition_states: dict[str, bool] = ignition_states
+        self.ws_connect_retry_counter_reseted: bool = False
+        self.ws_connect_retry_counter: int = 0
+        self.account_blocked: bool = False
 
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
@@ -105,16 +114,27 @@ class Websocket:
 
     async def async_stop(self, now: datetime = datetime.now()):
         """Close connection."""
+        LOGGER.debug("async_stop - 1")
         self.is_stopping = True
         self._watchdog.cancel()
         self._pingwatchdog.cancel()
         self.connection_state = "closed"
 
         if self._connection is not None:
+            LOGGER.debug("async_stop - 2")
             await self._connection.close()
+            LOGGER.debug("async_stop - 3")
 
     async def initiatiate_connection_disconnect_with_reconnect(self):
         """Initiate a connection disconnect."""
+        if any(self._ignition_states.values()):
+            LOGGER.debug(
+                "initiatiate_connection_disconnect_with_reconnect canceled - Reason: ignitions_state: %s",
+                [key for key, value in self._ignition_states.items() if value],
+            )
+            await self._watchdog.trigger()
+            return
+
         await self._reconnectwatchdog.trigger()
         self._watchdog.timeout = DEFAULT_WATCHDOG_TIMEOUT
         await self.async_stop()
@@ -183,10 +203,11 @@ class Websocket:
     async def _start_websocket_handler(self, session: ClientSession):
         retry_in: int = 10
 
-        while not self.is_stopping:
+        while not self.is_stopping and not session.closed:
             LOGGER.debug("_start_websocket_handler: %s", self.oauth._config_entry.entry_id)
 
             try:
+                await self.component_reload_watcher.trigger()
                 await self._websocket_handler(session)
             except client_exceptions.ClientConnectionError as cce:
                 LOGGER.error("Could not connect: %s, retry in %s seconds...", cce, retry_in)
@@ -194,14 +215,23 @@ class Websocket:
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)
                 retry_in = retry_in * 2 if retry_in < 120 else 120
+                self.ws_connect_retry_counter += 1
             except ConnectionResetError as cce:
                 LOGGER.info("Connection reseted: %s, retry in %s seconds...", cce, retry_in)
                 LOGGER.debug(cce)
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)
                 retry_in = retry_in * 2 if retry_in < 120 else 120
-            except WSServerHandshakeError:
-                raise
+                self.ws_connect_retry_counter += 1
+            except WSServerHandshakeError as error:
+                LOGGER.info("WSS Connection blocked: %s, retry in %s seconds...", error, retry_in)
+                LOGGER.debug(error)
+                if "429" in str(error.code):
+                    self.account_blocked = True
+                self.ws_connect_retry_counter += 1
+                self.connection_state = STATE_RECONNECTING
+                await asyncio.sleep(retry_in)
+                retry_in = retry_in * 2 if retry_in < 120 else 120
             except Exception as error:
                 LOGGER.error("Other error %s", error)
                 raise
@@ -271,3 +301,14 @@ class Websocket:
             header["User-Agent"] = WEBSOCKET_USER_AGENT_PA
 
         return header
+
+    async def _blocked_account_reload_check(self):
+        if self.account_blocked and self.ws_connect_retry_counter_reseted:
+            self.account_blocked = False
+            self.ws_connect_retry_counter_reseted = False
+
+            LOGGER.info("Initiating component reload after account got unblocked...")
+            self._hass.async_create_task(self._hass.config_entries.async_reload(self.oauth._config_entry.entry_id))
+
+        elif self.account_blocked and not self.ws_connect_retry_counter_reseted:
+            await self.component_reload_watcher.trigger()

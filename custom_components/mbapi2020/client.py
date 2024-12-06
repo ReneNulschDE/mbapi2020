@@ -56,7 +56,7 @@ from .const import (
     DEFAULT_DOWNLOAD_PATH,
     DEFAULT_SOCKET_MIN_RETRY,
 )
-from .helper import LogHelper as loghelper, Watchdog
+from .helper import LogHelper as loghelper
 from .oauth import Oauth
 from .webapi import WebApi
 from .websocket import Websocket
@@ -65,13 +65,13 @@ LOGGER = logging.getLogger(__name__)
 
 DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = False
 GEOFENCING_MAX_RETRIES = 2
-LONG_RUNNING_OPERATION_TIMEOUT = 180
 
 
 class Client:
     """define the client."""
 
     long_running_operation_active: bool = False
+    ignition_states: dict[str, bool] = {}
 
     def __init__(
         self,
@@ -92,11 +92,8 @@ class Client:
         self._debug_save_path = self._hass.config.path(DEFAULT_CACHE_PATH)
         self.config_entry = config_entry
         self.session_id = str(uuid.uuid4()).upper()
-        self._ws_connect_retry_counter: int = 0
-        self._ws_connect_retry_counter_reseted: bool = False
-        self.account_blocked: bool = False
+
         self._first_vepupdates_processed: bool = False
-        self._vepupdates_timeout_reached: bool = False
         self._vepupdates_timeout_seconds: int = 30
 
         self.oauth: Oauth = Oauth(
@@ -113,10 +110,7 @@ class Client:
             oauth=self.oauth,
             region=self._region,
             session_id=self.session_id,
-        )
-
-        self._component_reload_watcher: Watchdog = Watchdog(
-            self._blocked_account_reload_check, 30, "Blocked_account_reload", False
+            ignition_states=self.ignition_states,
         )
 
         self.cars: dict[str, Car] = {}
@@ -142,9 +136,9 @@ class Client:
 
         msg_type = data.WhichOneof("msg")
 
-        if self._ws_connect_retry_counter > 0:
-            self._ws_connect_retry_counter = 0
-            self._ws_connect_retry_counter_reseted = True
+        if self.websocket.ws_connect_retry_counter > 0:
+            self.websocket.ws_connect_retry_counter = 0
+            self.websocket.ws_connect_retry_counter_reseted = True
 
         if msg_type == "vepUpdate":  # VEPUpdate
             LOGGER.debug("vepUpdate")
@@ -166,12 +160,12 @@ class Client:
 
             return None
 
-        if msg_type == "service_status_upd":
+        if msg_type == "service_status_updates":
             self._write_debug_output(data, "ssu")
-            sequence_number = data.service_status_updates_by_vin.sequence_number
+            sequence_number = data.service_status_updates.sequence_number
             LOGGER.debug("service_status_update Sequence: %s", sequence_number)
             ack_command = client_pb2.ClientMessage()
-            ack_command.acknowledge_service_status_updates_by_vin.sequence_number = sequence_number
+            ack_command.acknowledge_service_status_update.sequence_number = sequence_number
             return ack_command
 
         if msg_type == "user_data_update":
@@ -257,49 +251,31 @@ class Client:
 
         return None
 
-    async def _blocked_account_reload_check(self):
-        if self.account_blocked and self._ws_connect_retry_counter_reseted:
-            self.account_blocked = False
-            self._ws_connect_retry_counter_reseted = False
-
-            if not self._dataload_complete_fired:
-                LOGGER.info("Initiating component reload after account got unblocked...")
-                self._hass.async_create_task(self._hass.config_entries.async_reload(self.config_entry.entry_id))
-
-        elif self.account_blocked and not self._ws_connect_retry_counter_reseted:
-            await self._component_reload_watcher.trigger()
-
     async def attempt_connect(self, callback_dataload_complete):
         """Attempt to connect to the socket (retrying later on fail)."""
         LOGGER.debug("attempt_connect")
         stop_retry_loop: bool = False
 
-        self.websocket: Websocket = Websocket(
-            hass=self._hass,
-            oauth=self.oauth,
-            region=self._region,
-            session_id=self.session_id,
-        )
-
         self._on_dataload_complete = callback_dataload_complete
-        while not stop_retry_loop:
+        while not stop_retry_loop and not self.websocket.is_stopping:
             try:
-                if self._ws_connect_retry_counter == 0:
+                if self.websocket.ws_connect_retry_counter == 0:
                     await self.websocket.async_connect(self.on_data)
                 else:
+                    wait_time = (
+                        self._ws_reconnect_delay
+                        * self.websocket.ws_connect_retry_counter
+                        * self.websocket.ws_connect_retry_counter
+                    )
                     LOGGER.debug(
                         "Websocket reconnect handler loop - round %s - waiting %s sec",
-                        self._ws_connect_retry_counter,
-                        self._ws_reconnect_delay * self._ws_connect_retry_counter * self._ws_connect_retry_counter,
+                        self.websocket.ws_connect_retry_counter,
+                        wait_time,
                     )
-                    await asyncio.sleep(
-                        self._ws_reconnect_delay * self._ws_connect_retry_counter * self._ws_connect_retry_counter
-                    )
+                    await asyncio.sleep(wait_time)
 
-                    await self._component_reload_watcher.trigger()
+                    await self.websocket.component_reload_watcher.trigger()
 
-                    self.websocket = None
-                    self.websocket = Websocket(self._hass, self.oauth, self._region, session_id=self.session_id)
                     await self.websocket.async_connect(self.on_data)
             except WSServerHandshakeError as err:
                 if self.websocket.is_stopping:
@@ -307,13 +283,11 @@ class Client:
                     break
                 LOGGER.error(
                     "Error with the websocket connection (retry counter: %s): %s - %s",
-                    self._ws_connect_retry_counter,
+                    self.websocket.ws_connect_retry_counter,
                     err.code,
                     err.message,
                 )
-                if "429" in str(err.code):
-                    self.account_blocked = True
-                self._ws_connect_retry_counter = self._ws_connect_retry_counter + 1
+                self.websocket.ws_connect_retry_counter += 1
             except Exception as err:
                 if self.websocket.is_stopping:
                     stop_retry_loop = True
@@ -321,11 +295,11 @@ class Client:
 
                 LOGGER.error(
                     "Unkown error with the websocket connection (retry counter: %s): %s",
-                    self._ws_connect_retry_counter,
+                    self.websocket.ws_connect_retry_counter,
                     err,
                     exc_info=err,
                 )
-                self._ws_connect_retry_counter = self._ws_connect_retry_counter + 1
+                self.websocket.ws_connect_retry_counter += 1
             if self.websocket.is_stopping:
                 LOGGER.info("Client WS Handler loop - stopping")
                 stop_retry_loop = True
@@ -333,7 +307,7 @@ class Client:
 
             LOGGER.info(
                 "Client WS Handler loop - loop end round %s",
-                self._ws_connect_retry_counter - 1,
+                self.websocket.ws_connect_retry_counter - 1,
             )
 
     def _build_car(self, received_car_data, update_mode):
@@ -458,6 +432,7 @@ class Client:
         option_handlers = {
             "max_soc": self._get_car_values_handle_max_soc,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
+            "ignitionstate": self._get_car_values_handle_ignitionstate,
             "precondStatus": self._get_car_values_handle_precond_status,
             "temperature_points_frontLeft": self._get_car_values_handle_temperature_points,
             "temperature_points_frontRight": self._get_car_values_handle_temperature_points,
@@ -582,6 +557,15 @@ class Client:
             display_value=curr_display_value,
             unit=None,
         )
+
+    def _get_car_values_handle_ignitionstate(self, car_detail, class_instance, option, update):
+        value = self._get_car_values_handle_generic(car_detail, class_instance, option, update)
+        if value:
+            vin = car_detail.get("vin")
+
+            self.ignition_states[vin] = value.value == "4"
+
+        return value
 
     def _get_car_values_handle_precond_status(self, car_detail, class_instance, option, update):
         attributes = car_detail.get("attributes", {})
