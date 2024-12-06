@@ -2,48 +2,30 @@
 
 from __future__ import annotations
 
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
 import ssl
 import sys
-from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 
 HTTP_SERVER_IP = "0.0.0.0"
 HTTP_SERVER_PORT = 8001
 LOGGER = logging.getLogger(__package__)
 
-THROW_429 = False
-
 
 class MBAPI2020SimulatorServer(BaseHTTPRequestHandler):
     """Simple HTTP Server to simulate the MBAPI2020 API."""
-
-    throw_429 = THROW_429
 
     def do_GET(self):
         """Answer get requests."""
 
         parsed = urlparse(self.path)
-        if parsed.path == "toggle429":
-            self.throw_429 = not self.throw_429
-            self.send_response(200)
-            self.send_header("Content-type", "text/plain")
-            self.end_headers()
-            self.wfile.write(bytes(f"ok throw 429: {self.throw_429}", "utf-8"))
-            return
-
         if parsed.path == "/v2/ws":
-            if self.throw_429:
-                self.send_response(429)
-                self.send_header("Content-type", "")
-                self.end_headers()
-                self.wfile.write("".encode("utf-8"))
-                return
-            else:
-                self.send_response(200)
-                self.send_header("Content-type", "")
-                self.end_headers()
-                self.wfile.write("ok".encode("utf-8"))
+            self.send_response(429)
+            self.send_header("Content-type", "")
+            self.end_headers()
+            self.wfile.write("".encode("utf-8"))
+            return
 
     def do_POST(self):
         """Answer post requests."""
