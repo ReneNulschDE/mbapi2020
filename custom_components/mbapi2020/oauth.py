@@ -139,9 +139,6 @@ class Oauth:
             self._save_token_info(token_info)
             self.token = token_info
 
-        if "access_token" not in token_info:
-            raise MBAuthError("Reauth failed. Access_token is missing. %s", token_info)
-
         return token_info
 
     async def request_access_token(self, email: str, pin: str, nonce: str):
