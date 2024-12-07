@@ -146,7 +146,7 @@
             }
         },
         "engine_stop": {
-            "name": "Zatrzymaj silnik",
+            "name": "Wyłącz silnik",
             "description": "Wyłącz silnik pojazdu zdefiniowanego VIN. Wymagany PIN. Sprawdź opcje w ustawieniach integracji.",
             "fields": {
                 "vin": {
@@ -371,6 +371,26 @@
                 }
             },
             "description": "Zamknij szyberdach pojazdu zdefiniowanego VIN."
+        },
+        "preconditioning_configure_seats": {
+            "fields": {
+                "front_right": {
+                    "name": "Prawe przednie",
+                    "description": "Aktywuj jeśli prawe przednie siedzenie ma być podgrzane."
+                },
+                "rear_left": {
+                    "name": "Lewe tylne",
+                    "description": "Aktywuj jeśli lewe tylne siedzenie ma być podgrzane."
+                },
+                "rear_right": {
+                    "name": "Prawe tylne",
+                    "description": "Aktywuj jeśli prawe tylne siedzenie ma być podgrzane."
+                },
+                "front_left": {
+                    "name": "Lewe przednie",
+                    "description": "Aktywuj jeśli lewe przednie siedzenie ma być podgrzane."
+                }
+            }
         }
     },
     "entity": {
