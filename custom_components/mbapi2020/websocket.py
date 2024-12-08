@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from datetime import datetime
 import logging
+import ssl
 import uuid
 
 from aiohttp import ClientSession, WSMsgType, WSServerHandshakeError, client_exceptions
@@ -47,6 +48,8 @@ LOGGER = logging.getLogger(__name__)
 class Websocket:
     """Define the websocket."""
 
+    ssl_context: ssl.SSLContext | bool = VERIFY_SSL
+
     def __init__(
         self, hass, oauth, region, session_id=str(uuid.uuid4()).upper(), ignition_states: dict[str, bool] = {}
     ) -> None:
@@ -82,6 +85,9 @@ class Websocket:
         self.ws_connect_retry_counter: int = 0
         self.account_blocked: bool = False
         self.ws_blocked_connection_error_logged = False
+
+        if isinstance(VERIFY_SSL, str):
+            self.ssl_context = ssl.create_default_context(cafile=VERIFY_SSL)
 
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
@@ -237,13 +243,16 @@ class Websocket:
                 LOGGER.error("Other error %s", error)
                 raise
 
-    async def _websocket_handler(self, session: ClientSession):
+    async def _websocket_handler(self, session: ClientSession, **kwargs):
         websocket_url = helper.Websocket_url(self._region)
 
-        headers = await self._websocket_connection_headers()
+        kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", self.ssl_context)
+        kwargs.setdefault("headers", await self._websocket_connection_headers())
+
         self.is_connecting = True
         LOGGER.debug("Connecting to %s", websocket_url)
-        self._connection = await session.ws_connect(websocket_url, headers=headers, proxy=SYSTEM_PROXY)
+        self._connection = await session.ws_connect(websocket_url, **kwargs)
         LOGGER.debug("Connected to mercedes websocket at %s", websocket_url)
 
         await self._watchdog.trigger()

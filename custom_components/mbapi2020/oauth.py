@@ -6,6 +6,7 @@ import asyncio
 from copy import deepcopy
 import json
 import logging
+import ssl
 import time
 import urllib.parse
 import uuid
@@ -49,6 +50,8 @@ _LOGGER = logging.getLogger(__name__)
 class Oauth:
     """define the client."""
 
+    ssl_context: ssl.SSLContext | bool = VERIFY_SSL
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -64,6 +67,9 @@ class Oauth:
         self.token = None
         self._sessionid = ""
         self._get_token_lock = asyncio.Lock()
+
+        if isinstance(VERIFY_SSL, str):
+            self.ssl_context = ssl.create_default_context(cafile=VERIFY_SSL)
 
     async def async_request_device_code(self):
         """Refresh the device code."""
@@ -262,6 +268,7 @@ class Oauth:
 
         kwargs.setdefault("headers", {})
         kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", self.ssl_context)
 
         if not self._session or self._session.closed:
             self._session = async_get_clientsession(self._hass, VERIFY_SSL)

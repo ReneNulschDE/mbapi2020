@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 import logging
+import ssl
 import traceback
 import uuid
 
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientError
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -32,6 +34,8 @@ LOGGER = logging.getLogger(__name__)
 class WebApi:
     """Define the API object."""
 
+    ssl_context: ssl.SSLContext | bool = VERIFY_SSL
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -45,6 +49,9 @@ class WebApi:
         self._region = region
         self.hass = hass
         self.session_id = str(uuid.uuid4()).upper()
+
+        if isinstance(VERIFY_SSL, str):
+            self.ssl_context = ssl.create_default_context(cafile=VERIFY_SSL)
 
     async def _request(
         self,
@@ -60,6 +67,7 @@ class WebApi:
         url = f"{helper.Rest_url(self._region)}{endpoint}"
         kwargs.setdefault("headers", {})
         kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", self.ssl_context)
 
         token = await self._oauth.async_get_cached_token()
 
@@ -93,8 +101,8 @@ class WebApi:
                     # resp.raise_for_status()
                     if return_as_json:
                         return await resp.json(content_type=None)
-                    else:
-                        return await resp.read()
+
+                    return await resp.read()
             else:
                 async with self._session.request(method, url, **kwargs) as resp:
                     if 400 <= resp.status < 500:
@@ -114,15 +122,15 @@ class WebApi:
 
                     if return_as_json:
                         return await resp.json(content_type=None)
-                    else:
-                        return await resp.read()
+
+                    return await resp.read()
 
         except ClientError as err:
             LOGGER.debug(traceback.format_exc())
             if not ignore_errors:
                 raise ClientError from err
-            else:
-                return []
+
+            return []
         except Exception:
             LOGGER.debug(traceback.format_exc())
 
@@ -195,6 +203,7 @@ class WebApi:
 
         kwargs.setdefault("headers", headers)
         kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", self.ssl_context)
 
         url = f"{helper.PSAG_url(self._region)}/api/app/v2/vehicles/{vin}/profileInformation"
 
