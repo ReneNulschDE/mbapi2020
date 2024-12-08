@@ -207,11 +207,12 @@ GeofenceEvents_OPTIONS = ["last_event_zone", "last_event_timestamp", "last_event
 class Car:
     """Car class, stores the car values at runtime."""
 
+    baumuster_description: str = ""
     features: dict[str, bool]
     geofence_events: GeofenceEvents
-    baumuster_description: str = ""
-    has_geofencing: bool = True
     geo_fencing_retry_counter: int = 0
+    has_geofencing: bool = True
+    vehicle_information: dict = {}
 
     def __init__(self, vin: str):
         """Initialize the Car instance."""

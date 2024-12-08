@@ -87,6 +87,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 continue
 
             features: dict[str, bool] = {}
+            vehicle_information: dict = {}
 
             try:
                 car_capabilities = await coordinator.client.webapi.get_car_capabilities(vin)
@@ -98,6 +99,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 )
                 if car_capabilities and "features" in car_capabilities:
                     features.update(car_capabilities["features"])
+                if car_capabilities and "vehicle" in car_capabilities:
+                    vehicle_information = car_capabilities["vehicle"]
             except aiohttp.ClientError:
                 # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
                 LOGGER.info(
@@ -177,6 +180,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             if not current_car.licenseplate.strip():
                 current_car.licenseplate = vin
             current_car.features = features
+            current_car.vehicle_information = vehicle_information
             current_car.masterdata = car
             current_car.rcp_options = rcp_options
             current_car.last_message_received = int(round(time.time() * 1000))
@@ -357,6 +361,8 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             manufacturer=ATTR_MB_MANUFACTURER,
             model=self._car.baumuster_description,
             name=self._car.licenseplate,
+            sw_version=f"{self._car.vehicle_information.get('headUnitSoftwareVersion', '')} - {self._car.vehicle_information.get('headUnitType', '')}",
+            hw_version=f"{self._car.vehicle_information.get('starArchitecture', '')} - {self._car.vehicle_information.get('tcuType', '')}",
         )
 
     @property
