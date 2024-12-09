@@ -1,7 +1,11 @@
 from burp import IBurpExtender, IHttpListener
 
-HOST_FROM = "websocket.emea-prod.mobilesdk.mercedes-benz.com"
 HOST_TO = "localhost"
+
+SERVER_PORT_MAP = {
+    "bff.emea-prod.mobilesdk.mercedes-benz.com": 8002,
+    "websocket.emea-prod.mobilesdk.mercedes-benz.com": 8001,
+}
 
 
 class BurpExtender(IBurpExtender, IHttpListener):
@@ -14,7 +18,7 @@ class BurpExtender(IBurpExtender, IHttpListener):
         self._helpers = callbacks.getHelpers()
 
         # set our extension name
-        callbacks.setExtensionName("Traffic redirector")
+        callbacks.setExtensionName("MB Traffic redirector")
 
         # register ourselves as an HTTP listener
         callbacks.registerHttpListener(self)
@@ -31,6 +35,9 @@ class BurpExtender(IBurpExtender, IHttpListener):
         # get the HTTP service for the request
         httpService = messageInfo.getHttpService()
 
-        # if the host is HOST_FROM, change it to HOST_TO
-        if HOST_FROM == httpService.getHost():
-            messageInfo.setHttpService(self._helpers.buildHttpService(HOST_TO, 8001, httpService.getProtocol()))
+        host = httpService.getHost()
+
+        if host in SERVER_PORT_MAP:
+            messageInfo.setHttpService(
+                self._helpers.buildHttpService(HOST_TO, SERVER_PORT_MAP.get(host), httpService.getProtocol())
+            )
