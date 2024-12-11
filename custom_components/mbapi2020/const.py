@@ -726,6 +726,21 @@ BUTTONS = {
         None,
         None,
     ],
+    "btn_sigpos_start_now": [
+        "Signal position",
+        None,  # Deprecated: DO NOT USE
+        None,
+        "sigpos_start",
+        None,
+        "SIGPOS_START",
+        None,
+        "mdi:flashlight",
+        None,
+        False,
+        None,
+        None,
+        None,
+    ],
 }
 
 

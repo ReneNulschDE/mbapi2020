@@ -697,6 +697,17 @@
       "precond": {
         "name": "Pre-entry climate control"
       }
+    },
+    "button": {
+      "btn_preheat_start_now": {
+        "name": "Preclimate start"
+      },
+      "btn_preheat_stop_now": {
+        "name": "Preclimate stop"
+      },
+      "btn_sigpos_start_now": {
+        "name": "Flash lights"
+      }
     }
   },
   "selector": {

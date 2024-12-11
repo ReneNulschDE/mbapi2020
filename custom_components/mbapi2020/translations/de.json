@@ -56,6 +56,17 @@
             "precond": {
                 "name": "Vorklimatisierung"
             }
+        },
+        "button": {
+            "btn_preheat_start_now": {
+                "name": "Starte Vorklimatisierung"
+            },
+            "btn_preheat_stop_now": {
+                "name": "Stoppe Vorklimatisierung"
+            },
+            "btn_sigpos_start_now": {
+                "name": "Starte Signallicht"
+            }
         }
     }
 }
