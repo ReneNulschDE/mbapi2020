@@ -125,8 +125,14 @@ Depends on your own car or purchased Mercedes Benz licenses.
 
   ```
   attributes:
-  wiperLifetimeExceeded [EXPERIMENTAL, user feedback wanted]
+  wiperLifetimeExceeded
   ```
+
+### Buttons
+
+- Flash light
+- Preclimate start
+- Preclimate stop
 
 ### Device Tracker
 
@@ -354,15 +360,19 @@ Some services require that the security PIN is created in your mobile Android/IO
 - temperature_configure:
   Configure the target preconditioning/auxheat temperatures for zones in a car defined by a VIN.
 
-- windows_open:
-  Open the windows of a car defined by a vin. PIN required.
-
 - windows_close:
   Close the windows of a car defined by a vin.
+
+- windows_move
+  Move the windows to a given position. PIN required.
+
+- windows_open:
+  Open the windows of a car defined by a vin. PIN required.
 
 ### Switches
 
 - AuxHeat - Start/Stop the auxiliary heating of the car
+- Preclimate - Start/Stop the preclimate function of the car
 
 ### Logging
 
@@ -377,7 +387,7 @@ logger:
 
 ### Open Items
 
-- Find some maintainers - I don't need/want to pay for the Mercedes subscription anymore.
+- Find a maintainer
 
 ### Useful links
 
