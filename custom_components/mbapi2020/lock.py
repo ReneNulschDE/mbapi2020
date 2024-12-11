@@ -1,5 +1,4 @@
-"""
-Lock Support for Mercedes cars with Mercedes ME.
+"""Lock Support for Mercedes cars with Mercedes ME.
 
 For more details about this component, please refer to the documentation at
 https://github.com/ReneNulschDE/mbapi2020/
@@ -9,7 +8,6 @@ from __future__ import annotations
 
 import asyncio
 
-from homeassistant.components.alarm_control_panel import CodeFormat
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_CODE
@@ -18,8 +16,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity
-from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, CONF_PIN, DOMAIN, LOCKS, LOGGER
-from .const import SensorConfigFields as scf
+from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, CONF_PIN, DOMAIN, LOCKS, LOGGER, SensorConfigFields as scf
 from .coordinator import MBAPI2020DataUpdateCoordinator
 
 
