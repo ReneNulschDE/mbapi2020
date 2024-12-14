@@ -134,6 +134,10 @@ class WebApi:
         except Exception:
             LOGGER.debug(traceback.format_exc())
 
+    async def get_user(self):
+        """Get standard user information."""
+        return await self._request("get", "/v1/user")
+
     async def get_user_info(self):
         """Get all devices associated with an API key."""
         return await self._request("get", "/v2/vehicles")
