@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from typing import Any
 import uuid
 
 from awesomeversion import AwesomeVersion
@@ -18,6 +19,8 @@ from homeassistant.helpers.storage import STORAGE_DIR
 
 from .client import Client
 from .const import (
+    AUTH_METHOD_DEVICE_CODE,
+    AUTH_METHOD_PIN,
     CONF_ALLOWED_AUTH_METHODS,
     CONF_ALLOWED_REGIONS,
     CONF_AUTH_METHOD,
@@ -34,13 +37,10 @@ from .const import (
     VERIFY_SSL,
 )
 from .errors import MbapiError, MBAuthError
+from .helper import LogHelper, UrlHelper as helper
+from .webapi import WebApi
 
-SCHEMA_STEP_USER = vol.Schema(
-    {
-        vol.Required(CONF_USERNAME): str,
-        vol.Required(CONF_REGION): vol.In(CONF_ALLOWED_REGIONS),
-    }
-)
+SCHEMA_STEP_USER = vol.Schema({vol.Required(CONF_USERNAME): str})
 
 SCHEMA_STEP_PIN = vol.Schema({vol.Required(CONF_PASSWORD): str})
 
@@ -56,17 +56,69 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     def __init__(self):
         """Initialize component."""
+        super().__init__()
         self._reauth_entry = None
-        self._data = None
+        self._data: dict[str, any] = {}
         self._reauth_mode = False
+        self._session = None
 
     async def async_step_user(self, user_input=None):
+        """Handle the initial step."""
+
+        if user_input is not None:
+            self._data[CONF_REGION] = user_input[CONF_REGION]
+            if user_input.get("auth_method") == AUTH_METHOD_PIN:
+                return self.async_show_form(
+                    step_id="userpin",
+                    data_schema=SCHEMA_STEP_USER,
+                )
+            if user_input.get("auth_method") == AUTH_METHOD_DEVICE_CODE:
+                self._session = async_get_clientsession(self.hass, VERIFY_SSL)
+                client = Client(self.hass, self._session, None, region=self._data[CONF_REGION])
+
+                device_code_request_result = await client.oauth.async_request_device_code()
+
+                qrcode_url = helper.Device_code_confirm_url(
+                    region=user_input[CONF_REGION], device_code=device_code_request_result.get("user_code", "").encode()
+                )
+                LOGGER.debug("QR_Code URL: %s", qrcode_url)
+
+                self._data["device_code_request_result"] = device_code_request_result
+
+                data_schema = vol.Schema(
+                    {
+                        vol.Optional("qr_code"): QrCodeSelector(
+                            config=QrCodeSelectorConfig(
+                                data=qrcode_url,
+                                scale=6,
+                                error_correction_level=QrErrorCorrectionLevel.QUARTILE,
+                            )
+                        ),
+                    }
+                )
+
+                return self.async_show_form(
+                    step_id="device_code",
+                    data_schema=data_schema,
+                )
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_REGION): vol.In(CONF_ALLOWED_REGIONS),
+                    vol.Required("auth_method"): vol.In(CONF_ALLOWED_AUTH_METHODS),
+                }
+            ),
+        )
+
+    async def async_step_userpin(self, user_input=None):
         """Handle the initial step."""
         errors = {}
 
         if user_input is not None:
             new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
-                f"{user_input[CONF_USERNAME]}-{user_input[CONF_REGION]}"
+                f"{user_input[CONF_USERNAME]}-{self._data[CONF_REGION]}"
             )
 
             if not self._reauth_mode:
@@ -76,7 +128,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             nonce = str(uuid.uuid4())
             user_input["nonce"] = nonce
 
-            client = Client(self.hass, session, new_config_entry, region=user_input[CONF_REGION])
+            client = Client(self.hass, session, new_config_entry, region=self._data[CONF_REGION])
             try:
                 await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
             except (MBAuthError, MbapiError):
@@ -84,25 +136,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors=errors)
 
             if not errors:
-                self._data = user_input
+                self._data.update(user_input)
                 return await self.async_step_pin()
 
             LOGGER.error("Request PIN error: %s", errors)
 
-        # data_schema = SCHEMA_STEP_USER.extend(
-        #     {
-        #         vol.Optional("qr_code"): QrCodeSelector(
-        #             config=QrCodeSelectorConfig(
-        #                 data="https://link.emea-prod.mobilesdk.mercedes-benz.com/device-login?userCode=OTdOTi1CTVhX&deviceType=watch",
-        #                 scale=6,
-        #                 error_correction_level=QrErrorCorrectionLevel.QUARTILE,
-        #             )
-        #         )
-        #     }
-        # )
-
         return self.async_show_form(
-            step_id="user",
+            step_id="userpin",
             data_schema=SCHEMA_STEP_USER,
         )
 
@@ -123,7 +163,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 result = await client.oauth.request_access_token(self._data[CONF_USERNAME], pin, nonce)
             except MbapiError as error:
-                LOGGER.error("Request token error: %s", errors)
+                LOGGER.error("Request token error: %s", error)
                 errors = error
 
             if not errors:
@@ -136,7 +176,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     return self.async_abort(reason="reauth_successful")
 
                 return self.async_create_entry(
-                    title=f"{self._data[CONF_USERNAME]} (Region: {self._data[CONF_REGION]})",
+                    title=f"{LogHelper.Mask_email(self._data[CONF_USERNAME])} (Region: {self._data[CONF_REGION]})",
                     data=self._data,
                 )
 
@@ -149,7 +189,70 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
 
-        return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER)
+        return self.async_show_form(
+            step_id="user",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_REGION): vol.In(CONF_ALLOWED_REGIONS),
+                    vol.Required("auth_method"): vol.In(CONF_ALLOWED_AUTH_METHODS),
+                }
+            ),
+        )
+
+    async def async_step_reconfigure(self, args_input: dict[str, Any] | None = None):
+        """Get new tokens for a config entry that can't authenticate."""
+
+        self._reauth_mode = True
+
+        self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_REGION): vol.In(CONF_ALLOWED_REGIONS),
+                    vol.Required("auth_method"): vol.In(CONF_ALLOWED_AUTH_METHODS),
+                }
+            ),
+        )
+
+    async def async_step_device_code(self, user_input=None):
+        """Handle the initial step."""
+        errors = {}
+
+        if user_input is not None:
+            client = Client(self.hass, self._session, None, self._data[CONF_REGION])
+            try:
+                device_code = self._data["device_code_request_result"].get("device_code")
+                result = await client.oauth.async_request_device_code_access_token(device_code)
+                webapi: WebApi = WebApi(self.hass, client.oauth, self._session, self._data[CONF_REGION])
+                user_info = await webapi.get_user()
+                user_email = user_info.get("email", "email-not-found")
+                masked_email = LogHelper.Mask_email(user_email)
+                self._data[CONF_USERNAME] = user_email
+
+            except MbapiError as error:
+                LOGGER.error("Request token error: %s", error)
+                errors = error
+
+            if not errors:
+                LOGGER.debug("Token received")
+                self._data["token"] = result
+
+                if self._reauth_mode:
+                    self.hass.config_entries.async_update_entry(self._reauth_entry, data=self._data)
+                    self.hass.async_create_task(self.hass.config_entries.async_reload(self._reauth_entry.entry_id))
+                    return self.async_abort(reason="reauth_successful")
+
+                return self.async_create_entry(
+                    title=f"D_{masked_email}_{self._data[CONF_REGION]}",
+                    data=self._data,
+                )
+
+        return self.async_show_form(
+            step_id="step_user",
+            data_schema=None,
+        )
 
     @staticmethod
     @callback

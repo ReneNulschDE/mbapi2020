@@ -20,10 +20,21 @@
       "user": {
         "data": {
           "region": "Region",
+          "auth_method": "Authentication method"
+        },
+        "description": "Select your region and the authentication method",
+        "title": "Set up the Mercedes ME 2020 connection"
+      },
+      "userpin": {
+        "data": {
           "username": "MB username - email address (or mobile phone including country code ex. +44)"
         },
         "description": "Enter your Mercedes ME login account (email address)",
         "title": "Set up the Mercedes ME 2020 connection"
+      },
+      "device_code": {
+        "description": "Scan the code with a mobile phone with the Mercedes app installed and logged in. Click Submit after you approved the 'Watch' in the app.",
+        "title": "QR-Code"
       }
     }
   },

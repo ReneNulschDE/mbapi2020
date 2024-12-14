@@ -61,13 +61,12 @@ class Oauth:
     ) -> None:
         """Initialize the OAuth instance."""
         self._session: ClientSession = session
-        self._region: str = region
+        self._region = "Europe" if region is None else region
         self._hass = hass
         self._config_entry = config_entry
         self.token = None
         self._sessionid = ""
         self._get_token_lock = asyncio.Lock()
-
         if isinstance(VERIFY_SSL, str):
             self.ssl_context = ssl.create_default_context(cafile=VERIFY_SSL)
 
@@ -81,7 +80,8 @@ class Oauth:
         await self._async_request("get", url, headers=headers)
 
         url = f"{helper.Login_Base_Url(self._region)}/as/device_authz.oauth2"
-        data = f"client_id={helper.Login_App_Id(self._region)}&scope=openid email phone profile offline_access ciam-uid"
+        data = "client_id=62778dc4-1de3-44f4-af95-115f06a3a008&scope=openid email phone profile offline_access ciam-uid"
+        # data = f"client_id={helper.Login_App_Id(self._region)}&scope=openid email phone profile offline_access ciam-uid"
         headers = self._get_header()
         headers["Content-Type"] = "application/x-www-form-urlencoded"
         headers["Stage"] = "prod"
@@ -94,6 +94,33 @@ class Oauth:
             _LOGGER.error(e)
 
         _LOGGER.debug(device_code_result)
+        return device_code_result
+
+    async def async_request_device_code_access_token(self, device_code: str):
+        """Refresh the device code."""
+        _LOGGER.info("Start request_device_code")
+
+        _LOGGER.debug("Auth token refresh preflight request 1")
+        headers = self._get_header()
+        url = f"{helper.Rest_url(self._region)}/v1/config"
+        await self._async_request("get", url, headers=headers)
+
+        url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
+        data = f"client_id=62778dc4-1de3-44f4-af95-115f06a3a008&device_code={device_code}&grant_type=urn:ietf:params:oauth:grant-type:device_code"
+        # data = f"client_id={helper.Login_App_Id(self._region)}&scope=openid email phone profile offline_access ciam-uid"
+        headers = self._get_header()
+        headers["Content-Type"] = "application/x-www-form-urlencoded; charset=utf-8"
+        headers["Stage"] = "prod"
+        headers["X-Device-Id"] = str(uuid.uuid4())
+        headers["X-Request-Id"] = str(uuid.uuid4())
+        device_code_result = None
+        try:
+            device_code_result = await self._async_request(method="post", url=url, data=data, headers=headers)
+            device_code_result = self._add_custom_values_to_token_info(device_code_result)
+            self.token = device_code_result
+        except Exception as e:
+            _LOGGER.error(e)
+
         return device_code_result
 
     async def request_pin(self, email: str, nonce: str):
