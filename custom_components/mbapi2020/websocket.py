@@ -124,7 +124,6 @@ class Websocket:
         self.is_stopping = True
         self._watchdog.cancel()
         self._pingwatchdog.cancel()
-        self._reconnectwatchdog.cancel()
         self.connection_state = "closed"
 
         if self._connection is not None:
