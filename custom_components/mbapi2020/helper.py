@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 from collections.abc import Awaitable, Callable
 import datetime
 from enum import Enum
@@ -44,6 +45,12 @@ class LogHelper:
             return vin[:5] + "X" * (12 - 5 + 1) + vin[13:]
         return "X" * len(vin)
 
+    @staticmethod
+    def Mask_email(email: str) -> str:
+        if len(email) > 7:
+            return email[:2] + "X" * (6 - 2 + 1) + email[7:]
+        return "x" * len(email)
+
 
 class UrlHelper:
     """Helper functions for MBAPI2020 url handling."""
@@ -71,6 +78,23 @@ class UrlHelper:
                 return WEBSOCKET_API_BASE_NA
             case current if current == REGION_EUROPE:
                 return WEBSOCKET_API_BASE
+
+    @staticmethod
+    def Device_code_confirm_url(region: str, device_code: str) -> str:
+        """Return a formatted url to confirm a device code auth."""
+        base64_code = base64.b64encode(device_code).decode("ascii")
+        env = "emea"
+        match region:
+            case current if current == REGION_APAC:
+                env = "amap"
+            case current if current == REGION_CHINA:
+                env = "cn"
+            case current if current == REGION_NORAM:
+                env = "amap"
+
+        return (
+            f"https://link.{env}-prod.mobilesdk.mercedes-benz.com/device-login?userCode={base64_code}&deviceType=watch"
+        )
 
     @staticmethod
     def RCP_url(region: str) -> str:
