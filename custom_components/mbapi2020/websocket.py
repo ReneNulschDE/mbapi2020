@@ -156,7 +156,7 @@ class Websocket:
         try:
             reconnect_task = None
 
-            if self._connection.closed:
+            if not self._connection or self._connection.closed:
                 reconnect_task = asyncio.create_task(self.async_connect())
 
             if car_command:
