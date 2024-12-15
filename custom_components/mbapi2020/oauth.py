@@ -115,8 +115,11 @@ class Oauth:
         headers["X-Request-Id"] = str(uuid.uuid4())
         device_code_result = None
         try:
-            device_code_result = await self._async_request(method="post", url=url, data=data, headers=headers)
-            device_code_result = self._add_custom_values_to_token_info(device_code_result)
+            device_code_result = await self._async_request(
+                method="post", url=url, data=data, headers=headers, ignore_error=True
+            )
+            if device_code_result and device_code_result.get("access_token"):
+                device_code_result = self._add_custom_values_to_token_info(device_code_result)
             self.token = device_code_result
         except Exception as e:
             _LOGGER.error(e)
@@ -290,7 +293,7 @@ class Oauth:
 
         return header
 
-    async def _async_request(self, method: str, url: str, data: str = "", **kwargs):
+    async def _async_request(self, method: str, url: str, data: str = "", ignore_error: bool = False, **kwargs):
         """Make a request against the API."""
 
         kwargs.setdefault("headers", {})
@@ -304,18 +307,19 @@ class Oauth:
             # _LOGGER.warning("ClientError requesting data from %s: %s", url, resp.json)
             # resp.raise_for_status()
 
-            if 400 <= resp.status < 500:
-                try:
-                    error = await resp.text()
-                    error_json = json.loads(error)
-                    if error_json:
-                        error_message = f'Error requesting: {url} - {error_json["code"]} - {error_json["errors"]}'
-                    else:
+            if not ignore_error:
+                if 400 <= resp.status < 500:
+                    try:
+                        error = await resp.text()
+                        error_json = json.loads(error)
+                        if error_json:
+                            error_message = f'Error requesting: {url} - {error_json["code"]} - {error_json["errors"]}'
+                        else:
+                            error_message = f"Error requesting: {url} - 0 - {error}"
+                    except (json.JSONDecodeError, KeyError):
                         error_message = f"Error requesting: {url} - 0 - {error}"
-                except (json.JSONDecodeError, KeyError):
-                    error_message = f"Error requesting: {url} - 0 - {error}"
 
-                _LOGGER.error(error_message)
-                raise MBAuthError(error_message)
+                    _LOGGER.error("_async_request: %s", error_message)
+                    raise MBAuthError(error_message)
 
             return await resp.json(content_type=None)

@@ -7,7 +7,8 @@
     "error": {
       "cannot_connect": "cannot_connect",
       "invalid_auth": "invalid_auth",
-      "unknown": "Unknown error. Please check the Home Assistant log for more information."
+      "unknown": "Unknown error. Please check the Home Assistant log for more information.",
+      "authorization_pending": "Pending user authorization. Please scan the QR-Code using mobile with the MB-App installed."
     },
     "step": {
       "pin": {

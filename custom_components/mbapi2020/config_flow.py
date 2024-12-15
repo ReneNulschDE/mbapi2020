@@ -81,6 +81,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 qrcode_url = helper.Device_code_confirm_url(
                     region=user_input[CONF_REGION], device_code=device_code_request_result.get("user_code", "").encode()
                 )
+                device_code_request_result["qrcode_url"] = qrcode_url
                 LOGGER.debug("QR_Code URL: %s", qrcode_url)
 
                 self._data["device_code_request_result"] = device_code_request_result
@@ -225,15 +226,21 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 device_code = self._data["device_code_request_result"].get("device_code")
                 result = await client.oauth.async_request_device_code_access_token(device_code)
-                webapi: WebApi = WebApi(self.hass, client.oauth, self._session, self._data[CONF_REGION])
-                user_info = await webapi.get_user()
-                user_email = user_info.get("email", "email-not-found")
-                masked_email = LogHelper.Mask_email(user_email)
-                self._data[CONF_USERNAME] = user_email
+
+                if result and result.get("error"):
+                    errors["base"] = result.get("error", "unknown")
+                elif result and result.get("access_token"):
+                    webapi: WebApi = WebApi(self.hass, client.oauth, self._session, self._data[CONF_REGION])
+                    user_info = await webapi.get_user()
+                    user_email = user_info.get("email", "email-not-found")
+                    masked_email = LogHelper.Mask_email(user_email)
+                    self._data[CONF_USERNAME] = user_email
+                else:
+                    errors["base"] = "unknown"
 
             except MbapiError as error:
                 LOGGER.error("Request token error: %s", error)
-                errors = error
+                errors["base"] = error
 
             if not errors:
                 LOGGER.debug("Token received")
@@ -250,8 +257,19 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
 
         return self.async_show_form(
-            step_id="step_user",
-            data_schema=None,
+            step_id="device_code",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional("qr_code"): QrCodeSelector(
+                        config=QrCodeSelectorConfig(
+                            data=self._data.get("device_code_request_result", {}).get("qrcode_url"),
+                            scale=6,
+                            error_correction_level=QrErrorCorrectionLevel.QUARTILE,
+                        )
+                    ),
+                }
+            ),
+            errors=errors,
         )
 
     @staticmethod
