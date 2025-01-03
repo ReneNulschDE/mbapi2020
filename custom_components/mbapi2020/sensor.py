@@ -102,6 +102,9 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
         """Return the state of the sensor."""
 
         if self.device_retrieval_status() in ("NOT_RECEIVED", "4", 4):
+            if self._sensor_config[scf.DEFAULT_VALUE_MODE.value]:
+                if self._sensor_config[scf.DEFAULT_VALUE_MODE.value] == "Zero":
+                    return 0
             return STATE_UNKNOWN
 
         if self.device_retrieval_status() == 3:
