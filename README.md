@@ -13,6 +13,7 @@ IMPORTANT:
 - North America: For Cars 2019 or newer only
 - Thailand, India: Please use region "Europe".
 - China: support of China is in early stage
+- Smart cars data are not available after 2025-01-06
 - Discussions, Feature Requests via [HA-Community Forum](https://community.home-assistant.io/t/mercedes-me-component/41911)
 
 ### Installation
