@@ -13,14 +13,11 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, __version__ as HAV
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
-from homeassistant.helpers.selector import QrCodeSelector, QrCodeSelectorConfig, QrErrorCorrectionLevel
 from homeassistant.helpers.storage import STORAGE_DIR
 
 from .client import Client
 from .const import (
-    CONF_ALLOWED_AUTH_METHODS,
     CONF_ALLOWED_REGIONS,
-    CONF_AUTH_METHOD,
     CONF_DEBUG_FILE_SAVE,
     CONF_DELETE_AUTH_FILE,
     CONF_ENABLE_CHINA_GCJ_02,
