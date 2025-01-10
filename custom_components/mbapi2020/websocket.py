@@ -238,7 +238,7 @@ class Websocket:
                 self.ws_connect_retry_counter += 1
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)
-                retry_in = retry_in * self.ws_connect_retry_counter * self.ws_connect_retry_counter
+                retry_in = 10 * self.ws_connect_retry_counter * self.ws_connect_retry_counter
             except Exception as error:
                 LOGGER.error("Other error %s", error)
                 raise
@@ -249,6 +249,10 @@ class Websocket:
         kwargs.setdefault("proxy", SYSTEM_PROXY)
         kwargs.setdefault("ssl", self.ssl_context)
         kwargs.setdefault("headers", await self._websocket_connection_headers())
+
+        # kwargs["headers"]["Ris-Os-Name"] = "manual_test"
+        # kwargs["headers"]["X-Applicationname"] = "mycar-store-ece-watchapp"
+        # kwargs["headers"]["Ris-Application-Version"] = "1.51.0 (2578)"
 
         self.is_connecting = True
         LOGGER.debug("Connecting to %s", websocket_url)
