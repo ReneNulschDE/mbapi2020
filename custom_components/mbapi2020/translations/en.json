@@ -10,19 +10,14 @@
       "unknown": "Unknown error. Please check the Home Assistant log for more information."
     },
     "step": {
-      "pin": {
-        "data": {
-          "password": "PIN"
-        },
-        "description": "You have received a PIN code via email. Please enter the PIN code (six numbers)",
-        "title": "Connection setup - PIN"
-      },
       "user": {
         "data": {
           "region": "Region",
-          "username": "MB username - email address (or mobile phone including country code ex. +44)"
+          "username": "MB username - email address (or mobile phone including country code ex. +44)",
+          "access_token": "Access token",
+          "refresh_token": "Refresh token"
         },
-        "description": "Enter your Mercedes ME login account (email address)",
+        "description": "Enter your account details. See https://tinyurl.com/mbapi2020helptoken for help.",
         "title": "Set up the Mercedes ME 2020 connection"
       }
     }

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import datetime, timedelta
 import uuid
 
 from awesomeversion import AwesomeVersion
@@ -17,6 +18,7 @@ from homeassistant.helpers.storage import STORAGE_DIR
 
 from .client import Client
 from .const import (
+    CONF_ACCESS_TOKEN,
     CONF_ALLOWED_REGIONS,
     CONF_DEBUG_FILE_SAVE,
     CONF_DELETE_AUTH_FILE,
@@ -24,6 +26,7 @@ from .const import (
     CONF_EXCLUDED_CARS,
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     CONF_PIN,
+    CONF_REFRESH_TOKEN,
     CONF_REGION,
     DOMAIN,
     LOGGER,
@@ -36,10 +39,10 @@ SCHEMA_STEP_USER = vol.Schema(
     {
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_REGION): vol.In(CONF_ALLOWED_REGIONS),
+        vol.Required(CONF_ACCESS_TOKEN): str,
+        vol.Required(CONF_REFRESH_TOKEN): str,
     }
 )
-
-SCHEMA_STEP_PIN = vol.Schema({vol.Required(CONF_PASSWORD): str})
 
 # Version threshold for config_entry setting in options flow
 # See: https://github.com/home-assistant/core/pull/129562
@@ -69,64 +72,26 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not self._reauth_mode:
                 self._abort_if_unique_id_configured()
 
+            token = {
+                CONF_ACCESS_TOKEN: user_input[CONF_ACCESS_TOKEN],
+                CONF_REFRESH_TOKEN: user_input[CONF_REFRESH_TOKEN],
+                "expires_at": 0,
+            }
+
             session = async_get_clientsession(self.hass, VERIFY_SSL)
-            nonce = str(uuid.uuid4())
-            user_input["nonce"] = nonce
 
             client = Client(self.hass, session, new_config_entry, region=user_input[CONF_REGION])
+            client.oauth.token = token
+
             try:
-                await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
-            except (MBAuthError, MbapiError):
-                errors = {"base": "unknown"}
+                user_input["token"] = await client.oauth.async_get_cached_token()
+            except (MBAuthError, MbapiError) as error:
+                LOGGER.error("Check token error: %s", error)
+                errors = {"base": error}
                 return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors=errors)
 
             if not errors:
                 self._data = user_input
-                return await self.async_step_pin()
-
-            LOGGER.error("Request PIN error: %s", errors)
-
-        # data_schema = SCHEMA_STEP_USER.extend(
-        #     {
-        #         vol.Optional("qr_code"): QrCodeSelector(
-        #             config=QrCodeSelectorConfig(
-        #                 data="https://link.emea-prod.mobilesdk.mercedes-benz.com/device-login?userCode=OTdOTi1CTVhX&deviceType=watch",
-        #                 scale=6,
-        #                 error_correction_level=QrErrorCorrectionLevel.QUARTILE,
-        #             )
-        #         )
-        #     }
-        # )
-
-        return self.async_show_form(
-            step_id="user",
-            data_schema=SCHEMA_STEP_USER,
-        )
-
-    async def async_step_pin(self, user_input=None):
-        """Handle the step where the user inputs his/her station."""
-
-        errors = {}
-
-        if user_input is not None:
-            pin = user_input[CONF_PASSWORD]
-            nonce = self._data["nonce"]
-            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
-                f"{self._data[CONF_USERNAME]}-{self._data[CONF_REGION]}"
-            )
-            session = async_get_clientsession(self.hass, VERIFY_SSL)
-
-            client = Client(self.hass, session, new_config_entry, self._data[CONF_REGION])
-            try:
-                result = await client.oauth.request_access_token(self._data[CONF_USERNAME], pin, nonce)
-            except MbapiError as error:
-                LOGGER.error("Request token error: %s", errors)
-                errors = error
-
-            if not errors:
-                LOGGER.debug("Token received")
-                self._data["token"] = result
-
                 if self._reauth_mode:
                     self.hass.config_entries.async_update_entry(self._reauth_entry, data=self._data)
                     self.hass.async_create_task(self.hass.config_entries.async_reload(self._reauth_entry.entry_id))
@@ -137,7 +102,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data=self._data,
                 )
 
-        return self.async_show_form(step_id="pin", data_schema=SCHEMA_STEP_PIN, errors=errors)
+            LOGGER.error("Check token error: %s", errors)
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=SCHEMA_STEP_USER,
+        )
 
     async def async_step_reauth(self, user_input=None):
         """Get new tokens for a config entry that can't authenticate."""
