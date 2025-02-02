@@ -25,7 +25,7 @@ IMPORTANT:
 - Restart HA after the installation
 - Make sure that you refresh your browser window too
 - Use the "Add Integration" in Home Assistant, Settings, Devices & Services and select "MercedesME 2020".
-- Use your MB-login email address. Your will receive a 6-digit code via email (valid for 15min).
+- Follow [this guide](https://github.com/ReneNulschDE/mbapi2020/wiki/How%E2%80%90to:-create-the-access-and-refresh-token) to create the tokens needed.
 
 ### How to Prevent Account Blocking
 
