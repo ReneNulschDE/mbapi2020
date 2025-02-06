@@ -8,23 +8,6 @@
             "cannot_connect": "Kan geen verbinding maken",
             "invalid_auth": "Ongeldige autorisatie",
             "onbekend": "Onbekende fout. Controleer de Home Assistant-log voor meer informatie."
-        },
-        "step": {
-            "pin": {
-                "data": {
-                    "password": "PIN"
-                },
-                "description": "Je hebt een pincode ontvangen via e-mail. Voer de pincode (zes cijfers) in.",
-                "title": "Verbindingsinstellingen - PIN"
-            },
-            "user": {
-                "data": {
-                    "region": "Regio",
-                    "username": "MB-gebruikersnaam - e-mailadres (of telefoonnummer inclusief landcode, bijv. +31)"
-                },
-                "description": "Voer je Mercedes ME-inloggegevens in (e-mailadres)",
-                "title": "Mercedes ME 2020-verbinding instellen"
-            }
         }
     },
     "issues": {

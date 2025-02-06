@@ -1,22 +1,5 @@
 {
     "config": {
-        "step": {
-            "pin": {
-                "data": {
-                    "password": "PIN"
-                },
-                "description": "Otrzymałeś kod PIN w wiadomości email. Proszę wprowadzić kod PIN (sześć cyfr)",
-                "title": "Ustawienia połączenia - PIN"
-            },
-            "user": {
-                "data": {
-                    "region": "Region",
-                    "username": "Nazwa użytkownika MB - adres email (lub numer telefonu zawierający kod kierunkowy np +48)"
-                },
-                "description": "Wpisz login konta użytkownika Mercedes ME (adres email)",
-                "title": "Ustanów połączenie z Mercedes ME 2020"
-            }
-        },
         "error": {
             "unknown": "Nieznany błąd. Proszę sprawdzić logi Home Assistanta."
         },

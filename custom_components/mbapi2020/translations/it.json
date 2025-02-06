@@ -8,23 +8,6 @@
             "cannot_connect": "Impossibile connettersi al server.",
             "invalid_auth": "Autenticazione non valida.",
             "unknown": "Errore sconosciuto."
-        },
-        "step": {
-            "pin": {
-                "data": {
-                    "password": "PIN"
-                },
-                "description": "Hai ricevuto il codice PIN via email. Per favore inserisci il codice PIN (sei numeri)",
-                "title": "Configurazione connessione - PIN"
-            },
-            "user": {
-                "data": {
-                    "region": "Regione",
-                    "username": "MB username - indirizzo email"
-                },
-                "description": "Inserisci il tuo Mercedes ME account (indirizzo email)",
-                "title": "Mercedes ME 2020 - Setup"
-            }
         }
     },
     "issues": {

@@ -8,23 +8,6 @@
             "cannot_connect": "cannot_connect",
             "invalid_auth": "invalid_auth",
             "unknown": "Error desconocido. Por favor, revisa el registro de Home Assistant para más información."
-        },
-        "step": {
-            "pin": {
-                "data": {
-                    "password": "PIN"
-                },
-                "description": "Has recibido un código PIN por correo electrónico. Por favor, ingresa el código PIN (seis números)",
-                "title": "Configuración de conexión - PIN"
-            },
-            "user": {
-                "data": {
-                    "region": "Región",
-                    "username": "Nombre de usuario MB - dirección de correo electrónico (o teléfono móvil incluyendo el código de país ej. +34)"
-                },
-                "description": "Ingresa tu cuenta de inicio de sesión de Mercedes ME (dirección de correo electrónico)",
-                "title": "Configurar la conexión Mercedes ME 2020"
-            }
         }
     },
     "issues": {
