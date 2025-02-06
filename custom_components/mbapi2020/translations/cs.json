@@ -4,23 +4,6 @@
             "reauth_successful": "Opětovné ověření úspěšné! Probíhá načítání komponenty.",
             "already_configured": "Komponenta je již nakonfigurována."
         },
-        "step": {
-            "pin": {
-                "data": {
-                    "password": "PIN"
-                },
-                "description": "Obdrželi jste PIN kód emailem. Zadejte prosím PIN kód (šest čísel)",
-                "title": "Nastavení připojení - PIN"
-            },
-            "user": {
-                "data": {
-                    "region": "Region",
-                    "username": "MB uživatelské jméno - emailová adresa (nebo mobilní telefon včetně kódu země, např. +44)"
-                },
-                "description": "Zadejte svůj přihlašovací účet Mercedes ME (emailová adresa)",
-                "title": "Nastavení připojení Mercedes ME 2020"
-            }
-        },
         "error": {
             "unknown": "Neznámá chyba. Pro více informací zkontrolujte logy Home Assistant.",
             "cannot_connect": "cannot_connect",
