@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PublishSingleFile>True</PublishSingleFile>
+		<Platforms>AnyCPU;x64</Platforms>
+		<RuntimeIdentifiers>
+			win-x64;win-arm64;linux-x64
+		</RuntimeIdentifiers>
+
+		<PackageDir Condition="'$(PackageDir)' == ''">$([System.IO.Path]::Combine($(OutputPath),'package'))/</PackageDir>
+		<PackagePath Condition="'$(PackagePath)' == ''">$([System.IO.Path]::Combine($(PackageDir),'publish.zip'))</PackagePath>
+	</PropertyGroup>
+	<Target Name="Package" DependsOnTargets="Publish">
+		<MakeDir Directories="$(PackageDir)" />
+		<ZipDirectory Overwrite="true" SourceDirectory="$(MSBuildProjectDirectory)/$(PublishDir)" DestinationFile="$(PackagePath)" />
+	</Target>
+	<Target Name="PackageClean" AfterTargets="Clean">
+		<Delete Files="$(PackagePath)" />
+	</Target>
+	<ItemGroup>
+		<PackageReference Include="IdentityModel.OidcClient" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.json" Version="8.0.1" />
+		<PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+		<PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+		<PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+		<None Update="appsettings.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="callback.bat">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
+		<None Update="mb-shortcut-handler.desktop">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+		<None Update="callback.bat">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-arm64'">
+		<None Update="callback.bat">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+</Project>

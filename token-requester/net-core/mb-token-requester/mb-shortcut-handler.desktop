@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MBTockenCreator
+Exec=~/temp/linux-x64/mb-token-requester %u
+Icon=
+MimeType=x-scheme-handler/rismycar;
+Terminal=True
