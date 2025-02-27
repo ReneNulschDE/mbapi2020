@@ -69,7 +69,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             LOGGER.error("Authentication failed. Please reauthenticate.")
             raise ConfigEntryAuthFailed
 
+        bff_app_config = await coordinator.client.webapi.get_config()
         masterdata = await coordinator.client.webapi.get_user_info()
+        hass.async_add_executor_job(coordinator.client.write_debug_json_output, bff_app_config, "app", True)
         hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md", True)
 
         for car in masterdata.get("assignedVehicles"):

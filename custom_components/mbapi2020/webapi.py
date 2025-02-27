@@ -110,7 +110,7 @@ class WebApi:
                             error = await resp.text()
                             error_json = json.loads(error)
                             if error_json:
-                                error_message = f'Error requesting: {url} - {resp.status} -  {error_json["code"]} - {error_json["errors"]}'
+                                error_message = f"Error requesting: {url} - {resp.status} -  {error_json['code']} - {error_json['errors']}"
                             else:
                                 error_message = f"Error requesting: {url} - {resp.status} - 0 - {error}"
                         except (json.JSONDecodeError, KeyError):
@@ -133,6 +133,10 @@ class WebApi:
             return []
         except Exception:
             LOGGER.debug(traceback.format_exc())
+
+    async def get_config(self):
+        """Get standard user information."""
+        return await self._request("get", "/v1/config")
 
     async def get_user(self):
         """Get standard user information."""

@@ -118,6 +118,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER)
 
+    async def async_step_reconfigure(self, user_input=None):
+        """Get new tokens for a config entry that can't authenticate."""
+
+        self._reauth_mode = True
+
+        self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+
+        return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER)
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):

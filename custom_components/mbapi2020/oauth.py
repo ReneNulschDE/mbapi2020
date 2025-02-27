@@ -19,7 +19,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
-    DEFAULT_COUNTRY_CODE,
     DEFAULT_LOCALE,
     REGION_APAC,
     REGION_CHINA,
@@ -71,45 +70,6 @@ class Oauth:
         if isinstance(VERIFY_SSL, str):
             self.ssl_context = ssl.create_default_context(cafile=VERIFY_SSL)
 
-    async def async_request_device_code(self):
-        """Refresh the device code."""
-        _LOGGER.info("Start request_device_code")
-
-        _LOGGER.debug("Auth token refresh preflight request 1")
-        headers = self._get_header()
-        url = f"{helper.Rest_url(self._region)}/v1/config"
-        await self._async_request("get", url, headers=headers)
-
-        url = f"{helper.Login_Base_Url(self._region)}/as/device_authz.oauth2"
-        data = f"client_id={helper.Login_App_Id(self._region)}&scope=openid email phone profile offline_access ciam-uid"
-        headers = self._get_header()
-        headers["Content-Type"] = "application/x-www-form-urlencoded"
-        headers["Stage"] = "prod"
-        headers["X-Device-Id"] = str(uuid.uuid4())
-        headers["X-Request-Id"] = str(uuid.uuid4())
-        device_code_result = None
-        try:
-            device_code_result = await self._async_request(method="post", url=url, data=data, headers=headers)
-        except Exception as e:
-            _LOGGER.error(e)
-
-        _LOGGER.debug(device_code_result)
-        return device_code_result
-
-    async def request_pin(self, email: str, nonce: str):
-        """Initiate a PIN request."""
-        _LOGGER.info("Start request PIN %s", email)
-        _LOGGER.debug("PIN preflight request 1")
-        headers = self._get_header()
-        url = f"{helper.Rest_url(self._region)}/v1/config"
-        await self._async_request("get", url, headers=headers)
-
-        _LOGGER.info("PIN request")
-        url = f"{helper.Rest_url(self._region)}/v1/login"
-        data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{DEFAULT_COUNTRY_CODE}", "nonce" : "{nonce}"}}'
-        headers = self._get_header()
-        return await self._async_request("post", url, data=data, headers=headers)
-
     async def async_refresh_access_token(self, refresh_token: str, is_retry: bool = False):
         """Refresh the access token."""
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
@@ -146,32 +106,6 @@ class Oauth:
             self.token = token_info
 
         return token_info
-
-    async def request_access_token(self, email: str, pin: str, nonce: str):
-        """Request the access token using the Pin."""
-        url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
-        encoded_email = urllib.parse.quote_plus(email, safe="@")
-
-        data = (
-            f"client_id={helper.Login_App_Id(self._region)}&grant_type=password&username={encoded_email}&password={nonce}:{pin}"
-            "&scope=openid email phone profile offline_access ciam-uid"
-        )
-
-        headers = self._get_header()
-        headers["Content-Type"] = "application/x-www-form-urlencoded"
-        headers["Stage"] = "prod"
-        headers["X-Device-Id"] = str(uuid.uuid4())
-        headers["X-Request-Id"] = str(uuid.uuid4())
-
-        token_info = await self._async_request("post", url, data=data, headers=headers)
-
-        if token_info is not None:
-            token_info = self._add_custom_values_to_token_info(token_info)
-            self._save_token_info(token_info)
-            self.token = token_info
-            return token_info
-
-        return None
 
     async def async_get_cached_token(self):
         """Get a cached auth token."""
@@ -282,7 +216,7 @@ class Oauth:
                     error = await resp.text()
                     error_json = json.loads(error)
                     if error_json:
-                        error_message = f'Error requesting: {url} - {error_json["code"]} - {error_json["errors"]}'
+                        error_message = f"Error requesting: {url} - {error_json['code']} - {error_json['errors']}"
                     else:
                         error_message = f"Error requesting: {url} - 0 - {error}"
                 except (json.JSONDecodeError, KeyError):

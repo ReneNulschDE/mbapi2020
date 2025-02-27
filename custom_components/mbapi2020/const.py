@@ -87,14 +87,14 @@ JSON_EXPORT_IGNORED_KEYS = (
 )
 
 
-RIS_APPLICATION_VERSION_NA = "3.51.0"
+RIS_APPLICATION_VERSION_NA = "3.53.0"
 RIS_APPLICATION_VERSION_CN = "1.51.0"
 RIS_APPLICATION_VERSION_PA = "1.51.0"
 RIS_APPLICATION_VERSION = "1.51.0"
-RIS_SDK_VERSION = "2.132.2"
+RIS_SDK_VERSION = "3.6.0"
 RIS_SDK_VERSION_CN = "2.132.2"
-RIS_OS_VERSION = "17.4.1"
-RIS_OS_NAME = "ios"
+RIS_OS_VERSION = "10"
+RIS_OS_NAME = "android"
 X_APPLICATIONNAME = "mycar-store-ece"
 X_APPLICATIONNAME_ECE = "mycar-store-ece"
 X_APPLICATIONNAME_CN = "mycar-store-cn"
@@ -105,14 +105,8 @@ USE_PROXY = False
 VERIFY_SSL = True
 SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:9090"
 
-
-LOGIN_APP_ID = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
-LOGIN_APP_ID_EU = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
-LOGIN_APP_ID_CN = "3f36efb1-f84b-4402-b5a2-68a118fec33e"
 LOGIN_BASE_URI = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_CN = "https://ciam-1.mercedes-benz.com.cn"
-LOGIN_BASE_URI_NA = "https://id.mercedes-benz.com"
-LOGIN_BASE_URI_PA = "https://id.mercedes-benz.com"
 PSAG_BASE_URI = "https://psag.query.api.dvb.corpinter.net"
 PSAG_BASE_URI_CN = "https://psag.query.api.dvb.corpinter.net.cn"
 RCP_BASE_URI = "https://rcp-rs.query.api.dvb.corpinter.net"
@@ -121,7 +115,6 @@ REST_API_BASE = "https://bff.emea-prod.mobilesdk.mercedes-benz.com"
 REST_API_BASE_CN = "https://bff.cn-prod.mobilesdk.mercedes-benz.com"
 REST_API_BASE_NA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
 REST_API_BASE_PA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
-DEVICE_TOKEN_URL = "https://link.emea-prod.mobilesdk.mercedes-benz.com/device-login?userCode={userCode}deviceType=watch"
 
 WEBSOCKET_API_BASE = "wss://websocket.emea-prod.mobilesdk.mercedes-benz.com/v2/ws"
 WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v2/ws"
@@ -130,7 +123,10 @@ WEBSOCKET_API_BASE_CN = "wss://websocket.cn-prod.mobilesdk.mercedes-benz.com/v2/
 WEBSOCKET_USER_AGENT = "MyCar/2168 CFNetwork/1494.0.7 Darwin/23.4.0"
 WEBSOCKET_USER_AGENT_CN = "MyStarCN/1.47.0 (com.daimler.ris.mercedesme.cn.ios; build:1758; iOS 16.3.1) Alamofire/5.4.0"
 WEBSOCKET_USER_AGENT_PA = (
-    f"mycar-store-ap v{RIS_APPLICATION_VERSION}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
+    f"mycar-store-ap {RIS_APPLICATION_VERSION}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
+)
+WEBSOCKET_USER_AGENT_US = (
+    f"mycar-store-us v{RIS_APPLICATION_VERSION_NA}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
 )
 WIDGET_API_BASE = "https://widget.emea-prod.mobilesdk.mercedes-benz.com"
 WIDGET_API_BASE_NA = "https://widget.amap-prod.mobilesdk.mercedes-benz.com"

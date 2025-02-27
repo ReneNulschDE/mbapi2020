@@ -30,6 +30,7 @@ from .const import (
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_PA,
+    WEBSOCKET_USER_AGENT_US,
 )
 from .helper import UrlHelper as helper, Watchdog
 from .oauth import Oauth
@@ -289,13 +290,13 @@ class Websocket:
             "OUTPUT-FORMAT": "PROTO",
             "X-SessionId": self.session_id,
             "X-TrackingId": str(uuid.uuid4()).upper(),
-            "RIS-OS-Name": RIS_OS_NAME,
-            "RIS-OS-Version": RIS_OS_VERSION,
-            "ris-websocket-type": "ios-native",
-            "RIS-SDK-Version": RIS_SDK_VERSION,
+            "ris-os-name": RIS_OS_NAME,
+            "ris-os-version": RIS_OS_VERSION,
+            # "ris-websocket-type": "ios-native",
+            "ris-sdk-version": RIS_SDK_VERSION,
             "X-Locale": "de-DE",
             "User-Agent": WEBSOCKET_USER_AGENT,
-            "Accept-Language": " de-DE,de;q=0.9",
+            # "Accept-Language": " de-DE,de;q=0.9",
         }
 
         return self._get_region_header(header)
@@ -308,6 +309,10 @@ class Websocket:
         if self._region == REGION_NORAM:
             header["X-ApplicationName"] = "mycar-store-us"
             header["ris-application-version"] = RIS_APPLICATION_VERSION_NA
+            header["User-Agent"] = WEBSOCKET_USER_AGENT_US
+            header["X-Locale"] = "en-US"
+            header["Accept-Encoding"] = "gzip"
+            header["Sec-WebSocket-Extensions"] = "permessage-deflate"
 
         if self._region == REGION_APAC:
             header["X-ApplicationName"] = "mycar-store-ap"
