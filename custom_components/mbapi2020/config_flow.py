@@ -148,6 +148,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         """Manage the options."""
 
         if user_input is not None:
+            LOGGER.debug("user_input: %s", user_input)
             if user_input[CONF_DELETE_AUTH_FILE] is True:
                 auth_file = self.hass.config.path(STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{self.config_entry.entry_id}")
                 LOGGER.warning("DELETE Auth Information requested %s", auth_file)
@@ -169,8 +170,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     },
                 )
 
-            if user_input[CONF_PIN] == "0":
-                user_input[CONF_PIN] = ""
             self.options.update(user_input)
             changed = self.hass.config_entries.async_update_entry(
                 self.config_entry,
@@ -190,8 +189,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(CONF_EXCLUDED_CARS, default=excluded_cars): str,
-                    vol.Optional(CONF_PIN, default=pin): str,
+                    vol.Optional(CONF_EXCLUDED_CARS, default="", description={"suggested_value": excluded_cars}): str,
+                    vol.Optional(CONF_PIN, default="", description={"suggested_value": pin}): str,
                     vol.Optional(CONF_FT_DISABLE_CAPABILITY_CHECK, default=cap_check_disabled): bool,
                     vol.Optional(CONF_DEBUG_FILE_SAVE, default=save_debug_files): bool,
                     vol.Optional(CONF_DELETE_AUTH_FILE, default=False): bool,

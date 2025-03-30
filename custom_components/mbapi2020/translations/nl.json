@@ -35,7 +35,7 @@
                     "enable_china_gcj_02": "Schakel GCJ-02-vertaling in (alleen China)",
                     "delete_auth_file": "Verwijder authenticatietoken nu. Vereist een herstart van Home Assistant na opslaan.",
                     "excluded_cars": "UITGESLOTEN CHASSISNUMMERS (komma-gescheiden)",
-                    "pin": "PIN-code (aan te maken in de mobiele app) - Voer 0 in om de waarde uit de configuratie te verwijderen.",
+                    "pin": "PIN-code (aan te maken in de mobiele app)",
                     "save_files": "ALLEEN DEBUG: Schakel het opslaan van serverberichten in de berichtenmap in."
                 },
                 "description": "Configureer je opties. Sommige wijzigingen vereisen een herstart van Home Assistant.",

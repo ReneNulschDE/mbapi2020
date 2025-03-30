@@ -35,7 +35,7 @@
                     "enable_china_gcj_02": "Habilitar traducción GCJ-02 (solo China)",
                     "delete_auth_file": "Eliminar el token de autenticación ahora. Se requiere un reinicio de Home Assistant después de guardar.",
                     "excluded_cars": "VINs excluidos (separados por comas)",
-                    "pin": "PIN de seguridad (a crear en la aplicación móvil) - Ingresa 0 para eliminar el valor de la configuración",
+                    "pin": "PIN de seguridad (a crear en la aplicación móvil)",
                     "save_files": "SOLO PARA DEBUG: Habilitar guardar mensajes del servidor en la carpeta de mensajes"
                 },
                 "description": "Configura tus opciones. Algunos cambios requieren un reinicio de Home Assistant.",

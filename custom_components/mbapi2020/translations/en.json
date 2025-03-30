@@ -47,7 +47,7 @@
           "enable_china_gcj_02": "Enable GCJ-02 translation (China only)",
           "delete_auth_file": "Delete authentication token now. Requires a restart of Home Assistant after save.",
           "excluded_cars": "VINs excluded (comma-sep)",
-          "pin": "Security PIN (to be created in mobile app) - Enter 0 to delete the value from the configuration",
+          "pin": "Security PIN (to be created in mobile app)",
           "save_files": "DEBUG ONLY: Enable save server messages to the messages folder"
         },
         "description": "Configure your options. Some changes require a restart of Home Assistant.",
