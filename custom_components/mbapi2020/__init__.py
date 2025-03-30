@@ -184,6 +184,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             current_car.features = features
             current_car.vehicle_information = vehicle_information
             current_car.masterdata = car
+            current_car.app_configuration = bff_app_config
             current_car.rcp_options = rcp_options
             current_car.last_message_received = int(round(time.time() * 1000))
             current_car.is_owner = car.get("isOwner")
