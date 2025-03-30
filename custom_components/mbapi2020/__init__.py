@@ -29,7 +29,7 @@ from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.typing import ConfigType
@@ -196,9 +196,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         await coordinator.async_config_entry_first_refresh()
 
-        # !! Use case: Smart cars have no masterdata entries
-        # we create the websocket to check if this channel has some data, car creation is done in the client module
-        # if len(coordinator.client.cars) == 0:
+        if len(coordinator.client.cars) == 0:
+            LOGGER.error("No cars found. Please check your account/credentials or excluded VINs.")
+            raise ConfigEntryError("No cars found. Please check your account/credentials or excluded VINs.")
+
         hass.loop.create_task(coordinator.ws_connect())
 
     except aiohttp.ClientError as err:
