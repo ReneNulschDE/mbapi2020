@@ -884,6 +884,7 @@ SENSORS = {
             "selectedChargeProgram",
             "electricRatioStart",
             "electricRatioOverall",
+            "electricRatioReset",
         },
         "mdi:ev-station",
         SensorDeviceClass.DISTANCE,

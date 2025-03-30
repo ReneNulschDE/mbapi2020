@@ -117,6 +117,7 @@ ELECTRIC_OPTIONS = [
     "electricconsumptionstart",
     "electricconsumptionreset",
     "electricRatioStart",
+    "electricRatioReset",
     "electricRatioOverall",
     "endofchargetime",
     "endofChargeTimeWeekday",
@@ -244,6 +245,7 @@ class Car:
         self.geofence_events = GeofenceEvents()
         self.features = {}
         self.masterdata: dict[str, Any] = {}
+        self.app_configuration: dict[str, Any] = {}
         self.entry_setup_complete = False
         self._update_listeners = set()
 
