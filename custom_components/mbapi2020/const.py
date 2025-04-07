@@ -1486,7 +1486,7 @@ LOCKS = {
         "doors",
         "doorLockStatusOverall",
         "value",
-        None,
+        "DOORS_LOCK",
         {},
         None,
         None,
