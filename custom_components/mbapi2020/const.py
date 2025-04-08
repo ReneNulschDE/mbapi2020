@@ -54,6 +54,7 @@ CONF_ENABLE_CHINA_GCJ_02 = "enable_china_gcj_02"
 CONF_AUTH_METHOD = "auth_method"
 CONF_ACCESS_TOKEN = "access_token"
 CONF_REFRESH_TOKEN = "refresh_token"
+CONF_OVERWRITE_PRECONDNOW = "overwrite_cap_precondnow"
 
 DOMAIN = "mbapi2020"
 LOGGER = logging.getLogger(__package__)

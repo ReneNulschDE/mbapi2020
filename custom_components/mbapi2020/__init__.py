@@ -16,6 +16,7 @@ from custom_components.mbapi2020.car import Car, CarAttribute, RcpOptions
 from custom_components.mbapi2020.const import (
     ATTR_MB_MANUFACTURER,
     CONF_ENABLE_CHINA_GCJ_02,
+    CONF_OVERWRITE_PRECONDNOW,
     DOMAIN,
     LOGGER,
     LOGIN_BASE_URI,
@@ -188,6 +189,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             current_car.rcp_options = rcp_options
             current_car.last_message_received = int(round(time.time() * 1000))
             current_car.is_owner = car.get("isOwner")
+
+            if config_entry.options.get(CONF_OVERWRITE_PRECONDNOW, False):
+                current_car.features["precondNow"] = True
 
             coordinator.client.cars[vin] = current_car
             # await coordinator.client.update_poll_states(vin)

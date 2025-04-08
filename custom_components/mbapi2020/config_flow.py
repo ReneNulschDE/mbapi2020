@@ -25,6 +25,7 @@ from .const import (
     CONF_ENABLE_CHINA_GCJ_02,
     CONF_EXCLUDED_CARS,
     CONF_FT_DISABLE_CAPABILITY_CHECK,
+    CONF_OVERWRITE_PRECONDNOW,
     CONF_PIN,
     CONF_REFRESH_TOKEN,
     CONF_REGION,
@@ -184,6 +185,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         cap_check_disabled = self.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
         save_debug_files = self.options.get(CONF_DEBUG_FILE_SAVE, False)
         enable_china_gcj_02 = self.options.get(CONF_ENABLE_CHINA_GCJ_02, False)
+        overwrite_cap_precondnow = self.options.get(CONF_OVERWRITE_PRECONDNOW, False)
 
         return self.async_show_form(
             step_id="init",
@@ -195,6 +197,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(CONF_DEBUG_FILE_SAVE, default=save_debug_files): bool,
                     vol.Optional(CONF_DELETE_AUTH_FILE, default=False): bool,
                     vol.Optional(CONF_ENABLE_CHINA_GCJ_02, default=enable_china_gcj_02): bool,
+                    vol.Optional(CONF_OVERWRITE_PRECONDNOW, default=overwrite_cap_precondnow): bool,
                 }
             ),
         )
