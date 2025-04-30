@@ -201,6 +201,11 @@ class WebApi:
         url = f"/v1/geofencing/vehicles/{vin}/fences/violations"
         return await self._request("get", url, rcp_headers=False, ignore_errors=True)
 
+    async def get_fleet_info(self, company: str, fleet: str):
+        """Get fleet information."""
+        url = f"/v1/company/{company}/fleet/{fleet}?size=100&filter="
+        return await self._request("get", url, rcp_headers=False, ignore_errors=True)
+
     async def is_car_rcp_supported(self, vin: str, **kwargs):
         """Return if is car rcp supported."""
         token = await self._oauth.async_get_cached_token()

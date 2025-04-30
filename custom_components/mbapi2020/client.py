@@ -72,6 +72,7 @@ class Client:
 
     long_running_operation_active: bool = False
     ignition_states: dict[str, bool] = {}
+    account_blocked: bool = False
 
     def __init__(
         self,

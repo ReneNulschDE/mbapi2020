@@ -75,7 +75,31 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         hass.async_add_executor_job(coordinator.client.write_debug_json_output, bff_app_config, "app", True)
         hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md", True)
 
-        for car in masterdata.get("assignedVehicles"):
+        vehicles = []
+
+        for fleet in masterdata.get("fleets", []):
+            company_id = fleet.get("companyId")
+            fleet_id = fleet.get("fleetId")
+            LOGGER.debug(
+                "Fleet %s with company %s found. Collectting car information.",
+                fleet.get("fleetName", "unknown fleet name"),
+                fleet.get("companyName", "unknown company"),
+            )
+            fleet_info = await coordinator.client.webapi.get_fleet_info(company_id, fleet_id)
+            hass.async_add_executor_job(
+                coordinator.client.write_debug_json_output,
+                fleet_info,
+                f"fleet_{company_id}_{fleet_id}",
+                True,
+            )
+
+            vehicles.extend(fleet.get("bookedVehicles", []))
+
+        vehicles.extend(masterdata.get("assignedVehicles", []))
+
+        LOGGER.warning("Found %s vehicles in the account.", len(vehicles))
+
+        for car in vehicles:
             # Check if the car has a separate VIN key, if not, use the FIN.
             vin = car.get("vin")
             if vin is None:
