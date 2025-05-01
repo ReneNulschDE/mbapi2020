@@ -97,8 +97,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         vehicles.extend(masterdata.get("assignedVehicles", []))
 
-        LOGGER.warning("Found %s vehicles in the account.", len(vehicles))
-
         for car in vehicles:
             # Check if the car has a separate VIN key, if not, use the FIN.
             vin = car.get("vin")
