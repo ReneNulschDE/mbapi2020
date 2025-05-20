@@ -432,6 +432,7 @@ class Client:
         # Define handlers for specific options and the generic case
         option_handlers = {
             "max_soc": self._get_car_values_handle_max_soc,
+            "chargePrograms": self._get_car_values_handle_chargePrograms,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
             "ignitionstate": self._get_car_values_handle_ignitionstate,
             "precondStatus": self._get_car_values_handle_precond_status,
@@ -535,6 +536,28 @@ class Client:
                 )
 
         return None
+
+    def _get_car_values_handle_chargePrograms(self, car_detail, class_instance, option, update):
+        attributes = car_detail.get("attributes", {})
+        curr = attributes.get(option)
+        if not curr:
+            return None
+
+        charge_programs_value = curr.get("charge_programs_value", {})
+        value = charge_programs_value.get("charge_program_parameters", [])
+        if not value:
+            return None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+
+        return CarAttribute(
+            value=value,
+            retrievalstatus=status,
+            timestamp=time_stamp,
+            display_value=None,
+            unit=None,
+        )
 
     def _get_car_values_handle_charging_break_clock_timer(self, car_detail, class_instance, option, update):
         attributes = car_detail.get("attributes", {})
@@ -809,8 +832,18 @@ class Client:
         message.commandRequest.request_id = str(uuid.uuid4())
         charge_programm = pb2_commands.ChargeProgramConfigure()
         charge_programm.charge_program = program
-        message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
+        try:
+            current_charge_programs = getattr(self.cars.get(vin).electric, "chargePrograms", None)
+            if current_charge_programs:
+                charge_programm.max_soc.value = current_charge_programs.value[program].get("max_soc")
+        except (KeyError, IndexError, TypeError, AttributeError) as err:
+            LOGGER.warning(
+                "charge_program_configure - Error: %s - %s",
+                err,
+                self.cars.get(vin).electric.__getattribute__("chargePrograms"),
+            )
 
+        message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
         await self.execute_car_command(message)
         return
 
