@@ -228,6 +228,10 @@ SERVICE_VIN_CHARGE_PROGRAM_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
         vol.Required("charge_program", default=0): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),
+        vol.Optional("max_soc", default=None): vol.Any(
+            None,
+            vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),
+        ),
     }
 )
 SERVICE_WINDOWS_MOVE_SCHEMA = vol.Schema(

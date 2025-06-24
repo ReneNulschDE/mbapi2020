@@ -148,6 +148,14 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                             capabilityInformation = feature.get("capabilityInformation", None)
                             if capabilityInformation and len(capabilityInformation) > 0:
                                 features[feature.get("capabilityInformation")[0]] = bool(feature.get("isAvailable"))
+                        if feature.get("commandName", "") == "CHARGE_PROGRAM_CONFIGURE":
+                            max_soc_found = False
+                            parameters = feature.get("parameters", [])
+                            if parameters is not None:
+                                for parameter in parameters:
+                                    if parameter.get("parameterName", "") == "MAX_SOC":
+                                        max_soc_found = True
+                            features["CHARGE_PROGRAM_CONFIGURE"] = max_soc_found
             except aiohttp.ClientError:
                 # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
                 # We just ignore the capabilities
@@ -209,6 +217,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             current_car.masterdata = car
             current_car.app_configuration = bff_app_config
             current_car.rcp_options = rcp_options
+            current_car.capabilities = capabilities
             current_car.last_message_received = int(round(time.time() * 1000))
             current_car.is_owner = car.get("isOwner")
 

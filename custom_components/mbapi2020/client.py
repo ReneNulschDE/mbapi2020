@@ -18,6 +18,7 @@ from custom_components.mbapi2020.proto import client_pb2
 import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import system_info
 
 from .car import (
@@ -817,14 +818,12 @@ class Client:
 
                                 current_car.publish_updates()
 
-    async def charge_program_configure(self, vin: str, program: int):
+    async def charge_program_configure(self, vin: str, program: int, max_soc: None | int = None) -> None:
         """Send the selected charge program to the car."""
         if not self._is_car_feature_available(vin, "CHARGE_PROGRAM_CONFIGURE"):
-            LOGGER.warning(
-                "Can't set the charge program of the  car %s. Feature CHARGE_PROGRAM_CONFIGURE not availabe for this car.",
-                loghelper.Mask_VIN(vin),
+            raise ServiceValidationError(
+                "Can't set the charge program. Feature CHARGE_PROGRAM_CONFIGURE not availabe for this car."
             )
-            return
 
         LOGGER.debug("Start charge_program_configure")
         message = client_pb2.ClientMessage()
@@ -832,20 +831,29 @@ class Client:
         message.commandRequest.request_id = str(uuid.uuid4())
         charge_programm = pb2_commands.ChargeProgramConfigure()
         charge_programm.charge_program = program
-        try:
-            current_charge_programs = getattr(self.cars.get(vin).electric, "chargePrograms", None)
-            if current_charge_programs:
-                charge_programm.max_soc.value = current_charge_programs.value[program].get("max_soc")
-        except (KeyError, IndexError, TypeError, AttributeError) as err:
-            LOGGER.warning(
-                "charge_program_configure - Error: %s - %s",
-                err,
-                self.cars.get(vin).electric.__getattribute__("chargePrograms"),
-            )
+        if max_soc is not None:
+            charge_programm.max_soc.value = max_soc
+        else:
+            try:
+                current_charge_programs = getattr(self.cars.get(vin).electric, "chargePrograms", None)
+                if current_charge_programs:
+                    charge_programm.max_soc.value = current_charge_programs.value[program].get("max_soc")
+            except (KeyError, IndexError, TypeError, AttributeError) as err:
+                LOGGER.warning(
+                    "charge_program_configure - Error: %s - %s",
+                    err,
+                    self.cars.get(vin).electric.__getattribute__("chargePrograms"),
+                )
 
         message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
+        LOGGER.debug(
+            "charge_program_configure - vin: %s - program: %s - max_soc: %s",
+            loghelper.Mask_VIN(vin),
+            charge_programm.charge_program,
+            charge_programm.max_soc.value,
+        )
         await self.execute_car_command(message)
-        return
+        LOGGER.debug("End charge_program_configure for vin %s", loghelper.Mask_VIN(vin))
 
     async def charging_break_clocktimer_configure(
         self,

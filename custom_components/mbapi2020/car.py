@@ -215,6 +215,7 @@ class Car:
     geo_fencing_retry_counter: int = 0
     has_geofencing: bool = True
     vehicle_information: dict = {}
+    capabilities: dict[str, Any] = {}
 
     def __init__(self, vin: str):
         """Initialize the Car instance."""

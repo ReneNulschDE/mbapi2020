@@ -144,6 +144,10 @@
         "charge_program": {
           "name": "Charge program",
           "description": "The activated charging program (0=Default, 2=Home, 3=Work)"
+        },
+        "max_soc": {
+          "name": "Max Soc",
+          "description": "The maximum value for the state of charge of the HV battery (Value needs to be between 50 and 100 and divisible by ten)"
         }
       }
     },
