@@ -330,6 +330,7 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             self._attr_entity_category = self._sensor_config[scf.ENTITY_CATEGORY.value]
             self._attributes = self._sensor_config[scf.EXTENDED_ATTRIBUTE_LIST.value]
             self._attr_native_unit_of_measurement = self.unit_of_measurement
+            self._attr_suggested_display_precision = self._sensor_config[scf.SUGGESTED_DISPLAY_PRECISION.value]
             self._use_chinese_location_data: bool = self._coordinator.config_entry.options.get(
                 CONF_ENABLE_CHINA_GCJ_02, False
             )
