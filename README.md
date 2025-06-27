@@ -1,12 +1,12 @@
-# "Mercedes ME" custom component
+# "Mercedes-Benz" custom component
 
 ![HassFest tests](https://github.com/renenulschde/mbapi2020/workflows/Validate%20with%20hassfest/badge.svg) ![Validate with HACS](https://github.com/ReneNulschDE/mbapi2020/workflows/Validate%20with%20HACS/badge.svg) ![](https://img.shields.io/github/downloads/renenulschde/mbapi2020/total) ![](https://img.shields.io/github/downloads/renenulschde/mbapi2020/latest/total)
 
-MercedesME platform as a Custom Component for Home Assistant.
+Mercedes-Benz platform as a Custom Component for Home Assistant.
 
 IMPORTANT:
 
-- Please login once in the MercedesME IOS or Android app before you install this component. (For North America, the app name is Mercedes Me Connect)
+- Please login once into the Mercedes-Benz IOS or Android app before you install this component. (For North America, the app name is Mercedes Me Connect)
 
 - Tested Countries: AT, AU, BE, CA, CH, ~~CN~~, DE, DK, ES, FI, FR, IN, IT, IR, NL, NO, NZ, PT, RO, SE, TH, UK, US
 
@@ -57,7 +57,7 @@ Debug Save Messages: Enable this option to save all relevant received message in
 
 ## Available components
 
-Depends on your own car or purchased Mercedes Benz licenses.
+Depends on your own car or purchased Mercedes-Benz licenses.
 
 ### Binary Sensors
 
