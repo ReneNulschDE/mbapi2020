@@ -1345,7 +1345,7 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
+        1,
     ],
     "tirepressureRearRight": [
         "Tire pressure rear right",
@@ -1361,7 +1361,7 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
+        1,
     ],
     "tirepressureFrontRight": [
         "Tire pressure front right",
@@ -1377,7 +1377,7 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
+        1,
     ],
     "tirepressureFrontLeft": [
         "Tire pressure front left",
@@ -1393,7 +1393,7 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
+        1,
     ],
     "tirewarningsrdk": [
         "Tires RDK state",
