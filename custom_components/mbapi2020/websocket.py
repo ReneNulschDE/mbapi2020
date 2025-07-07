@@ -7,6 +7,7 @@ from collections.abc import Awaitable, Callable
 from datetime import datetime
 import logging
 import ssl
+import time
 import uuid
 
 from aiohttp import ClientSession, WSMsgType, WSServerHandshakeError, client_exceptions
@@ -36,10 +37,10 @@ from .helper import UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
-DEFAULT_WATCHDOG_TIMEOUT = 30
-DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 120
+DEFAULT_WATCHDOG_TIMEOUT = 860
+DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 300
 PING_WATCHDOG_TIMEOUT = 30
-RECONNECT_WATCHDOG_TIMEOUT = 60
+RECONNECT_WATCHDOG_TIMEOUT = 300
 STATE_CONNECTED = "connected"
 STATE_RECONNECTING = "reconnecting"
 
@@ -86,6 +87,11 @@ class Websocket:
         self.ws_connect_retry_counter: int = 0
         self.account_blocked: bool = False
         self.ws_blocked_connection_error_logged = False
+        self._online_seconds_today = 0
+        self._last_online_start = None
+        self._online_day = datetime.now().date()
+        self._reconnects_today = 0
+        self._reconnects_day = datetime.now().date()
 
         if isinstance(VERIFY_SSL, str):
             self.ssl_context = ssl.create_default_context(cafile=VERIFY_SSL)
@@ -247,13 +253,17 @@ class Websocket:
     async def _websocket_handler(self, session: ClientSession, **kwargs):
         websocket_url = helper.Websocket_url(self._region)
 
+        # --- Reconnect-Zähler pro Tag ---
+        now = datetime.now()
+        if now.date() != self._reconnects_day:
+            self._reconnects_today = 0
+            self._reconnects_day = now.date()
+        self._reconnects_today += 1
+        # --- Ende Zähler ---
+
         kwargs.setdefault("proxy", SYSTEM_PROXY)
         kwargs.setdefault("ssl", self.ssl_context)
         kwargs.setdefault("headers", await self._websocket_connection_headers())
-
-        # kwargs["headers"]["Ris-Os-Name"] = "manual_test"
-        # kwargs["headers"]["X-Applicationname"] = "mycar-store-ece-watchapp"
-        # kwargs["headers"]["Ris-Application-Version"] = "1.51.0 (2578)"
 
         self.is_connecting = True
         LOGGER.debug("Connecting to %s", websocket_url)
@@ -261,6 +271,8 @@ class Websocket:
         LOGGER.debug("Connected to mercedes websocket at %s", websocket_url)
 
         await self._watchdog.trigger()
+
+        self._last_online_start = datetime.now()
 
         while not self._connection.closed:
             if self.is_stopping:
@@ -281,6 +293,16 @@ class Websocket:
                 self._queue.put_nowait(msg.data)
                 await self._pingwatchdog.trigger()
                 await self._watchdog.trigger()
+
+        # Verbindung wird geschlossen:
+        if self._last_online_start:
+            now = datetime.now()
+            if now.date() == self._online_day:
+                self._online_seconds_today += int((now - self._last_online_start).total_seconds())
+            else:
+                self._online_seconds_today = 0
+                self._online_day = now.date()
+            self._last_online_start = None
 
     async def _websocket_connection_headers(self):
         token = await self.oauth.async_get_cached_token()
