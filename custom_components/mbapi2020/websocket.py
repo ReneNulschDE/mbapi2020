@@ -242,6 +242,34 @@ class Websocket:
                     LOGGER.info("WSS Connection blocked: %s, retry in %s seconds...", error, retry_in)
                 if "429" in str(error.code):
                     self.account_blocked = True
+
+                    # Relogin bei 429, wenn Passwort vorhanden, aber nur einmal pro Lebenszeit der Instanz
+                    if not hasattr(self, "_relogin_429_done"):
+                        self._relogin_429_done = False
+
+                    if not self._relogin_429_done:
+                        config_entry = getattr(self.oauth, "_config_entry", None)
+                        if config_entry and "password" in config_entry.data:
+                            password = config_entry.data["password"]
+                            username = config_entry.data.get("username")
+                            region = config_entry.data.get("region")
+                            if username and password and hasattr(self.oauth, "async_login_new"):
+                                LOGGER.warning(
+                                    "429 detected: Trying relogin with stored password for user %s", username
+                                )
+                                try:
+                                    token_info = await self.oauth.async_login_new(username, password)
+                                    LOGGER.info("Relogin successful after 429 for user %s", username)
+                                    # Token im config_entry aktualisieren, falls nötig
+                                    if token_info:
+                                        config_entry.data["token"] = token_info
+                                        config_entry.data["access_token"] = token_info.get("access_token")
+                                        config_entry.data["refresh_token"] = token_info.get("refresh_token")
+                                    self._relogin_429_done = True
+                                except Exception as relogin_err:
+                                    LOGGER.error("Relogin after 429 failed: %s", relogin_err)
+                                    self._relogin_429_done = True  # Auch bei Fehler nicht nochmal versuchen
+
                 self.ws_connect_retry_counter += 1
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)
