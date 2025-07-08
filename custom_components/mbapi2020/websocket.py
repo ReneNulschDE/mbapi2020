@@ -50,8 +50,6 @@ LOGGER = logging.getLogger(__name__)
 class Websocket:
     """Define the websocket."""
 
-    ssl_context: ssl.SSLContext | bool = VERIFY_SSL
-
     def __init__(
         self, hass, oauth, region, session_id=str(uuid.uuid4()).upper(), ignition_states: dict[str, bool] = {}
     ) -> None:
@@ -92,9 +90,6 @@ class Websocket:
         self._online_day = datetime.now().date()
         self._reconnects_today = 0
         self._reconnects_day = datetime.now().date()
-
-        if isinstance(VERIFY_SSL, str):
-            self.ssl_context = ssl.create_default_context(cafile=VERIFY_SSL)
 
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
@@ -214,13 +209,18 @@ class Websocket:
     async def _start_websocket_handler(self, session: ClientSession):
         retry_in: int = 10
 
-        while not self.is_stopping and not session.closed:
-            LOGGER.debug("_start_websocket_handler: %s", self.oauth._config_entry.entry_id)
+        LOGGER.debug(
+            "_start_websocket_handler: %s (is_stopping: %s, session.closed: %s)",
+            self.oauth._config_entry.entry_id,
+            self.is_stopping,
+            session.closed,
+        )
 
+        while not self.is_stopping and not session.closed:
             try:
                 await self.component_reload_watcher.trigger()
                 await self._websocket_handler(session)
-            except client_exceptions.ClientConnectionError as cce:
+            except client_exceptions.ClientConnectionError as cce:  # noqa: PERF203
                 LOGGER.error("Could not connect: %s, retry in %s seconds...", cce, retry_in)
                 LOGGER.debug(cce)
                 self.connection_state = STATE_RECONNECTING
@@ -261,10 +261,6 @@ class Websocket:
                                     token_info = await self.oauth.async_login_new(username, password)
                                     LOGGER.info("Relogin successful after 429 for user %s", username)
                                     # Token im config_entry aktualisieren, falls nötig
-                                    if token_info:
-                                        config_entry.data["token"] = token_info
-                                        config_entry.data["access_token"] = token_info.get("access_token")
-                                        config_entry.data["refresh_token"] = token_info.get("refresh_token")
                                     self._relogin_429_done = True
                                 except Exception as relogin_err:
                                     LOGGER.error("Relogin after 429 failed: %s", relogin_err)
@@ -290,7 +286,6 @@ class Websocket:
         # --- Ende Zähler ---
 
         kwargs.setdefault("proxy", SYSTEM_PROXY)
-        kwargs.setdefault("ssl", self.ssl_context)
         kwargs.setdefault("headers", await self._websocket_connection_headers())
 
         self.is_connecting = True
