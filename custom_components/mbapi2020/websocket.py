@@ -37,10 +37,10 @@ from .helper import UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
-DEFAULT_WATCHDOG_TIMEOUT = 860
+DEFAULT_WATCHDOG_TIMEOUT = 30
 DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 300
 PING_WATCHDOG_TIMEOUT = 30
-RECONNECT_WATCHDOG_TIMEOUT = 300
+RECONNECT_WATCHDOG_TIMEOUT = 60
 STATE_CONNECTED = "connected"
 STATE_RECONNECTING = "reconnecting"
 
@@ -94,6 +94,7 @@ class Websocket:
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
 
+        self._reconnectwatchdog.cancel()
         if self.is_connecting:
             return
 
@@ -106,7 +107,6 @@ class Websocket:
 
         self.is_connecting = True
         self.is_stopping = False
-        self._reconnectwatchdog.cancel()
 
         if not self.ha_stop_handler:
             self.ha_stop_handler = self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_handler)
@@ -372,7 +372,7 @@ class Websocket:
             self.ws_connect_retry_counter_reseted = False
 
             LOGGER.info("Initiating component reload after account got unblocked...")
-            self._hass.async_create_task(self._hass.config_entries.async_reload(self.oauth._config_entry.entry_id))
+            self._hass.config_entries.async_schedule_reload(self.oauth._config_entry.entry_id)
 
         elif self.account_blocked and not self.ws_connect_retry_counter_reseted:
             await self.component_reload_watcher.trigger()
