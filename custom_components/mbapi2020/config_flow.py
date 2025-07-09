@@ -39,23 +39,11 @@ from .errors import MbapiError, MBAuthError
 AUTH_METHOD_TOKEN = "token"
 AUTH_METHOD_USERPASS = "userpass"
 
-SCHEMA_STEP_AUTH_SELECT = vol.Schema(
-    {
-        vol.Required("auth_method", default=AUTH_METHOD_TOKEN): vol.In(
-            {
-                AUTH_METHOD_TOKEN: "Token (standard)",
-                AUTH_METHOD_USERPASS: "User name/Password (experimental)",
-            }
-        )
-    }
-)
-
-SCHEMA_STEP_USER = vol.Schema(
+USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_USERNAME): str,
+        vol.Required(CONF_PASSWORD): str,
         vol.Required(CONF_REGION): vol.In(CONF_ALLOWED_REGIONS),
-        vol.Required(CONF_ACCESS_TOKEN): str,
-        vol.Required(CONF_REFRESH_TOKEN): str,
     }
 )
 
@@ -76,91 +64,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._auth_method = AUTH_METHOD_TOKEN
 
     async def async_step_user(self, user_input=None):
-        """Auth-Methode auswählen."""
-        if user_input is not None:
-            self._auth_method = user_input["auth_method"]
-            if self._auth_method == AUTH_METHOD_TOKEN:
-                return await self.async_step_token_auth()
-            else:
-                return await self.async_step_userpass_auth()
-        return self.async_show_form(
-            step_id="user",
-            data_schema=SCHEMA_STEP_AUTH_SELECT,
-        )
+        """Username/Password-Flow."""
 
-    async def async_step_token_auth(self, user_input=None):
-        """Token-Flow."""
-        errors = {}
-
-        if user_input is not None:
-            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
-                f"{user_input[CONF_USERNAME]}-{user_input[CONF_REGION]}"
-            )
-
-            if not self._reauth_mode:
-                self._abort_if_unique_id_configured()
-
-            token = {
-                CONF_ACCESS_TOKEN: user_input[CONF_ACCESS_TOKEN],
-                CONF_REFRESH_TOKEN: user_input[CONF_REFRESH_TOKEN],
-                "expires_at": 0,
-            }
-
-            session = async_get_clientsession(self.hass, VERIFY_SSL)
-
-            client = Client(self.hass, session, new_config_entry, region=user_input[CONF_REGION])
-            client.oauth.token = token
-
-            try:
-                user_input["token"] = await client.oauth.async_get_cached_token()
-            except (MBAuthError, MbapiError) as error:
-                LOGGER.error("Check token error: %s", error)
-                errors = {"base": error}
-                return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_USER, errors=errors)
-
-            if not errors:
-                self._data = user_input
-                if self._reauth_mode:
-                    self.hass.config_entries.async_update_entry(self._reauth_entry, data=self._data)
-                    self.hass.config_entries.async_schedule_reload(self._reauth_entry.entry_id)
-                    return self.async_abort(reason="reauth_successful")
-
-                return self.async_create_entry(
-                    title=f"{self._data[CONF_USERNAME]} (Region: {self._data[CONF_REGION]})",
-                    data=self._data,
-                )
-
-            LOGGER.error("Check token error: %s", errors)
-
-        return self.async_show_form(
-            step_id="user",
-            data_schema=SCHEMA_STEP_USER,
-        )
-
-    async def async_step_reauth(self, user_input=None):
-        """Get new tokens for a config entry that can't authenticate."""
-
-        self._reauth_mode = True
-
-        self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
-
-        return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_AUTH_SELECT)
-
-    # async def async_step_reconfigure(self, user_input=None):
-    #     """Get new tokens for a config entry that can't authenticate."""
-    #     self._reauth_mode = True
-    #     self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
-    #     return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_AUTH_SELECT)
-
-    async def async_step_userpass_auth(self, user_input=None):
-        """Neuer Username/Passwort-Flow."""
-        schema = vol.Schema(
-            {
-                vol.Required(CONF_USERNAME): str,
-                vol.Required(CONF_PASSWORD): str,
-                vol.Required(CONF_REGION): vol.In(CONF_ALLOWED_REGIONS),
-            }
-        )
         if user_input is not None:
             new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
                 f"{user_input[CONF_USERNAME]}-{user_input[CONF_REGION]}"
@@ -175,15 +80,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 token_info = await client.oauth.async_login_new(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
             except (MBAuthError, MbapiError) as error:
                 LOGGER.error("Login error: %s", error)
-                return self.async_show_form(
-                    step_id="userpass_auth", data_schema=schema, errors={"base": "invalid_auth"}
-                )
+                return self.async_show_form(step_id="user", data_schema=USER_SCHEMA, errors={"base": "invalid_auth"})
             # Token speichern und Entry anlegen
             self._data = {
                 CONF_USERNAME: user_input[CONF_USERNAME],
                 CONF_REGION: user_input[CONF_REGION],
-                CONF_ACCESS_TOKEN: token_info["access_token"],
-                CONF_REFRESH_TOKEN: token_info["refresh_token"],
                 CONF_PASSWORD: user_input[CONF_PASSWORD],
                 "token": token_info,
             }
@@ -197,7 +98,22 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 title=f"{self._data[CONF_USERNAME]} (Region: {self._data[CONF_REGION]})",
                 data=self._data,
             )
-        return self.async_show_form(step_id="userpass_auth", data_schema=schema)
+        return self.async_show_form(step_id="user", data_schema=USER_SCHEMA)
+
+    async def async_step_reauth(self, user_input=None):
+        """Get new tokens for a config entry that can't authenticate."""
+
+        self._reauth_mode = True
+
+        self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+
+        return self.async_show_form(step_id="user", data_schema=USER_SCHEMA)
+
+    # async def async_step_reconfigure(self, user_input=None):
+    #     """Get new tokens for a config entry that can't authenticate."""
+    #     self._reauth_mode = True
+    #     self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+    #     return self.async_show_form(step_id="user", data_schema=SCHEMA_STEP_AUTH_SELECT)
 
     @staticmethod
     @callback
