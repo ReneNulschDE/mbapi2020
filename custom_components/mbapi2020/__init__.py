@@ -29,6 +29,7 @@ from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_PASSWORD
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -54,6 +55,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     LOGGER.debug("Start async_setup_entry.")
 
     try:
+        # Version migration
+        if not config_entry.data.get(CONF_PASSWORD):
+            raise ConfigEntryAuthFailed(
+                "Your configuration is outdated. Please reauthenticate with username and password."
+            )
+
         coordinator = MBAPI2020DataUpdateCoordinator(hass, config_entry)
         hass.data.setdefault(DOMAIN, {})[config_entry.entry_id] = coordinator
 
@@ -76,6 +83,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md", True)
 
         vehicles = []
+
+        if not masterdata:
+            LOGGER.error("No masterdata found. Please check your account/credentials.")
+            raise ConfigEntryNotReady("No masterdata found. Please check your account/credentials.")
 
         for fleet in masterdata.get("fleets", []):
             company_id = fleet.get("companyId")
