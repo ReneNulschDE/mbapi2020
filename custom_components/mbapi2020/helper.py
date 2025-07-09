@@ -250,9 +250,14 @@ class Watchdog:
 
     async def on_expire(self):
         """Log and act when the watchdog expires."""
-        if self._log_events:
-            LOGGER.debug("%s Watchdog expired – calling %s", self._topic, self._action.__name__)
-        await self._action()
+        try:
+            if self._log_events:
+                LOGGER.debug(f"{self._topic} Watchdog expired – calling {self._action.__name__}")
+            await self._action()
+        except asyncio.CancelledError:
+            if self._log_events:
+                LOGGER.debug(f"{self._topic} Watchdog expire task cancelled.")
+            raise
 
     async def trigger(self):
         """Trigger the watchdog."""
