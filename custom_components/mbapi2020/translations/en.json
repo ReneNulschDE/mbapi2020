@@ -13,11 +13,10 @@
       "user": {
         "data": {
           "region": "Region",
-          "username": "MB username - email address (or mobile phone including country code ex. +44)",
-          "access_token": "Access token",
-          "refresh_token": "Refresh token"
+          "username": "MB username (email address)",
+          "password": "Password"
         },
-        "description": "Enter your account details. See https://tinyurl.com/mbapi2020helptoken for help.",
+        "description": "Enter your account details.",
         "title": "Set up the Mercedes ME 2020 connection"
       }
     }
