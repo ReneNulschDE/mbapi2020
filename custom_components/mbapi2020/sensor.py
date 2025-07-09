@@ -152,10 +152,9 @@ class MercedesMEWebsocketOnlineSensor(SensorEntity):
 
     def __init__(self, coordinator):
         self._coordinator = coordinator
-        username = coordinator.config_entry.data.get("username", "unbekannt")
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        self._attr_name = f"Websocket online today ({username})"
-        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_ws_online_time_{username}"
+        self._attr_name = "Websocket online today"
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_ws_online_time"
         self._attr_native_unit_of_measurement = "s"
 
     @property
@@ -169,10 +168,9 @@ class MercedesMEWebsocketReconnectsSensor(SensorEntity):
 
     def __init__(self, coordinator):
         self._coordinator = coordinator
-        username = coordinator.config_entry.data.get("username", "unbekannt")
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        self._attr_name = f"Websocket connections today ({username})"
-        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_ws_reconnects_today_{username}"
+        self._attr_name = "Websocket connections today"
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_ws_reconnects_today"
         self._attr_native_unit_of_measurement = "x"
 
     @property
