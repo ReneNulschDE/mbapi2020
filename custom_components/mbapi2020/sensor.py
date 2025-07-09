@@ -156,6 +156,7 @@ class MercedesMEWebsocketOnlineSensor(SensorEntity):
         self._attr_name = "Websocket online today"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_ws_online_time"
         self._attr_native_unit_of_measurement = "s"
+        self._attr_entity_registry_enabled_default = False
 
     @property
     def native_value(self):
@@ -172,6 +173,7 @@ class MercedesMEWebsocketReconnectsSensor(SensorEntity):
         self._attr_name = "Websocket connections today"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_ws_reconnects_today"
         self._attr_native_unit_of_measurement = "x"
+        self._attr_entity_registry_enabled_default = False
 
     @property
     def native_value(self):
