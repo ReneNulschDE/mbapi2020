@@ -7,6 +7,7 @@ from collections.abc import Awaitable, Callable
 from datetime import datetime
 import logging
 import ssl
+import time
 import uuid
 
 from aiohttp import ClientSession, WSMsgType, WSServerHandshakeError, client_exceptions
@@ -37,7 +38,7 @@ from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
 DEFAULT_WATCHDOG_TIMEOUT = 30
-DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 120
+DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 300
 PING_WATCHDOG_TIMEOUT = 30
 RECONNECT_WATCHDOG_TIMEOUT = 60
 STATE_CONNECTED = "connected"
@@ -48,8 +49,6 @@ LOGGER = logging.getLogger(__name__)
 
 class Websocket:
     """Define the websocket."""
-
-    ssl_context: ssl.SSLContext | bool = VERIFY_SSL
 
     def __init__(
         self, hass, oauth, region, session_id=str(uuid.uuid4()).upper(), ignition_states: dict[str, bool] = {}
@@ -86,13 +85,16 @@ class Websocket:
         self.ws_connect_retry_counter: int = 0
         self.account_blocked: bool = False
         self.ws_blocked_connection_error_logged = False
-
-        if isinstance(VERIFY_SSL, str):
-            self.ssl_context = ssl.create_default_context(cafile=VERIFY_SSL)
+        self._online_seconds_today = 0
+        self._last_online_start = None
+        self._online_day = datetime.now().date()
+        self._reconnects_today = 0
+        self._reconnects_day = datetime.now().date()
 
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
 
+        self._reconnectwatchdog.cancel()
         if self.is_connecting:
             return
 
@@ -105,7 +107,6 @@ class Websocket:
 
         self.is_connecting = True
         self.is_stopping = False
-        self._reconnectwatchdog.cancel()
 
         if not self.ha_stop_handler:
             self.ha_stop_handler = self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_handler)
@@ -208,13 +209,18 @@ class Websocket:
     async def _start_websocket_handler(self, session: ClientSession):
         retry_in: int = 10
 
-        while not self.is_stopping and not session.closed:
-            LOGGER.debug("_start_websocket_handler: %s", self.oauth._config_entry.entry_id)
+        LOGGER.debug(
+            "_start_websocket_handler: %s (is_stopping: %s, session.closed: %s)",
+            self.oauth._config_entry.entry_id,
+            self.is_stopping,
+            session.closed,
+        )
 
+        while not self.is_stopping and not session.closed:
             try:
                 await self.component_reload_watcher.trigger()
                 await self._websocket_handler(session)
-            except client_exceptions.ClientConnectionError as cce:
+            except client_exceptions.ClientConnectionError as cce:  # noqa: PERF203
                 LOGGER.error("Could not connect: %s, retry in %s seconds...", cce, retry_in)
                 LOGGER.debug(cce)
                 self.connection_state = STATE_RECONNECTING
@@ -236,6 +242,30 @@ class Websocket:
                     LOGGER.info("WSS Connection blocked: %s, retry in %s seconds...", error, retry_in)
                 if "429" in str(error.code):
                     self.account_blocked = True
+
+                    # Relogin bei 429, wenn Passwort vorhanden, aber nur einmal pro Lebenszeit der Instanz
+                    if not hasattr(self, "_relogin_429_done"):
+                        self._relogin_429_done = False
+
+                    if not self._relogin_429_done:
+                        config_entry = getattr(self.oauth, "_config_entry", None)
+                        if config_entry and "password" in config_entry.data:
+                            password = config_entry.data["password"]
+                            username = config_entry.data.get("username")
+                            region = config_entry.data.get("region")
+                            if username and password and hasattr(self.oauth, "async_login_new"):
+                                LOGGER.warning(
+                                    "429 detected: Trying relogin with stored password for user %s", username
+                                )
+                                try:
+                                    token_info = await self.oauth.async_login_new(username, password)
+                                    LOGGER.info("Relogin successful after 429 for user %s", username)
+                                    # Token im config_entry aktualisieren, falls nötig
+                                    self._relogin_429_done = True
+                                except Exception as relogin_err:
+                                    LOGGER.error("Relogin after 429 failed: %s", relogin_err)
+                                    self._relogin_429_done = True  # Auch bei Fehler nicht nochmal versuchen
+
                 self.ws_connect_retry_counter += 1
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)
@@ -247,13 +277,16 @@ class Websocket:
     async def _websocket_handler(self, session: ClientSession, **kwargs):
         websocket_url = helper.Websocket_url(self._region)
 
-        kwargs.setdefault("proxy", SYSTEM_PROXY)
-        kwargs.setdefault("ssl", self.ssl_context)
-        kwargs.setdefault("headers", await self._websocket_connection_headers())
+        # --- Reconnect-Zähler pro Tag ---
+        now = datetime.now()
+        if now.date() != self._reconnects_day:
+            self._reconnects_today = 0
+            self._reconnects_day = now.date()
+        self._reconnects_today += 1
+        # --- Ende Zähler ---
 
-        # kwargs["headers"]["Ris-Os-Name"] = "manual_test"
-        # kwargs["headers"]["X-Applicationname"] = "mycar-store-ece-watchapp"
-        # kwargs["headers"]["Ris-Application-Version"] = "1.51.0 (2578)"
+        kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("headers", await self._websocket_connection_headers())
 
         self.is_connecting = True
         LOGGER.debug("Connecting to %s", websocket_url)
@@ -261,6 +294,8 @@ class Websocket:
         LOGGER.debug("Connected to mercedes websocket at %s", websocket_url)
 
         await self._watchdog.trigger()
+
+        self._last_online_start = datetime.now()
 
         while not self._connection.closed:
             if self.is_stopping:
@@ -281,6 +316,16 @@ class Websocket:
                 self._queue.put_nowait(msg.data)
                 await self._pingwatchdog.trigger()
                 await self._watchdog.trigger()
+
+        # Verbindung wird geschlossen:
+        if self._last_online_start:
+            now = datetime.now()
+            if now.date() == self._online_day:
+                self._online_seconds_today += int((now - self._last_online_start).total_seconds())
+            else:
+                self._online_seconds_today = 0
+                self._online_day = now.date()
+            self._last_online_start = None
 
     async def _websocket_connection_headers(self):
         token = await self.oauth.async_get_cached_token()
@@ -327,7 +372,7 @@ class Websocket:
             self.ws_connect_retry_counter_reseted = False
 
             LOGGER.info("Initiating component reload after account got unblocked...")
-            self._hass.async_create_task(self._hass.config_entries.async_reload(self.oauth._config_entry.entry_id))
+            self._hass.config_entries.async_schedule_reload(self.oauth._config_entry.entry_id)
 
         elif self.account_blocked and not self.ws_connect_retry_counter_reseted:
             await self.component_reload_watcher.trigger()
