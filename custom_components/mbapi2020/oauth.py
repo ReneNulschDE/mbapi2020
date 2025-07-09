@@ -1,10 +1,4 @@
-"""
-Integration of optimized Mercedes Me OAuth2 LoginNew functionality
-into the existing mbapi2020 Home Assistant Custom Component.
-
-This code extends the existing oauth.py with the new LoginNew method
-while maintaining compatibility with Home Assistant.
-"""
+"""Integration of optimized Mercedes Me OAuth2 LoginNew functionality."""
 
 from __future__ import annotations
 
@@ -15,7 +9,6 @@ import hashlib
 import json
 import logging
 import secrets
-import ssl
 import time
 from typing import Any
 import urllib.parse
@@ -57,22 +50,13 @@ from .helper import UrlHelper as helper
 _LOGGER = logging.getLogger(__name__)
 
 
-class OauthExtended:
-    """Extended OAuth class with new LoginNew functionality.
-
-    This class extends the existing OAuth implementation with:
-    - Dynamic PKCE parameter generation
-    - New OAuth2 login flow support
-    - Improved security through one-time code verifiers
-    - Compatibility with existing mbapi2020 architecture
-    """
+class Oauth:
+    """OAuth2 class for Mercedes Me integration."""
 
     # OAuth2 Configuration for new login method
     CLIENT_ID = "62778dc4-1de3-44f4-af95-115f06a3a008"
     REDIRECT_URI = "rismycar://login-callback"
     SCOPE = "email profile ciam-uid phone openid offline_access"
-
-    ssl_context: ssl.SSLContext | bool = VERIFY_SSL
 
     def __init__(
         self,
@@ -93,9 +77,6 @@ class OauthExtended:
         # PKCE parameters for new login method
         self.code_verifier: str | None = None
         self.code_challenge: str | None = None
-
-        if isinstance(VERIFY_SSL, str):
-            self.ssl_context = ssl.create_default_context(cafile=VERIFY_SSL)
 
     def _generate_pkce_parameters(self) -> tuple[str, str]:
         """Generate PKCE (Proof Key for Code Exchange) parameters for OAuth2.
@@ -133,7 +114,10 @@ class OauthExtended:
             MBAuthError: If login fails
 
         """
-        _LOGGER.info("Starting new OAuth2 login flow")
+        _LOGGER.info("Starting OAuth2 login flow")
+
+        if not self._session or self._session.closed:
+            self._session = async_get_clientsession(self._hass, VERIFY_SSL)
 
         try:
             # Step 1: Get authorization URL and extract resume parameter
@@ -159,11 +143,11 @@ class OauthExtended:
             self._save_token_info(token_info)
             self.token = token_info
 
-            _LOGGER.info("New OAuth2 login successful")
+            _LOGGER.info("OAuth2 login successful")
             return token_info
 
         except Exception as e:
-            _LOGGER.error("New OAuth2 login failed: %s", e)
+            _LOGGER.error("OAuth2 login failed: %s", e)
             raise MBAuthError(f"Login failed: {e}") from e
 
     async def _get_authorization_resume(self) -> str:
@@ -188,7 +172,7 @@ class OauthExtended:
         auth_url = f"{helper.Login_Base_Url(self._region)}/as/authorization.oauth2"
 
         async with self._session.get(
-            auth_url, params=params, headers=headers, ssl=self.ssl_context, proxy=SYSTEM_PROXY, allow_redirects=True
+            auth_url, params=params, headers=headers, proxy=SYSTEM_PROXY, allow_redirects=True
         ) as response:
             if response.status >= 400:
                 raise MBAuthError(f"Authorization request failed: {response.status}")
@@ -220,9 +204,7 @@ class OauthExtended:
 
         url = f"{helper.Login_Base_Url(self._region)}/ciam/auth/ua"
 
-        async with self._session.post(
-            url, json=data, headers=headers, ssl=self.ssl_context, proxy=SYSTEM_PROXY
-        ) as response:
+        async with self._session.post(url, json=data, headers=headers, proxy=SYSTEM_PROXY) as response:
             if response.status >= 400:
                 _LOGGER.warning("User agent info submission failed: %s", response.status)
 
@@ -239,9 +221,7 @@ class OauthExtended:
 
         url = f"{helper.Login_Base_Url(self._region)}/ciam/auth/login/user"
 
-        async with self._session.post(
-            url, json={"username": email}, headers=headers, ssl=self.ssl_context, proxy=SYSTEM_PROXY
-        ) as response:
+        async with self._session.post(url, json={"username": email}, headers=headers, proxy=SYSTEM_PROXY) as response:
             if response.status >= 400:
                 raise MBAuthError(f"Username submission failed: {response.status}")
 
@@ -268,9 +248,7 @@ class OauthExtended:
 
         url = f"{helper.Login_Base_Url(self._region)}/ciam/auth/login/pass"
 
-        async with self._session.post(
-            url, json=data, headers=headers, ssl=self.ssl_context, proxy=SYSTEM_PROXY
-        ) as response:
+        async with self._session.post(url, json=data, headers=headers, proxy=SYSTEM_PROXY) as response:
             if response.status >= 400:
                 error_text = await response.text()
                 raise MBAuthError(f"Password submission failed: {response.status} - {error_text}")
@@ -295,7 +273,6 @@ class OauthExtended:
                 f"{helper.Login_Base_Url(self._region)}{resume_url}",
                 data=data,
                 headers=headers,
-                ssl=self.ssl_context,
                 proxy=SYSTEM_PROXY,
                 allow_redirects=False,
             ) as response:
@@ -350,20 +327,15 @@ class OauthExtended:
 
         url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
 
-        async with self._session.post(
-            url, data=form_data, headers=headers, ssl=self.ssl_context, proxy=SYSTEM_PROXY
-        ) as response:
+        async with self._session.post(url, data=form_data, headers=headers, proxy=SYSTEM_PROXY) as response:
             if response.status >= 400:
                 error_text = await response.text()
                 raise MBAuthError(f"Token exchange failed: {response.status} - {error_text}")
 
             return await response.json()
 
-    # --- Existing methods from original Oauth class ---
-    # (Here all existing methods from the original class would be inserted)
-
     async def async_refresh_access_token(self, refresh_token: str, is_retry: bool = False):
-        """Refresh the access token - existing implementation maintained."""
+        """Refresh the access token."""
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
 
         _LOGGER.debug("Auth token refresh preflight request 1")
@@ -401,7 +373,7 @@ class OauthExtended:
         return token_info
 
     async def async_get_cached_token(self):
-        """Get a cached auth token - existing implementation."""
+        """Get a cached auth token."""
         _LOGGER.debug("Start async_get_cached_token()")
         token_info: dict[str, any]
 
@@ -427,14 +399,14 @@ class OauthExtended:
 
     @classmethod
     def is_token_expired(cls, token_info) -> bool:
-        """Check if the token is expired - existing implementation."""
+        """Check if the token is expired."""
         if token_info is not None:
             now = int(time.time())
             return token_info["expires_at"] - now < 60
         return True
 
     def _save_token_info(self, token_info):
-        """Save token info - existing implementation."""
+        """Save token info."""
         if self._config_entry:
             _LOGGER.debug(
                 "Start _save_token_info() to config_entry %s",
@@ -447,12 +419,12 @@ class OauthExtended:
 
     @classmethod
     def _add_custom_values_to_token_info(cls, token_info):
-        """Add custom values to token info - existing implementation."""
+        """Add custom values to token info."""
         token_info["expires_at"] = int(time.time()) + token_info["expires_in"]
         return token_info
 
     def _get_header(self):
-        """Get headers - existing implementation with Session-ID."""
+        """Get headers with Session-ID."""
         if not self._sessionid:
             self._sessionid = str(uuid.uuid4())
 
@@ -471,7 +443,7 @@ class OauthExtended:
         return self._get_region_header(header)
 
     def _get_region_header(self, header):
-        """Get region-specific headers - existing implementation."""
+        """Get region-specific headers."""
         if self._region == REGION_EUROPE:
             header["X-Applicationname"] = X_APPLICATIONNAME_ECE
             header["Ris-Application-Version"] = RIS_APPLICATION_VERSION
@@ -493,16 +465,15 @@ class OauthExtended:
         return header
 
     async def _async_request(self, method: str, url: str, data: str = "", **kwargs):
-        """Make a request against the API - existing implementation."""
+        """Make a request against the API."""
         kwargs.setdefault("headers", {})
         kwargs.setdefault("proxy", SYSTEM_PROXY)
-        kwargs.setdefault("ssl", self.ssl_context)
 
         if not self._session or self._session.closed:
             self._session = async_get_clientsession(self._hass, VERIFY_SSL)
 
         async with self._session.request(method, url, data=data, **kwargs) as resp:
-            if 400 <= resp.status < 500:
+            if 400 <= resp.status <= 500:
                 try:
                     error = await resp.text()
                     error_json = json.loads(error)
@@ -517,7 +488,3 @@ class OauthExtended:
                 raise MBAuthError(error_message)
 
             return await resp.json(content_type=None)
-
-
-# Backwards compatibility alias
-Oauth = OauthExtended
