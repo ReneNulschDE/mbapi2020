@@ -88,7 +88,7 @@ class Websocket:
         self.ws_blocked_connection_error_logged = False
         self._online_seconds_today = 0
         self._accumulated_seconds_today = 0  # Bereits akkumulierte Zeit für heute
-        self._current_session_start = None   # Start der aktuellen Session
+        self._current_session_start = None  # Start der aktuellen Session
         self._online_day = datetime.now().date()
         self._reconnects_today = 0
         self._reconnects_day = datetime.now().date()
@@ -293,11 +293,15 @@ class Websocket:
             # Berechne verbleibende Zeit für den alten Tag und akkumuliere sie
             end_of_old_day = datetime.combine(self._online_day, datetime.min.time()) + timedelta(days=1)
             old_day_session_seconds = int((end_of_old_day - self._current_session_start).total_seconds())
-            
+
             if old_day_session_seconds > 0:
                 self._accumulated_seconds_today += old_day_session_seconds
-                LOGGER.debug("Added %d seconds for previous day (%s), total accumulated: %d", 
-                           old_day_session_seconds, self._online_day, self._accumulated_seconds_today)
+                LOGGER.debug(
+                    "Added %d seconds for previous day (%s), total accumulated: %d",
+                    old_day_session_seconds,
+                    self._online_day,
+                    self._accumulated_seconds_today,
+                )
 
             # Neuen Tag initialisieren
             self._online_day = current_day
@@ -308,9 +312,6 @@ class Websocket:
         # Berechne aktuelle Gesamtzeit: akkumulierte Zeit + aktuelle Session
         current_session_seconds = int((now - self._current_session_start).total_seconds())
         self._online_seconds_today = self._accumulated_seconds_today + current_session_seconds
-        
-        LOGGER.debug("Online time today: %d seconds (accumulated: %d + current session: %d)", 
-                   self._online_seconds_today, self._accumulated_seconds_today, current_session_seconds)
 
     async def _start_websocket_handler(self, session: ClientSession):
         retry_in: int = 10
@@ -430,9 +431,12 @@ class Websocket:
             now = datetime.now()
             session_seconds = int((now - self._current_session_start).total_seconds())
             self._accumulated_seconds_today += session_seconds
-            LOGGER.debug("Session ended, added %d seconds to accumulated time (total: %d)", 
-                       session_seconds, self._accumulated_seconds_today)
-            
+            LOGGER.debug(
+                "Session ended, added %d seconds to accumulated time (total: %d)",
+                session_seconds,
+                self._accumulated_seconds_today,
+            )
+
             # Setze _online_seconds_today auf akkumulierte Zeit
             self._online_seconds_today = self._accumulated_seconds_today
             self._current_session_start = None
