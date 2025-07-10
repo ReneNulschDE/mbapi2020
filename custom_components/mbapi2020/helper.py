@@ -9,11 +9,11 @@ import datetime
 from enum import Enum
 import inspect
 import json
+import logging
 import math
 
 from .const import (
     JSON_EXPORT_IGNORED_KEYS,
-    LOGGER,
     LOGIN_BASE_URI,
     LOGIN_BASE_URI_CN,
     PSAG_BASE_URI,
@@ -32,6 +32,8 @@ from .const import (
     WEBSOCKET_API_BASE_CN,
     WEBSOCKET_API_BASE_NA,
 )
+
+LOGGER = logging.getLogger(__name__)
 
 
 class LogHelper:
@@ -261,8 +263,7 @@ class Watchdog:
                 LOGGER.debug(f"{self._topic} Watchdog expired – calling {self._action.__name__}")
             await self._action()
         except asyncio.CancelledError:
-            if self._log_events:
-                LOGGER.debug(f"{self._topic} Watchdog expire task cancelled.")
+            # Don't log here - will be logged in _on_expire_task_done callback
             raise
 
     async def trigger(self):
@@ -290,7 +291,7 @@ class Watchdog:
     def _on_expire_task_done(self, task: asyncio.Task):
         """Cleanup when expire task is done."""
         self._expire_task = None
-        
+
         if task.cancelled():
             # Task was cancelled - this is normal during shutdown
             if self._log_events:
