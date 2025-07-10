@@ -79,6 +79,7 @@ class Websocket:
             self._blocked_account_reload_check, 30, "Blocked_account_reload", False
         )
         self._queue = asyncio.Queue()
+        self._queue_shutdown_sentinel = object()  # Sentinel für graceful shutdown
         self.session_id = session_id
         self._ignition_states: dict[str, bool] = ignition_states
         self.ws_connect_retry_counter_reseted: bool = False
@@ -90,6 +91,8 @@ class Websocket:
         self._online_day = datetime.now().date()
         self._reconnects_today = 0
         self._reconnects_day = datetime.now().date()
+        self._queue_task: asyncio.Task = None
+        self._websocket_task: asyncio.Task = None
 
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
@@ -114,12 +117,18 @@ class Websocket:
 
         session = async_get_clientsession(self._hass, VERIFY_SSL)
 
-        # Tasks erstellen
-        queue_task = asyncio.create_task(self._start_queue_handler())
-        websocket_task = asyncio.create_task(self._start_websocket_handler(session))
+        # Tasks erstellen und verwalten
+        self._queue_task = asyncio.create_task(self._start_queue_handler())
+        self._websocket_task = asyncio.create_task(self._start_websocket_handler(session))
 
-        # Warten, dass Tasks laufen
-        await asyncio.gather(queue_task, websocket_task)
+        # Warten, dass Tasks laufen - mit ordnungsgemäßer Exception-Behandlung
+        try:
+            await asyncio.gather(self._queue_task, self._websocket_task, return_exceptions=True)
+        except Exception as e:
+            LOGGER.debug("async_connect tasks finished with exception: %s", e)
+        finally:
+            # Sicherstellen, dass Tasks ordnungsgemäß beendet werden
+            await self._cleanup_tasks()
 
     async def async_stop(self, now: datetime = datetime.now()):
         """Close connection."""
@@ -128,8 +137,18 @@ class Websocket:
         self._pingwatchdog.cancel()
         self.connection_state = "closed"
 
+        # Signal queue handler to stop gracefully
+        try:
+            self._queue.put_nowait(self._queue_shutdown_sentinel)
+        except asyncio.QueueFull:
+            LOGGER.warning("Queue full during shutdown, forcing queue cleanup")
+            await self._cleanup_queue()
+
         if self._connection is not None:
             await self._connection.close()
+
+        # Tasks ordnungsgemäß beenden
+        await self._cleanup_tasks()
 
     async def initiatiate_connection_disconnect_with_reconnect(self):
         """Initiate a connection disconnect."""
@@ -185,26 +204,53 @@ class Websocket:
 
     async def _queue_handler(self):
         while not self.is_stopping:
-            data = await self._queue.get()
-
             try:
-                message = vehicle_events_pb2.PushMessage()
-                message.ParseFromString(data)
-            except TypeError as err:
-                LOGGER.error("could not decode data (%s) from websocket: %s", data, err)
+                # Timeout für graceful shutdown
+                data = await asyncio.wait_for(self._queue.get(), timeout=1.0)
+
+                # Check for shutdown sentinel
+                if data is self._queue_shutdown_sentinel:
+                    LOGGER.debug("Queue handler received shutdown signal")
+                    self._queue.task_done()
+                    break
+
+                try:
+                    message = vehicle_events_pb2.PushMessage()
+                    message.ParseFromString(data)
+                except TypeError as err:
+                    LOGGER.error("could not decode data (%s) from websocket: %s", data, err)
+                    self._queue.task_done()
+                    continue
+
+                if message is None:
+                    self._queue.task_done()
+                    continue
+
+                LOGGER.debug("Got notification: %s", message.WhichOneof("msg"))
+
+                try:
+                    ack_message = self._on_data_received(message)
+                    if ack_message:
+                        if isinstance(ack_message, str):
+                            await self.call(bytes.fromhex(ack_message))
+                        else:
+                            await self.call(ack_message.SerializeToString())
+                except Exception as err:
+                    LOGGER.error("Error processing queue message: %s", err)
+
+                self._queue.task_done()
+
+            except asyncio.TimeoutError:
+                # Timeout ist normal - weiter prüfen ob stopping
+                continue
+            except asyncio.CancelledError:
+                LOGGER.debug("Queue handler cancelled")
+                break
+            except Exception as err:
+                LOGGER.error("Unexpected error in queue handler: %s", err)
                 break
 
-            if message is None:
-                break
-            LOGGER.debug("Got notification: %s", message.WhichOneof("msg"))
-            ack_message = self._on_data_received(message)
-            if ack_message:
-                if isinstance(ack_message, str):
-                    await self.call(bytes.fromhex(ack_message))
-                else:
-                    await self.call(ack_message.SerializeToString())
-
-            self._queue.task_done()
+        LOGGER.debug("Queue handler stopped")
 
     async def _start_websocket_handler(self, session: ClientSession):
         retry_in: int = 10
@@ -376,3 +422,47 @@ class Websocket:
 
         elif self.account_blocked and not self.ws_connect_retry_counter_reseted:
             await self.component_reload_watcher.trigger()
+
+    async def _cleanup_tasks(self):
+        """Cleanup running tasks properly."""
+        tasks_to_cancel = []
+
+        if self._queue_task and not self._queue_task.done():
+            tasks_to_cancel.append(self._queue_task)
+            LOGGER.debug("Cancelling _queue_task")
+
+        if self._websocket_task and not self._websocket_task.done():
+            tasks_to_cancel.append(self._websocket_task)
+            LOGGER.debug("Cancelling _websocket_task")
+
+        if tasks_to_cancel:
+            LOGGER.debug("Cancelling %d websocket tasks", len(tasks_to_cancel))
+            for task in tasks_to_cancel:
+                task.cancel()
+
+            # Warten auf ordnungsgemäße Beendigung
+            await asyncio.gather(*tasks_to_cancel, return_exceptions=True)
+
+        # Queue bereinigen
+        await self._cleanup_queue()
+
+        # Task-Referenzen zurücksetzen
+        self._queue_task = None
+        self._websocket_task = None
+
+    async def _cleanup_queue(self):
+        """Cleanup remaining queue items."""
+        cleanup_count = 0
+        try:
+            while not self._queue.empty():
+                try:
+                    self._queue.get_nowait()
+                    self._queue.task_done()
+                    cleanup_count += 1
+                except asyncio.QueueEmpty:
+                    break
+        except Exception as err:
+            LOGGER.error("Error cleaning up queue: %s", err)
+
+        if cleanup_count > 0:
+            LOGGER.debug("Cleaned up %d remaining queue items", cleanup_count)
