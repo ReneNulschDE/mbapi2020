@@ -238,6 +238,7 @@ class Watchdog:
         self._action: Callable[..., Awaitable] = action
         self._loop = asyncio.get_event_loop()
         self._timer_task: asyncio.TimerHandle | None = None
+        self._expire_task: asyncio.Task | None = None
         self._topic: str = topic
         self._log_events: bool = log_events
         self.timeout: int = timeout_seconds
@@ -247,6 +248,11 @@ class Watchdog:
         if self._timer_task:
             self._timer_task.cancel()
             self._timer_task = None
+            
+        # Cancel any running expire task
+        if self._expire_task and not self._expire_task.done():
+            self._expire_task.cancel()
+            self._expire_task = None
 
     async def on_expire(self):
         """Log and act when the watchdog expires."""
@@ -266,4 +272,28 @@ class Watchdog:
         if self._timer_task:
             self._timer_task.cancel()
 
-        self._timer_task = self._loop.call_later(self.timeout, lambda: asyncio.create_task(self.on_expire()))
+        # Cancel any existing expire task
+        if self._expire_task and not self._expire_task.done():
+            self._expire_task.cancel()
+            self._expire_task = None
+
+        self._timer_task = self._loop.call_later(self.timeout, self._on_timer_expire)
+
+    def _on_timer_expire(self):
+        """Handle timer expiration - create and manage the expire task."""
+        # Create and store the expire task for proper management
+        self._expire_task = asyncio.create_task(self.on_expire())
+        
+        # Add done callback to clean up the task reference
+        self._expire_task.add_done_callback(self._on_expire_task_done)
+        
+    def _on_expire_task_done(self, task: asyncio.Task):
+        """Cleanup when expire task is done."""
+        self._expire_task = None
+        if task.cancelled():
+            # Only log if explicitly enabled for reconnect watchdog debugging
+            if self._log_events and self._topic == "Reconnect":
+                LOGGER.debug(f"{self._topic} Watchdog expire task was cancelled")
+        elif task.exception():
+            if self._log_events:
+                LOGGER.error(f"{self._topic} Watchdog expire task failed: {task.exception()}")

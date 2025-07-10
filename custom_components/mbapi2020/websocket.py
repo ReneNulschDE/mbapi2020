@@ -73,7 +73,7 @@ class Websocket:
             self.ping, topic="Ping", timeout_seconds=PING_WATCHDOG_TIMEOUT, log_events=False
         )
         self._reconnectwatchdog: Watchdog = Watchdog(
-            self.async_connect, topic="Reconnect", timeout_seconds=RECONNECT_WATCHDOG_TIMEOUT, log_events=True
+            self._reconnect_attempt, topic="Reconnect", timeout_seconds=RECONNECT_WATCHDOG_TIMEOUT, log_events=True
         )
         self.component_reload_watcher: Watchdog = Watchdog(
             self._blocked_account_reload_check, 30, "Blocked_account_reload", False
@@ -94,10 +94,19 @@ class Websocket:
         self._queue_task: asyncio.Task = None
         self._websocket_task: asyncio.Task = None
 
+    async def _reconnect_attempt(self) -> None:
+        """Attempt reconnection without cancelling the reconnect watchdog."""
+        LOGGER.debug("Starting reconnect attempt")
+        await self._async_connect_internal()
+
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
-
+        # Cancel reconnect watchdog for manual connections
         self._reconnectwatchdog.cancel()
+        await self._async_connect_internal(on_data)
+
+    async def _async_connect_internal(self, on_data=None) -> None:
+        """Internal connect method without cancelling reconnect watchdog."""
         if self.is_connecting:
             return
 
