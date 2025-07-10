@@ -248,7 +248,7 @@ class Watchdog:
         if self._timer_task:
             self._timer_task.cancel()
             self._timer_task = None
-            
+
         # Cancel any running expire task
         if self._expire_task and not self._expire_task.done():
             self._expire_task.cancel()
@@ -283,17 +283,24 @@ class Watchdog:
         """Handle timer expiration - create and manage the expire task."""
         # Create and store the expire task for proper management
         self._expire_task = asyncio.create_task(self.on_expire())
-        
+
         # Add done callback to clean up the task reference
         self._expire_task.add_done_callback(self._on_expire_task_done)
-        
+
     def _on_expire_task_done(self, task: asyncio.Task):
         """Cleanup when expire task is done."""
         self._expire_task = None
+        
         if task.cancelled():
-            # Only log if explicitly enabled for reconnect watchdog debugging
-            if self._log_events and self._topic == "Reconnect":
-                LOGGER.debug(f"{self._topic} Watchdog expire task was cancelled")
-        elif task.exception():
+            # Task was cancelled - this is normal during shutdown
             if self._log_events:
-                LOGGER.error(f"{self._topic} Watchdog expire task failed: {task.exception()}")
+                LOGGER.debug(f"{self._topic} Watchdog expire task cancelled.")
+        else:
+            # Safe exception handling - only check for exceptions if not cancelled
+            try:
+                exc = task.exception()
+                if exc and self._log_events:
+                    LOGGER.error(f"{self._topic} Watchdog expire task failed: {exc}")
+            except asyncio.CancelledError:
+                # This shouldn't happen, but just in case
+                pass

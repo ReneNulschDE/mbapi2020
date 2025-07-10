@@ -93,6 +93,7 @@ class Websocket:
         self._reconnects_day = datetime.now().date()
         self._queue_task: asyncio.Task = None
         self._websocket_task: asyncio.Task = None
+        self._relogin_429_done: bool = False
 
     async def _reconnect_attempt(self) -> None:
         """Attempt reconnection without cancelling the reconnect watchdog."""
@@ -208,8 +209,8 @@ class Websocket:
             ) from err
 
     async def _start_queue_handler(self):
-        while not self.is_stopping:
-            await self._queue_handler()
+        """Start the queue handler - entry point for the task."""
+        await self._queue_handler()
 
     async def _queue_handler(self):
         while not self.is_stopping:
@@ -291,16 +292,17 @@ class Websocket:
                 self.ws_connect_retry_counter += 1
             except WSServerHandshakeError as error:
                 if not self.ws_blocked_connection_error_logged:
-                    LOGGER.error("MB-API access blocked. %s, retry in %s seconds...", error, retry_in)
+                    LOGGER.warning(
+                        "MB-API access blocked. (First Message, expect a re-login) %s, retry in %s seconds...",
+                        error,
+                        retry_in,
+                    )
                     self.ws_blocked_connection_error_logged = True
                 else:
-                    LOGGER.info("WSS Connection blocked: %s, retry in %s seconds...", error, retry_in)
+                    LOGGER.warning("WSS Connection blocked: %s, retry in %s seconds...", error, retry_in)
+
                 if "429" in str(error.code):
                     self.account_blocked = True
-
-                    # Relogin bei 429, wenn Passwort vorhanden, aber nur einmal pro Lebenszeit der Instanz
-                    if not hasattr(self, "_relogin_429_done"):
-                        self._relogin_429_done = False
 
                     if not self._relogin_429_done:
                         config_entry = getattr(self.oauth, "_config_entry", None)
@@ -449,8 +451,14 @@ class Websocket:
             for task in tasks_to_cancel:
                 task.cancel()
 
-            # Warten auf ordnungsgemäße Beendigung
-            await asyncio.gather(*tasks_to_cancel, return_exceptions=True)
+            # Warten auf ordnungsgemäße Beendigung mit Timeout
+            try:
+                await asyncio.wait_for(
+                    asyncio.gather(*tasks_to_cancel, return_exceptions=True),
+                    timeout=5.0
+                )
+            except asyncio.TimeoutError:
+                LOGGER.warning("Some websocket tasks did not terminate within 5 seconds")
 
         # Queue bereinigen
         await self._cleanup_queue()

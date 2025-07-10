@@ -285,8 +285,14 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     unload_ok = False
 
     if len(hass.data[DOMAIN][config_entry.entry_id].client.cars) > 0:
-        hass.data[DOMAIN][config_entry.entry_id].client.websocket._reconnectwatchdog.cancel()
-        result = await hass.data[DOMAIN][config_entry.entry_id].client.websocket.async_stop()
+        # Cancel all watchdogs on final shutdown
+        websocket = hass.data[DOMAIN][config_entry.entry_id].client.websocket
+        websocket._reconnectwatchdog.cancel()
+        websocket._watchdog.cancel()
+        websocket._pingwatchdog.cancel()
+        websocket.component_reload_watcher.cancel()
+        
+        result = await websocket.async_stop()
         hass.data[DOMAIN][config_entry.entry_id].client.websocket = None
         if unload_ok := await hass.config_entries.async_unload_platforms(config_entry, MERCEDESME_COMPONENTS):
             del hass.data[DOMAIN][config_entry.entry_id]
