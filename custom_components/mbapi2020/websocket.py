@@ -447,16 +447,12 @@ class Websocket:
             LOGGER.debug("Cancelling _websocket_task")
 
         if tasks_to_cancel:
-            LOGGER.debug("Cancelling %d websocket tasks", len(tasks_to_cancel))
             for task in tasks_to_cancel:
                 task.cancel()
 
             # Warten auf ordnungsgemäße Beendigung mit Timeout
             try:
-                await asyncio.wait_for(
-                    asyncio.gather(*tasks_to_cancel, return_exceptions=True),
-                    timeout=5.0
-                )
+                await asyncio.wait_for(asyncio.gather(*tasks_to_cancel, return_exceptions=True), timeout=5.0)
             except asyncio.TimeoutError:
                 LOGGER.warning("Some websocket tasks did not terminate within 5 seconds")
 
