@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import ssl
 import time
@@ -87,13 +87,15 @@ class Websocket:
         self.account_blocked: bool = False
         self.ws_blocked_connection_error_logged = False
         self._online_seconds_today = 0
-        self._last_online_start = None
+        self._accumulated_seconds_today = 0  # Bereits akkumulierte Zeit für heute
+        self._current_session_start = None   # Start der aktuellen Session
         self._online_day = datetime.now().date()
         self._reconnects_today = 0
         self._reconnects_day = datetime.now().date()
         self._queue_task: asyncio.Task = None
         self._websocket_task: asyncio.Task = None
         self._relogin_429_done: bool = False
+        self._online_time_update_task: asyncio.Task = None
 
     async def _reconnect_attempt(self) -> None:
         """Attempt reconnection without cancelling the reconnect watchdog."""
@@ -130,10 +132,13 @@ class Websocket:
         # Tasks erstellen und verwalten
         self._queue_task = asyncio.create_task(self._start_queue_handler())
         self._websocket_task = asyncio.create_task(self._start_websocket_handler(session))
+        self._online_time_update_task = asyncio.create_task(self._continuous_online_time_update())
 
         # Warten, dass Tasks laufen - mit ordnungsgemäßer Exception-Behandlung
         try:
-            await asyncio.gather(self._queue_task, self._websocket_task, return_exceptions=True)
+            await asyncio.gather(
+                self._queue_task, self._websocket_task, self._online_time_update_task, return_exceptions=True
+            )
         except Exception as e:
             LOGGER.debug("async_connect tasks finished with exception: %s", e)
         finally:
@@ -262,6 +267,51 @@ class Websocket:
 
         LOGGER.debug("Queue handler stopped")
 
+    async def _continuous_online_time_update(self):
+        """Kontinuierliche Aktualisierung der Online-Zeit alle 10 Sekunden."""
+        while not self.is_stopping:
+            try:
+                await asyncio.sleep(10)  # Alle 10 Sekunden prüfen
+                self._update_online_time()
+            except asyncio.CancelledError:
+                LOGGER.debug("Online time update task cancelled")
+                break
+            except Exception as err:
+                LOGGER.error("Error in continuous online time update: %s", err)
+                await asyncio.sleep(10)  # Weiter versuchen auch bei Fehlern
+
+    def _update_online_time(self):
+        """Aktualisiert die Online-Zeit basierend auf dem aktuellen Verbindungsstatus."""
+        if not self._current_session_start or self.connection_state != STATE_CONNECTED:
+            return
+
+        now = datetime.now()
+        current_day = now.date()
+
+        # Prüfen ob Tageswechsel stattgefunden hat
+        if current_day != self._online_day:
+            # Berechne verbleibende Zeit für den alten Tag und akkumuliere sie
+            end_of_old_day = datetime.combine(self._online_day, datetime.min.time()) + timedelta(days=1)
+            old_day_session_seconds = int((end_of_old_day - self._current_session_start).total_seconds())
+            
+            if old_day_session_seconds > 0:
+                self._accumulated_seconds_today += old_day_session_seconds
+                LOGGER.debug("Added %d seconds for previous day (%s), total accumulated: %d", 
+                           old_day_session_seconds, self._online_day, self._accumulated_seconds_today)
+
+            # Neuen Tag initialisieren
+            self._online_day = current_day
+            self._accumulated_seconds_today = 0  # Neuer Tag startet bei 0
+            self._current_session_start = end_of_old_day  # Session läuft über Tageswechsel weiter
+            LOGGER.debug("New day started, accumulated time reset to 0")
+
+        # Berechne aktuelle Gesamtzeit: akkumulierte Zeit + aktuelle Session
+        current_session_seconds = int((now - self._current_session_start).total_seconds())
+        self._online_seconds_today = self._accumulated_seconds_today + current_session_seconds
+        
+        LOGGER.debug("Online time today: %d seconds (accumulated: %d + current session: %d)", 
+                   self._online_seconds_today, self._accumulated_seconds_today, current_session_seconds)
+
     async def _start_websocket_handler(self, session: ClientSession):
         retry_in: int = 10
 
@@ -352,7 +402,7 @@ class Websocket:
 
         await self._watchdog.trigger()
 
-        self._last_online_start = datetime.now()
+        self._current_session_start = datetime.now()
 
         while not self._connection.closed:
             if self.is_stopping:
@@ -374,15 +424,18 @@ class Websocket:
                 await self._pingwatchdog.trigger()
                 await self._watchdog.trigger()
 
-        # Verbindung wird geschlossen:
-        if self._last_online_start:
+        # Verbindung wird geschlossen - akkumuliere die Zeit der aktuellen Session
+        if self._current_session_start:
+            # Finale Zeitberechnung und Akkumulierung
             now = datetime.now()
-            if now.date() == self._online_day:
-                self._online_seconds_today += int((now - self._last_online_start).total_seconds())
-            else:
-                self._online_seconds_today = 0
-                self._online_day = now.date()
-            self._last_online_start = None
+            session_seconds = int((now - self._current_session_start).total_seconds())
+            self._accumulated_seconds_today += session_seconds
+            LOGGER.debug("Session ended, added %d seconds to accumulated time (total: %d)", 
+                       session_seconds, self._accumulated_seconds_today)
+            
+            # Setze _online_seconds_today auf akkumulierte Zeit
+            self._online_seconds_today = self._accumulated_seconds_today
+            self._current_session_start = None
 
     async def _websocket_connection_headers(self):
         token = await self.oauth.async_get_cached_token()
@@ -446,6 +499,10 @@ class Websocket:
             tasks_to_cancel.append(self._websocket_task)
             LOGGER.debug("Cancelling _websocket_task")
 
+        if self._online_time_update_task and not self._online_time_update_task.done():
+            tasks_to_cancel.append(self._online_time_update_task)
+            LOGGER.debug("Cancelling _online_time_update_task")
+
         if tasks_to_cancel:
             for task in tasks_to_cancel:
                 task.cancel()
@@ -462,6 +519,7 @@ class Websocket:
         # Task-Referenzen zurücksetzen
         self._queue_task = None
         self._websocket_task = None
+        self._online_time_update_task = None
 
     async def _cleanup_queue(self):
         """Cleanup remaining queue items."""
