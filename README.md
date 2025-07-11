@@ -25,7 +25,10 @@ IMPORTANT:
 - Restart HA after the installation
 - Make sure that you refresh your browser window too
 - Use the "Add Integration" in Home Assistant, Settings, Devices & Services and select "MercedesME 2020".
-- Follow [this guide](https://github.com/ReneNulschDE/mbapi2020/wiki/How%E2%80%90to:-create-the-access-and-refresh-token) to create the tokens needed.
+- Enter your Mercedes-Benz account credentials (username/password) in the integration setup
+  **Important Notes:**
+- consider using a dedicated Mercedes-Benz account for Home Assistant
+- if MFA is enabled on your Mercedes-Benz account, authentication will fail. You must disable MFA or use a separate account without MFA.
 
 ### How to Prevent Account Blocking
 
