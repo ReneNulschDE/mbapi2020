@@ -254,63 +254,11 @@ class Client:
         return None
 
     async def attempt_connect(self, callback_dataload_complete):
-        """Attempt to connect to the socket (retrying later on fail)."""
+        """Attempt to connect to the socket."""
         LOGGER.debug("attempt_connect")
-        stop_retry_loop: bool = False
 
         self._on_dataload_complete = callback_dataload_complete
-        while not stop_retry_loop and not self.websocket.is_stopping:
-            try:
-                if self.websocket.ws_connect_retry_counter == 0:
-                    await self.websocket.async_connect(self.on_data)
-                else:
-                    wait_time = (
-                        self._ws_reconnect_delay
-                        * self.websocket.ws_connect_retry_counter
-                        * self.websocket.ws_connect_retry_counter
-                    )
-                    LOGGER.debug(
-                        "Websocket reconnect handler loop - round %s - waiting %s sec",
-                        self.websocket.ws_connect_retry_counter,
-                        wait_time,
-                    )
-                    await asyncio.sleep(wait_time)
-
-                    await self.websocket.component_reload_watcher.trigger()
-
-                    await self.websocket.async_connect(self.on_data)
-            except WSServerHandshakeError as err:
-                if self.websocket.is_stopping:
-                    stop_retry_loop = True
-                    break
-                LOGGER.error(
-                    "Error with the websocket connection (retry counter: %s): %s - %s",
-                    self.websocket.ws_connect_retry_counter,
-                    err.code,
-                    err.message,
-                )
-                self.websocket.ws_connect_retry_counter += 1
-            except Exception as err:
-                if self.websocket.is_stopping:
-                    stop_retry_loop = True
-                    break
-
-                LOGGER.error(
-                    "Unkown error with the websocket connection (retry counter: %s): %s",
-                    self.websocket.ws_connect_retry_counter,
-                    err,
-                    exc_info=err,
-                )
-                self.websocket.ws_connect_retry_counter += 1
-            if self.websocket.is_stopping:
-                LOGGER.info("Client WS Handler loop - stopping")
-                stop_retry_loop = True
-                break
-
-            LOGGER.info(
-                "Client WS Handler loop - loop end round %s",
-                self.websocket.ws_connect_retry_counter - 1,
-            )
+        await self.websocket.async_connect(self.on_data)
 
     def _build_car(self, received_car_data, update_mode):
         if received_car_data.get("vin") in self.excluded_cars:
