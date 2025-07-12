@@ -20,7 +20,7 @@ from aiohttp import ClientSession
 from custom_components.mbapi2020.errors import MBAuthError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .const import (
     DEFAULT_LOCALE,
@@ -117,7 +117,7 @@ class Oauth:
         _LOGGER.info("Starting OAuth2 login flow")
 
         if not self._session or self._session.closed:
-            self._session = async_get_clientsession(self._hass, VERIFY_SSL)
+            self._session = async_create_clientsession(self._hass, VERIFY_SSL)
 
         try:
             # Step 1: Get authorization URL and extract resume parameter
@@ -470,7 +470,7 @@ class Oauth:
         kwargs.setdefault("proxy", SYSTEM_PROXY)
 
         if not self._session or self._session.closed:
-            self._session = async_get_clientsession(self._hass, VERIFY_SSL)
+            self._session = async_create_clientsession(self._hass, VERIFY_SSL)
 
         async with self._session.request(method, url, data=data, **kwargs) as resp:
             if 400 <= resp.status <= 500:

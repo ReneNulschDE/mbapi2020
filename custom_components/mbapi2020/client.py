@@ -71,10 +71,6 @@ GEOFENCING_MAX_RETRIES = 2
 class Client:
     """define the client."""
 
-    long_running_operation_active: bool = False
-    ignition_states: dict[str, bool] = {}
-    account_blocked: bool = False
-
     def __init__(
         self,
         hass: HomeAssistant,
@@ -83,6 +79,10 @@ class Client:
         region: str = "",
     ) -> None:
         """Initialize the client instance."""
+
+        self.long_running_operation_active: bool = False
+        self.ignition_states: dict[str, bool] = {}
+        self.account_blocked: bool = False
 
         self._ws_reconnect_delay = DEFAULT_SOCKET_MIN_RETRY
         self._hass = hass
@@ -535,8 +535,9 @@ class Client:
         value = self._get_car_values_handle_generic(car_detail, class_instance, option, update)
         if value:
             vin = car_detail.get("vin")
-
             self.ignition_states[vin] = value.value == "4"
+            if vin in self.excluded_cars:
+                self.ignition_states[vin] = False
 
         return value
 

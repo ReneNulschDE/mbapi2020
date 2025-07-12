@@ -214,12 +214,12 @@ class Car:
     geofence_events: GeofenceEvents
     geo_fencing_retry_counter: int = 0
     has_geofencing: bool = True
-    vehicle_information: dict = {}
-    capabilities: dict[str, Any] = {}
 
     def __init__(self, vin: str):
         """Initialize the Car instance."""
         self.finorvin = vin
+        self.vehicle_information: dict = {}
+        self.capabilities: dict[str, Any] = {}
 
         self.licenseplate = ""
         self._is_owner = False
@@ -435,7 +435,10 @@ class GeofenceEvents:
     last_event_timestamp: CarAttribute | None = None
     last_event_zone: CarAttribute | None = None
     name: str = "GeofenceEvents"
-    events = []
+    
+    def __post_init__(self):
+        """Initialize mutable attributes."""
+        self.events = []
 
 
 @dataclass(init=False)

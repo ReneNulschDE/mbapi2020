@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable
 from datetime import datetime
+import json
 import logging
 import uuid
 
@@ -49,9 +50,11 @@ class Websocket:
     """Define the websocket."""
 
     def __init__(
-        self, hass, oauth, region, session_id=str(uuid.uuid4()).upper(), ignition_states: dict[str, bool] = {}
+        self, hass, oauth, region, session_id=str(uuid.uuid4()).upper(), ignition_states: dict[str, bool] | None = None
     ) -> None:
         """Initialize."""
+        if ignition_states is None:
+            ignition_states = {}
         self.oauth: Oauth = oauth
         self._hass: HomeAssistant = hass
         self.is_stopping: bool = False
@@ -156,6 +159,11 @@ class Websocket:
 
     async def initiatiate_connection_disconnect_with_reconnect(self):
         """Initiate a connection disconnect."""
+        LOGGER.debug(
+            "ignitions_state: %s, %s",
+            self.oauth._config_entry.entry_id,
+            json.dumps(self._ignition_states),
+        )
         if any(self._ignition_states.values()):
             LOGGER.debug(
                 "initiatiate_connection_disconnect_with_reconnect canceled - Reason: ignitions_state: %s",
