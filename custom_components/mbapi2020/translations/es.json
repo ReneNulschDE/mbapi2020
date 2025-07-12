@@ -8,6 +8,23 @@
             "cannot_connect": "cannot_connect",
             "invalid_auth": "invalid_auth",
             "unknown": "Error desconocido. Por favor, revisa el registro de Home Assistant para más información."
+        },
+        "step": {
+            "pin": {
+                "data": {
+                    "password": "PIN"
+                },
+                "description": "Has recibido un código PIN por correo electrónico. Por favor, ingresa el código PIN (seis números)",
+                "title": "Configuración de conexión - PIN"
+            },
+            "user": {
+                "data": {
+                    "region": "Región",
+                    "username": "Nombre de usuario MB - dirección de correo electrónico (o teléfono móvil incluyendo el código de país ej. +34)"
+                },
+                "description": "Ingresa tu cuenta de inicio de sesión de Mercedes ME (dirección de correo electrónico)",
+                "title": "Configurar la conexión Mercedes ME 2020"
+            }
         }
     },
     "issues": {
@@ -35,7 +52,7 @@
                     "enable_china_gcj_02": "Habilitar traducción GCJ-02 (solo China)",
                     "delete_auth_file": "Eliminar el token de autenticación ahora. Se requiere un reinicio de Home Assistant después de guardar.",
                     "excluded_cars": "VINs excluidos (separados por comas)",
-                    "pin": "PIN de seguridad (a crear en la aplicación móvil)",
+                    "pin": "PIN de seguridad (a crear en la aplicación móvil) - Ingresa 0 para eliminar el valor de la configuración",
                     "save_files": "SOLO PARA DEBUG: Habilitar guardar mensajes del servidor en la carpeta de mensajes"
                 },
                 "description": "Configura tus opciones. Algunos cambios requieren un reinicio de Home Assistant.",

@@ -1,17 +1,1 @@
-{
-    "services": {
-        "refresh_access_token": {
-            "name": "Virkistä pääsypoletti",
-            "description": "Virkistä API-pääsypoletti"
-        }
-    },
-    "config": {
-        "step": {
-            "user": {
-                "data": {
-                    "refresh_token": "Virkistä poletti"
-                }
-            }
-        }
-    }
-}
+{}

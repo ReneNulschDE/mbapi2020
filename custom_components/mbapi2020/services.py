@@ -93,7 +93,6 @@ def setup_services(hass: HomeAssistant) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.charge_program_configure(
             call.data.get(CONF_VIN),
             call.data.get("charge_program"),
-            call.data.get("max_soc"),
         )
 
     async def charging_break_clocktimer_configure(call) -> None:

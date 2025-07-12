@@ -34,6 +34,8 @@ LOGGER = logging.getLogger(__name__)
 class WebApi:
     """Define the API object."""
 
+    ssl_context: ssl.SSLContext | bool = VERIFY_SSL
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -47,6 +49,9 @@ class WebApi:
         self._region = region
         self.hass = hass
         self.session_id = str(uuid.uuid4()).upper()
+
+        if isinstance(VERIFY_SSL, str):
+            self.ssl_context = ssl.create_default_context(cafile=VERIFY_SSL)
 
     async def _request(
         self,
@@ -62,29 +67,57 @@ class WebApi:
         url = f"{helper.Rest_url(self._region)}{endpoint}"
         kwargs.setdefault("headers", {})
         kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", self.ssl_context)
 
         token = await self._oauth.async_get_cached_token()
 
-        if not rcp_headers:
-            kwargs["headers"] = {
-                "Authorization": f"Bearer {token['access_token']}",
-                "X-SessionId": self.session_id,
-                "X-TrackingId": str(uuid.uuid4()).upper(),
-                "X-ApplicationName": X_APPLICATIONNAME,
-                "ris-application-version": RIS_APPLICATION_VERSION,
-                "ris-os-name": "ios",
-                "ris-os-version": RIS_OS_VERSION,
-                "ris-sdk-version": RIS_SDK_VERSION,
-                "X-Locale": "de-DE",
-                "User-Agent": WEBSOCKET_USER_AGENT,
-                "Content-Type": "application/json; charset=UTF-8",
-            }
+        if self._region == REGION_CHINA:
+            if not rcp_headers:
+                kwargs["headers"] = {
+                    "Authorization": f"Bearer {token['access_token']}",
+                    "X-SessionId": self.session_id,
+                    "X-TrackingId": str(uuid.uuid4()).upper(),
+                    "X-Platform-Id": "ios",
+                    "X-Authmode": "CIAMNG",
+                    "X-Application-Id": "mbapp",
+                    "Cache-Control": "no-store",
+                    "User-Agent": "MyStarCN/1.54.1 (com.daimler.ris.mercedesme.cn.ios; build:2744; iOS 18.4.0) Alamofire/5.9.1",
+                    "Accept": "application/json",
+                    "Accept-Language": "zh-Hans-TW;q=1.0, en-TW;q=0.9",
+                    "Content-Type": "application/json; charset=UTF-8",
+                    "Connection": "keep-alive",
+                    "Accept-Encoding": "br;q=1.0, gzip;q=0.9, deflate;q=0.8",
+                }
+            else:
+                kwargs["headers"] = {
+                    "Authorization": f"Bearer {token['access_token']}",
+                    "User-Agent": "MyStarCN/1.54.1 (com.daimler.ris.mercedesme.cn.ios; build:2744; iOS 18.4.0) Alamofire/5.9.1",
+                    "Accept-Language": "zh-Hans-TW;q=1.0, en-TW;q=0.9",
+                    "Accept": "application/json",
+                    "Connection": "keep-alive",
+                    "Accept-Encoding": "br;q=1.0, gzip;q=0.9, deflate;q=0.8",
+                }
         else:
-            kwargs["headers"] = {
-                "Authorization": f"Bearer {token['access_token']}",
-                "User-Agent": WEBSOCKET_USER_AGENT,
-                "Accept-Language": "de-DE;q=1.0, en-DE;q=0.9",
-            }
+            if not rcp_headers:
+                kwargs["headers"] = {
+                    "Authorization": f"Bearer {token['access_token']}",
+                    "X-SessionId": self.session_id,
+                    "X-TrackingId": str(uuid.uuid4()).upper(),
+                    "X-ApplicationName": X_APPLICATIONNAME,
+                    "ris-application-version": RIS_APPLICATION_VERSION,
+                    "ris-os-name": "ios",
+                    "ris-os-version": RIS_OS_VERSION,
+                    "ris-sdk-version": RIS_SDK_VERSION,
+                    "X-Locale": "de-DE",
+                    "User-Agent": WEBSOCKET_USER_AGENT,
+                    "Content-Type": "application/json; charset=UTF-8",
+                }
+            else:
+                kwargs["headers"] = {
+                    "Authorization": f"Bearer {token['access_token']}",
+                    "User-Agent": WEBSOCKET_USER_AGENT,
+                    "Accept-Language": "de-DE;q=1.0, en-DE;q=0.9",
+                }
 
         if not self._session or self._session.closed:
             self._session = async_get_clientsession(self.hass, VERIFY_SSL)
@@ -100,15 +133,24 @@ class WebApi:
             else:
                 async with self._session.request(method, url, **kwargs) as resp:
                     if 400 <= resp.status < 500:
-                        try:
-                            error = await resp.text()
-                            error_json = json.loads(error)
-                            if error_json:
-                                error_message = f"Error requesting: {url} - {resp.status} -  {error_json['code']} - {error_json['errors']}"
-                            else:
+                        # Handle 418 specifically
+                        if resp.status == 418:
+                            error_message = f"Server returned 418 (I'm a teapot) for {url}. This usually indicates an authentication issue or that the server is blocking the request."
+                        else:
+                            try:
+                                error = await resp.text()
+                                try:
+                                    error_json = json.loads(error)
+                                    if error_json:
+                                        error_message = f'Error requesting: {url} - {resp.status} - {error_json.get("code", "unknown")} - {error_json.get("errors", "unknown")}'
+                                    else:
+                                        error_message = f"Error requesting: {url} - {resp.status} - 0 - {error}"
+                                except json.JSONDecodeError:
+                                    # Log headers for debugging 418 errors
+                                    headers_debug = ", ".join([f"{k}: {v}" for k, v in resp.headers.items()])
+                                    error_message = f"Non-JSON response from {url} - Status: {resp.status} - Headers: {headers_debug} - Body: {error[:200]}"
+                            except (json.JSONDecodeError, KeyError):
                                 error_message = f"Error requesting: {url} - {resp.status} - 0 - {error}"
-                        except (json.JSONDecodeError, KeyError):
-                            error_message = f"Error requesting: {url} - {resp.status} - 0 - {error}"
 
                         LOGGER.error(error_message) if not ignore_errors else LOGGER.info(error_message)
                     else:
@@ -128,17 +170,13 @@ class WebApi:
         except Exception:
             LOGGER.debug(traceback.format_exc())
 
-    async def get_config(self):
-        """Get standard user information."""
-        return await self._request("get", "/v1/config")
-
     async def get_user(self):
         """Get standard user information."""
         return await self._request("get", "/v1/user")
 
     async def get_user_info(self):
         """Get all devices associated with an API key."""
-        return await self._request("get", "/v2/vehicles")
+        return await self._request("get", "/v1/vehicles")
 
     async def get_car_capabilities(self, vin: str):
         """Get all car capabilities associated with an vin."""
@@ -195,11 +233,6 @@ class WebApi:
         url = f"/v1/geofencing/vehicles/{vin}/fences/violations"
         return await self._request("get", url, rcp_headers=False, ignore_errors=True)
 
-    async def get_fleet_info(self, company: str, fleet: str):
-        """Get fleet information."""
-        url = f"/v1/company/{company}/fleet/{fleet}?size=100&filter="
-        return await self._request("get", url, rcp_headers=False, ignore_errors=True)
-
     async def is_car_rcp_supported(self, vin: str, **kwargs):
         """Return if is car rcp supported."""
         token = await self._oauth.async_get_cached_token()
@@ -210,6 +243,7 @@ class WebApi:
 
         kwargs.setdefault("headers", headers)
         kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", self.ssl_context)
 
         url = f"{helper.PSAG_url(self._region)}/api/app/v2/vehicles/{vin}/profileInformation"
 

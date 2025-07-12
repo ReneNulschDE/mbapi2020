@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from datetime import datetime
 import logging
+import ssl
 import uuid
 
 from aiohttp import ClientSession, WSMsgType, WSServerHandshakeError, client_exceptions
@@ -29,14 +30,13 @@ from .const import (
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_PA,
-    WEBSOCKET_USER_AGENT_US,
 )
 from .helper import UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
 DEFAULT_WATCHDOG_TIMEOUT = 30
-DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 300
+DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 120
 PING_WATCHDOG_TIMEOUT = 30
 RECONNECT_WATCHDOG_TIMEOUT = 60
 STATE_CONNECTED = "connected"
@@ -47,6 +47,8 @@ LOGGER = logging.getLogger(__name__)
 
 class Websocket:
     """Define the websocket."""
+
+    ssl_context: ssl.SSLContext | bool = VERIFY_SSL
 
     def __init__(
         self, hass, oauth, region, session_id=str(uuid.uuid4()).upper(), ignition_states: dict[str, bool] = {}
@@ -71,13 +73,12 @@ class Websocket:
             self.ping, topic="Ping", timeout_seconds=PING_WATCHDOG_TIMEOUT, log_events=False
         )
         self._reconnectwatchdog: Watchdog = Watchdog(
-            self._reconnect_attempt, topic="Reconnect", timeout_seconds=RECONNECT_WATCHDOG_TIMEOUT, log_events=True
+            self.async_connect, topic="Reconnect", timeout_seconds=RECONNECT_WATCHDOG_TIMEOUT, log_events=True
         )
         self.component_reload_watcher: Watchdog = Watchdog(
             self._blocked_account_reload_check, 30, "Blocked_account_reload", False
         )
         self._queue = asyncio.Queue()
-        self._queue_shutdown_sentinel = object()  # Sentinel für graceful shutdown
         self.session_id = session_id
         self._ignition_states: dict[str, bool] = ignition_states
         self.ws_connect_retry_counter_reseted: bool = False
@@ -85,23 +86,12 @@ class Websocket:
         self.account_blocked: bool = False
         self.ws_blocked_connection_error_logged = False
 
-        self._queue_task: asyncio.Task = None
-        self._websocket_task: asyncio.Task = None
-        self._relogin_429_done: bool = False
-
-    async def _reconnect_attempt(self) -> None:
-        """Attempt reconnection without cancelling the reconnect watchdog."""
-        LOGGER.debug("Starting reconnect attempt")
-        await self._async_connect_internal()
+        if isinstance(VERIFY_SSL, str):
+            self.ssl_context = ssl.create_default_context(cafile=VERIFY_SSL)
 
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
-        # Cancel reconnect watchdog for manual connections
-        self._reconnectwatchdog.cancel()
-        await self._async_connect_internal(on_data)
 
-    async def _async_connect_internal(self, on_data=None) -> None:
-        """Internal connect method without cancelling reconnect watchdog."""
         if self.is_connecting:
             return
 
@@ -114,6 +104,7 @@ class Websocket:
 
         self.is_connecting = True
         self.is_stopping = False
+        self._reconnectwatchdog.cancel()
 
         if not self.ha_stop_handler:
             self.ha_stop_handler = self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_handler)
@@ -121,18 +112,12 @@ class Websocket:
 
         session = async_get_clientsession(self._hass, VERIFY_SSL)
 
-        # Tasks erstellen und verwalten
-        self._queue_task = asyncio.create_task(self._start_queue_handler())
-        self._websocket_task = asyncio.create_task(self._start_websocket_handler(session))
+        # Tasks erstellen
+        queue_task = asyncio.create_task(self._start_queue_handler())
+        websocket_task = asyncio.create_task(self._start_websocket_handler(session))
 
-        # Warten, dass Tasks laufen - mit ordnungsgemäßer Exception-Behandlung
-        try:
-            await asyncio.gather(self._queue_task, self._websocket_task, return_exceptions=True)
-        except Exception as e:
-            LOGGER.debug("async_connect tasks finished with exception: %s", e)
-        finally:
-            # Sicherstellen, dass Tasks ordnungsgemäß beendet werden
-            await self._cleanup_tasks()
+        # Warten, dass Tasks laufen
+        await asyncio.gather(queue_task, websocket_task)
 
     async def async_stop(self, now: datetime = datetime.now()):
         """Close connection."""
@@ -141,18 +126,8 @@ class Websocket:
         self._pingwatchdog.cancel()
         self.connection_state = "closed"
 
-        # Signal queue handler to stop gracefully
-        try:
-            self._queue.put_nowait(self._queue_shutdown_sentinel)
-        except asyncio.QueueFull:
-            LOGGER.warning("Queue full during shutdown, forcing queue cleanup")
-            await self._cleanup_queue()
-
         if self._connection is not None:
             await self._connection.close()
-
-        # Tasks ordnungsgemäß beenden
-        await self._cleanup_tasks()
 
     async def initiatiate_connection_disconnect_with_reconnect(self):
         """Initiate a connection disconnect."""
@@ -203,74 +178,42 @@ class Websocket:
             ) from err
 
     async def _start_queue_handler(self):
-        """Start the queue handler - entry point for the task."""
-        await self._queue_handler()
+        while not self.is_stopping:
+            await self._queue_handler()
 
     async def _queue_handler(self):
         while not self.is_stopping:
+            data = await self._queue.get()
+
             try:
-                # Timeout für graceful shutdown
-                data = await asyncio.wait_for(self._queue.get(), timeout=1.0)
-
-                # Check for shutdown sentinel
-                if data is self._queue_shutdown_sentinel:
-                    LOGGER.debug("Queue handler received shutdown signal")
-                    self._queue.task_done()
-                    break
-
-                try:
-                    message = vehicle_events_pb2.PushMessage()
-                    message.ParseFromString(data)
-                except TypeError as err:
-                    LOGGER.error("could not decode data (%s) from websocket: %s", data, err)
-                    self._queue.task_done()
-                    continue
-
-                if message is None:
-                    self._queue.task_done()
-                    continue
-
-                LOGGER.debug("Got notification: %s", message.WhichOneof("msg"))
-
-                try:
-                    ack_message = self._on_data_received(message)
-                    if ack_message:
-                        if isinstance(ack_message, str):
-                            await self.call(bytes.fromhex(ack_message))
-                        else:
-                            await self.call(ack_message.SerializeToString())
-                except Exception as err:
-                    LOGGER.error("Error processing queue message: %s", err)
-
-                self._queue.task_done()
-
-            except asyncio.TimeoutError:
-                # Timeout ist normal - weiter prüfen ob stopping
-                continue
-            except asyncio.CancelledError:
-                LOGGER.debug("Queue handler cancelled")
-                break
-            except Exception as err:
-                LOGGER.error("Unexpected error in queue handler: %s", err)
+                message = vehicle_events_pb2.PushMessage()
+                message.ParseFromString(data)
+            except TypeError as err:
+                LOGGER.error("could not decode data (%s) from websocket: %s", data, err)
                 break
 
-        LOGGER.debug("Queue handler stopped")
+            if message is None:
+                break
+            LOGGER.debug("Got notification: %s", message.WhichOneof("msg"))
+            ack_message = self._on_data_received(message)
+            if ack_message:
+                if isinstance(ack_message, str):
+                    await self.call(bytes.fromhex(ack_message))
+                else:
+                    await self.call(ack_message.SerializeToString())
+
+            self._queue.task_done()
 
     async def _start_websocket_handler(self, session: ClientSession):
         retry_in: int = 10
 
-        LOGGER.debug(
-            "_start_websocket_handler: %s (is_stopping: %s, session.closed: %s)",
-            self.oauth._config_entry.entry_id,
-            self.is_stopping,
-            session.closed,
-        )
-
         while not self.is_stopping and not session.closed:
+            LOGGER.debug("_start_websocket_handler: %s", self.oauth._config_entry.entry_id)
+
             try:
                 await self.component_reload_watcher.trigger()
                 await self._websocket_handler(session)
-            except client_exceptions.ClientConnectionError as cce:  # noqa: PERF203
+            except client_exceptions.ClientConnectionError as cce:
                 LOGGER.error("Could not connect: %s, retry in %s seconds...", cce, retry_in)
                 LOGGER.debug(cce)
                 self.connection_state = STATE_RECONNECTING
@@ -286,37 +229,12 @@ class Websocket:
                 self.ws_connect_retry_counter += 1
             except WSServerHandshakeError as error:
                 if not self.ws_blocked_connection_error_logged:
-                    LOGGER.warning(
-                        "MB-API access blocked. (First Message, expect a re-login) %s, retry in %s seconds...",
-                        error,
-                        retry_in,
-                    )
+                    LOGGER.error("MB-API access blocked. %s, retry in %s seconds...", error, retry_in)
                     self.ws_blocked_connection_error_logged = True
                 else:
-                    LOGGER.warning("WSS Connection blocked: %s, retry in %s seconds...", error, retry_in)
-
+                    LOGGER.info("WSS Connection blocked: %s, retry in %s seconds...", error, retry_in)
                 if "429" in str(error.code):
                     self.account_blocked = True
-
-                    if not self._relogin_429_done:
-                        config_entry = getattr(self.oauth, "_config_entry", None)
-                        if config_entry and "password" in config_entry.data:
-                            password = config_entry.data["password"]
-                            username = config_entry.data.get("username")
-                            region = config_entry.data.get("region")
-                            if username and password and hasattr(self.oauth, "async_login_new"):
-                                LOGGER.warning(
-                                    "429 detected: Trying relogin with stored password for user %s", username
-                                )
-                                try:
-                                    token_info = await self.oauth.async_login_new(username, password)
-                                    LOGGER.info("Relogin successful after 429 for user %s", username)
-                                    # Token im config_entry aktualisieren, falls nötig
-                                    self._relogin_429_done = True
-                                except Exception as relogin_err:
-                                    LOGGER.error("Relogin after 429 failed: %s", relogin_err)
-                                    self._relogin_429_done = True  # Auch bei Fehler nicht nochmal versuchen
-
                 self.ws_connect_retry_counter += 1
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)
@@ -329,7 +247,12 @@ class Websocket:
         websocket_url = helper.Websocket_url(self._region)
 
         kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", self.ssl_context)
         kwargs.setdefault("headers", await self._websocket_connection_headers())
+
+        # kwargs["headers"]["Ris-Os-Name"] = "manual_test"
+        # kwargs["headers"]["X-Applicationname"] = "mycar-store-ece-watchapp"
+        # kwargs["headers"]["Ris-Application-Version"] = "1.51.0 (2578)"
 
         self.is_connecting = True
         LOGGER.debug("Connecting to %s", websocket_url)
@@ -366,13 +289,13 @@ class Websocket:
             "OUTPUT-FORMAT": "PROTO",
             "X-SessionId": self.session_id,
             "X-TrackingId": str(uuid.uuid4()).upper(),
-            "ris-os-name": RIS_OS_NAME,
-            "ris-os-version": RIS_OS_VERSION,
-            # "ris-websocket-type": "ios-native",
-            "ris-sdk-version": RIS_SDK_VERSION,
+            "RIS-OS-Name": RIS_OS_NAME,
+            "RIS-OS-Version": RIS_OS_VERSION,
+            "ris-websocket-type": "ios-native",
+            "RIS-SDK-Version": RIS_SDK_VERSION,
             "X-Locale": "de-DE",
             "User-Agent": WEBSOCKET_USER_AGENT,
-            # "Accept-Language": " de-DE,de;q=0.9",
+            "Accept-Language": " de-DE,de;q=0.9",
         }
 
         return self._get_region_header(header)
@@ -385,10 +308,6 @@ class Websocket:
         if self._region == REGION_NORAM:
             header["X-ApplicationName"] = "mycar-store-us"
             header["ris-application-version"] = RIS_APPLICATION_VERSION_NA
-            header["User-Agent"] = WEBSOCKET_USER_AGENT_US
-            header["X-Locale"] = "en-US"
-            header["Accept-Encoding"] = "gzip"
-            header["Sec-WebSocket-Extensions"] = "permessage-deflate"
 
         if self._region == REGION_APAC:
             header["X-ApplicationName"] = "mycar-store-ap"
@@ -403,53 +322,7 @@ class Websocket:
             self.ws_connect_retry_counter_reseted = False
 
             LOGGER.info("Initiating component reload after account got unblocked...")
-            self._hass.config_entries.async_schedule_reload(self.oauth._config_entry.entry_id)
+            self._hass.async_create_task(self._hass.config_entries.async_reload(self.oauth._config_entry.entry_id))
 
         elif self.account_blocked and not self.ws_connect_retry_counter_reseted:
             await self.component_reload_watcher.trigger()
-
-    async def _cleanup_tasks(self):
-        """Cleanup running tasks properly."""
-        tasks_to_cancel = []
-
-        if self._queue_task and not self._queue_task.done():
-            tasks_to_cancel.append(self._queue_task)
-            LOGGER.debug("Cancelling _queue_task")
-
-        if self._websocket_task and not self._websocket_task.done():
-            tasks_to_cancel.append(self._websocket_task)
-            LOGGER.debug("Cancelling _websocket_task")
-
-        if tasks_to_cancel:
-            for task in tasks_to_cancel:
-                task.cancel()
-
-            # Warten auf ordnungsgemäße Beendigung mit Timeout
-            try:
-                await asyncio.wait_for(asyncio.gather(*tasks_to_cancel, return_exceptions=True), timeout=5.0)
-            except asyncio.TimeoutError:
-                LOGGER.warning("Some websocket tasks did not terminate within 5 seconds")
-
-        # Queue bereinigen
-        await self._cleanup_queue()
-
-        # Task-Referenzen zurücksetzen
-        self._queue_task = None
-        self._websocket_task = None
-
-    async def _cleanup_queue(self):
-        """Cleanup remaining queue items."""
-        cleanup_count = 0
-        try:
-            while not self._queue.empty():
-                try:
-                    self._queue.get_nowait()
-                    self._queue.task_done()
-                    cleanup_count += 1
-                except asyncio.QueueEmpty:
-                    break
-        except Exception as err:
-            LOGGER.error("Error cleaning up queue: %s", err)
-
-        if cleanup_count > 0:
-            LOGGER.debug("Cleaned up %d remaining queue items", cleanup_count)

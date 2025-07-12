@@ -39,7 +39,11 @@ REGION_NORAM = "North America"
 REGION_APAC = "Asia-Pacific"
 REGION_CHINA = "China"
 
-CONF_ALLOWED_REGIONS = [REGION_EUROPE, REGION_NORAM, REGION_APAC]
+AUTH_METHOD_PIN = "Email/Pin"
+AUTH_METHOD_DEVICE_CODE = "QR-Code"
+
+CONF_ALLOWED_REGIONS = [REGION_EUROPE, REGION_NORAM, REGION_APAC, REGION_CHINA]
+CONF_ALLOWED_AUTH_METHODS = [AUTH_METHOD_PIN, AUTH_METHOD_DEVICE_CODE]
 CONF_LOCALE = "locale"
 CONF_COUNTRY_CODE = "country_code"
 CONF_EXCLUDED_CARS = "excluded_cars"
@@ -52,9 +56,6 @@ CONF_FT_DISABLE_CAPABILITY_CHECK = "cap_check_disabled"
 CONF_DELETE_AUTH_FILE = "delete_auth_file"
 CONF_ENABLE_CHINA_GCJ_02 = "enable_china_gcj_02"
 CONF_AUTH_METHOD = "auth_method"
-CONF_ACCESS_TOKEN = "access_token"
-CONF_REFRESH_TOKEN = "refresh_token"
-CONF_OVERWRITE_PRECONDNOW = "overwrite_cap_precondnow"
 
 DOMAIN = "mbapi2020"
 LOGGER = logging.getLogger(__package__)
@@ -88,14 +89,14 @@ JSON_EXPORT_IGNORED_KEYS = (
 )
 
 
-RIS_APPLICATION_VERSION_NA = "3.57.0"
-RIS_APPLICATION_VERSION_CN = "1.57.0"
-RIS_APPLICATION_VERSION_PA = "1.57.0"
-RIS_APPLICATION_VERSION = "1.57.0"
-RIS_SDK_VERSION = "3.55.0"
+RIS_APPLICATION_VERSION_NA = "3.51.0"
+RIS_APPLICATION_VERSION_CN = "1.51.0"
+RIS_APPLICATION_VERSION_PA = "1.51.0"
+RIS_APPLICATION_VERSION = "1.51.0"
+RIS_SDK_VERSION = "2.132.2"
 RIS_SDK_VERSION_CN = "2.132.2"
-RIS_OS_VERSION = "10"
-RIS_OS_NAME = "android"
+RIS_OS_VERSION = "17.4.1"
+RIS_OS_NAME = "ios"
 X_APPLICATIONNAME = "mycar-store-ece"
 X_APPLICATIONNAME_ECE = "mycar-store-ece"
 X_APPLICATIONNAME_CN = "mycar-store-cn"
@@ -106,16 +107,23 @@ USE_PROXY = False
 VERIFY_SSL = True
 SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:9090"
 
+
+LOGIN_APP_ID = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
+LOGIN_APP_ID_EU = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
+LOGIN_APP_ID_CN = "3f36efb1-f84b-4402-b5a2-68a118fec33e"
 LOGIN_BASE_URI = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_CN = "https://ciam-1.mercedes-benz.com.cn"
+LOGIN_BASE_URI_NA = "https://id.mercedes-benz.com"
+LOGIN_BASE_URI_PA = "https://id.mercedes-benz.com"
 PSAG_BASE_URI = "https://psag.query.api.dvb.corpinter.net"
 PSAG_BASE_URI_CN = "https://psag.query.api.dvb.corpinter.net.cn"
 RCP_BASE_URI = "https://rcp-rs.query.api.dvb.corpinter.net"
 RCP_BASE_URI_CN = "https://rcp-rs.query.api.dvb.corpinter.net.cn"
 REST_API_BASE = "https://bff.emea-prod.mobilesdk.mercedes-benz.com"
-REST_API_BASE_CN = "https://bff.cn-prod.mobilesdk.mercedes-benz.com"
+REST_API_BASE_CN = "https://bff.mobileapp.mercedes-benz.com.cn"
 REST_API_BASE_NA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
 REST_API_BASE_PA = "https://bff.amap-prod.mobilesdk.mercedes-benz.com"
+DEVICE_TOKEN_URL = "https://link.emea-prod.mobilesdk.mercedes-benz.com/device-login?userCode={userCode}deviceType=watch"
 
 WEBSOCKET_API_BASE = "wss://websocket.emea-prod.mobilesdk.mercedes-benz.com/v2/ws"
 WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v2/ws"
@@ -124,10 +132,7 @@ WEBSOCKET_API_BASE_CN = "wss://websocket.cn-prod.mobilesdk.mercedes-benz.com/v2/
 WEBSOCKET_USER_AGENT = "MyCar/2168 CFNetwork/1494.0.7 Darwin/23.4.0"
 WEBSOCKET_USER_AGENT_CN = "MyStarCN/1.47.0 (com.daimler.ris.mercedesme.cn.ios; build:1758; iOS 16.3.1) Alamofire/5.4.0"
 WEBSOCKET_USER_AGENT_PA = (
-    f"mycar-store-ap {RIS_APPLICATION_VERSION}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
-)
-WEBSOCKET_USER_AGENT_US = (
-    f"mycar-store-us v{RIS_APPLICATION_VERSION_NA}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
+    f"mycar-store-ap v{RIS_APPLICATION_VERSION}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
 )
 WIDGET_API_BASE = "https://widget.emea-prod.mobilesdk.mercedes-benz.com"
 WIDGET_API_BASE_NA = "https://widget.amap-prod.mobilesdk.mercedes-benz.com"
@@ -228,10 +233,6 @@ SERVICE_VIN_CHARGE_PROGRAM_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
         vol.Required("charge_program", default=0): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),
-        vol.Optional("max_soc", default=None): vol.Any(
-            None,
-            vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),
-        ),
     }
 )
 SERVICE_WINDOWS_MOVE_SCHEMA = vol.Schema(
@@ -420,6 +421,20 @@ SERVICE_PRECONDITIONING_CONFIGURE_SEATS_SCHEMA = vol.Schema(
 
 ATTR_MB_MANUFACTURER = "Mercedes Benz"
 
+# "internal_name":[ 0 Display_Name
+#                   1 unit_of_measurement,
+#                   2 object in car.py
+#                   3 attribute in car.py
+#                   4 value field
+#                   5 unused --> None (for capabilities check in the future)
+#                   6 [list of extended attributes]
+#                   7 icon
+#                   8 device_class
+#                   9 invert boolean value - Default: False
+#                   10 entity_category
+#                   11 Default Value Mode (for now: None, 0)
+# ]
+
 
 BinarySensors = {
     "liquidRangeCritical": [
@@ -433,7 +448,6 @@ BinarySensors = {
         "mdi:gas-station",
         BinarySensorDeviceClass.PROBLEM,
         False,
-        None,
         None,
         None,
         None,
@@ -452,7 +466,6 @@ BinarySensors = {
         None,
         None,
         None,
-        None,
     ],
     "warningwashwater": [
         "Low Wash Water Warning",
@@ -468,7 +481,6 @@ BinarySensors = {
         None,
         None,
         None,
-        None,
     ],
     "warningcoolantlevellow": [
         "Low Coolant Level Warning",
@@ -481,7 +493,6 @@ BinarySensors = {
         "mdi:oil-level",
         BinarySensorDeviceClass.PROBLEM,
         False,
-        None,
         None,
         None,
         None,
@@ -505,7 +516,6 @@ BinarySensors = {
         None,
         None,
         None,
-        None,
     ],
     "parkbrakestatus": [
         "Park Brake Status",
@@ -518,7 +528,6 @@ BinarySensors = {
         "mdi:car-brake-parking",
         None,
         False,
-        None,
         None,
         None,
         None,
@@ -543,7 +552,6 @@ BinarySensors = {
         "mdi:car-door",
         None,
         False,
-        None,
         None,
         None,
         None,
@@ -573,7 +581,6 @@ BinarySensors = {
         None,
         None,
         None,
-        None,
     ],
     "remoteStartActive": [
         "Remote Start Active",
@@ -586,7 +593,6 @@ BinarySensors = {
         "mdi:engine-outline",
         None,
         False,
-        None,
         None,
         None,
         None,
@@ -605,7 +611,6 @@ BinarySensors = {
         None,
         None,
         None,
-        None,
     ],
     "chargeflapacstatus": [
         "Charge Flap AC Status",
@@ -618,7 +623,6 @@ BinarySensors = {
         None,
         BinarySensorDeviceClass.DOOR,
         True,
-        None,
         None,
         None,
         None,
@@ -655,7 +659,6 @@ BinarySensors = {
         None,
         None,
         None,
-        None,
     ],
     "theftsystemarmed": [
         "Theft system armed",
@@ -689,7 +692,6 @@ BinarySensors = {
         None,
         None,
         None,
-        None,
     ],
 }
 
@@ -708,7 +710,6 @@ BUTTONS = {
         None,
         None,
         None,
-        None,
     ],
     "btn_preheat_stop_now": [
         "Preclimate stop",
@@ -724,7 +725,6 @@ BUTTONS = {
         None,
         None,
         None,
-        None,
     ],
     "btn_sigpos_start_now": [
         "Signal position",
@@ -737,7 +737,6 @@ BUTTONS = {
         "mdi:flashlight",
         None,
         False,
-        None,
         None,
         None,
         None,
@@ -760,7 +759,6 @@ DEVICE_TRACKER = {
         None,
         None,
         None,
-        None,
     ]
 }
 
@@ -779,7 +777,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         "Zero",
-        1,
     ],
     "rcp_features": [
         "RCP Features",
@@ -793,7 +790,6 @@ SENSORS = {
         None,
         False,
         EntityCategory.DIAGNOSTIC,
-        None,
         None,
         None,
     ],
@@ -820,7 +816,6 @@ SENSORS = {
         EntityCategory.DIAGNOSTIC,
         None,
         None,
-        0,
     ],
     "departuretime": [
         "Departure time",
@@ -833,7 +828,6 @@ SENSORS = {
         "mdi:clock-out",
         None,
         False,
-        None,
         None,
         None,
         None,
@@ -871,7 +865,6 @@ SENSORS = {
         None,
         None,
         None,
-        None,
     ],
     "rangeElectricKm": [
         "Range Electric",
@@ -897,7 +890,6 @@ SENSORS = {
             "selectedChargeProgram",
             "electricRatioStart",
             "electricRatioOverall",
-            "electricRatioReset",
         },
         "mdi:ev-station",
         SensorDeviceClass.DISTANCE,
@@ -905,7 +897,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "electricconsumptionstart": [
         "Electric consumption start",
@@ -921,7 +912,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         "Zero",
-        1,
     ],
     "electricconsumptionreset": [
         "Electric consumption reset",
@@ -937,7 +927,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        1,
     ],
     "soc": [
         "State of Charge",
@@ -953,7 +942,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "max_soc": [
         "Max State of Charge",
@@ -969,7 +957,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "auxheatstatus": [
         "Auxheat Status",
@@ -996,7 +983,6 @@ SENSORS = {
         None,
         None,
         None,
-        None,
     ],
     "tanklevelpercent": [
         "Fuel Level",
@@ -1012,7 +998,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "tankleveladblue": [
         "AdBlue Level",
@@ -1028,7 +1013,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "odometer": [
         "Odometer",
@@ -1057,7 +1041,6 @@ SENSORS = {
         None,
         SensorStateClass.TOTAL_INCREASING,
         None,
-        0,
     ],
     "averageSpeedStart": [
         "Average speed start",
@@ -1073,7 +1056,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "averageSpeedReset": [
         "Average speed reset",
@@ -1089,7 +1071,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "distanceReset": [
         "Distance reset",
@@ -1105,7 +1086,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "distanceStart": [
         "Distance start",
@@ -1121,7 +1101,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "distanceZEReset": [
         "Distance zero-emission reset",
@@ -1137,7 +1116,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "distanceZEStart": [
         "Distance zero-emission start",
@@ -1153,7 +1131,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "ecoscoretotal": [
         "Eco score total",
@@ -1168,7 +1145,6 @@ SENSORS = {
         False,
         None,
         SensorStateClass.MEASUREMENT,
-        None,
         None,
     ],
     "ecoscorefreewhl": [
@@ -1185,7 +1161,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "ecoscorebonusrange": [
         "Eco score bonus range",
@@ -1201,7 +1176,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "ecoscoreconst": [
         "Eco score constant",
@@ -1217,7 +1191,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "ecoscoreaccel": [
         "Eco score acceleration",
@@ -1233,7 +1206,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "liquidconsumptionstart": [
         "Liquid consumption start",
@@ -1249,7 +1221,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        1,
     ],
     "liquidconsumptionreset": [
         "Liquid consumption reset",
@@ -1265,7 +1236,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        1,
     ],
     "rangeliquid": [
         "Range liquid",
@@ -1281,7 +1251,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "starterBatteryState": [
         "Starter Battery State",
@@ -1294,7 +1263,6 @@ SENSORS = {
         "mdi:car-battery",
         None,
         False,
-        None,
         None,
         None,
         None,
@@ -1313,7 +1281,6 @@ SENSORS = {
         None,
         None,
         None,
-        None,
     ],
     "oilLevel": [
         "Oil Level",
@@ -1329,7 +1296,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        0,
     ],
     "tirepressureRearLeft": [
         "Tire pressure rear left",
@@ -1345,7 +1311,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        1,
     ],
     "tirepressureRearRight": [
         "Tire pressure rear right",
@@ -1361,7 +1326,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        1,
     ],
     "tirepressureFrontRight": [
         "Tire pressure front right",
@@ -1377,7 +1341,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        1,
     ],
     "tirepressureFrontLeft": [
         "Tire pressure front left",
@@ -1393,7 +1356,6 @@ SENSORS = {
         None,
         SensorStateClass.MEASUREMENT,
         None,
-        1,
     ],
     "tirewarningsrdk": [
         "Tires RDK state",
@@ -1406,7 +1368,6 @@ SENSORS = {
         "mdi:car-tire-alert",
         None,
         False,
-        None,
         None,
         None,
         None,
@@ -1428,7 +1389,6 @@ SENSORS = {
         None,
         None,
         None,
-        None,
     ],
     "interiorProtectionSensorStatus": [
         "Interior Protection",
@@ -1441,7 +1401,6 @@ SENSORS = {
         None,
         SensorDeviceClass.DATE,
         False,
-        None,
         None,
         None,
         None,
@@ -1460,7 +1419,6 @@ SENSORS = {
         None,
         None,
         None,
-        None,
     ],
     "chargeflapdcstatus": [
         "Charge Flap DC Status",
@@ -1473,7 +1431,6 @@ SENSORS = {
         None,
         None,
         False,
-        None,
         None,
         None,
         None,
@@ -1492,7 +1449,6 @@ SENSORS = {
         EntityCategory.DIAGNOSTIC,
         None,
         None,
-        None,
     ],
     "endofchargetime": [
         "End of charge",
@@ -1505,7 +1461,6 @@ SENSORS = {
         "mdi:ev-station",
         None,
         False,
-        None,
         None,
         None,
         None,
@@ -1526,7 +1481,6 @@ SENSORS = {
         None,
         None,
         None,
-        0,
     ],
 }
 
@@ -1537,12 +1491,11 @@ LOCKS = {
         "doors",
         "doorLockStatusOverall",
         "value",
-        "DOORS_LOCK",
+        None,
         {},
         None,
         None,
         False,
-        None,
         None,
         None,
         None,
@@ -1561,7 +1514,6 @@ SENSORS_POLL = {
         "mdi:map-marker-radius",
         None,
         False,
-        None,
         None,
         None,
         None,
@@ -1612,7 +1564,6 @@ class SensorConfigFields(Enum):
     #                   10 entity_category - Default: None
     #                   11 state_class - Default: None
     #                   12 default_value_mode - Default: None
-    #                   13 suggested_display_precision - Default: None
     # ]
     DISPLAY_NAME = 0
     UNIT_OF_MEASUREMENT = 1
@@ -1627,7 +1578,6 @@ class SensorConfigFields(Enum):
     ENTITY_CATEGORY = 10
     STATE_CLASS = 11
     DEFAULT_VALUE_MODE = 12
-    SUGGESTED_DISPLAY_PRECISION = 13
 
 
 class DefaultValueModeType(StrEnum):

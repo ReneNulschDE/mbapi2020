@@ -120,6 +120,9 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
         elif self._internal_name == "chargingpowerkw":
             if self._state and isinstance(self._state, (int, float)):
                 return round(float(self._state), 1)
+        elif self._internal_name == "windowStatusOverall":
+            # Invert state: True means windows are closed, False means open
+            return not self._state
 
         return self._state
 

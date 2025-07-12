@@ -18,7 +18,6 @@ from custom_components.mbapi2020.proto import client_pb2
 import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import system_info
 
 from .car import (
@@ -73,7 +72,6 @@ class Client:
 
     long_running_operation_active: bool = False
     ignition_states: dict[str, bool] = {}
-    account_blocked: bool = False
 
     def __init__(
         self,
@@ -254,11 +252,63 @@ class Client:
         return None
 
     async def attempt_connect(self, callback_dataload_complete):
-        """Attempt to connect to the socket."""
+        """Attempt to connect to the socket (retrying later on fail)."""
         LOGGER.debug("attempt_connect")
+        stop_retry_loop: bool = False
 
         self._on_dataload_complete = callback_dataload_complete
-        await self.websocket.async_connect(self.on_data)
+        while not stop_retry_loop and not self.websocket.is_stopping:
+            try:
+                if self.websocket.ws_connect_retry_counter == 0:
+                    await self.websocket.async_connect(self.on_data)
+                else:
+                    wait_time = (
+                        self._ws_reconnect_delay
+                        * self.websocket.ws_connect_retry_counter
+                        * self.websocket.ws_connect_retry_counter
+                    )
+                    LOGGER.debug(
+                        "Websocket reconnect handler loop - round %s - waiting %s sec",
+                        self.websocket.ws_connect_retry_counter,
+                        wait_time,
+                    )
+                    await asyncio.sleep(wait_time)
+
+                    await self.websocket.component_reload_watcher.trigger()
+
+                    await self.websocket.async_connect(self.on_data)
+            except WSServerHandshakeError as err:
+                if self.websocket.is_stopping:
+                    stop_retry_loop = True
+                    break
+                LOGGER.error(
+                    "Error with the websocket connection (retry counter: %s): %s - %s",
+                    self.websocket.ws_connect_retry_counter,
+                    err.code,
+                    err.message,
+                )
+                self.websocket.ws_connect_retry_counter += 1
+            except Exception as err:
+                if self.websocket.is_stopping:
+                    stop_retry_loop = True
+                    break
+
+                LOGGER.error(
+                    "Unkown error with the websocket connection (retry counter: %s): %s",
+                    self.websocket.ws_connect_retry_counter,
+                    err,
+                    exc_info=err,
+                )
+                self.websocket.ws_connect_retry_counter += 1
+            if self.websocket.is_stopping:
+                LOGGER.info("Client WS Handler loop - stopping")
+                stop_retry_loop = True
+                break
+
+            LOGGER.info(
+                "Client WS Handler loop - loop end round %s",
+                self.websocket.ws_connect_retry_counter - 1,
+            )
 
     def _build_car(self, received_car_data, update_mode):
         if received_car_data.get("vin") in self.excluded_cars:
@@ -381,7 +431,6 @@ class Client:
         # Define handlers for specific options and the generic case
         option_handlers = {
             "max_soc": self._get_car_values_handle_max_soc,
-            "chargePrograms": self._get_car_values_handle_chargePrograms,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
             "ignitionstate": self._get_car_values_handle_ignitionstate,
             "precondStatus": self._get_car_values_handle_precond_status,
@@ -485,28 +534,6 @@ class Client:
                 )
 
         return None
-
-    def _get_car_values_handle_chargePrograms(self, car_detail, class_instance, option, update):
-        attributes = car_detail.get("attributes", {})
-        curr = attributes.get(option)
-        if not curr:
-            return None
-
-        charge_programs_value = curr.get("charge_programs_value", {})
-        value = charge_programs_value.get("charge_program_parameters", [])
-        if not value:
-            return None
-
-        status = curr.get("status", "VALID")
-        time_stamp = curr.get("timestamp", 0)
-
-        return CarAttribute(
-            value=value,
-            retrievalstatus=status,
-            timestamp=time_stamp,
-            display_value=None,
-            unit=None,
-        )
 
     def _get_car_values_handle_charging_break_clock_timer(self, car_detail, class_instance, option, update):
         attributes = car_detail.get("attributes", {})
@@ -766,12 +793,14 @@ class Client:
 
                                 current_car.publish_updates()
 
-    async def charge_program_configure(self, vin: str, program: int, max_soc: None | int = None) -> None:
+    async def charge_program_configure(self, vin: str, program: int):
         """Send the selected charge program to the car."""
         if not self._is_car_feature_available(vin, "CHARGE_PROGRAM_CONFIGURE"):
-            raise ServiceValidationError(
-                "Can't set the charge program. Feature CHARGE_PROGRAM_CONFIGURE not availabe for this car."
+            LOGGER.warning(
+                "Can't set the charge program of the  car %s. Feature CHARGE_PROGRAM_CONFIGURE not availabe for this car.",
+                loghelper.Mask_VIN(vin),
             )
+            return
 
         LOGGER.debug("Start charge_program_configure")
         message = client_pb2.ClientMessage()
@@ -779,29 +808,10 @@ class Client:
         message.commandRequest.request_id = str(uuid.uuid4())
         charge_programm = pb2_commands.ChargeProgramConfigure()
         charge_programm.charge_program = program
-        if max_soc is not None:
-            charge_programm.max_soc.value = max_soc
-        else:
-            try:
-                current_charge_programs = getattr(self.cars.get(vin).electric, "chargePrograms", None)
-                if current_charge_programs:
-                    charge_programm.max_soc.value = current_charge_programs.value[program].get("max_soc")
-            except (KeyError, IndexError, TypeError, AttributeError) as err:
-                LOGGER.warning(
-                    "charge_program_configure - Error: %s - %s",
-                    err,
-                    self.cars.get(vin).electric.__getattribute__("chargePrograms"),
-                )
-
         message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
-        LOGGER.debug(
-            "charge_program_configure - vin: %s - program: %s - max_soc: %s",
-            loghelper.Mask_VIN(vin),
-            charge_programm.charge_program,
-            charge_programm.max_soc.value,
-        )
+
         await self.execute_car_command(message)
-        LOGGER.debug("End charge_program_configure for vin %s", loghelper.Mask_VIN(vin))
+        return
 
     async def charging_break_clocktimer_configure(
         self,
@@ -1664,6 +1674,7 @@ class Client:
                 car.geofence_events = GeofenceEvents()
 
             geofencing_violotions = await self.webapi.get_car_geofencing_violations(car.finorvin)
+            geofencing_violotions = geofencing_violotions.get("geofencingViolations", [])
             if geofencing_violotions and len(geofencing_violotions) > 0:
                 car.geofence_events.last_event_type = CarAttribute(
                     geofencing_violotions[-1].get("type"),

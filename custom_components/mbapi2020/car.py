@@ -104,7 +104,6 @@ ELECTRIC_OPTIONS = [
     "chargeCouplerDCStatus",
     "chargeCouplerACLockStatus",
     "chargeCouplerDCLockStatus",
-    "chargePrograms",
     "chargingactive",
     "chargingBreakClockTimer",
     "chargingstatus",
@@ -118,7 +117,6 @@ ELECTRIC_OPTIONS = [
     "electricconsumptionstart",
     "electricconsumptionreset",
     "electricRatioStart",
-    "electricRatioReset",
     "electricRatioOverall",
     "endofchargetime",
     "endofChargeTimeWeekday",
@@ -215,7 +213,6 @@ class Car:
     geo_fencing_retry_counter: int = 0
     has_geofencing: bool = True
     vehicle_information: dict = {}
-    capabilities: dict[str, Any] = {}
 
     def __init__(self, vin: str):
         """Initialize the Car instance."""
@@ -247,7 +244,6 @@ class Car:
         self.geofence_events = GeofenceEvents()
         self.features = {}
         self.masterdata: dict[str, Any] = {}
-        self.app_configuration: dict[str, Any] = {}
         self.entry_setup_complete = False
         self._update_listeners = set()
 

@@ -10,13 +10,19 @@
       "unknown": "Unknown error. Please check the Home Assistant log for more information."
     },
     "step": {
+      "pin": {
+        "data": {
+          "password": "PIN"
+        },
+        "description": "You have received a PIN code via email. Please enter the PIN code (six numbers)",
+        "title": "Connection setup - PIN"
+      },
       "user": {
         "data": {
           "region": "Region",
-          "username": "MB username (email address)",
-          "password": "Password"
+          "username": "MB username - email address (or mobile phone including country code ex. +44)"
         },
-        "description": "Enter your account details.",
+        "description": "Enter your Mercedes ME login account (email address)",
         "title": "Set up the Mercedes ME 2020 connection"
       }
     }
@@ -46,9 +52,8 @@
           "enable_china_gcj_02": "Enable GCJ-02 translation (China only)",
           "delete_auth_file": "Delete authentication token now. Requires a restart of Home Assistant after save.",
           "excluded_cars": "VINs excluded (comma-sep)",
-          "pin": "Security PIN (to be created in mobile app)",
-          "save_files": "DEBUG ONLY: Enable save server messages to the messages folder",
-          "overwrite_cap_precondnow": "Exp: Overwrite capability precondnow (set to true)"
+          "pin": "Security PIN (to be created in mobile app) - Enter 0 to delete the value from the configuration",
+          "save_files": "DEBUG ONLY: Enable save server messages to the messages folder"
         },
         "description": "Configure your options. Some changes require a restart of Home Assistant.",
         "title": "Mercedes ME 2020 Options"
@@ -143,10 +148,6 @@
         "charge_program": {
           "name": "Charge program",
           "description": "The activated charging program (0=Default, 2=Home, 3=Work)"
-        },
-        "max_soc": {
-          "name": "Max Soc",
-          "description": "The maximum value for the state of charge of the HV battery (Value needs to be between 50 and 100 and divisible by ten)"
         }
       }
     },

@@ -16,7 +16,6 @@ from custom_components.mbapi2020.car import Car, CarAttribute, RcpOptions
 from custom_components.mbapi2020.const import (
     ATTR_MB_MANUFACTURER,
     CONF_ENABLE_CHINA_GCJ_02,
-    CONF_OVERWRITE_PRECONDNOW,
     DOMAIN,
     LOGGER,
     LOGIN_BASE_URI,
@@ -29,9 +28,8 @@ from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.typing import ConfigType
@@ -55,12 +53,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     LOGGER.debug("Start async_setup_entry.")
 
     try:
-        # Version migration
-        if not config_entry.data.get(CONF_PASSWORD):
-            raise ConfigEntryAuthFailed(
-                "Your configuration is outdated. Please reauthenticate with username and password."
-            )
-
         coordinator = MBAPI2020DataUpdateCoordinator(hass, config_entry)
         hass.data.setdefault(DOMAIN, {})[config_entry.entry_id] = coordinator
 
@@ -77,38 +69,19 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             LOGGER.error("Authentication failed. Please reauthenticate.")
             raise ConfigEntryAuthFailed
 
-        bff_app_config = await coordinator.client.webapi.get_config()
         masterdata = await coordinator.client.webapi.get_user_info()
-        hass.async_add_executor_job(coordinator.client.write_debug_json_output, bff_app_config, "app", True)
+        if masterdata is None:
+            raise ConfigEntryNotReady("Failed to retrieve masterdata from Mercedes API")
+
         hass.async_add_executor_job(coordinator.client.write_debug_json_output, masterdata, "md", True)
 
-        vehicles = []
+        assigned_vehicles = masterdata.get("assignedVehicles", [])
+        if not assigned_vehicles:
+            LOGGER.warning("No assigned vehicles found in masterdata")
+            # We can still set up the integration without vehicles? Or should we fail?
+            # For now, we'll just log a warning and continue.
 
-        if not masterdata:
-            LOGGER.error("No masterdata found. Please check your account/credentials.")
-            raise ConfigEntryNotReady("No masterdata found. Please check your account/credentials.")
-
-        for fleet in masterdata.get("fleets", []):
-            company_id = fleet.get("companyId")
-            fleet_id = fleet.get("fleetId")
-            LOGGER.debug(
-                "Fleet %s with company %s found. Collectting car information.",
-                fleet.get("fleetName", "unknown fleet name"),
-                fleet.get("companyName", "unknown company"),
-            )
-            fleet_info = await coordinator.client.webapi.get_fleet_info(company_id, fleet_id)
-            hass.async_add_executor_job(
-                coordinator.client.write_debug_json_output,
-                fleet_info,
-                f"fleet_{company_id}_{fleet_id}",
-                True,
-            )
-
-            vehicles.extend(fleet.get("bookedVehicles", []))
-
-        vehicles.extend(masterdata.get("assignedVehicles", []))
-
-        for car in vehicles:
+        for car in assigned_vehicles:
             # Check if the car has a separate VIN key, if not, use the FIN.
             vin = car.get("vin")
             if vin is None:
@@ -159,14 +132,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                             capabilityInformation = feature.get("capabilityInformation", None)
                             if capabilityInformation and len(capabilityInformation) > 0:
                                 features[feature.get("capabilityInformation")[0]] = bool(feature.get("isAvailable"))
-                        if feature.get("commandName", "") == "CHARGE_PROGRAM_CONFIGURE":
-                            max_soc_found = False
-                            parameters = feature.get("parameters", [])
-                            if parameters is not None:
-                                for parameter in parameters:
-                                    if parameter.get("parameterName", "") == "MAX_SOC":
-                                        max_soc_found = True
-                            features["CHARGE_PROGRAM_CONFIGURE"] = max_soc_found
             except aiohttp.ClientError:
                 # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
                 # We just ignore the capabilities
@@ -226,14 +191,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             current_car.features = features
             current_car.vehicle_information = vehicle_information
             current_car.masterdata = car
-            current_car.app_configuration = bff_app_config
             current_car.rcp_options = rcp_options
-            current_car.capabilities = capabilities
             current_car.last_message_received = int(round(time.time() * 1000))
             current_car.is_owner = car.get("isOwner")
-
-            if config_entry.options.get(CONF_OVERWRITE_PRECONDNOW, False):
-                current_car.features["precondNow"] = True
 
             coordinator.client.cars[vin] = current_car
             # await coordinator.client.update_poll_states(vin)
@@ -242,10 +202,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         await coordinator.async_config_entry_first_refresh()
 
-        if len(coordinator.client.cars) == 0:
-            LOGGER.error("No cars found. Please check your account/credentials or excluded VINs.")
-            raise ConfigEntryError("No cars found. Please check your account/credentials or excluded VINs.")
-
+        # !! Use case: Smart cars have no masterdata entries
+        # we create the websocket to check if this channel has some data, car creation is done in the client module
+        # if len(coordinator.client.cars) == 0:
         hass.loop.create_task(coordinator.ws_connect())
 
     except aiohttp.ClientError as err:
@@ -285,14 +244,8 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     unload_ok = False
 
     if len(hass.data[DOMAIN][config_entry.entry_id].client.cars) > 0:
-        # Cancel all watchdogs on final shutdown
-        websocket = hass.data[DOMAIN][config_entry.entry_id].client.websocket
-        websocket._reconnectwatchdog.cancel()
-        websocket._watchdog.cancel()
-        websocket._pingwatchdog.cancel()
-        websocket.component_reload_watcher.cancel()
-        
-        result = await websocket.async_stop()
+        hass.data[DOMAIN][config_entry.entry_id].client.websocket._reconnectwatchdog.cancel()
+        result = await hass.data[DOMAIN][config_entry.entry_id].client.websocket.async_stop()
         hass.data[DOMAIN][config_entry.entry_id].client.websocket = None
         if unload_ok := await hass.config_entries.async_unload_platforms(config_entry, MERCEDESME_COMPONENTS):
             del hass.data[DOMAIN][config_entry.entry_id]
@@ -356,7 +309,6 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             self._attr_entity_category = self._sensor_config[scf.ENTITY_CATEGORY.value]
             self._attributes = self._sensor_config[scf.EXTENDED_ATTRIBUTE_LIST.value]
             self._attr_native_unit_of_measurement = self.unit_of_measurement
-            self._attr_suggested_display_precision = self._sensor_config[scf.SUGGESTED_DISPLAY_PRECISION.value]
             self._use_chinese_location_data: bool = self._coordinator.config_entry.options.get(
                 CONF_ENABLE_CHINA_GCJ_02, False
             )

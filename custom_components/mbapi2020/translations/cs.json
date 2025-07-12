@@ -4,6 +4,23 @@
             "reauth_successful": "Opětovné ověření úspěšné! Probíhá načítání komponenty.",
             "already_configured": "Komponenta je již nakonfigurována."
         },
+        "step": {
+            "pin": {
+                "data": {
+                    "password": "PIN"
+                },
+                "description": "Obdrželi jste PIN kód emailem. Zadejte prosím PIN kód (šest čísel)",
+                "title": "Nastavení připojení - PIN"
+            },
+            "user": {
+                "data": {
+                    "region": "Region",
+                    "username": "MB uživatelské jméno - emailová adresa (nebo mobilní telefon včetně kódu země, např. +44)"
+                },
+                "description": "Zadejte svůj přihlašovací účet Mercedes ME (emailová adresa)",
+                "title": "Nastavení připojení Mercedes ME 2020"
+            }
+        },
         "error": {
             "unknown": "Neznámá chyba. Pro více informací zkontrolujte logy Home Assistant.",
             "cannot_connect": "cannot_connect",
@@ -31,7 +48,7 @@
                     "save_files": "POUZE PRO DEBUG: Povolit ukládání zpráv serveru do složky zpráv",
                     "delete_auth_file": "Odstranit autentizační token. Vyžaduje restart Home Assistant po uložení.",
                     "enable_china_gcj_02": "Povolit překlad GCJ-02 (pouze Čína)",
-                    "pin": "Bezpečnostní PIN (vytvořený v mobilní aplikaci)",
+                    "pin": "Bezpečnostní PIN (vytvořený v mobilní aplikaci) - Zadejte 0 pro smazání hodnoty z konfigurace",
                     "cap_check_disabled": "Zakázat kontrolu funkcí"
                 },
                 "description": "Nakonfigurujte své možnosti. Některé změny vyžadují restart Home Assistant.",

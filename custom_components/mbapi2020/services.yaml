@@ -114,7 +114,6 @@ charge_program_configure:
         text:
     charge_program:
       description: "The activated charge program (0=Default, 2=Home, 3=Work)"
-      required: True
       example: "0"
       default: 0
       selector:
@@ -123,20 +122,6 @@ charge_program_configure:
             - "0"
             - "2"
             - "3"
-    max_soc:
-      description: "The maximum value for the state of charge of the HV battery (Value needs to be between 50 and 100 and divisible by ten)"
-      example: "100"
-      default: None
-      required: False
-      selector:
-        select:
-          options:
-            - "50"
-            - "60"
-            - "70"
-            - "80"
-            - "90"
-            - "100"
 
 doors_unlock:
   description: "Unlock a car defined by a vin. PIN setup required. See options dialog of the integration."

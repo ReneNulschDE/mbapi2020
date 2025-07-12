@@ -1,5 +1,19 @@
 {
-    "config": {},
+    "config": {
+        "step": {
+            "pin": {
+                "title": "Configuration de connexion - NIP",
+                "description": "Vous avez reçu un numéro d'identification personnel (NIP) par courriel. Veuillez entrer le NIP (six numéros)"
+            },
+            "user": {
+                "data": {
+                    "region": "Région",
+                    "username": "Nom d'utilisateur MB - adresse électronique (ou téléphone mobile comprenant code pays ex. +44)"
+                },
+                "description": "Entrez votre compte de connexion Mercedes ME (adresse électronique)"
+            }
+        }
+    },
     "issues": {
         "restart_required": {
             "fix_flow": {

@@ -7,6 +7,21 @@
         "error": {
             "cannot_connect": "cannot_connect",
             "invalid_auth": "invalid_auth"
+        },
+        "step": {
+            "pin": {
+                "data": {
+                    "password": "Pin"
+                },
+                "description": "Du erhältst einen Pin-Code via email/SMS. Bitte gib den sechsstelligen Code ein."
+            },
+            "user": {
+                "data": {
+                    "region": "Region",
+                    "username": "MB-Benutzername - E-Mail-Adresse (oder Mobiltelefon einschließlich Ländercode z. B. +44)"
+                },
+                "description": "Gib dein Mercedes ME-Anmelde-Konto ein (E-Mail-Adresse)"
+            }
         }
     },
     "issues": {

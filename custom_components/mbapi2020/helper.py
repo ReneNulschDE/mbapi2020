@@ -9,11 +9,13 @@ import datetime
 from enum import Enum
 import inspect
 import json
-import logging
 import math
 
 from .const import (
     JSON_EXPORT_IGNORED_KEYS,
+    LOGGER,
+    LOGIN_APP_ID_CN,
+    LOGIN_APP_ID_EU,
     LOGIN_BASE_URI,
     LOGIN_BASE_URI_CN,
     PSAG_BASE_URI,
@@ -32,8 +34,6 @@ from .const import (
     WEBSOCKET_API_BASE_CN,
     WEBSOCKET_API_BASE_NA,
 )
-
-LOGGER = logging.getLogger(__name__)
 
 
 class LogHelper:
@@ -111,6 +111,14 @@ class UrlHelper:
                 return PSAG_BASE_URI_CN
             case _:
                 return PSAG_BASE_URI
+
+    @staticmethod
+    def Login_App_Id(region: str) -> str:
+        match region:
+            case current if current == REGION_CHINA:
+                return LOGIN_APP_ID_CN
+            case _:
+                return LOGIN_APP_ID_EU
 
     @staticmethod
     def Login_Base_Url(region: str) -> str:
@@ -240,7 +248,6 @@ class Watchdog:
         self._action: Callable[..., Awaitable] = action
         self._loop = asyncio.get_event_loop()
         self._timer_task: asyncio.TimerHandle | None = None
-        self._expire_task: asyncio.Task | None = None
         self._topic: str = topic
         self._log_events: bool = log_events
         self.timeout: int = timeout_seconds
@@ -251,20 +258,11 @@ class Watchdog:
             self._timer_task.cancel()
             self._timer_task = None
 
-        # Cancel any running expire task
-        if self._expire_task and not self._expire_task.done():
-            self._expire_task.cancel()
-            self._expire_task = None
-
     async def on_expire(self):
         """Log and act when the watchdog expires."""
-        try:
-            if self._log_events:
-                LOGGER.debug(f"{self._topic} Watchdog expired – calling {self._action.__name__}")
-            await self._action()
-        except asyncio.CancelledError:
-            # Don't log here - will be logged in _on_expire_task_done callback
-            raise
+        if self._log_events:
+            LOGGER.debug("%s Watchdog expired – calling %s", self._topic, self._action.__name__)
+        await self._action()
 
     async def trigger(self):
         """Trigger the watchdog."""
@@ -273,35 +271,4 @@ class Watchdog:
         if self._timer_task:
             self._timer_task.cancel()
 
-        # Cancel any existing expire task
-        if self._expire_task and not self._expire_task.done():
-            self._expire_task.cancel()
-            self._expire_task = None
-
-        self._timer_task = self._loop.call_later(self.timeout, self._on_timer_expire)
-
-    def _on_timer_expire(self):
-        """Handle timer expiration - create and manage the expire task."""
-        # Create and store the expire task for proper management
-        self._expire_task = asyncio.create_task(self.on_expire())
-
-        # Add done callback to clean up the task reference
-        self._expire_task.add_done_callback(self._on_expire_task_done)
-
-    def _on_expire_task_done(self, task: asyncio.Task):
-        """Cleanup when expire task is done."""
-        self._expire_task = None
-
-        if task.cancelled():
-            # Task was cancelled - this is normal during shutdown
-            if self._log_events:
-                LOGGER.debug(f"{self._topic} Watchdog expire task cancelled.")
-        else:
-            # Safe exception handling - only check for exceptions if not cancelled
-            try:
-                exc = task.exception()
-                if exc and self._log_events:
-                    LOGGER.error(f"{self._topic} Watchdog expire task failed: {exc}")
-            except asyncio.CancelledError:
-                # This shouldn't happen, but just in case
-                pass
+        self._timer_task = self._loop.call_later(self.timeout, lambda: asyncio.create_task(self.on_expire()))

@@ -1,4 +1,4 @@
-"""Repairs platform for MBAPI2020."""
+"""Repairs platform for HACS."""
 
 from __future__ import annotations
 

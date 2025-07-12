@@ -1,52 +1,69 @@
 {
-    "config": {
-        "abort": {
-            "already_configured": "Componente già configurato.",
-            "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
+  "config": {
+    "abort": {
+      "already_configured": "Componente già configurato.",
+      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
+    },
+    "error": {
+      "cannot_connect": "Impossibile connettersi al server.",
+      "invalid_auth": "Autenticazione non valida.",
+      "unknown": "Errore sconosciuto."
+    },
+    "step": {
+      "pin": {
+        "data": {
+          "password": "PIN"
         },
-        "error": {
-            "cannot_connect": "Impossibile connettersi al server.",
-            "invalid_auth": "Autenticazione non valida.",
-            "unknown": "Errore sconosciuto."
-        }
-    },
-    "issues": {
-        "restart_required": {
-            "fix_flow": {
-                "step": {
-                    "confirm_restart": {
-                        "description": "Il riavvio di Home Assistant è necessario per completare l'aggiornamento dell'autenticazione.",
-                        "title": "Riavvio necessario"
-                    }
-                }
-            },
-            "title": "Riavvio necessario"
-        }
-    },
-    "options": {
-        "abort": {
-            "already_configured": "Componente già configurato.",
-            "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
+        "description": "Hai ricevuto il codice PIN via email. Per favore inserisci il codice PIN (sei numeri)",
+        "title": "Configurazione connessione - PIN"
+      },
+      "user": {
+        "data": {
+          "region": "Regione",
+          "username": "MB username - indirizzo email"
         },
-        "step": {
-            "init": {
-                "data": {
-                    "cap_check_disabled": "Disabilita il controllo delle capacità",
-                    "country_code": "Codice Nazione",
-                    "delete_auth_file": "Elimina immediatamente il file del token di autenticazione. Richiede il riavvio di Home Assistant dopo il salvataggio.",
-                    "excluded_cars": "VIN esclusi (separati da virgola)",
-                    "locale": "Codice Lingua",
-                    "pin": "Security PIN (creato nell'app mobile)"
-                },
-                "description": "Configura le opzioni. Alcuni cambiamenti richiedono il riavvio di Home Assistant.",
-                "title": "Mercedes ME 2020 - Opzioni"
-            }
-        }
-    },
-    "system_health": {
-        "info": {
-            "api_endpoint_reachable": "MB API endpoint raggiungibile",
-            "websocket_connection_state": "MB Websocket stato di connessione"
-        }
+        "description": "Inserisci il tuo Mercedes ME account (indirizzo email)",
+        "title": "Mercedes ME 2020 - Setup"
+      }
     }
+  },
+  "issues": {
+    "restart_required": {
+      "fix_flow": {
+        "step": {
+          "confirm_restart": {
+            "description": "Il riavvio di Home Assistant è necessario per completare l'aggiornamento dell'autenticazione.",
+            "title": "Riavvio necessario"
+          }
+        }
+      },
+      "title": "Riavvio necessario"
+    }
+  },
+  "options": {
+    "abort": {
+      "already_configured": "Componente già configurato.",
+      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
+    },
+    "step": {
+      "init": {
+        "data": {
+          "cap_check_disabled": "Disabilita il controllo delle capacità",
+          "country_code": "Codice Nazione",
+          "delete_auth_file": "Elimina immediatamente il file del token di autenticazione. Richiede il riavvio di Home Assistant dopo il salvataggio.",
+          "excluded_cars": "VIN esclusi (separati da virgola)",
+          "locale": "Codice Lingua",
+          "pin": "Security PIN (creato nell'app mobile)"
+        },
+        "description": "Configura le opzioni. Alcuni cambiamenti richiedono il riavvio di Home Assistant.",
+        "title": "Mercedes ME 2020 - Opzioni"
+      }
+    }
+  },
+  "system_health": {
+    "info": {
+      "api_endpoint_reachable": "MB API endpoint raggiungibile",
+      "websocket_connection_state": "MB Websocket stato di connessione"
+    }
+  }
 }

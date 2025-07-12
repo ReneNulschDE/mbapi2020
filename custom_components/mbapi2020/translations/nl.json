@@ -1,705 +1,724 @@
 {
-    "config": {
-        "abort": {
-            "already_configured": "Component is al geconfigureerd.",
-            "reauth_successful": "Herautorisatie succesvol! Component wordt opnieuw geladen."
-        },
-        "error": {
-            "cannot_connect": "Kan geen verbinding maken",
-            "invalid_auth": "Ongeldige autorisatie",
-            "onbekend": "Onbekende fout. Controleer de Home Assistant-log voor meer informatie."
-        }
+  "config": {
+    "abort": {
+      "already_configured": "Component is al geconfigureerd.",
+      "reauth_successful": "Herautorisatie succesvol! Component wordt opnieuw geladen."
     },
-    "issues": {
-        "restart_required": {
-            "fix_flow": {
-                "step": {
-                    "confirm_restart": {
-                        "description": "Een herstart van Home Assistant is vereist om de autorisatie-update te voltooien. Klik op verzenden om nu opnieuw op te starten.",
-                        "title": "Herstart vereist"
-                    }
-                }
-            },
-            "title": "Herstart vereist"
-        }
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken",
+      "invalid_auth": "Ongeldige autorisatie",
+      "onbekend": "Onbekende fout. Controleer de Home Assistant-log voor meer informatie."
     },
-    "options": {
-        "abort": {
-            "already_configured": "Component is al geconfigureerd.",
-            "reauth_successful": "Herautorisatie succesvol! Component wordt opnieuw geladen."
+    "step": {
+      "pin": {
+        "data": {
+          "password": "PIN"
         },
-        "step": {
-            "init": {
-                "data": {
-                    "cap_check_disabled": "Schakel capaciteitscontrole uit",
-                    "enable_china_gcj_02": "Schakel GCJ-02-vertaling in (alleen China)",
-                    "delete_auth_file": "Verwijder authenticatietoken nu. Vereist een herstart van Home Assistant na opslaan.",
-                    "excluded_cars": "UITGESLOTEN CHASSISNUMMERS (komma-gescheiden)",
-                    "pin": "PIN-code (aan te maken in de mobiele app)",
-                    "save_files": "ALLEEN DEBUG: Schakel het opslaan van serverberichten in de berichtenmap in."
-                },
-                "description": "Configureer je opties. Sommige wijzigingen vereisen een herstart van Home Assistant.",
-                "title": "Mercedes ME 2020-opties"
-            }
-        }
-    },
-    "system_health": {
-        "info": {
-            "api_endpoint_reachable": "MB API bereikbaar",
-            "websocket_connection_state": "MB WS-status",
-            "cars_connected": "Verbonden auto's",
-            "version": "Versie"
-        }
-    },
-    "services": {
-        "refresh_access_token": {
-            "name": "Toegangstoken vernieuwen",
-            "description": "Vernieuw het API-toegangstoken"
+        "description": "Je hebt een pincode ontvangen via e-mail. Voer de pincode (zes cijfers) in.",
+        "title": "Verbindingsinstellingen - PIN"
+      },
+      "user": {
+        "data": {
+          "region": "Regio",
+          "username": "MB-gebruikersnaam - e-mailadres (of telefoonnummer inclusief landcode, bijv. +31)"
         },
-        "auxheat_configure": {
-            "name": "Auxheat configureren",
-            "description": "Commando voor het configureren van de extra verwarming. Het is mogelijk om drie dagtijden in te stellen en één actieve tijd te selecteren.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "time_selection": {
-                    "name": "Tijdselectie",
-                    "description": "De geactiveerde vooraf ingestelde tijd voor de extra verwarming (0=geen_selectie, 1=tijd_1, 2=tijd_2, 3=tijd_3)"
-                },
-                "time_1": {
-                    "name": "tijd_1",
-                    "description": "Tijd in minuten na middernacht. Bijvoorbeeld: een geldige waarde voor 8 uur 's ochtends is 480. Waardenbereik is 0 tot 1439."
-                },
-                "time_2": {
-                    "name": "tijd_2",
-                    "description": "Tijd in minuten na middernacht. Bijvoorbeeld: een geldige waarde voor 8 uur 's ochtends is 480. Waardenbereik is 0 tot 1439."
-                },
-                "time_3": {
-                    "name": "tijd_3",
-                    "description": "Tijd in minuten na middernacht. Bijvoorbeeld: een geldige waarde voor 8 uur 's ochtends is 480. Waardenbereik is 0 tot 1439."
-                }
-            }
-        },
-        "auxheat_start": {
-            "name": "Auxheat starten",
-            "description": "Start de extra verwarming van een auto die wordt gedefinieerd door een vin.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "auxheat_stop": {
-            "name": "Auxheat stoppen",
-            "description": "Stop de extra verwarming van een auto die wordt gedefinieerd door een vin.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "battery_max_soc_configure": {
-            "name": "Maximale batterijladingswaarde configureren",
-            "description": "Configureer de maximale waarde voor de laadstatus van de HV-batterij van een auto die wordt gedefinieerd door een vin.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "max_soc": {
-                    "name": "Maximale lading",
-                    "description": "De maximale waarde voor de laadstatus van de HV-batterij (waarde moet tussen 50 en 100 liggen en deelbaar zijn door tien)"
-                },
-                "charge_program": {
-                    "name": "Laadprogramma",
-                    "description": "(Optioneel, standaard=0) Het laadprogramma om te wijzigen (0=Standaard, 2=Thuis, 3=Werk)"
-                }
-            }
-        },
-        "charge_program_configure": {
-            "name": "Laadprogramma configureren",
-            "description": "Commando om het laadprogramma te selecteren.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "charge_program": {
-                    "name": "Laadprogramma",
-                    "description": "Het geactiveerde laadprogramma (0=Standaard, 2=Thuis, 3=Werk)"
-                }
-            }
-        },
-        "doors_unlock": {
-            "name": "Deuren ontgrendelen",
-            "description": "Ontgrendel een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "pin": {
-                    "name": "Pin",
-                    "description": "PIN-code, vereist als deze niet is opgeslagen in de instellingen."
-                }
-            }
-        },
-        "doors_lock": {
-            "name": "Deuren vergrendelen",
-            "description": "Vergrendel een auto die wordt gedefinieerd door een vin.",
-            "fields": {
-                "Chassisnummer": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "download_images": {
-            "name": "Afbeeldingen downloaden",
-            "description": "Download de app-afbeeldingen naar de resource-map van de componenten voor een auto die wordt gedefinieerd door een vin.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "engine_start": {
-            "name": "Motor starten",
-            "description": "Start de motor van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "engine_stop": {
-            "name": "Motor stoppen",
-            "description": "Stop de motor van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "preconditioning_configure_seats": {
-            "name": "Stoelvoorverwarming configureren",
-            "description": "Verstuur een configuratie-opdracht voor stoelvoorverwarming naar een auto die wordt gedefinieerd door een VIN",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "front_left": {
-                    "name": "Voor links",
-                    "description": "Activeer als de voorste linkerstoel moet worden voorverwarmd."
-                },
-                "front_right": {
-                    "name": "Voor rechts",
-                    "description": "Activeer als de voorste rechterstoel moet worden voorverwarmd."
-                },
-                "rear_left": {
-                    "name": "Achter links",
-                    "description": "Activeer als de achterste linkerstoel moet worden voorverwarmd."
-                },
-                "rear_right": {
-                    "name": "Achter rechts",
-                    "description": "Activeer als de achterste rechterstoel moet worden voorverwarmd."
-                }
-            }
-        },
-        "preheat_start": {
-            "name": "Voorverwarming starten",
-            "description": "Start de voorverwarming van een auto die wordt gedefinieerd door een vin.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "type": {
-                    "name": "Type",
-                    "description": "De methode die wordt gebruikt om het startproces te initiëren. 0=Nu (standaard), 1=Onmiddellijk - gebruik 'Onmiddellijk' als je auto 'Nu' niet ondersteunt."
-                }
-            }
-        },
-        "preheat_start_departure_time": {
-            "name": "Voorverwarming starten met vertrektijd",
-            "description": "Start de voorverwarming van een auto die wordt gedefinieerd door een vin en een opgegeven vertrektijd..",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "time": {
-                    "name": "Tijd",
-                    "description": "Vertrektijd in minuten na middernacht. Bijvoorbeeld: een geldige waarde voor 8 uur 's ochtends is 480. Waardenbereik is 0 tot 1439."
-                }
-            }
-        },
-        "preheat_stop": {
-            "name": "Voorverwarming stoppen",
-            "description": "Stop de voorverwarming van een auto die wordt gedefinieerd door een vin.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "preheat_stop_departure_time": {
-            "name": "Voorverwarming stoppen (vertrektijd-modus)",
-            "description": "Stop de geconfigureerde vertrektijd voor voorverwarming van een auto die wordt gedefinieerd door een vin.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "sigpos_start": {
-            "name": "Starten lichtsignalisatie",
-            "description": "Start de lichtsignalisatie van een auto die wordt gedefinieerd door een vin.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "sunroof_open": {
-            "name": "Schuifdak openen",
-            "description": "Open het schuifdak van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "sunroof_tilt": {
-            "name": "Schuifdak kantelen",
-            "description": "Kantel het schuifdak van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "sunroof_close": {
-            "name": "Schuifdak sluiten",
-            "description": "Sluit het schuifdak van een auto die wordt gedefinieerd door een vin.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "temperature_configure": {
-            "name": "Doeltemperatuur configureren (voorverwarming/extra verwarming)",
-            "description": "Configureer de doeltemperaturen voor voorverwarming/extra verwarming voor zones in een auto die wordt gedefinieerd door een vin.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "front_left": {
-                    "name": "Voor links",
-                    "description": "Doeltemperatuur voor de zone voor links in CELSIUS."
-                },
-                "front_right": {
-                    "name": "Voor rechts",
-                    "description": "Doeltemperatuur voor de zone voor rechts in CELSIUS."
-                },
-                "rear_left": {
-                    "name": "Achter links",
-                    "description": "Doeltemperatuur voor de zone achter links in CELSIUS. (if available)"
-                },
-                "rear_right": {
-                    "name": "Achter rechts",
-                    "description": "Doeltemperatuur voor de zone achter rechts in CELSIUS. (if available)"
-                }
-            }
-        },
-        "windows_open": {
-            "name": "Ramen openen",
-            "description": "Open de ramen van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "pin": {
-                    "name": "Pin",
-                    "description": "PIN-code, vereist als deze niet is opgeslagen in de instellingen."
-                }
-            }
-        },
-        "windows_close": {
-            "name": "Ramen sluiten",
-            "description": "Sluit de ramen van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                }
-            }
-        },
-        "windows_move": {
-            "name": "Ramen bewegen",
-            "description": "Beweeg de ramen van een auto die wordt gedefinieerd door een vin naar een nieuwe positie. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "front_left": {
-                    "name": "Voor links",
-                    "description": "De nieuwe positie van het linker voorraam (0=gesloten, 10=ventileren, 100=open)"
-                },
-                "front_right": {
-                    "name": "Voor rechts",
-                    "description": "De nieuwe positie van het rechter voorraam (0=gesloten, 10=ventileren, 100=open)"
-                },
-                "rear_left": {
-                    "name": "Achter links",
-                    "description": "De nieuwe positie van het linker achterraam (0=gesloten, 10=ventileren, 100=open)"
-                },
-                "rear_right": {
-                    "name": "Achter rechts",
-                    "description": "De nieuwe positie van het rechter achterraam (0=gesloten, 10=ventileren, 100=open)"
-                }
-            }
-        },
-        "send_route": {
-            "name": "Route verzenden",
-            "description": "Verzend een route naar de auto. (Enkel één locatie)",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "title": {
-                    "name": "Titel",
-                    "description": "Titel van de route"
-                },
-                "latitude": {
-                    "name": "Breedtegraad",
-                    "description": "Breedtegraad van de locatie"
-                },
-                "longitude": {
-                    "name": "Lengtegraad",
-                    "description": "Lengtegraad van de locatie"
-                },
-                "city": {
-                    "name": "Stad",
-                    "description": "Naam van de stad van de locatie"
-                },
-                "postcode": {
-                    "name": "Postcode",
-                    "description": "Postcode van de locatie"
-                },
-                "street": {
-                    "name": "Straat",
-                    "description": "Straatnaam van de locatie"
-                }
-            }
-        },
-        "charging_break_clocktimer_configure": {
-            "name": "Oplaadpauze kloktimer configureren",
-            "description": "Configureer oplaadpauzes (alleen AC). Dit zal de volledige configuratie voor alle slots in je auto overschrijven.",
-            "fields": {
-                "vin": {
-                    "name": "Chassisnummer",
-                    "description": "Chassisnummer van de auto"
-                },
-                "status_timer_1": {
-                    "name": "Status (Timer 1)",
-                    "description": ""
-                },
-                "starttime_timer_1": {
-                    "name": "Starttijd (Timer 1)",
-                    "description": "Starttijd van het oplaadpauzevenster (Timer 1)"
-                },
-                "stoptime_timer_1": {
-                    "name": "Eindtijd  (Timer 1)",
-                    "description": "Eindtijd van het oplaadpauzevenster (Timer 1)"
-                },
-                "status_timer_2": {
-                    "name": "Status (Timer 2)",
-                    "description": ""
-                },
-                "starttime_timer_2": {
-                    "name": "Starttijd (Timer 2)",
-                    "description": "Starttijd van het oplaadpauzevenster (Timer 2)"
-                },
-                "stoptime_timer_2": {
-                    "name": "Eindtijd  (Timer 2)",
-                    "description": "Eindtijd van het oplaadpauzevenster (Timer 2)"
-                },
-                "status_timer_3": {
-                    "name": "Status (Timer 3)",
-                    "description": ""
-                },
-                "starttime_timer_3": {
-                    "name": "Starttijd (Timer 3)",
-                    "description": "Starttijd van het oplaadpauzevenster (Timer 3)"
-                },
-                "stoptime_timer_3": {
-                    "name": "Eindtijd  (Timer 3)",
-                    "description": "Eindtijd van het oplaadpauzevenster (Timer 3)"
-                },
-                "status_timer_4": {
-                    "name": "Status (Timer 4)",
-                    "description": ""
-                },
-                "starttime_timer_4": {
-                    "name": "Starttijd (Timer 4)",
-                    "description": "Starttijd van het oplaadpauzevenster (Timer 4)"
-                },
-                "stoptime_timer_4": {
-                    "name": "Eindtijd  (Timer 4)",
-                    "description": "Eindtijd van het oplaadpauzevenster (Timer 4)"
-                }
-            }
-        }
-    },
-    "entity": {
-        "sensor": {
-            "auxheatstatus": {
-                "state": {
-                    "0": "Inactief",
-                    "1": "Normaal verwarmen",
-                    "2": "Normale ventilatie",
-                    "3": "Handmatig verwarmen",
-                    "4": "Naverwarmen",
-                    "5": "Naventileren",
-                    "6": "Automatisch verwarmen"
-                }
-            },
-            "chargeflapacstatus": {
-                "state": {
-                    "0": "Open",
-                    "1": "Gesloten",
-                    "2": "Klep ingedrukt",
-                    "3": "Onbekend"
-                }
-            },
-            "chargeflapdcstatus": {
-                "state": {
-                    "0": "Open",
-                    "1": "Gesloten",
-                    "2": "Klep ingedrukt",
-                    "3": "Onbekend"
-                }
-            },
-            "departuretimemode": {
-                "state": {
-                    "0": "Uitgeschakeld",
-                    "1": "Dagelijks",
-                    "2": "Wekelijks"
-                }
-            },
-            "ignitionstate": {
-                "state": {
-                    "0": "Vergrendeld",
-                    "1": "Uit",
-                    "2": "Accessoire",
-                    "4": "Aan",
-                    "5": "Start"
-                }
-            },
-            "interiorprotectionsensorstatus": {
-                "state": {
-                    "0": "Niet actief",
-                    "1": "Niet actief",
-                    "2": "Actief"
-                }
-            },
-            "lock": {
-                "state": {
-                    "0": "Ontgrendeld",
-                    "1": "Intern vergrendeld",
-                    "2": "Vergrendeld",
-                    "3": "Deels ontgrendeld",
-                    "4": "Onbekend"
-                },
-                "state_attributes": {
-                    "decklidstatus": {
-                        "name": "Bagageklep",
-                        "state": {
-                            "false": "gesloten",
-                            "true": "open"
-                        }
-                    },
-                    "doorstatusfrontleft": {
-                        "name": "Deur voor links",
-                        "state": {
-                            "false": "gesloten",
-                            "true": "open"
-                        }
-                    },
-                    "doorstatusfrontright": {
-                        "name": "Deur voor rechts",
-                        "state": {
-                            "false": "gesloten",
-                            "true": "open"
-                        }
-                    },
-                    "doorstatusrearleft": {
-                        "name": "Deur achter links",
-                        "state": {
-                            "false": "gesloten",
-                            "true": "open"
-                        }
-                    },
-                    "doorstatusrearright": {
-                        "name": "Deur achter rechts",
-                        "state": {
-                            "false": "gesloten",
-                            "true": "open"
-                        }
-                    },
-                    "doorlockstatusfrontleft": {
-                        "name": "Deurslot voor links",
-                        "state": {
-                            "false": "vergrendeld",
-                            "true": "ontgrendeld"
-                        }
-                    },
-                    "doorlockstatusfrontright": {
-                        "name": "Deurslot voor rechts",
-                        "state": {
-                            "false": "vergrendeld",
-                            "true": "ontgrendeld"
-                        }
-                    },
-                    "doorlockstatusrearleft": {
-                        "name": "Deurslot achter links",
-                        "state": {
-                            "false": "vergrendeld",
-                            "true": "ontgrendeld"
-                        }
-                    },
-                    "doorlockstatusrearright": {
-                        "name": "Deurslot achter rechts",
-                        "state": {
-                            "false": "vergrendeld",
-                            "true": "ontgrendeld"
-                        }
-                    },
-                    "doorlockstatusgas": {
-                        "name": "Tankdopslot",
-                        "state": {
-                            "false": "vergrendeld",
-                            "true": "ontgrendeld"
-                        }
-                    },
-                    "enginehoodstatus": {
-                        "name": "Motorkap",
-                        "state": {
-                            "false": "gesloten",
-                            "true": "open"
-                        }
-                    },
-                    "doorstatusoverall": {
-                        "name": "Algemene deurstatus",
-                        "state": {
-                            "0": "open",
-                            "1": "gesloten",
-                            "2": "niet aanwezig",
-                            "3": "onbekend"
-                        }
-                    },
-                    "sunroofstatus": {
-                        "name": "Schuifdak status",
-                        "state": {
-                            "0": "gesloten",
-                            "1": "open",
-                            "2": "open gekanteld",
-                            "3": "in beweging",
-                            "4": "anti-dreunstand",
-                            "5": "tussenpositie schuifstand",
-                            "6": "tussenpositie kantelstand",
-                            "7": "aan het openen",
-                            "8": "aan het sluiten",
-                            "9": "anti-dreun kantelstand",
-                            "10": "tussenpositie",
-                            "11": "openen kantelstand",
-                            "12": "sluiten kantelstand"
-                        }
-                    }
-                }
-            },
-            "sunroofstatus": {
-                "state": {
-                    "0": "Gesloten",
-                    "1": "Open",
-                    "2": "Open gekanteld",
-                    "3": "In beweging",
-                    "4": "Anti-dreunstand",
-                    "5": "Tussenpositie schuifstand",
-                    "6": "Tussenpositie kantelstand",
-                    "7": "Aan het openen",
-                    "8": "Aan het sluiten",
-                    "9": "Anti-dreunstand kantelstand",
-                    "10": "Tussenpositie",
-                    "11": "Openen kantelstand",
-                    "12": "Sluiten kantelstand"
-                }
-            },
-            "starterbatterystate": {
-                "state": {
-                    "0": "Groen",
-                    "1": "Geel",
-                    "2": "Rood"
-                }
-            },
-            "tirewarningsrdk": {
-                "state": {
-                    "0": "Geen waarschuwing",
-                    "1": "Zachte waarschuwing",
-                    "2": "Lage druk",
-                    "3": "Lekkage"
-                }
-            }
-        },
-        "switch": {
-            "auxheat": {
-                "name": "Hulpverwarming"
-            },
-            "precond": {
-                "name": "Voorverwarming klimaatregeling"
-            }
-        }
-    },
-    "selector": {
-        "charge_program": {
-            "options": {
-                "0": "Standaard",
-                "2": "Thuis",
-                "3": "Werk"
-            }
-        },
-        "charging_break_clocktimer_configure_action": {
-            "options": {
-                "notset": "Niet ingesteld",
-                "active": "Actief",
-                "inactive": "Inactief"
-            }
-        },
-        "temperature_configure": {
-            "options": {
-                "0": "Laag",
-                "30": "Hoog"
-            }
-        }
+        "description": "Voer je Mercedes ME-inloggegevens in (e-mailadres)",
+        "title": "Mercedes ME 2020-verbinding instellen"
+      }
     }
+  },
+  "issues": {
+    "restart_required": {
+      "fix_flow": {
+        "step": {
+          "confirm_restart": {
+            "description": "Een herstart van Home Assistant is vereist om de autorisatie-update te voltooien. Klik op verzenden om nu opnieuw op te starten.",
+            "title": "Herstart vereist"
+          }
+        }
+      },
+      "title": "Herstart vereist"
+    }
+  },
+  "options": {
+    "abort": {
+      "already_configured": "Component is al geconfigureerd.",
+      "reauth_successful": "Herautorisatie succesvol! Component wordt opnieuw geladen."
+    },
+    "step": {
+      "init": {
+        "data": {
+          "cap_check_disabled": "Schakel capaciteitscontrole uit",
+          "enable_china_gcj_02": "Schakel GCJ-02-vertaling in (alleen China)",
+          "delete_auth_file": "Verwijder authenticatietoken nu. Vereist een herstart van Home Assistant na opslaan.",
+          "excluded_cars": "UITGESLOTEN CHASSISNUMMERS (komma-gescheiden)",
+          "pin": "PIN-code (aan te maken in de mobiele app) - Voer 0 in om de waarde uit de configuratie te verwijderen.",
+          "save_files": "ALLEEN DEBUG: Schakel het opslaan van serverberichten in de berichtenmap in."
+        },
+        "description": "Configureer je opties. Sommige wijzigingen vereisen een herstart van Home Assistant.",
+        "title": "Mercedes ME 2020-opties"
+      }
+    }
+  },
+  "system_health": {
+    "info": {
+      "api_endpoint_reachable": "MB API bereikbaar",
+      "websocket_connection_state": "MB WS-status",
+      "cars_connected": "Verbonden auto's",
+      "version": "Versie"
+    }
+  },
+  "services": {
+    "refresh_access_token": {
+      "name": "Toegangstoken vernieuwen",
+      "description": "Vernieuw het API-toegangstoken"
+    },
+    "auxheat_configure": {
+      "name": "Auxheat configureren",
+      "description": "Commando voor het configureren van de extra verwarming. Het is mogelijk om drie dagtijden in te stellen en één actieve tijd te selecteren.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "time_selection": {
+          "name": "Tijdselectie",
+          "description": "De geactiveerde vooraf ingestelde tijd voor de extra verwarming (0=geen_selectie, 1=tijd_1, 2=tijd_2, 3=tijd_3)"
+        },
+        "time_1": {
+          "name": "tijd_1",
+          "description": "Tijd in minuten na middernacht. Bijvoorbeeld: een geldige waarde voor 8 uur 's ochtends is 480. Waardenbereik is 0 tot 1439."
+        },
+        "time_2": {
+          "name": "tijd_2",
+          "description": "Tijd in minuten na middernacht. Bijvoorbeeld: een geldige waarde voor 8 uur 's ochtends is 480. Waardenbereik is 0 tot 1439."
+        },
+        "time_3": {
+          "name": "tijd_3",
+          "description": "Tijd in minuten na middernacht. Bijvoorbeeld: een geldige waarde voor 8 uur 's ochtends is 480. Waardenbereik is 0 tot 1439."
+        }
+      }
+    },
+    "auxheat_start": {
+      "name": "Auxheat starten",
+      "description": "Start de extra verwarming van een auto die wordt gedefinieerd door een vin.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "auxheat_stop": {
+      "name": "Auxheat stoppen",
+      "description": "Stop de extra verwarming van een auto die wordt gedefinieerd door een vin.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "battery_max_soc_configure": {
+      "name": "Maximale batterijladingswaarde configureren",
+      "description": "Configureer de maximale waarde voor de laadstatus van de HV-batterij van een auto die wordt gedefinieerd door een vin.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "max_soc": {
+          "name": "Maximale lading",
+          "description": "De maximale waarde voor de laadstatus van de HV-batterij (waarde moet tussen 50 en 100 liggen en deelbaar zijn door tien)"
+        },
+        "charge_program": {
+          "name": "Laadprogramma",
+          "description": "(Optioneel, standaard=0) Het laadprogramma om te wijzigen (0=Standaard, 2=Thuis, 3=Werk)"
+        }
+      }
+    },
+    "charge_program_configure": {
+      "name": "Laadprogramma configureren",
+      "description": "Commando om het laadprogramma te selecteren.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "charge_program": {
+          "name": "Laadprogramma",
+          "description": "Het geactiveerde laadprogramma (0=Standaard, 2=Thuis, 3=Werk)"
+        }
+      }
+    },
+    "doors_unlock": {
+      "name": "Deuren ontgrendelen",
+      "description": "Ontgrendel een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN-code, vereist als deze niet is opgeslagen in de instellingen."
+        }
+      }
+    },
+    "doors_lock": {
+      "name": "Deuren vergrendelen",
+      "description": "Vergrendel een auto die wordt gedefinieerd door een vin.",
+      "fields": {
+        "Chassisnummer": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "download_images": {
+      "name": "Afbeeldingen downloaden",
+      "description": "Download de app-afbeeldingen naar de resource-map van de componenten voor een auto die wordt gedefinieerd door een vin.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "engine_start": {
+      "name": "Motor starten",
+      "description": "Start de motor van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "engine_stop": {
+      "name": "Motor stoppen",
+      "description": "Stop de motor van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "preconditioning_configure_seats": {
+      "name": "Stoelvoorverwarming configureren",
+      "description": "Verstuur een configuratie-opdracht voor stoelvoorverwarming naar een auto die wordt gedefinieerd door een VIN",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "front_left": {
+          "name": "Voor links",
+          "description": "Activeer als de voorste linkerstoel moet worden voorverwarmd."
+        },
+        "front_right": {
+          "name": "Voor rechts",
+          "description": "Activeer als de voorste rechterstoel moet worden voorverwarmd."
+        },
+        "rear_left": {
+          "name": "Achter links",
+          "description": "Activeer als de achterste linkerstoel moet worden voorverwarmd."
+        },
+        "rear_right": {
+          "name": "Achter rechts",
+          "description": "Activeer als de achterste rechterstoel moet worden voorverwarmd."
+        }
+      }
+    },
+    "preheat_start": {
+      "name": "Voorverwarming starten",
+      "description": "Start de voorverwarming van een auto die wordt gedefinieerd door een vin.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "type": {
+          "name": "Type",
+          "description": "De methode die wordt gebruikt om het startproces te initiëren. 0=Nu (standaard), 1=Onmiddellijk - gebruik 'Onmiddellijk' als je auto 'Nu' niet ondersteunt."
+        }
+      }
+    },
+    "preheat_start_departure_time": {
+      "name": "Voorverwarming starten met vertrektijd",
+      "description": "Start de voorverwarming van een auto die wordt gedefinieerd door een vin en een opgegeven vertrektijd..",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "time": {
+          "name": "Tijd",
+          "description": "Vertrektijd in minuten na middernacht. Bijvoorbeeld: een geldige waarde voor 8 uur 's ochtends is 480. Waardenbereik is 0 tot 1439."
+        }
+      }
+    },
+    "preheat_stop": {
+      "name": "Voorverwarming stoppen",
+      "description": "Stop de voorverwarming van een auto die wordt gedefinieerd door een vin.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "preheat_stop_departure_time": {
+      "name": "Voorverwarming stoppen (vertrektijd-modus)",
+      "description": "Stop de geconfigureerde vertrektijd voor voorverwarming van een auto die wordt gedefinieerd door een vin.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "sigpos_start": {
+      "name": "Starten lichtsignalisatie",
+      "description": "Start de lichtsignalisatie van een auto die wordt gedefinieerd door een vin.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "sunroof_open": {
+      "name": "Schuifdak openen",
+      "description": "Open het schuifdak van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "sunroof_tilt": {
+      "name": "Schuifdak kantelen",
+      "description": "Kantel het schuifdak van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "sunroof_close": {
+      "name": "Schuifdak sluiten",
+      "description": "Sluit het schuifdak van een auto die wordt gedefinieerd door een vin.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "temperature_configure": {
+      "name": "Doeltemperatuur configureren (voorverwarming/extra verwarming)",
+      "description": "Configureer de doeltemperaturen voor voorverwarming/extra verwarming voor zones in een auto die wordt gedefinieerd door een vin.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "front_left": {
+          "name": "Voor links",
+          "description": "Doeltemperatuur voor de zone voor links in CELSIUS."
+        },
+        "front_right": {
+          "name": "Voor rechts",
+          "description": "Doeltemperatuur voor de zone voor rechts in CELSIUS."
+        },
+        "rear_left": {
+          "name": "Achter links",
+          "description": "Doeltemperatuur voor de zone achter links in CELSIUS. (if available)"
+        },
+        "rear_right": {
+          "name": "Achter rechts",
+          "description": "Doeltemperatuur voor de zone achter rechts in CELSIUS. (if available)"
+        }
+      }
+    },
+    "windows_open": {
+      "name": "Ramen openen",
+      "description": "Open de ramen van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN-code, vereist als deze niet is opgeslagen in de instellingen."
+        }
+      }
+    },
+    "windows_close": {
+      "name": "Ramen sluiten",
+      "description": "Sluit de ramen van een auto die wordt gedefinieerd door een vin. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        }
+      }
+    },
+    "windows_move": {
+      "name": "Ramen bewegen",
+      "description": "Beweeg de ramen van een auto die wordt gedefinieerd door een vin naar een nieuwe positie. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "front_left": {
+          "name": "Voor links",
+          "description": "De nieuwe positie van het linker voorraam (0=gesloten, 10=ventileren, 100=open)"
+        },
+        "front_right": {
+          "name": "Voor rechts",
+          "description": "De nieuwe positie van het rechter voorraam (0=gesloten, 10=ventileren, 100=open)"
+        },
+        "rear_left": {
+          "name": "Achter links",
+          "description": "De nieuwe positie van het linker achterraam (0=gesloten, 10=ventileren, 100=open)"
+        },
+        "rear_right": {
+          "name": "Achter rechts",
+          "description": "De nieuwe positie van het rechter achterraam (0=gesloten, 10=ventileren, 100=open)"
+        }
+      }
+    },
+    "send_route": {
+      "name": "Route verzenden",
+      "description": "Verzend een route naar de auto. (Enkel één locatie)",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "title": {
+          "name": "Titel",
+          "description": "Titel van de route"
+        },
+        "latitude": {
+          "name": "Breedtegraad",
+          "description": "Breedtegraad van de locatie"
+        },
+        "longitude": {
+          "name": "Lengtegraad",
+          "description": "Lengtegraad van de locatie"
+        },
+        "city": {
+          "name": "Stad",
+          "description": "Naam van de stad van de locatie"
+        },
+        "postcode": {
+          "name": "Postcode",
+          "description": "Postcode van de locatie"
+        },
+        "street": {
+          "name": "Straat",
+          "description": "Straatnaam van de locatie"
+        }
+      }
+    },
+    "charging_break_clocktimer_configure": {
+      "name": "Oplaadpauze kloktimer configureren",
+      "description": "Configureer oplaadpauzes (alleen AC). Dit zal de volledige configuratie voor alle slots in je auto overschrijven.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "status_timer_1": {
+          "name": "Status (Timer 1)",
+          "description": ""
+        },
+        "starttime_timer_1": {
+          "name": "Starttijd (Timer 1)",
+          "description": "Starttijd van het oplaadpauzevenster (Timer 1)"
+        },
+        "stoptime_timer_1": {
+          "name": "Eindtijd  (Timer 1)",
+          "description": "Eindtijd van het oplaadpauzevenster (Timer 1)"
+        },
+        "status_timer_2": {
+          "name": "Status (Timer 2)",
+          "description": ""
+        },
+        "starttime_timer_2": {
+          "name": "Starttijd (Timer 2)",
+          "description": "Starttijd van het oplaadpauzevenster (Timer 2)"
+        },
+        "stoptime_timer_2": {
+          "name": "Eindtijd  (Timer 2)",
+          "description": "Eindtijd van het oplaadpauzevenster (Timer 2)"
+        },
+        "status_timer_3": {
+          "name": "Status (Timer 3)",
+          "description": ""
+        },
+        "starttime_timer_3": {
+          "name": "Starttijd (Timer 3)",
+          "description": "Starttijd van het oplaadpauzevenster (Timer 3)"
+        },
+        "stoptime_timer_3": {
+          "name": "Eindtijd  (Timer 3)",
+          "description": "Eindtijd van het oplaadpauzevenster (Timer 3)"
+        },
+        "status_timer_4": {
+          "name": "Status (Timer 4)",
+          "description": ""
+        },
+        "starttime_timer_4": {
+          "name": "Starttijd (Timer 4)",
+          "description": "Starttijd van het oplaadpauzevenster (Timer 4)"
+        },
+        "stoptime_timer_4": {
+          "name": "Eindtijd  (Timer 4)",
+          "description": "Eindtijd van het oplaadpauzevenster (Timer 4)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "auxheatstatus": {
+        "state": {
+          "0": "Inactief",
+          "1": "Normaal verwarmen",
+          "2": "Normale ventilatie",
+          "3": "Handmatig verwarmen",
+          "4": "Naverwarmen",
+          "5": "Naventileren",
+          "6": "Automatisch verwarmen"
+        }
+      },
+      "chargeflapacstatus": {
+        "state": {
+          "0": "Open",
+          "1": "Gesloten",
+          "2": "Klep ingedrukt",
+          "3": "Onbekend"
+        }
+      },
+      "chargeflapdcstatus": {
+        "state": {
+          "0": "Open",
+          "1": "Gesloten",
+          "2": "Klep ingedrukt",
+          "3": "Onbekend"
+        }
+      },
+      "departuretimemode": {
+        "state": {
+          "0": "Uitgeschakeld",
+          "1": "Dagelijks",
+          "2": "Wekelijks"
+        }
+      },
+      "ignitionstate": {
+        "state": {
+          "0": "Vergrendeld",
+          "1": "Uit",
+          "2": "Accessoire",
+          "4": "Aan",
+          "5": "Start"
+        }
+      },
+      "interiorprotectionsensorstatus": {
+        "state": {
+          "0": "Niet actief",
+          "1": "Niet actief",
+          "2": "Actief"
+        },
+        "state_attributes": {}
+      },
+      "lock": {
+        "state": {
+          "0": "Ontgrendeld",
+          "1": "Intern vergrendeld",
+          "2": "Vergrendeld",
+          "3": "Deels ontgrendeld",
+          "4": "Onbekend"
+        },
+        "state_attributes": {
+          "decklidstatus": {
+            "name": "Bagageklep",
+            "state": {
+              "false": "gesloten",
+              "true": "open"
+            }
+          },
+          "doorstatusfrontleft": {
+            "name": "Deur voor links",
+            "state": {
+              "false": "gesloten",
+              "true": "open"
+            }
+          },
+          "doorstatusfrontright": {
+            "name": "Deur voor rechts",
+            "state": {
+              "false": "gesloten",
+              "true": "open"
+            }
+          },
+          "doorstatusrearleft": {
+            "name": "Deur achter links",
+            "state": {
+              "false": "gesloten",
+              "true": "open"
+            }
+          },
+          "doorstatusrearright": {
+            "name": "Deur achter rechts",
+            "state": {
+              "false": "gesloten",
+              "true": "open"
+            }
+          },
+          "doorlockstatusfrontleft": {
+            "name": "Deurslot voor links",
+            "state": {
+              "false": "vergrendeld",
+              "true": "ontgrendeld"
+            }
+          },
+          "doorlockstatusfrontright": {
+            "name": "Deurslot voor rechts",
+            "state": {
+              "false": "vergrendeld",
+              "true": "ontgrendeld"
+            }
+          },
+          "doorlockstatusrearleft": {
+            "name": "Deurslot achter links",
+            "state": {
+              "false": "vergrendeld",
+              "true": "ontgrendeld"
+            }
+          },
+          "doorlockstatusrearright": {
+            "name": "Deurslot achter rechts",
+            "state": {
+              "false": "vergrendeld",
+              "true": "ontgrendeld"
+            }
+          },
+          "doorlockstatusgas": {
+            "name": "Tankdopslot",
+            "state": {
+              "false": "vergrendeld",
+              "true": "ontgrendeld"
+            }
+          },
+          "enginehoodstatus": {
+            "name": "Motorkap",
+            "state": {
+              "false": "gesloten",
+              "true": "open"
+            }
+          },
+          "doorstatusoverall": {
+            "name": "Algemene deurstatus",
+            "state": {
+              "0": "open",
+              "1": "gesloten",
+              "2": "niet aanwezig",
+              "3": "onbekend"
+            }
+          },
+          "sunroofstatus": {
+            "name": "Schuifdak status",
+            "state": {
+              "0": "gesloten",
+              "1": "open",
+              "2": "open gekanteld",
+              "3": "in beweging",
+              "4": "anti-dreunstand",
+              "5": "tussenpositie schuifstand",
+              "6": "tussenpositie kantelstand",
+              "7": "aan het openen",
+              "8": "aan het sluiten",
+              "9": "anti-dreun kantelstand",
+              "10": "tussenpositie",
+              "11": "openen kantelstand",
+              "12": "sluiten kantelstand"
+            }
+          }
+        }
+      },
+      "sunroofstatus": {
+        "state": {
+          "0": "Gesloten",
+          "1": "Open",
+          "2": "Open gekanteld",
+          "3": "In beweging",
+          "4": "Anti-dreunstand",
+          "5": "Tussenpositie schuifstand",
+          "6": "Tussenpositie kantelstand",
+          "7": "Aan het openen",
+          "8": "Aan het sluiten",
+          "9": "Anti-dreunstand kantelstand",
+          "10": "Tussenpositie",
+          "11": "Openen kantelstand",
+          "12": "Sluiten kantelstand"
+        },
+        "state_attributes": {}
+      },
+      "starterbatterystate": {
+        "state": {
+          "0": "Groen",
+          "1": "Geel",
+          "2": "Rood"
+        }
+      },
+      "tirewarningsrdk": {
+        "state": {
+          "0": "Geen waarschuwing",
+          "1": "Zachte waarschuwing",
+          "2": "Lage druk",
+          "3": "Lekkage"
+        }
+      }
+    },
+    "switch": {
+      "auxheat": {
+        "name": "Hulpverwarming"
+      },
+      "precond": {
+        "name": "Voorverwarming klimaatregeling"
+      }
+    }
+  },
+  "selector": {
+    "charge_program": {
+      "options": {
+        "0": "Standaard",
+        "2": "Thuis",
+        "3": "Werk"
+      }
+    },
+    "charging_break_clocktimer_configure_action": {
+      "options": {
+        "notset": "Niet ingesteld",
+        "active": "Actief",
+        "inactive": "Inactief"
+      }
+    },
+    "temperature_configure": {
+      "options": {
+        "0": "Laag",
+        "30": "Hoog"
+      }
+    }
+  }
 }
