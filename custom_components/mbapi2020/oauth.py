@@ -116,8 +116,8 @@ class Oauth:
         """
         _LOGGER.info("Starting OAuth2 login flow")
 
-        if not self._session or self._session.closed:
-            self._session = async_create_clientsession(self._hass, VERIFY_SSL)
+        # create a fresh session
+        self._session = async_create_clientsession(self._hass, VERIFY_SSL)
 
         try:
             # Step 1: Get authorization URL and extract resume parameter
