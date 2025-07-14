@@ -32,7 +32,7 @@ from .const import (
     WEBSOCKET_USER_AGENT_PA,
     WEBSOCKET_USER_AGENT_US,
 )
-from .helper import UrlHelper as helper, Watchdog
+from .helper import LogHelper as loghelper, UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
@@ -167,7 +167,7 @@ class Websocket:
         if any(self._ignition_states.values()):
             LOGGER.debug(
                 "initiatiate_connection_disconnect_with_reconnect canceled - Reason: ignitions_state: %s",
-                [key for key, value in self._ignition_states.items() if value],
+                [loghelper.Mask_VIN(key) for key, value in self._ignition_states.items() if value],
             )
             await self._watchdog.trigger()
             return
