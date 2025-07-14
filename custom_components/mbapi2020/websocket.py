@@ -159,11 +159,11 @@ class Websocket:
 
     async def initiatiate_connection_disconnect_with_reconnect(self):
         """Initiate a connection disconnect."""
-        LOGGER.debug(
-            "ignitions_state: %s, %s",
-            self.oauth._config_entry.entry_id,
-            json.dumps(self._ignition_states),
-        )
+        # LOGGER.debug(
+        #     "ignitions_state: %s, %s",
+        #     self.oauth._config_entry.entry_id,
+        #     json.dumps(self._ignition_states),
+        # )
         if any(self._ignition_states.values()):
             LOGGER.debug(
                 "initiatiate_connection_disconnect_with_reconnect canceled - Reason: ignitions_state: %s",
