@@ -21,14 +21,13 @@ LOGGER = logging.getLogger(__name__)
 class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """DataUpdateCoordinator class for the MBAPI2020 Integration."""
 
-    initialized: bool = False
-    entry_setup_complete: bool = False
-
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize."""
 
         self.hass: HomeAssistant = hass
         self.config_entry: ConfigEntry = config_entry
+        self.initialized: bool = False
+        self.entry_setup_complete: bool = False
         session = async_get_clientsession(hass, VERIFY_SSL)
 
         # Find the right way to migrate old configs
