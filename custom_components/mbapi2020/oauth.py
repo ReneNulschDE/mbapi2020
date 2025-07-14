@@ -143,6 +143,9 @@ class Oauth:
             self._save_token_info(token_info)
             self.token = token_info
 
+            self.code_verifier = None
+            self.code_challenge = None
+
             _LOGGER.info("OAuth2 login successful")
             return token_info
 
