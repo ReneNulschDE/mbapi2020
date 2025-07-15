@@ -37,7 +37,9 @@ from .oauth import Oauth
 from .proto import vehicle_events_pb2
 
 DEFAULT_WATCHDOG_TIMEOUT = 30
-DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 300
+DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 180
+INITIAL_WATCHDOG_TIMEOUT = 300  # 5 minutes
+WATCHDOG_PROTECTION_PERIOD = 270  # 4:30 minutes
 PING_WATCHDOG_TIMEOUT = 30
 RECONNECT_WATCHDOG_TIMEOUT = 60
 STATE_CONNECTED = "connected"
@@ -67,7 +69,7 @@ class Websocket:
         self._watchdog: Watchdog = Watchdog(
             self.initiatiate_connection_disconnect_with_reconnect,
             topic="Connection",
-            timeout_seconds=DEFAULT_WATCHDOG_TIMEOUT,
+            timeout_seconds=INITIAL_WATCHDOG_TIMEOUT,
             log_events=True,
         )
         self._pingwatchdog: Watchdog = Watchdog(
@@ -87,6 +89,8 @@ class Websocket:
         self.ws_connect_retry_counter: int = 0
         self.account_blocked: bool = False
         self.ws_blocked_connection_error_logged = False
+        self._connection_start_time: float | None = None
+        self._initial_timeout_used: bool = False
 
         self._queue_task: asyncio.Task = None
         self._websocket_task: asyncio.Task = None
@@ -143,6 +147,9 @@ class Websocket:
         self._watchdog.cancel()
         self._pingwatchdog.cancel()
         self.connection_state = "closed"
+        # Reset initial timeout state on stop - next connection will use 5min timeout again
+        self._connection_start_time = None
+        self._initial_timeout_used = False
 
         # Signal queue handler to stop gracefully
         try:
@@ -173,7 +180,7 @@ class Websocket:
             return
 
         await self._reconnectwatchdog.trigger()
-        self._watchdog.timeout = DEFAULT_WATCHDOG_TIMEOUT
+        self._reset_watchdog_timeout()
         await self.async_stop()
 
     async def ping(self):
@@ -193,7 +200,7 @@ class Websocket:
                 reconnect_task = asyncio.create_task(self.async_connect())
 
             if car_command:
-                self._watchdog.timeout = DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND
+                self._set_watchdog_timeout(DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND)
                 await self._watchdog.trigger()
 
             if reconnect_task:
@@ -344,6 +351,11 @@ class Websocket:
         self._connection = await session.ws_connect(websocket_url, **kwargs)
         LOGGER.debug("Connected to mercedes websocket at %s", websocket_url)
 
+        # Always reset to initial timeout for each new connection (including reconnects)
+        self._connection_start_time = asyncio.get_event_loop().time()
+        self._initial_timeout_used = True
+        self._watchdog.timeout = INITIAL_WATCHDOG_TIMEOUT
+
         await self._watchdog.trigger()
 
         while not self._connection.closed:
@@ -461,3 +473,32 @@ class Websocket:
 
         if cleanup_count > 0:
             LOGGER.debug("Cleaned up %d remaining queue items", cleanup_count)
+
+    def _set_watchdog_timeout(self, timeout: int) -> None:
+        """Set watchdog timeout with protection period logic."""
+        if not self._initial_timeout_used or self._connection_start_time is None:
+            # Not in initial timeout mode, allow any timeout change
+            self._watchdog.timeout = timeout
+            return
+
+        current_time = asyncio.get_event_loop().time()
+        connection_duration = current_time - self._connection_start_time
+
+        # During protection period (first 4:30), don't allow timeout changes
+        if connection_duration < WATCHDOG_PROTECTION_PERIOD:
+            LOGGER.debug(
+                "Watchdog timeout change blocked during protection period (%.1fs elapsed)", connection_duration
+            )
+            return
+
+        # After protection period, allow timeout changes and switch to default behavior
+        self._watchdog.timeout = timeout
+        # Reset to normal behavior after protection period (regardless of timeout value)
+        self._initial_timeout_used = False
+        self._connection_start_time = None
+
+    def _reset_watchdog_timeout(self) -> None:
+        """Reset watchdog timeout to default and clear initial timeout state."""
+        self._watchdog.timeout = DEFAULT_WATCHDOG_TIMEOUT
+        self._initial_timeout_used = False
+        self._connection_start_time = None
