@@ -229,7 +229,7 @@ class WebApi:
         return await self._request("get", url, rcp_headers=False, ignore_errors=False, return_as_json=False)
 
     async def get_car_p2b_data_via_rest(self, vin: str):
-        """Get all rcp setting for a car."""
+        """Get vehicleattributes via rest."""
         url = f"{helper.Widget_url(self._region)}/v1/vehicle/{vin}/vehicleattributes"
 
         LOGGER.debug("get_car_p2b_data_via_rest: %s", url)
