@@ -209,12 +209,6 @@ GeofenceEvents_OPTIONS = ["last_event_zone", "last_event_timestamp", "last_event
 class Car:
     """Car class, stores the car values at runtime."""
 
-    baumuster_description: str = ""
-    features: dict[str, bool]
-    geofence_events: GeofenceEvents
-    geo_fencing_retry_counter: int = 0
-    has_geofencing: bool = True
-
     def __init__(self, vin: str):
         """Initialize the Car instance."""
         self.finorvin = vin
@@ -250,6 +244,13 @@ class Car:
         self.app_configuration: dict[str, Any] = {}
         self.entry_setup_complete = False
         self._update_listeners = set()
+        self.baumuster_description: str = ""
+        self.features: dict[str, bool]
+        self.geofence_events: GeofenceEvents
+        self.geo_fencing_retry_counter: int = 0
+        self.has_geofencing: bool = True
+        self._data_collection_mode: str = "push"
+        self._data_collection_mode_ts: float = 0
 
     @property
     def is_owner(self):
@@ -281,6 +282,16 @@ class Car:
     @last_message_received.setter
     def last_message_received(self, value):
         self._last_message_received = value
+
+    @property
+    def data_collection_mode(self):
+        """Get/Set last message received."""
+        return CarAttribute(self._data_collection_mode, "VALID", self._data_collection_mode_ts)
+
+    @data_collection_mode.setter
+    def data_collection_mode(self, value):
+        self._data_collection_mode = value
+        self._data_collection_mode_ts = datetime.now().timestamp()
 
     @property
     def last_command_type(self):
@@ -435,7 +446,7 @@ class GeofenceEvents:
     last_event_timestamp: CarAttribute | None = None
     last_event_zone: CarAttribute | None = None
     name: str = "GeofenceEvents"
-    
+
     def __post_init__(self):
         """Initialize mutable attributes."""
         self.events = []

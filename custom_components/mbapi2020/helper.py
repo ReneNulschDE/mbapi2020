@@ -80,6 +80,20 @@ class UrlHelper:
                 return WEBSOCKET_API_BASE
 
     @staticmethod
+    def Widget_url(region: str) -> str:
+        env: str = "emea"
+
+        match region:
+            case current if current in (REGION_APAC, REGION_NORAM):
+                env = "apac"
+            case current if current == REGION_CHINA:
+                env = "cn"
+            case current if current == REGION_EUROPE:
+                env = "emea"
+
+        return f"https://widget.{env}-prod.mobilesdk.mercedes-benz.com"
+
+    @staticmethod
     def Device_code_confirm_url(region: str, device_code: str) -> str:
         """Return a formatted url to confirm a device code auth."""
         base64_code = base64.b64encode(device_code).decode("ascii")

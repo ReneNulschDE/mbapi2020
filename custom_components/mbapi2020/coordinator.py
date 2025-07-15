@@ -41,11 +41,13 @@ class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_data(self) -> dict[str, Car]:
         """Update data via library."""
-        try:
-            for vin in self.client.cars:
-                await self.client.update_poll_states(vin)
-        except Exception as err:
-            raise MbapiError from err
+
+        if self.entry_setup_complete:
+            try:
+                for vin in self.client.cars:
+                    await self.client.update_poll_states(vin)
+            except Exception as err:
+                raise MbapiError from err
 
         return {}  # self.client.cars
 

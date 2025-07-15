@@ -59,7 +59,7 @@ CONF_OVERWRITE_PRECONDNOW = "overwrite_cap_precondnow"
 DOMAIN = "mbapi2020"
 LOGGER = logging.getLogger(__package__)
 
-UPDATE_INTERVAL = timedelta(seconds=300)
+UPDATE_INTERVAL = timedelta(seconds=180)
 
 STATE_CONFIRMATION_DURATION = 60  # Duration to wait for state confirmation of interactive entitiess in seconds
 
@@ -815,6 +815,22 @@ SENSORS = {
             "electric.chargingBreakClockTimer",
         },
         "mdi:car",
+        None,
+        False,
+        EntityCategory.DIAGNOSTIC,
+        None,
+        None,
+        0,
+    ],
+    "data_mode": [
+        "Data Mode",
+        None,  # Deprecated: DO NOT USE
+        None,
+        "data_collection_mode",
+        "value",
+        None,
+        {},
+        "mdi:connection",
         None,
         False,
         EntityCategory.DIAGNOSTIC,

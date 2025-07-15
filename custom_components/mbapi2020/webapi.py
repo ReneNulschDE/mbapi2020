@@ -10,6 +10,7 @@ import uuid
 
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientError
+import google.protobuf.message
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -27,6 +28,7 @@ from .const import (
 )
 from .helper import UrlHelper as helper
 from .oauth import Oauth
+from .proto import vehicle_events_pb2
 
 LOGGER = logging.getLogger(__name__)
 
@@ -225,3 +227,18 @@ class WebApi:
         """Download the car images and store it to the components ressource folder."""
         url = f"/v1/vehicle/{vin}/topviewimage"
         return await self._request("get", url, rcp_headers=False, ignore_errors=False, return_as_json=False)
+
+    async def get_car_p2b_data_via_rest(self, vin: str):
+        """Get all rcp setting for a car."""
+        url = f"{helper.Widget_url(self._region)}/v1/vehicle/{vin}/vehicleattributes"
+
+        LOGGER.debug("get_car_p2b_data_via_rest: %s", url)
+        try:
+            data = await self._request("get", "", url=url, return_as_json=False)
+            message = vehicle_events_pb2.VEPUpdate()
+            message.ParseFromString(data)
+        except TypeError as err:
+            LOGGER.error("could not decode data (%s) from websocket: %s", data, err)
+        except google.protobuf.message.DecodeError as err:
+            LOGGER.error("could not decode data (%s) from websocket: %s", data, err)
+        return message if message else None

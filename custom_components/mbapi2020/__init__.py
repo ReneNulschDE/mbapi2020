@@ -259,6 +259,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     while not coordinator.entry_setup_complete:
         # async websocket data load not complete, wait 0.5 seconds or break up after 60 checks (30sec)
         if retry_counter == 60 and coordinator.client.websocket.account_blocked:
+            for vin in coordinator.client.cars:
+                await coordinator.client.update_poll_states(vin)
             LOGGER.warning("Account is blocked. Reload will happen after unblock at midnight (GMT).")
             break
         if retry_counter == 60 and not coordinator.client.account_blocked:
@@ -291,7 +293,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         websocket._watchdog.cancel()
         websocket._pingwatchdog.cancel()
         websocket.component_reload_watcher.cancel()
-        
+
         result = await websocket.async_stop()
         hass.data[DOMAIN][config_entry.entry_id].client.websocket = None
         if unload_ok := await hass.config_entries.async_unload_platforms(config_entry, MERCEDESME_COMPONENTS):
