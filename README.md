@@ -29,6 +29,12 @@ IMPORTANT:
   **Important Notes:**
 - consider using a dedicated Mercedes-Benz account for Home Assistant
 - if MFA is enabled on your Mercedes-Benz account, authentication will fail. You must disable MFA or use a separate account without MFA.
+- You will receive an email from Mercedes stating:
+
+  - A new device has logged in
+  - Device type: iOS/Mobile Safari
+
+  This is normal and can happen also over the day, as the component sometimes has to re-login.
 
 ### How to Prevent Account Blocking
 
