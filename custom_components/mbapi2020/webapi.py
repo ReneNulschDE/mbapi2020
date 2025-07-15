@@ -232,7 +232,6 @@ class WebApi:
         """Get vehicleattributes via rest."""
         url = f"{helper.Widget_url(self._region)}/v1/vehicle/{vin}/vehicleattributes"
 
-        LOGGER.debug("get_car_p2b_data_via_rest: %s", url)
         try:
             data = await self._request("get", "", url=url, return_as_json=False)
             message = vehicle_events_pb2.VEPUpdate()
