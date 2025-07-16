@@ -87,6 +87,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_REGION: user_input[CONF_REGION],
                 CONF_PASSWORD: user_input[CONF_PASSWORD],
                 "token": token_info,
+                "device_guid": client.oauth._device_guid,  # noqa: SLF001
             }
 
             if self._reauth_mode:
