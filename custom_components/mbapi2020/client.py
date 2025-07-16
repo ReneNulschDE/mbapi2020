@@ -267,7 +267,7 @@ class Client:
 
         if received_car_data.get("vin") not in self.cars:
             LOGGER.info(
-                "Flow Problem - VepUpdate for unknown car. Looks like we found a Smart: %s",
+                "Flow Problem - VepUpdate for unknown car: %s",
                 loghelper.Mask_VIN(received_car_data.get("vin")),
             )
 
@@ -610,6 +610,55 @@ class Client:
             default_value,
         )
 
+    def _process_rest_vep_update(self, data):
+        LOGGER.debug("Start _process_rest_vep_update")
+
+        self._write_debug_output(data, "rfu")
+        # Don't understand the protobuf dict errors --> convert to json
+        vep_json = json.loads(MessageToJson(data, preserving_proto_field_name=True))
+        vin = vep_json.get("vin", None)
+        if not vin:
+            LOGGER.debug("No VIN found in VEPUpdate data: %s", vep_json)
+            return
+
+        if not self._first_vepupdates_processed:
+            self._vepupdates_time_first_message = datetime.now()
+            self._first_vepupdates_processed = True
+
+        self._build_car(vep_json, update_mode=False)
+
+        if self._dataload_complete_fired:
+            current_car = self.cars.get(vin)
+            current_car.data_collection_mode = "pull"
+
+            if current_car:
+                current_car.publish_updates()
+
+        if not self._dataload_complete_fired:
+            fire_complete_event: bool = True
+            for car in self.cars.values():
+                if not car.entry_setup_complete:
+                    fire_complete_event = False
+                LOGGER.debug(
+                    "_process_vep_updates - %s - complete: %s - %s",
+                    loghelper.Mask_VIN(car.finorvin),
+                    car.entry_setup_complete,
+                    car.messages_received,
+                )
+            if fire_complete_event:
+                LOGGER.debug("_process_vep_updates - all completed - fire event: _on_dataload_complete")
+                self._hass.async_create_task(self._on_dataload_complete())
+                self._dataload_complete_fired = True
+
+        if not self._dataload_complete_fired and (datetime.now() - self._vepupdates_time_first_message) > timedelta(
+            seconds=self._vepupdates_timeout_seconds
+        ):
+            LOGGER.debug(
+                "_process_vep_updates - not all data received, timeout reached - fire event: _on_dataload_complete"
+            )
+            self._hass.async_create_task(self._on_dataload_complete())
+            self._dataload_complete_fired = True
+
     def _process_vep_updates(self, data):
         LOGGER.debug("Start _process_vep_updates")
 
@@ -654,6 +703,7 @@ class Client:
 
             if self._dataload_complete_fired:
                 current_car = self.cars.get(vin)
+                current_car.data_collection_mode = "push"
 
                 if current_car:
                     current_car.publish_updates()
@@ -1656,14 +1706,18 @@ class Client:
         if vin in self.cars:
             car = self.cars[vin]
 
+            if self.websocket and self.websocket.account_blocked:
+                LOGGER.debug("start get_car_p2b_data_via_rest: %s", loghelper.Mask_VIN(vin))
+                p2b_data = await self.webapi.get_car_p2b_data_via_rest(vin)
+                self._process_rest_vep_update(p2b_data)
+
             if not car.has_geofencing:
                 return
-
-            LOGGER.debug("start update_poll_states: %s", loghelper.Mask_VIN(vin))
 
             if car.geofence_events is None:
                 car.geofence_events = GeofenceEvents()
 
+            LOGGER.debug("start get_car_geofencing_violations: %s", loghelper.Mask_VIN(vin))
             geofencing_violotions = await self.webapi.get_car_geofencing_violations(car.finorvin)
             if geofencing_violotions and len(geofencing_violotions) > 0:
                 car.geofence_events.last_event_type = CarAttribute(
