@@ -355,7 +355,7 @@ class Oauth:
 
         headers = self._get_header()
         headers["Content-Type"] = "application/x-www-form-urlencoded"
-        headers["X-Device-Id"] = str(uuid.uuid4())
+        headers["X-Device-Id"] = self._get_or_create_device_guid()
         headers["X-Request-Id"] = str(uuid.uuid4())
 
         token_info = None
