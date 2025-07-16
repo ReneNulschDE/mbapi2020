@@ -73,6 +73,7 @@ class Oauth:
         self.token = None
         self._sessionid = ""
         self._get_token_lock = asyncio.Lock()
+        self._device_guid: str | None = None
 
         # PKCE parameters for new login method
         self.code_verifier: str | None = None
@@ -116,8 +117,11 @@ class Oauth:
         """
         _LOGGER.info("Starting OAuth2 login flow")
 
-        # create a fresh session
-        self._session = async_create_clientsession(self._hass, VERIFY_SSL)
+        # create a fresh session with CIAM.DEVICE cookie
+        device_guid = self._get_or_create_device_guid()
+        cookie_jar = aiohttp.CookieJar()
+        cookie_jar.update_cookies({"CIAM.DEVICE": device_guid})
+        self._session = async_create_clientsession(self._hass, verify_ssl=VERIFY_SSL, cookie_jar=cookie_jar)
 
         try:
             # Step 1: Get authorization URL and extract resume parameter
@@ -408,6 +412,21 @@ class Oauth:
             return token_info["expires_at"] - now < 60
         return True
 
+    def _get_or_create_device_guid(self) -> str:
+        """Get existing device GUID from config or create a new one."""
+        # Return cached GUID if available
+        if self._device_guid:
+            return self._device_guid
+
+        # Try to load from config
+        if self._config_entry and self._config_entry.data and "device_guid" in self._config_entry.data:
+            self._device_guid = self._config_entry.data["device_guid"]
+            return self._device_guid
+
+        # Generate new GUID if not exists - will be saved with token
+        self._device_guid = str(uuid.uuid4())
+        return self._device_guid
+
     def _save_token_info(self, token_info):
         """Save token info."""
         if self._config_entry:
@@ -418,6 +437,11 @@ class Oauth:
 
             new_config_entry_data = deepcopy(dict(self._config_entry.data))
             new_config_entry_data["token"] = token_info
+
+            # Ensure device_guid is preserved
+            if self._device_guid:
+                new_config_entry_data["device_guid"] = self._device_guid
+
             self._hass.config_entries.async_update_entry(self._config_entry, data=new_config_entry_data)
 
     @classmethod
@@ -473,7 +497,10 @@ class Oauth:
         kwargs.setdefault("proxy", SYSTEM_PROXY)
 
         if not self._session or self._session.closed:
-            self._session = async_create_clientsession(self._hass, VERIFY_SSL)
+            device_guid = self._get_or_create_device_guid()
+            cookie_jar = aiohttp.CookieJar()
+            cookie_jar.update_cookies({"CIAM.DEVICE": device_guid})
+            self._session = async_create_clientsession(self._hass, verify_ssl=VERIFY_SSL, cookie_jar=cookie_jar)
 
         async with self._session.request(method, url, data=data, **kwargs) as resp:
             if 400 <= resp.status <= 500:
