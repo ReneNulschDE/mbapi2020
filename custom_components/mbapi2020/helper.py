@@ -85,7 +85,7 @@ class UrlHelper:
 
         match region:
             case current if current in (REGION_APAC, REGION_NORAM):
-                env = "apac"
+                env = "amap"
             case current if current == REGION_CHINA:
                 env = "cn"
             case current if current == REGION_EUROPE:
