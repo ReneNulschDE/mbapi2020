@@ -38,10 +38,10 @@ from .proto import vehicle_events_pb2
 
 DEFAULT_WATCHDOG_TIMEOUT = 30
 DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 180
-INITIAL_WATCHDOG_TIMEOUT = 300  # 5 minutes
-WATCHDOG_PROTECTION_PERIOD = 270  # 4:30 minutes
+INITIAL_WATCHDOG_TIMEOUT = 60  # 5 minutes
+WATCHDOG_PROTECTION_PERIOD = 10
 PING_WATCHDOG_TIMEOUT = 30
-RECONNECT_WATCHDOG_TIMEOUT = 60
+RECONNECT_WATCHDOG_TIMEOUT = 30
 STATE_CONNECTED = "connected"
 STATE_RECONNECTING = "reconnecting"
 
@@ -144,8 +144,19 @@ class Websocket:
     async def async_stop(self, now: datetime = datetime.now()):
         """Close connection."""
         self.is_stopping = True
-        self._watchdog.cancel()
+
+        # First stop ping watchdog to prevent new pings
         self._pingwatchdog.cancel()
+
+        # Then close WebSocket connection properly with close code
+        if self._connection is not None and not self._connection.closed:
+            try:
+                await self._connection.close(code=1000, message=b"Client shutdown")
+            except Exception as e:
+                LOGGER.debug("Error closing WebSocket connection: %s", e)
+
+        # Stop main watchdog after connection is closed
+        self._watchdog.cancel()
         self.connection_state = "closed"
         # Reset initial timeout state on stop - next connection will use 5min timeout again
         self._connection_start_time = None
@@ -157,9 +168,6 @@ class Websocket:
         except asyncio.QueueFull:
             LOGGER.warning("Queue full during shutdown, forcing queue cleanup")
             await self._cleanup_queue()
-
-        if self._connection is not None:
-            await self._connection.close()
 
         # Tasks ordnungsgemäß beenden
         await self._cleanup_tasks()
