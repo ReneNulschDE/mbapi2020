@@ -37,7 +37,7 @@ class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self.client = Client(hass, session, config_entry, region)
 
-        super().__init__(hass, LOGGER, name=DOMAIN, update_interval=UPDATE_INTERVAL)
+        super().__init__(hass, LOGGER, name=DOMAIN, config_entry=config_entry, update_interval=UPDATE_INTERVAL)
 
     async def _async_update_data(self) -> dict[str, Car]:
         """Update data via library."""
