@@ -21,7 +21,7 @@ from .errors import MbapiError
 LOGGER = logging.getLogger(__name__)
 
 # Version threshold for config_entry setting in options flow
-# See: https://github.com/home-assistant/core/pull/129562
+# See: https://github.com/home-assistant/core/pull/127980
 HA_DATACOORDINATOR_CONTEXTVAR_VERSION_THRESHOLD = "2025.07.99"
 
 
