@@ -5,7 +5,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from awesomeversion import AwesomeVersion
+
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import __version__ as HAVERSION
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -16,6 +19,10 @@ from .const import CONF_REGION, DOMAIN, MERCEDESME_COMPONENTS, UPDATE_INTERVAL, 
 from .errors import MbapiError
 
 LOGGER = logging.getLogger(__name__)
+
+# Version threshold for config_entry setting in options flow
+# See: https://github.com/home-assistant/core/pull/129562
+HA_DATACOORDINATOR_CONTEXTVAR_VERSION_THRESHOLD = "2025.07.99"
 
 
 class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -37,7 +44,10 @@ class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self.client = Client(hass, session, config_entry, region)
 
-        super().__init__(hass, LOGGER, name=DOMAIN, config_entry=config_entry, update_interval=UPDATE_INTERVAL)
+        if AwesomeVersion(HAVERSION) < HA_DATACOORDINATOR_CONTEXTVAR_VERSION_THRESHOLD:
+            super().__init__(hass, LOGGER, name=DOMAIN, update_interval=UPDATE_INTERVAL)
+        else:
+            super().__init__(hass, LOGGER, name=DOMAIN, config_entry=config_entry, update_interval=UPDATE_INTERVAL)
 
     async def _async_update_data(self) -> dict[str, Car]:
         """Update data via library."""
