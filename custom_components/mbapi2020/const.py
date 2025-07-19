@@ -106,6 +106,7 @@ USE_PROXY = False
 VERIFY_SSL = True
 SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:9090"
 
+
 LOGIN_BASE_URI = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_CN = "https://ciam-1.mercedes-benz.com.cn"
 PSAG_BASE_URI = "https://psag.query.api.dvb.corpinter.net"

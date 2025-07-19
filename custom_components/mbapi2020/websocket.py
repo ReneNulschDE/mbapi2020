@@ -309,7 +309,7 @@ class Websocket:
                 self.ws_connect_retry_counter += 1
             except WSServerHandshakeError as error:
                 if not self.ws_blocked_connection_error_logged:
-                    LOGGER.warning(
+                    LOGGER.info(
                         "MB-API access blocked. (First Message, expect a re-login) %s, retry in %s seconds...",
                         error,
                         retry_in,
@@ -328,8 +328,9 @@ class Websocket:
                             username = config_entry.data.get("username")
                             region = config_entry.data.get("region")
                             if username and password and hasattr(self.oauth, "async_login_new"):
-                                LOGGER.warning(
-                                    "429 detected: Trying relogin with stored password for user %s", username
+                                LOGGER.info(
+                                    "429 detected: Trying relogin with stored password for config_entry: %s",
+                                    config_entry.entry_id,
                                 )
                                 try:
                                     token_info = await self.oauth.async_login_new(username, password)
