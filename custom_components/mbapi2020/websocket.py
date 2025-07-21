@@ -334,7 +334,9 @@ class Websocket:
                                 )
                                 try:
                                     token_info = await self.oauth.async_login_new(username, password)
-                                    LOGGER.info("Relogin successful after 429 for user %s", username)
+                                    LOGGER.info(
+                                        "Relogin successful after 429 for config entry %s", config_entry.entry_id
+                                    )
                                     # Token im config_entry aktualisieren, falls nötig
                                     self._relogin_429_done = True
                                 except Exception as relogin_err:
