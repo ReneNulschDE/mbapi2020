@@ -516,6 +516,23 @@
           "3": "Unknown"
         }
       },
+      "chargingstatus": {
+        "state": {
+          "0": "charging",
+          "1": "charging ends",
+          "2": "Charge break",
+          "3": "unplugged",
+          "4": "failure",
+          "5": "slow",
+          "6": "fast",
+          "7": "discharging",
+          "8": "not charging",
+          "9": "slow charging after reaching trip target",
+          "10": "charging after reaching trip target",
+          "11": "fast charging after reaching trip target",
+          "12": "unkown"
+        }
+      },
       "departuretimemode": {
         "state": {
           "0": "Disabled",

@@ -924,6 +924,22 @@ SENSORS = {
         None,
         0,
     ],
+    "chargingstatus": [
+        "Charging Status",
+        None,  # Deprecated: DO NOT USE
+        "electric",
+        "chargingstatus",
+        "value",
+        None,
+        {},
+        "mdi:car-electric",
+        None,
+        False,
+        None,
+        None,
+        None,
+        0,
+    ],
     "electricconsumptionstart": [
         "Electric consumption start",
         None,  # Deprecated: DO NOT USE,
