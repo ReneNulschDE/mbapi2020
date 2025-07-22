@@ -63,6 +63,11 @@ def setup_services(hass: HomeAssistant) -> None:
                 coordinator = domain[key]
                 if coordinator.client and coordinator.client.cars:
                     if vin in coordinator.client.cars:
+                        if coordinator.client.cars[vin].data_collection_mode == "pull":
+                            raise ServiceValidationError(
+                                "The connection to the MB-server is in pull mode currently. Actions can't be executed in this mode."
+                            )
+                            continue
                         return key
 
         raise ServiceValidationError(

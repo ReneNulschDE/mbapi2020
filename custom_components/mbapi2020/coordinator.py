@@ -64,12 +64,50 @@ class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     @callback
     async def on_dataload_complete(self):
         """Create sensors after the web_socket initial data is complete."""
-        LOGGER.info("Car Load complete - start sensor creation")
         if not self.entry_setup_complete:
+            LOGGER.info("Car Load complete - start sensor creation")
             await self.hass.config_entries.async_forward_entry_setups(self.config_entry, MERCEDESME_COMPONENTS)
 
         self.entry_setup_complete = True
+        self.client._dataload_complete_fired = True
 
     async def ws_connect(self):
         """Register handlers and connect to the websocket."""
-        await self.client.attempt_connect(self.on_dataload_complete)
+        await self.client.attempt_connect(self.on_dataload_complete, self)
+
+    @callback
+    async def check_missing_sensors_for_vin(self, vin: str):
+        """Check for newly available sensors after vep_updates."""
+        if not self.entry_setup_complete:
+            return
+
+        car = self.client.cars.get(vin)
+        if not car:
+            return
+
+        from homeassistant.helpers.entity_platform import async_get_platforms
+
+        from .binary_sensor import create_missing_binary_sensors_for_car
+        from .sensor import create_missing_sensors_for_car
+
+        platforms = async_get_platforms(self.hass, "mbapi2020")
+        sensor_platform = None
+        binary_sensor_platform = None
+        for platform in platforms:
+            if platform.domain == "sensor":
+                sensor_platform = platform
+            elif platform.domain == "binary_sensor":
+                binary_sensor_platform = platform
+
+        total_count = 0
+
+        if sensor_platform and hasattr(sensor_platform, "async_add_entities"):
+            count = await create_missing_sensors_for_car(car, self, sensor_platform.async_add_entities)
+            total_count += count
+
+        if binary_sensor_platform and hasattr(binary_sensor_platform, "async_add_entities"):
+            count = await create_missing_binary_sensors_for_car(car, self, binary_sensor_platform.async_add_entities)
+            total_count += count
+
+        if total_count > 0:
+            LOGGER.info("Added %d missing sensors/binary_sensors for %s", total_count, vin[-4:])

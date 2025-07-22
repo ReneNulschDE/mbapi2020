@@ -12,6 +12,7 @@ from homeassistant.components.sensor import RestoreSensor
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import MercedesMeEntity
@@ -25,6 +26,76 @@ from .const import (
     SensorConfigFields as scf,
 )
 from .coordinator import MBAPI2020DataUpdateCoordinator
+
+
+def _create_sensor_if_eligible(key, config, car, coordinator, should_poll=False, initial_setup=False):
+    """Check if sensor should be created and return device if eligible."""
+    # Skip special sensors during dynamic loading, but allow during initial setup
+    if key in ["car", "data_mode"] and not initial_setup:
+        return None
+
+    if (
+        config[scf.CAPABILITIES_LIST.value] is None
+        or coordinator.config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
+        or car.features.get(config[scf.CAPABILITIES_LIST.value], False)
+    ):
+        device_class = MercedesMESensorPoll if should_poll else MercedesMESensor
+        device = device_class(
+            internal_name=key,
+            config=config,
+            vin=car.finorvin,
+            coordinator=coordinator,
+            should_poll=should_poll,
+        )
+
+        # Check eligibility
+        status = device.device_retrieval_status()
+        is_eligible = False
+
+        if should_poll:
+            is_eligible = status in ["VALID", "NOT_RECEIVED"] or (
+                config[scf.DEFAULT_VALUE_MODE.value] is not None
+                and config[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
+                and str(status) != "4"
+            )
+        else:
+            is_eligible = status in ["VALID", "NOT_RECEIVED", "3", 3] or (
+                config[scf.DEFAULT_VALUE_MODE.value] is not None
+                and config[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
+                and str(status) != "4"
+            )
+
+        if is_eligible:
+            return device
+
+    return None
+
+
+async def create_missing_sensors_for_car(car, coordinator, async_add_entities):
+    """Create missing sensors for a specific car."""
+
+    entity_registry = er.async_get(coordinator.hass)
+    missing_sensors = []
+
+    # Helper function to check and add eligible devices
+    def _check_and_add_device(device, sensor_type="sensor"):
+        if device and not entity_registry.async_get_entity_id(sensor_type, DOMAIN, device.unique_id):
+            missing_sensors.append(device)
+
+    # Process regular sensors
+    for key, value in sorted(SENSORS.items()):
+        device = _create_sensor_if_eligible(key, value, car, coordinator, False)
+        _check_and_add_device(device)
+
+    # Process polling sensors
+    for key, value in sorted(SENSORS_POLL.items()):
+        device = _create_sensor_if_eligible(key, value, car, coordinator, True)
+        _check_and_add_device(device)
+
+    if missing_sensors:
+        await async_add_entities(missing_sensors, True)
+        return len(missing_sensors)
+    return 0
 
 
 async def async_setup_entry(
@@ -43,48 +114,14 @@ async def async_setup_entry(
     sensor_list = []
     for car in coordinator.client.cars.values():
         for key, value in sorted(SENSORS.items()):
-            if (
-                value[scf.CAPABILITIES_LIST.value] is None
-                or config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is True
-                or car.features.get(value[scf.CAPABILITIES_LIST.value], False) is True
-            ):
-                device = MercedesMESensor(
-                    internal_name=key,
-                    config=value,
-                    vin=car.finorvin,
-                    coordinator=coordinator,
-                )
-                if device.device_retrieval_status() in [
-                    "VALID",
-                    "NOT_RECEIVED",
-                    "3",
-                    3,
-                ] or (
-                    value[scf.DEFAULT_VALUE_MODE.value] is not None
-                    and value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
-                    and str(device.device_retrieval_status()) != "4"
-                ):
-                    sensor_list.append(device)
+            device = _create_sensor_if_eligible(key, value, car, coordinator, False, initial_setup=True)
+            if device:
+                sensor_list.append(device)
 
         for key, value in sorted(SENSORS_POLL.items()):
-            if (
-                value[scf.CAPABILITIES_LIST.value] is None
-                or config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is True
-                or car.features.get(value[scf.CAPABILITIES_LIST.value], False) is True
-            ):
-                device = MercedesMESensorPoll(
-                    internal_name=key,
-                    config=value,
-                    vin=car.finorvin,
-                    coordinator=coordinator,
-                    should_poll=True,
-                )
-                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED"] or (
-                    value[scf.DEFAULT_VALUE_MODE.value] is not None
-                    and value[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
-                    and str(device.device_retrieval_status()) != "4"
-                ):
-                    sensor_list.append(device)
+            device = _create_sensor_if_eligible(key, value, car, coordinator, True, initial_setup=True)
+            if device:
+                sensor_list.append(device)
 
     async_add_entities(sensor_list, True)
 
