@@ -55,13 +55,13 @@ def _create_sensor_if_eligible(key, config, car, coordinator, should_poll=False,
             is_eligible = status in ["VALID", "NOT_RECEIVED"] or (
                 config[scf.DEFAULT_VALUE_MODE.value] is not None
                 and config[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
-                and str(status) != "4"
+                and str(status) not in ["4", "error"]
             )
         else:
             is_eligible = status in ["VALID", "NOT_RECEIVED", "3", 3] or (
                 config[scf.DEFAULT_VALUE_MODE.value] is not None
                 and config[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
-                and str(status) != "4"
+                and str(status) not in ["4", "error"]
             )
 
         if is_eligible:
