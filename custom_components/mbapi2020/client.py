@@ -64,7 +64,7 @@ from .websocket import Websocket
 
 LOGGER = logging.getLogger(__name__)
 
-DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = True
+DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = False
 GEOFENCING_MAX_RETRIES = 1
 
 
