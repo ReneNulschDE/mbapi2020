@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 import logging
 from pathlib import Path
@@ -11,7 +11,7 @@ import threading
 import time
 import uuid
 
-from aiohttp import ClientSession, WSServerHandshakeError
+from aiohttp import ClientSession
 from google.protobuf.json_format import MessageToJson
 
 from custom_components.mbapi2020.proto import client_pb2
@@ -20,7 +20,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import system_info
-from homeassistant.helpers.event import async_call_later
 
 from .car import (
     AUX_HEAT_OPTIONS,

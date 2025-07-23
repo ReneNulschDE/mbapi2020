@@ -11,12 +11,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import __version__ as HAVERSION
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.entity_platform import async_get_platforms
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .car import Car
 from .client import Client
 from .const import CONF_REGION, DOMAIN, MERCEDESME_COMPONENTS, UPDATE_INTERVAL, VERIFY_SSL
 from .errors import MbapiError
+from .helper import LogHelper as loghelper
 
 LOGGER = logging.getLogger(__name__)
 
@@ -81,14 +83,12 @@ class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not self.entry_setup_complete:
             return
 
+        from .binary_sensor import create_missing_binary_sensors_for_car
+        from .sensor import create_missing_sensors_for_car
+
         car = self.client.cars.get(vin)
         if not car:
             return
-
-        from homeassistant.helpers.entity_platform import async_get_platforms
-
-        from .binary_sensor import create_missing_binary_sensors_for_car
-        from .sensor import create_missing_sensors_for_car
 
         platforms = async_get_platforms(self.hass, "mbapi2020")
         sensor_platform = None
@@ -110,4 +110,4 @@ class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             total_count += count
 
         if total_count > 0:
-            LOGGER.info("Added %d missing sensors/binary_sensors for %s", total_count, vin[-4:])
+            LOGGER.info("Added %d missing sensors/binary_sensors for %s", total_count, loghelper.Mask_VIN(vin))

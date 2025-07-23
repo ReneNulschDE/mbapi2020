@@ -381,7 +381,6 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
 
         return self._get_car_value(self._feature_name, self._object_name, "retrievalstatus", "error")
 
-
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""

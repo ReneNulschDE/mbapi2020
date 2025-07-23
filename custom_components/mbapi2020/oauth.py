@@ -309,9 +309,9 @@ class Oauth:
                 params = urllib.parse.parse_qs(parsed_url.query)
                 code = params.get("code", [None])[0]
                 if not code:
-                    raise MBAuthError("Authorization code not found in redirect URL")
+                    raise MBAuthError("Authorization code not found in redirect URL") from e
                 return code
-            raise MBAuthError(f"Unexpected URL error: {e}")
+            raise MBAuthError(f"Unexpected URL error: {e}") from e
 
     async def _exchange_code_for_tokens(self, code: str) -> dict[str, Any]:
         """Exchange authorization code for access and refresh tokens."""
@@ -381,7 +381,7 @@ class Oauth:
 
     async def async_get_cached_token(self):
         """Get a cached auth token."""
-        _LOGGER.debug("Start async_get_cached_token()")
+        # _LOGGER.debug("Start async_get_cached_token()")
         token_info: dict[str, any]
 
         if self.token:

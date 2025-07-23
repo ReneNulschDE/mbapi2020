@@ -12,7 +12,6 @@ from homeassistant.components.sensor import RestoreSensor
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import MercedesMeEntity
@@ -74,23 +73,24 @@ def _create_sensor_if_eligible(key, config, car, coordinator, should_poll=False,
 async def create_missing_sensors_for_car(car, coordinator, async_add_entities):
     """Create missing sensors for a specific car."""
 
-    entity_registry = er.async_get(coordinator.hass)
     missing_sensors = []
 
     # Helper function to check and add eligible devices
-    def _check_and_add_device(device, sensor_type="sensor"):
-        if device and not entity_registry.async_get_entity_id(sensor_type, DOMAIN, device.unique_id):
-            missing_sensors.append(device)
+    def _check_and_add_device(device, car, sensor_type="sensor"):
+        if device:
+            if f"sensor.{device.unique_id}" not in car.sensors:
+                missing_sensors.append(device)
+                LOGGER.debug("Sensor added: %s, %s", device._name, f"sensor.{device.unique_id}")
 
     # Process regular sensors
     for key, value in sorted(SENSORS.items()):
         device = _create_sensor_if_eligible(key, value, car, coordinator, False)
-        _check_and_add_device(device)
+        _check_and_add_device(device, car)
 
     # Process polling sensors
     for key, value in sorted(SENSORS_POLL.items()):
         device = _create_sensor_if_eligible(key, value, car, coordinator, True)
-        _check_and_add_device(device)
+        _check_and_add_device(device, car)
 
     if missing_sensors:
         await async_add_entities(missing_sensors, True)
@@ -157,8 +157,22 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
         elif self._internal_name == "chargingpowerkw":
             if self._state and isinstance(self._state, (int, float)):
                 return round(float(self._state), 1)
+            if self._state and self._state == "error":
+                return STATE_UNKNOWN
 
         return self._state
+
+    async def async_added_to_hass(self):
+        """Add callback after being added to hass."""
+
+        self._car.add_sensor(f"sensor.{self._attr_unique_id}")
+        await super().async_added_to_hass()
+
+    async def async_will_remove_from_hass(self):
+        """Entity being removed from hass."""
+
+        self._car.remove_sensor(f"sensor.{self._attr_unique_id}")
+        await super().async_will_remove_from_hass()
 
 
 class MercedesMESensorPoll(MercedesMeEntity, RestoreSensor):
@@ -180,3 +194,15 @@ class MercedesMESensorPoll(MercedesMeEntity, RestoreSensor):
             return STATE_UNKNOWN
 
         return self._state
+
+    async def async_added_to_hass(self):
+        """Add callback after being added to hass."""
+
+        self._car.add_sensor(f"sensor.{self._attr_unique_id}")
+        await super().async_added_to_hass()
+
+    async def async_will_remove_from_hass(self):
+        """Entity being removed from hass."""
+
+        self._car.remove_sensor(f"sensor.{self._attr_unique_id}")
+        await super().async_will_remove_from_hass()

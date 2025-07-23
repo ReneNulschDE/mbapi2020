@@ -42,7 +42,6 @@ def _create_binary_sensor_if_eligible(key, config, car, coordinator):
             coordinator=coordinator,
         )
 
-
         # Check eligibility
         status = device.device_retrieval_status()
         is_eligible = status in ["VALID", "NOT_RECEIVED", "3", 3] or (
@@ -59,15 +58,14 @@ def _create_binary_sensor_if_eligible(key, config, car, coordinator):
 
 async def create_missing_binary_sensors_for_car(car, coordinator, async_add_entities):
     """Create missing binary sensors for a specific car."""
-    from homeassistant.helpers import entity_registry as er
-    
-    entity_registry = er.async_get(coordinator.hass)
+
     missing_sensors = []
 
     for key, value in sorted(BinarySensors.items()):
         device = _create_binary_sensor_if_eligible(key, value, car, coordinator)
-        if device and not entity_registry.async_get_entity_id("binary_sensor", DOMAIN, device.unique_id):
+        if device and f"binary_sensor.{device.unique_id}" not in car.sensors:
             missing_sensors.append(device)
+            LOGGER.debug("Sensor added: %s", device._name)
 
     if missing_sensors:
         await async_add_entities(missing_sensors, True)
@@ -140,3 +138,15 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
             return self.flip(True)
 
         return self._state
+
+    async def async_added_to_hass(self):
+        """Add callback after being added to hass."""
+
+        self._car.add_sensor(f"binary_sensor.{self._attr_unique_id}")
+        await super().async_added_to_hass()
+
+    async def async_will_remove_from_hass(self):
+        """Entity being removed from hass."""
+
+        self._car.remove_sensor(f"binary_sensor.{self._attr_unique_id}")
+        await super().async_will_remove_from_hass()
