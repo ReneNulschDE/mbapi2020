@@ -25,5 +25,20 @@
         "windows_move": "mdi:car-door",
         "send_route": "mdi:routes",
         "temperature_configure": "mdi:temperature-check"
+    },
+    "entity": {
+        "sensor": {
+            "selectedchargeprogram": {
+                "default": "mdi:ev-station",
+                "state": {
+                    "0": "mdi:ev-station",
+                    "2": "mdi:home-battery",
+                    "3": "mdi:office-building",
+                    "Standard": "mdi:ev-station",
+                    "Home": "mdi:home-battery",
+                    "Work": "mdi:office-building"
+                }
+            }
+        }
     }
 }

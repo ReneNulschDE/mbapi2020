@@ -1562,6 +1562,22 @@ SENSORS = {
         None,
         0,
     ],
+    "selectedchargeprogram": [
+        "Selected Charge Program",
+        None,  # Deprecated: DO NOT USE
+        "electric",
+        "selectedChargeProgram",
+        "value",
+        None,
+        {},
+        None,
+        None,
+        False,
+        None,
+        None,
+        None,
+        0,
+    ],
 }
 
 LOCKS = {

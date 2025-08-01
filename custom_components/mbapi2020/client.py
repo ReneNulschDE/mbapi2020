@@ -374,10 +374,9 @@ class Client:
         if not update_mode:
             car.entry_setup_complete = True
 
-        # Nimm jedes car (item) aus self.cars ausser es ist das aktuelle dann nimm car
         self.cars[car.finorvin] = car
 
-    def _get_car_values(self, car_detail, car_id, class_instance, options, update):
+    def _get_car_values(self, car_detail, vin, class_instance, options, update):
         # Define handlers for specific options and the generic case
         option_handlers = {
             "max_soc": self._get_car_values_handle_max_soc,
@@ -394,7 +393,7 @@ class Client:
         if car_detail is None or not car_detail.get("attributes"):
             LOGGER.debug(
                 "get_car_values %s has incomplete update data – attributes not found",
-                loghelper.Mask_VIN(car_id),
+                loghelper.Mask_VIN(vin),
             )
             return class_instance
 
@@ -402,25 +401,25 @@ class Client:
             # Select the specific handler or the generic handler
             handler = option_handlers.get(option, self._get_car_values_handle_generic)
 
-            curr_status = handler(car_detail, class_instance, option, update)
+            curr_status = handler(car_detail, class_instance, option, update, vin)
             if curr_status is None:
                 continue
 
             # Set the value only if the timestamp is newer
-            curr_timestamp = float(curr_status.timestamp or 0)
-            car_value_timestamp = float(self._get_car_value(class_instance, option, "ts", 0))
-            if curr_timestamp > car_value_timestamp:
-                setattr(class_instance, option, curr_status)
-            elif curr_timestamp < car_value_timestamp:
-                LOGGER.warning(
-                    "get_car_values %s received older attribute data for %s. Ignoring value.",
-                    loghelper.Mask_VIN(car_id),
-                    option,
-                )
-
+            # curr_timestamp = float(curr_status.timestamp or 0)
+            # car_value_timestamp = float(self._get_car_value(class_instance, option, "ts", 0))
+            # if curr_timestamp > car_value_timestamp:
+            #     setattr(class_instance, option, curr_status)
+            # elif curr_timestamp < car_value_timestamp:
+            #     LOGGER.warning(
+            #         "get_car_values %s received older attribute data for %s. Ignoring value.",
+            #         loghelper.Mask_VIN(vin),
+            #         option,
+            #     )
+            setattr(class_instance, option, curr_status)
         return class_instance
 
-    def _get_car_values_handle_generic(self, car_detail, class_instance, option, update):
+    def _get_car_values_handle_generic(self, car_detail, class_instance, option, update, vin: str):
         curr = car_detail.get("attributes", {}).get(option)
         if curr:
             # Simplify value extraction by checking for existing keys
@@ -458,12 +457,30 @@ class Client:
 
         return None
 
-    def _get_car_values_handle_max_soc(self, car_detail, class_instance, option, update):
-        # special EQA/B max_soc handling
-        attributes = car_detail.get("attributes", {})
-        charge_programs = attributes.get("chargePrograms")
-        if not charge_programs:
-            return None
+    def _get_car_values_handle_max_soc(
+        self, car_detail, class_instance, option, update, vin: str, use_last_full_message: bool = False
+    ):
+        # Handle the case when the selected charge program changed but chargePrograms is not available in the update message.
+        if not use_last_full_message:
+            attributes = car_detail.get("attributes", {})
+            charge_programs = attributes.get("chargePrograms")
+            if not charge_programs:
+                return self._get_car_values_handle_max_soc(
+                    car_detail, class_instance, option, update, vin, use_last_full_message=True
+                )
+        else:
+            current_car = self.cars.get(vin)
+            if not current_car or not current_car.last_full_message:
+                LOGGER.debug(
+                    "get_car_values_handle_max_soc - No last_full_message found for car %s",
+                    loghelper.Mask_VIN(vin),
+                )
+                return None
+            car_detail = current_car.last_full_message if current_car.last_full_message else car_detail
+            attributes = car_detail.get("attributes", {})
+            charge_programs = attributes.get("chargePrograms")
+            if not charge_programs:
+                return None
 
         time_stamp = charge_programs.get("timestamp", 0)
         charge_programs_value = charge_programs.get("charge_programs_value", {})
@@ -486,7 +503,7 @@ class Client:
 
         return None
 
-    def _get_car_values_handle_chargePrograms(self, car_detail, class_instance, option, update):
+    def _get_car_values_handle_chargePrograms(self, car_detail, class_instance, option, update, vin: str):
         attributes = car_detail.get("attributes", {})
         curr = attributes.get(option)
         if not curr:
@@ -508,7 +525,7 @@ class Client:
             unit=None,
         )
 
-    def _get_car_values_handle_charging_break_clock_timer(self, car_detail, class_instance, option, update):
+    def _get_car_values_handle_charging_break_clock_timer(self, car_detail, class_instance, option, update, vin: str):
         attributes = car_detail.get("attributes", {})
         curr = attributes.get(option)
         if not curr:
@@ -531,8 +548,8 @@ class Client:
             unit=None,
         )
 
-    def _get_car_values_handle_ignitionstate(self, car_detail, class_instance, option, update):
-        value = self._get_car_values_handle_generic(car_detail, class_instance, option, update)
+    def _get_car_values_handle_ignitionstate(self, car_detail, class_instance, option, update, vin: str):
+        value = self._get_car_values_handle_generic(car_detail, class_instance, option, update, vin)
         if value:
             vin = car_detail.get("vin")
             self.ignition_states[vin] = value.value == "4"
@@ -541,7 +558,7 @@ class Client:
 
         return value
 
-    def _get_car_values_handle_precond_status(self, car_detail, class_instance, option, update):
+    def _get_car_values_handle_precond_status(self, car_detail, class_instance, option, update, vin: str):
         attributes = car_detail.get("attributes", {})
 
         # Retrieve attributes with defaults to handle missing keys
@@ -580,7 +597,7 @@ class Client:
 
         return None
 
-    def _get_car_values_handle_temperature_points(self, car_detail, class_instance, option: str, update):
+    def _get_car_values_handle_temperature_points(self, car_detail, class_instance, option: str, update, vin: str):
         curr_zone = option.replace("temperature_points_", "")
         attributes = car_detail.get("attributes", {})
         temperaturePoints = attributes.get("temperaturePoints")

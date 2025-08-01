@@ -704,6 +704,13 @@
           "2": "Low pressure",
           "3": "Deflation"
         }
+      },
+      "selectedchargeprogram": {
+        "state": {
+          "0": "Standard",
+          "2": "Home",
+          "3": "Work"
+        }
       }
     },
     "switch": {
