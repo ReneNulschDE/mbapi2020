@@ -264,8 +264,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             LOGGER.warning("Account is blocked. Reload will happen after unblock at midnight (GMT).")
             break
         if retry_counter == 60 and not coordinator.client.account_blocked:
+            for vin in coordinator.client.cars:
+                await coordinator.client.update_poll_states(vin)
             LOGGER.warning(
-                "No car information received via websocket for this account. Check the MB website with the same account."
+                "No full_update set received via websocket for some/all cars. Not all sensors may be available. Missing sensors will be created after the data will be available."
             )
             break
 
@@ -485,6 +487,20 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             value = getattr(self._car, attrib_name, default_value)
 
         return value
+
+    def _get_car_attribute(self, feature, object_name):
+        """Get the CarAttribute object for this sensor."""
+        if object_name:
+            if not feature:
+                return getattr(self._car, object_name, None)
+            else:
+                feature_obj = getattr(self._car, feature, None)
+                if feature_obj:
+                    return getattr(feature_obj, object_name, None)
+        else:
+            return getattr(self._car, self._attrib_name, None)
+
+        return None
 
     def pushdata_update_callback(self):
         """Schedule a state update."""

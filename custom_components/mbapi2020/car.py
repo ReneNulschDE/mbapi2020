@@ -244,6 +244,7 @@ class Car:
         self.app_configuration: dict[str, Any] = {}
         self.entry_setup_complete = False
         self._update_listeners = set()
+        self.sensors: set[str] = set()
         self.baumuster_description: str = ""
         self.features: dict[str, bool]
         self.geofence_events: GeofenceEvents
@@ -336,6 +337,16 @@ class Car:
     def remove_update_callback(self, listener):
         """Remove a listener for update notifications."""
         self._update_listeners.discard(listener)
+
+    def add_sensor(self, unique_id: str):
+        """Add a sensor to the car."""
+        if unique_id not in self.sensors:
+            self.sensors.add(unique_id)
+
+    def remove_sensor(self, unique_id: str):
+        """Remove a sensor from the car."""
+        if unique_id in self.sensors:
+            self.sensors.remove(unique_id)
 
     def publish_updates(self):
         """Schedule call all registered callbacks."""
@@ -456,10 +467,11 @@ class GeofenceEvents:
 class CarAttribute:
     """Stores the CarAttribute values at runtime."""
 
-    def __init__(self, value, retrievalstatus, timestamp, display_value=None, unit=None):
+    def __init__(self, value, retrievalstatus, timestamp, display_value=None, unit=None, sensor_created=False):
         """Initialize the instance."""
         self.value = value
         self.retrievalstatus = retrievalstatus
         self.timestamp = timestamp
         self.display_value = display_value
         self.unit = unit
+        self.sensor_created = sensor_created

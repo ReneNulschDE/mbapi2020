@@ -13,8 +13,64 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import MercedesMeEntity
-from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, BinarySensors, SensorConfigFields as scf
+from .const import (
+    CONF_FT_DISABLE_CAPABILITY_CHECK,
+    DOMAIN,
+    LOGGER,
+    BinarySensors,
+    DefaultValueModeType,
+    SensorConfigFields as scf,
+)
 from .coordinator import MBAPI2020DataUpdateCoordinator
+
+
+def _create_binary_sensor_if_eligible(key, config, car, coordinator):
+    """Check if binary sensor should be created and return device if eligible."""
+    # Skip special sensors that should not be created dynamically
+    if key in ["car", "data_mode"]:
+        return None
+
+    if (
+        config[scf.CAPABILITIES_LIST.value] is None
+        or coordinator.config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
+        or car.features.get(config[scf.CAPABILITIES_LIST.value], False)
+    ):
+        device = MercedesMEBinarySensor(
+            internal_name=key,
+            config=config,
+            vin=car.finorvin,
+            coordinator=coordinator,
+        )
+
+        # Check eligibility
+        status = device.device_retrieval_status()
+        is_eligible = status in ["VALID", "NOT_RECEIVED", "3", 3] or (
+            config[scf.DEFAULT_VALUE_MODE.value] is not None
+            and config[scf.DEFAULT_VALUE_MODE.value] != DefaultValueModeType.NONE
+            and str(status) != "4"
+        )
+
+        if is_eligible:
+            return device
+
+    return None
+
+
+async def create_missing_binary_sensors_for_car(car, coordinator, async_add_entities):
+    """Create missing binary sensors for a specific car."""
+
+    missing_sensors = []
+
+    for key, value in sorted(BinarySensors.items()):
+        device = _create_binary_sensor_if_eligible(key, value, car, coordinator)
+        if device and f"binary_sensor.{device.unique_id}" not in car.sensors:
+            missing_sensors.append(device)
+            LOGGER.debug("Sensor added: %s", device._name)
+
+    if missing_sensors:
+        await async_add_entities(missing_sensors, True)
+        return len(missing_sensors)
+    return 0
 
 
 async def async_setup_entry(
@@ -33,19 +89,9 @@ async def async_setup_entry(
     sensors = []
     for car in coordinator.client.cars.values():
         for key, value in sorted(BinarySensors.items()):
-            if (
-                value[scf.CAPABILITIES_LIST.value] is None
-                or config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False) is True
-                or car.features.get(value[scf.CAPABILITIES_LIST.value], False) is True
-            ):
-                device = MercedesMEBinarySensor(
-                    internal_name=key,
-                    config=value,
-                    vin=car.finorvin,
-                    coordinator=coordinator,
-                )
-                if device.device_retrieval_status() in ["VALID", "NOT_RECEIVED", "3", 3]:
-                    sensors.append(device)
+            device = _create_binary_sensor_if_eligible(key, value, car, coordinator)
+            if device:
+                sensors.append(device)
 
     async_add_entities(sensors, True)
 
@@ -92,3 +138,15 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
             return self.flip(True)
 
         return self._state
+
+    async def async_added_to_hass(self):
+        """Add callback after being added to hass."""
+
+        self._car.add_sensor(f"binary_sensor.{self._attr_unique_id}")
+        await super().async_added_to_hass()
+
+    async def async_will_remove_from_hass(self):
+        """Entity being removed from hass."""
+
+        self._car.remove_sensor(f"binary_sensor.{self._attr_unique_id}")
+        await super().async_will_remove_from_hass()

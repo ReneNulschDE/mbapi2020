@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 import logging
 from pathlib import Path
@@ -11,7 +11,7 @@ import threading
 import time
 import uuid
 
-from aiohttp import ClientSession, WSServerHandshakeError
+from aiohttp import ClientSession
 from google.protobuf.json_format import MessageToJson
 
 from custom_components.mbapi2020.proto import client_pb2
@@ -65,7 +65,7 @@ from .websocket import Websocket
 LOGGER = logging.getLogger(__name__)
 
 DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = False
-GEOFENCING_MAX_RETRIES = 2
+GEOFENCING_MAX_RETRIES = 1
 
 
 class Client:
@@ -89,6 +89,7 @@ class Client:
         self._region = region
         self._on_dataload_complete = None
         self._dataload_complete_fired = False
+        self._coordinator_ref = None
         self._disable_rlock = False
         self.__lock = None
         self._debug_save_path = self._hass.config.path(DEFAULT_CACHE_PATH)
@@ -96,7 +97,7 @@ class Client:
         self.session_id = str(uuid.uuid4()).upper()
 
         self._first_vepupdates_processed: bool = False
-        self._vepupdates_timeout_seconds: int = 30
+        self._vepupdates_timeout_seconds: int = 25
 
         self.oauth: Oauth = Oauth(
             hass=self._hass,
@@ -253,11 +254,12 @@ class Client:
 
         return None
 
-    async def attempt_connect(self, callback_dataload_complete):
+    async def attempt_connect(self, callback_dataload_complete, coordinator_ref=None):
         """Attempt to connect to the socket."""
         LOGGER.debug("attempt_connect")
 
         self._on_dataload_complete = callback_dataload_complete
+        self._coordinator_ref = coordinator_ref
         await self.websocket.async_connect(self.on_data)
 
     def _build_car(self, received_car_data, update_mode):
@@ -641,6 +643,9 @@ class Client:
         if not self._first_vepupdates_processed:
             self._vepupdates_time_first_message = datetime.now()
             self._first_vepupdates_processed = True
+            self._hass.loop.call_later(
+                30, lambda: self._hass.async_add_executor_job(self._safe_create_on_dataload_complete_task)
+            )
 
         self._build_car(vep_json, update_mode=False)
 
@@ -667,15 +672,6 @@ class Client:
                 self._hass.async_create_task(self._on_dataload_complete())
                 self._dataload_complete_fired = True
 
-        if not self._dataload_complete_fired and (datetime.now() - self._vepupdates_time_first_message) > timedelta(
-            seconds=self._vepupdates_timeout_seconds
-        ):
-            LOGGER.debug(
-                "_process_vep_updates - not all data received, timeout reached - fire event: _on_dataload_complete"
-            )
-            self._hass.async_create_task(self._on_dataload_complete())
-            self._dataload_complete_fired = True
-
     def _process_vep_updates(self, data):
         LOGGER.debug("Start _process_vep_updates")
 
@@ -688,6 +684,9 @@ class Client:
         if not self._first_vepupdates_processed:
             self._vepupdates_time_first_message = datetime.now()
             self._first_vepupdates_processed = True
+            self._hass.loop.call_later(
+                30, lambda: self._hass.async_add_executor_job(self._safe_create_on_dataload_complete_task)
+            )
 
         for vin in cars:
             if vin in self.excluded_cars:
@@ -725,6 +724,10 @@ class Client:
                 if current_car:
                     current_car.publish_updates()
 
+                    # Check for newly available sensors after vep_update
+                    if self._coordinator_ref:
+                        self._hass.async_create_task(self._coordinator_ref.check_missing_sensors_for_vin(vin))
+
         if not self._dataload_complete_fired:
             fire_complete_event: bool = True
             for car in self.cars.values():
@@ -740,15 +743,6 @@ class Client:
                 LOGGER.debug("_process_vep_updates - all completed - fire event: _on_dataload_complete")
                 self._hass.async_create_task(self._on_dataload_complete())
                 self._dataload_complete_fired = True
-
-        if not self._dataload_complete_fired and (datetime.now() - self._vepupdates_time_first_message) > timedelta(
-            seconds=self._vepupdates_timeout_seconds
-        ):
-            LOGGER.debug(
-                "_process_vep_updates - not all data received, timeout reached - fire event: _on_dataload_complete"
-            )
-            self._hass.async_create_task(self._on_dataload_complete())
-            self._dataload_complete_fired = True
 
     def _process_assigned_vehicles(self, data):
         if not self._dataload_complete_fired:
@@ -1758,3 +1752,8 @@ class Client:
                 if car.geo_fencing_retry_counter >= GEOFENCING_MAX_RETRIES:
                     car.has_geofencing = False
                 car.geo_fencing_retry_counter = car.geo_fencing_retry_counter + 1
+
+    def _safe_create_on_dataload_complete_task(self):
+        """Create task in a thread-safe way."""
+        # Zurück zum Event Loop
+        asyncio.run_coroutine_threadsafe(self._on_dataload_complete(), self._hass.loop)
