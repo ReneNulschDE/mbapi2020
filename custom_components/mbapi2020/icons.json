@@ -33,10 +33,7 @@
                 "state": {
                     "0": "mdi:ev-station",
                     "2": "mdi:home-battery",
-                    "3": "mdi:office-building",
-                    "Standard": "mdi:ev-station",
-                    "Home": "mdi:home-battery",
-                    "Work": "mdi:office-building"
+                    "3": "mdi:office-building"
                 }
             }
         }
