@@ -1585,7 +1585,7 @@ LOCKS = {
         "Lock",
         None,  # Deprecated: DO NOT USE
         "doors",
-        "doorLockStatusOverall",
+        "doorlockstatusvehicle",
         "value",
         "DOORS_LOCK",
         {},
