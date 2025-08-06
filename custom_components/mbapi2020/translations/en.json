@@ -530,7 +530,11 @@
           "9": "slow charging after reaching trip target",
           "10": "charging after reaching trip target",
           "11": "fast charging after reaching trip target",
-          "12": "unkown"
+          "12": "Connected",
+          "13": "AC Charging",
+          "14": "DC Charging",
+          "15": "Battery calibration active",
+          "16": "unknown",
         }
       },
       "departuretimemode": {
