@@ -467,6 +467,9 @@ class Client:
             attributes = car_detail.get("attributes", {})
             charge_programs = attributes.get("chargePrograms")
             if not charge_programs:
+                if not attributes.get("selectedChargeProgram"):
+                    return None
+
                 return self._get_car_values_handle_max_soc(
                     car_detail, class_instance, option, update, vin, use_last_full_message=True
                 )
