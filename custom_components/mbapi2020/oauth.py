@@ -184,7 +184,7 @@ class Oauth:
         headers = {
             "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "accept-language": "en-US",
+            "accept-language": "de-DE,de;q=0.9",
         }
 
         auth_url = f"{helper.Login_Base_Url(self._region)}/as/authorization.oauth2"
@@ -210,7 +210,7 @@ class Oauth:
             "accept": "*/*",
             "content-type": "application/json",
             "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "en-US",
+            "accept-language": "de-DE,de;q=0.9",
             "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
         }
 
@@ -232,7 +232,7 @@ class Oauth:
             "accept": "application/json, text/plain, */*",
             "content-type": "application/json",
             "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "en-US",
+            "accept-language": "de-DE,de;q=0.9",
             "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
             "referer": f"{helper.Login_Base_Url(self._region)}/ciam/auth/login",
         }
@@ -252,7 +252,7 @@ class Oauth:
             "accept": "application/json, text/plain, */*",
             "content-type": "application/json",
             "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "en-US",
+            "accept-language": "de-DE,de;q=0.9",
             "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
             "referer": f"{helper.Login_Base_Url(self._region)}/ciam/auth/login",
         }
@@ -279,7 +279,7 @@ class Oauth:
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "content-type": "application/x-www-form-urlencoded",
             "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "en-US",
+            "accept-language": "de-DE,de;q=0.9",
             "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
             "referer": f"{helper.Login_Base_Url(self._region)}/ciam/auth/login",
         }
