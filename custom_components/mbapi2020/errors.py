@@ -19,3 +19,11 @@ class RequestError(MbapiError):
 
 class MBAuthError(ConfigEntryAuthFailed):
     """Define an error related to authentication."""
+
+
+class MBAuth2FAError(ConfigEntryAuthFailed):
+    """Define an error related to two-factor authentication (2FA)."""
+
+
+class MBLegalTermsError(ConfigEntryAuthFailed):
+    """Define an error related to acceptance of legal terms."""

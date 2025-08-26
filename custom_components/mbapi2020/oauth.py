@@ -17,7 +17,7 @@ import uuid
 import aiohttp
 from aiohttp import ClientSession
 
-from custom_components.mbapi2020.errors import MBAuthError
+from custom_components.mbapi2020.errors import MBAuth2FAError, MBAuthError, MBLegalTermsError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
@@ -136,6 +136,15 @@ class Oauth:
             # Step 4: Submit password and get pre-login token
             pre_login_data = await self._submit_password(email, password)
 
+            if pre_login_data and pre_login_data.get("result", "") != "RESUME2OIDCP":
+                if pre_login_data.get("result", "") == "GOTO_LOGIN_OTP":
+                    raise MBAuth2FAError("Two-factor authentication (2FA) is not supported.")
+
+                if pre_login_data.get("result", "") == "GOTO_LOGIN_LEGAL_TEXTS":
+                    raise MBLegalTermsError("Acceptance of legal terms is required.")
+
+                raise MBAuthError(f"Unexpected authorization result: {pre_login_data.get('result', '')}")
+
             # Step 5: Resume authorization and get code
             auth_code = await self._resume_authorization(resume_url, pre_login_data["token"])
 
@@ -153,6 +162,8 @@ class Oauth:
             _LOGGER.info("OAuth2 login successful")
             return token_info
 
+        except (MBAuth2FAError, MBLegalTermsError) as e:
+            raise
         except Exception as e:
             _LOGGER.error("OAuth2 login failed: %s", e)
             raise MBAuthError(f"Login failed: {e}") from e
@@ -173,7 +184,7 @@ class Oauth:
         headers = {
             "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "accept-language": "de-DE,de;q=0.9",
+            "accept-language": "en-US",
         }
 
         auth_url = f"{helper.Login_Base_Url(self._region)}/as/authorization.oauth2"
@@ -199,7 +210,7 @@ class Oauth:
             "accept": "*/*",
             "content-type": "application/json",
             "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "de-DE,de;q=0.9",
+            "accept-language": "en-US",
             "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
         }
 
@@ -221,7 +232,7 @@ class Oauth:
             "accept": "application/json, text/plain, */*",
             "content-type": "application/json",
             "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "de-DE,de;q=0.9",
+            "accept-language": "en-US",
             "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
             "referer": f"{helper.Login_Base_Url(self._region)}/ciam/auth/login",
         }
@@ -241,7 +252,7 @@ class Oauth:
             "accept": "application/json, text/plain, */*",
             "content-type": "application/json",
             "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "de-DE,de;q=0.9",
+            "accept-language": "en-US",
             "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
             "referer": f"{helper.Login_Base_Url(self._region)}/ciam/auth/login",
         }
@@ -268,7 +279,7 @@ class Oauth:
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "content-type": "application/x-www-form-urlencoded",
             "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "de-DE,de;q=0.9",
+            "accept-language": "en-US",
             "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
             "referer": f"{helper.Login_Base_Url(self._region)}/ciam/auth/login",
         }

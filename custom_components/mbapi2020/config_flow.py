@@ -34,7 +34,7 @@ from .const import (
     TOKEN_FILE_PREFIX,
     VERIFY_SSL,
 )
-from .errors import MbapiError, MBAuthError
+from .errors import MbapiError, MBAuth2FAError, MBAuthError, MBLegalTermsError
 
 AUTH_METHOD_TOKEN = "token"
 AUTH_METHOD_USERPASS = "userpass"
@@ -81,6 +81,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except (MBAuthError, MbapiError) as error:
                 LOGGER.error("Login error: %s", error)
                 return self.async_show_form(step_id="user", data_schema=USER_SCHEMA, errors={"base": "invalid_auth"})
+            except MBAuth2FAError as error:
+                LOGGER.error("Login error - 2FA accounts are not supported: %s", error)
+                return self.async_show_form(step_id="user", data_schema=USER_SCHEMA, errors={"base": "2fa_required"})
+            except MBLegalTermsError as error:
+                LOGGER.error("Login error - Legal terms not accepted: %s", error)
+                return self.async_show_form(step_id="user", data_schema=USER_SCHEMA, errors={"base": "legal_terms"})
             # Token speichern und Entry anlegen
             self._data = {
                 CONF_USERNAME: user_input[CONF_USERNAME],

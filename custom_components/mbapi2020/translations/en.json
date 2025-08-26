@@ -7,7 +7,9 @@
     "error": {
       "cannot_connect": "cannot_connect",
       "invalid_auth": "invalid_auth",
-      "unknown": "Unknown error. Please check the Home Assistant log for more information."
+      "unknown": "Unknown error. Please check the Home Assistant log for more information.",
+      "2fa_required": "Two-factor authentication (2FA) accounts are not supported.",
+      "legal_terms": "You need to accept the legal terms in the Mercedes website first"
     },
     "step": {
       "user": {
