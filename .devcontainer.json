@@ -2,7 +2,9 @@
   "name": "renenulschde/dev-mbapi2020",
   "image": "mcr.microsoft.com/devcontainers/python:1-3.12",
   "postCreateCommand": "scripts/setup",
-  "appPort": ["9123:8123"],
+  "appPort": [
+    "9123:8123"
+  ],
   "portsAttributes": {
     "8123": {
       "label": "Home Assistant internal",
@@ -46,6 +48,6 @@
   "remoteUser": "vscode",
   "features": {
     "ghcr.io/devcontainers/features/rust:1": {},
-    "ghcr.io/devcontainers-contrib/features/ffmpeg-apt-get:1": {}
+    "ghcr.io/devcontainers-extra/features/ffmpeg-apt-get:1": {}
   }
 }
