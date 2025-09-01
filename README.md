@@ -6,7 +6,7 @@ Mercedes-Benz platform as a Custom Component for Home Assistant.
 
 
 > ⚠️ **SEEKING NEW MAINTAINER** ⚠️  
-> After 8+ years of development, I'm selling my last Mercedes and can no longer maintain this integration effectively. **[Looking for someone to take over →](#372)**  
+> After 8+ years of development, I'm selling my last Mercedes and can no longer maintain this integration effectively. **[Looking for someone to take over →](https://github.com/ReneNulschDE/mbapi2020/issues/372)**  
 
 
 
