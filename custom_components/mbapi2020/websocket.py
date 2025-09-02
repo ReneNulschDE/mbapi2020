@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from datetime import datetime
-import json
+from datetime import datetime, timezone
 import logging
+import time
 import uuid
 
 from aiohttp import ClientSession, WSMsgType, WSServerHandshakeError, client_exceptions
@@ -95,6 +95,8 @@ class Websocket:
         self._queue_task: asyncio.Task = None
         self._websocket_task: asyncio.Task = None
         self._relogin_429_done: bool = False
+        self._blocked_since_time: float | None = None
+        self._last_backup_reload_time: float | None = None
 
     async def _reconnect_attempt(self) -> None:
         """Attempt reconnection without cancelling the reconnect watchdog."""
@@ -187,6 +189,8 @@ class Websocket:
             await self._watchdog.trigger()
             return
 
+        # Prevent race condition: Cancel connection watchdog first to avoid multiple triggers
+        self._watchdog.cancel()
         await self._reconnectwatchdog.trigger()
         self._reset_watchdog_timeout()
         await self.async_stop()
@@ -320,6 +324,11 @@ class Websocket:
 
                 if "429" in str(error.code):
                     self.account_blocked = True
+                    # Setze Zeitstempel für Backup-Reload
+                    if self._blocked_since_time is None:
+                        import time
+
+                        self._blocked_since_time = time.time()
 
                     if not self._relogin_429_done:
                         config_entry = getattr(self.oauth, "_config_entry", None)
@@ -375,6 +384,9 @@ class Websocket:
             self.is_connecting = False
 
             self.connection_state = STATE_CONNECTED
+            # Reset blocked timestamp wenn Verbindung erfolgreich ist
+            if self._blocked_since_time is not None:
+                self._blocked_since_time = None
 
             msg = await self._connection.receive()
 
@@ -432,12 +444,65 @@ class Websocket:
         if self.account_blocked and self.ws_connect_retry_counter_reseted:
             self.account_blocked = False
             self.ws_connect_retry_counter_reseted = False
+            self._blocked_since_time = None
+            self._last_backup_reload_time = None
 
             LOGGER.info("Initiating component reload after account got unblocked...")
             self._hass.config_entries.async_schedule_reload(self.oauth._config_entry.entry_id)
 
         elif self.account_blocked and not self.ws_connect_retry_counter_reseted:
-            await self.component_reload_watcher.trigger()
+            current_time = time.time()
+
+            # Prüfe ob Backup-Reload notwendig und erlaubt ist
+            if self._blocked_since_time is not None and self._should_trigger_backup_reload(current_time):
+                LOGGER.info(
+                    "Initiating scheduled backup component reload during allowed time window "
+                    "(ignition mode or no message received) - config_entry: %s",
+                    self.oauth._config_entry.entry_id,
+                )
+
+                self.account_blocked = False
+                self._blocked_since_time = None
+                self._last_backup_reload_time = current_time
+                self._hass.config_entries.async_schedule_reload(self.oauth._config_entry.entry_id)
+            else:
+                await self.component_reload_watcher.trigger()
+
+    def _should_trigger_backup_reload(self, current_time: float) -> bool:
+        """Prüft ob Backup-Reload ausgeführt werden soll (alle 30 Min oder garantiert nach Mitternacht GMT)."""
+        from datetime import datetime, timezone
+
+        # Mindestens 5 Minuten blockiert sein
+        if current_time - self._blocked_since_time < 300:
+            return False
+
+        # Aktuelle Zeit in GMT
+        now_utc = datetime.fromtimestamp(current_time, tz=timezone.utc)
+
+        # GARANTIERT nach Mitternacht GMT (00:00 - 00:30 Zeitfenster)
+        if now_utc.hour == 0 and now_utc.minute <= 30:
+            # Prüfe ob schon heute nach Mitternacht ein Reload gemacht wurde
+            if self._last_backup_reload_time is not None:
+                last_reload_utc = datetime.fromtimestamp(self._last_backup_reload_time, tz=timezone.utc)
+                # Wenn der letzte Reload heute nach Mitternacht war, nicht nochmal
+                if (
+                    last_reload_utc.date() == now_utc.date()
+                    and last_reload_utc.hour == 0
+                    and last_reload_utc.minute <= 30
+                ):
+                    return False
+            return True
+
+        # Alle 30 Minuten, aber nur wenn mindestens 30 Min seit letztem Reload
+        if self._last_backup_reload_time is not None:
+            if current_time - self._last_backup_reload_time < 1800:  # 30 * 60 = 1800 Sekunden
+                return False
+
+        # 30-Minuten-Intervalle (:00, :30) mit 5-Minuten-Fenster
+        if now_utc.minute <= 5 or (25 <= now_utc.minute <= 35):
+            return True
+
+        return False
 
     async def _cleanup_tasks(self):
         """Cleanup running tasks properly."""
