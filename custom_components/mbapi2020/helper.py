@@ -259,16 +259,28 @@ class Watchdog:
         self._log_events: bool = log_events
         self.timeout: int = timeout_seconds
 
-    def cancel(self):
-        """Cancel the watchdog."""
+    def cancel(self, *, graceful: bool = True):
+        """Cancel the watchdog.
+        graceful=True: stoppe nur den Timer; lasse einen laufenden expire-Task fertiglaufen.
+        graceful=False: cancelt auch einen laufenden expire-Task (vorsichtig verwenden).
+        """
         if self._timer_task:
             self._timer_task.cancel()
             self._timer_task = None
 
-        # Cancel any running expire task
         if self._expire_task and not self._expire_task.done():
-            self._expire_task.cancel()
-            self._expire_task = None
+            if graceful:
+                # Falls wir UNS SELBST sind: auf keinen Fall sofort canceln
+                if asyncio.current_task() is self._expire_task:
+                    # optional: gar nichts tun; der Task beendet sich gleich selbst
+                    pass
+                else:
+                    # Laufenden expire-Task laufen lassen (kein Cancel)
+                    pass
+            else:
+                # Hartes Cancel nur, wenn explizit gewünscht
+                self._expire_task.cancel()
+                self._expire_task = None
 
     async def on_expire(self):
         """Log and act when the watchdog expires."""

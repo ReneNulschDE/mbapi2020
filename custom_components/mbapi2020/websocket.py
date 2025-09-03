@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
+import contextlib  # NEW
 from datetime import datetime, timezone
 import logging
 import time
@@ -38,12 +39,13 @@ from .proto import vehicle_events_pb2
 
 DEFAULT_WATCHDOG_TIMEOUT = 30
 DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 180
-INITIAL_WATCHDOG_TIMEOUT = 60  # 5 minutes
+INITIAL_WATCHDOG_TIMEOUT = 30
 WATCHDOG_PROTECTION_PERIOD = 10
-PING_WATCHDOG_TIMEOUT = 30
-RECONNECT_WATCHDOG_TIMEOUT = 30
+PING_WATCHDOG_TIMEOUT = 32
+RECONNECT_WATCHDOG_TIMEOUT = 60
 STATE_CONNECTED = "connected"
 STATE_RECONNECTING = "reconnecting"
+INITIATE_RELOGIN_AFTER_429 = True
 
 LOGGER = logging.getLogger(__name__)
 
@@ -106,7 +108,7 @@ class Websocket:
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
         # Cancel reconnect watchdog for manual connections
-        self._reconnectwatchdog.cancel()
+        self._reconnectwatchdog.cancel(graceful=True)
         await self._async_connect_internal(on_data)
 
     async def _async_connect_internal(self, on_data=None) -> None:
@@ -125,14 +127,14 @@ class Websocket:
         self.is_stopping = False
 
         if not self.ha_stop_handler:
+            # NICHT sofort aufrufen – Rückruf behalten, nicht deregistrieren
             self.ha_stop_handler = self._hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_handler)
-            self.ha_stop_handler()
 
         session = async_get_clientsession(self._hass, VERIFY_SSL)
 
         # Tasks erstellen und verwalten
-        self._queue_task = asyncio.create_task(self._start_queue_handler())
-        self._websocket_task = asyncio.create_task(self._start_websocket_handler(session))
+        self._queue_task = asyncio.create_task(self._start_queue_handler(), name="mbapi2020.queue")
+        self._websocket_task = asyncio.create_task(self._start_websocket_handler(session), name="mbapi2020.ws")
 
         # Warten, dass Tasks laufen - mit ordnungsgemäßer Exception-Behandlung
         try:
@@ -147,32 +149,45 @@ class Websocket:
         """Close connection."""
         self.is_stopping = True
 
-        # First stop ping watchdog to prevent new pings
-        self._pingwatchdog.cancel()
+        # Watchdogs anhalten (graceful: laufenden expire-Task nicht killen)
+        self._pingwatchdog.cancel(graceful=True)
+        self._reconnectwatchdog.cancel(graceful=True)
+        self._watchdog.cancel(graceful=True)
 
-        # Then close WebSocket connection properly with close code
+        # Dann WebSocket-Verbindung ordentlich schließen (gegen Cancel geschützt)
         if self._connection is not None and not self._connection.closed:
             try:
-                await self._connection.close(code=1000, message=b"Client shutdown")
+                LOGGER.debug("Closing WebSocket connection...")
+                await asyncio.shield(
+                    asyncio.wait_for(
+                        self._connection.close(code=1000, message=b"Client shutdown"),
+                        timeout=1.0,
+                    )
+                )
+                LOGGER.debug("ws.close awaited (handshake done)")
+            except asyncio.TimeoutError:
+                LOGGER.warning("WebSocket close() timed out (no server CLOSE). Proceeding with shutdown.")
+            except asyncio.CancelledError:
+                # Beim Shutdown nicht re-raisen
+                LOGGER.error("WebSocket close() was cancelled by outer task; ignoring during shutdown.")
             except Exception as e:
                 LOGGER.debug("Error closing WebSocket connection: %s", e)
 
-        # Stop main watchdog after connection is closed
-        self._watchdog.cancel()
+        # Zustände zurücksetzen
+        self._watchdog.cancel(graceful=True)
         self.connection_state = "closed"
-        # Reset initial timeout state on stop - next connection will use 5min timeout again
         self._connection_start_time = None
         self._initial_timeout_used = False
 
-        # Signal queue handler to stop gracefully
+        # Queue-Handler zum Beenden signalisieren
         try:
             self._queue.put_nowait(self._queue_shutdown_sentinel)
         except asyncio.QueueFull:
             LOGGER.warning("Queue full during shutdown, forcing queue cleanup")
             await self._cleanup_queue()
 
-        # Tasks ordnungsgemäß beenden
-        await self._cleanup_tasks()
+        # Tasks ordnungsgemäß beenden (shield + kleine Timeouts)
+        await self._await_tasks_then_cleanup()
 
     async def initiatiate_connection_disconnect_with_reconnect(self):
         """Initiate a connection disconnect."""
@@ -189,14 +204,27 @@ class Websocket:
             await self._watchdog.trigger()
             return
 
-        # Prevent race condition: Cancel connection watchdog first to avoid multiple triggers
-        self._watchdog.cancel()
-        await self._reconnectwatchdog.trigger()
-        self._reset_watchdog_timeout()
-        await self.async_stop()
+        # Verhindere Reentrancy: weitere Trigger sofort unterbinden, aber laufenden Task nicht killen
+        self.is_stopping = True
+        loop = asyncio.get_running_loop()
+        self._watchdog.cancel(graceful=True)
+        self._reconnectwatchdog.cancel(graceful=True)
+
+        # Graceful shutdown in separatem Task ausführen, um Self-Cancel zu vermeiden
+        loop.create_task(self._graceful_shutdown_and_optionally_reconnect(), name="mbapi2020.shutdown")
+
+    async def _graceful_shutdown_and_optionally_reconnect(self):
+        try:
+            await self.async_stop()
+        finally:
+            # Wenn direkt ein Reconnect gewollt ist, hier starten:
+            await self._reconnectwatchdog.trigger()
 
     async def ping(self):
         """Send a ping to the MB websocket servers."""
+        if self.is_stopping:
+            return
+
         try:
             await self._connection.ping()
             await self._pingwatchdog.trigger()
@@ -217,7 +245,7 @@ class Websocket:
 
             if reconnect_task:
                 for _ in range(50):
-                    if not self._connection.closed:
+                    if self._connection and not self._connection.closed:
                         break
                     await asyncio.sleep(0.1)
 
@@ -326,11 +354,9 @@ class Websocket:
                     self.account_blocked = True
                     # Setze Zeitstempel für Backup-Reload
                     if self._blocked_since_time is None:
-                        import time
-
                         self._blocked_since_time = time.time()
 
-                    if not self._relogin_429_done:
+                    if INITIATE_RELOGIN_AFTER_429 and not self._relogin_429_done:
                         config_entry = getattr(self.oauth, "_config_entry", None)
                         if config_entry and "password" in config_entry.data:
                             password = config_entry.data["password"]
@@ -390,8 +416,9 @@ class Websocket:
 
             msg = await self._connection.receive()
 
-            if msg.type == WSMsgType.CLOSED:
-                LOGGER.debug("websocket connection is closing")
+            # Wichtig: alle Close-Varianten sauber behandeln
+            if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSING, WSMsgType.CLOSED):
+                LOGGER.debug("websocket connection is closing (%s)", msg.type)
                 break
             if msg.type == WSMsgType.ERROR:
                 LOGGER.debug("websocket connection is closing - message type error.")
@@ -504,8 +531,41 @@ class Websocket:
 
         return False
 
+    async def _await_tasks_then_cleanup(self):
+        """Warte kurz auf natürliches Ende der Tasks und räume dann auf."""
+        # Warten auf _websocket_task
+        if self._websocket_task and not self._websocket_task.done():
+            try:
+                await asyncio.shield(asyncio.wait_for(self._websocket_task, timeout=2.0))
+            except asyncio.TimeoutError:
+                LOGGER.warning("websocket task didn't finish in time, cancelling")
+                self._websocket_task.cancel()
+                with contextlib.suppress(Exception):
+                    await self._websocket_task
+            except asyncio.CancelledError:
+                # Beim Shutdown ignorieren
+                pass
+
+        # Queue-Task analog
+        if self._queue_task and not self._queue_task.done():
+            try:
+                await asyncio.shield(asyncio.wait_for(self._queue_task, timeout=2.0))
+            except asyncio.TimeoutError:
+                self._queue_task.cancel()
+                with contextlib.suppress(Exception):
+                    await self._queue_task
+            except asyncio.CancelledError:
+                pass
+
+        # Queue bereinigen
+        await self._cleanup_queue()
+
+        # Task-Referenzen zurücksetzen
+        self._queue_task = None
+        self._websocket_task = None
+
     async def _cleanup_tasks(self):
-        """Cleanup running tasks properly."""
+        """Cleanup running tasks properly (Fallback)."""
         tasks_to_cancel = []
 
         if self._queue_task and not self._queue_task.done():
