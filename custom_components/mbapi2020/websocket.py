@@ -40,7 +40,6 @@ from .proto import vehicle_events_pb2
 DEFAULT_WATCHDOG_TIMEOUT = 30
 DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 180
 INITIAL_WATCHDOG_TIMEOUT = 30
-WATCHDOG_PROTECTION_PERIOD = 10
 PING_WATCHDOG_TIMEOUT = 32
 RECONNECT_WATCHDOG_TIMEOUT = 60
 STATE_CONNECTED = "connected"
@@ -615,16 +614,6 @@ class Websocket:
         if not self._initial_timeout_used or self._connection_start_time is None:
             # Not in initial timeout mode, allow any timeout change
             self._watchdog.timeout = timeout
-            return
-
-        current_time = asyncio.get_event_loop().time()
-        connection_duration = current_time - self._connection_start_time
-
-        # During protection period (first 4:30), don't allow timeout changes
-        if connection_duration < WATCHDOG_PROTECTION_PERIOD:
-            LOGGER.debug(
-                "Watchdog timeout change blocked during protection period (%.1fs elapsed)", connection_duration
-            )
             return
 
         # After protection period, allow timeout changes and switch to default behavior
