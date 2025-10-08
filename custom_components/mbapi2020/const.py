@@ -105,7 +105,7 @@ X_APPLICATIONNAME_AP = "mycar-store-ap"
 
 USE_PROXY = False
 VERIFY_SSL = True
-SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://0.0.0.0:9090"
+SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://192.168.178.68:9090"
 
 
 LOGIN_BASE_URI = "https://id.mercedes-benz.com"
@@ -424,6 +424,22 @@ ATTR_MB_MANUFACTURER = "Mercedes Benz"
 
 
 BinarySensors = {
+    "chargingactive": [
+        "Charging active",
+        None,  # Deprecated: DO NOT USE
+        "electric",
+        "chargingactive",
+        "value",
+        None,
+        None,
+        None,
+        BinarySensorDeviceClass.BATTERY_CHARGING,
+        False,
+        None,
+        None,
+        None,
+        None,
+    ],
     "liquidRangeCritical": [
         "Liquid Range Critical",
         None,  # Deprecated: DO NOT USE

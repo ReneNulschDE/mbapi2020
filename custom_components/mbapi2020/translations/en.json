@@ -490,6 +490,11 @@
     }
   },
   "entity": {
+    "binary_sensor": {
+      "chargingactive": {
+        "name": "Charging active"
+      }
+    },
     "sensor": {
       "auxheatstatus": {
         "state": {
