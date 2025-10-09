@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime as dt
 from datetime import datetime
 import json
 import logging
@@ -13,10 +14,12 @@ import uuid
 
 from aiohttp import ClientSession
 from google.protobuf.json_format import MessageToJson
+import pytz
 
 from custom_components.mbapi2020.proto import client_pb2
 import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import system_info
@@ -383,6 +386,7 @@ class Client:
         option_handlers = {
             "max_soc": self._get_car_values_handle_max_soc,
             "chargePrograms": self._get_car_values_handle_chargePrograms,
+            "endofchargetime": self._get_car_values_handle_endofchargetime,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
             "ignitionstate": self._get_car_values_handle_ignitionstate,
             "precondStatus": self._get_car_values_handle_precond_status,
@@ -527,6 +531,114 @@ class Client:
             retrievalstatus=status,
             timestamp=time_stamp,
             display_value=None,
+            unit=None,
+        )
+
+    def _get_car_values_handle_endofchargetime(self, car_detail, class_instance, option, update, vin: str):
+        # Beginning with CLA 2025 charge end time is part of chargingPredictionMaxSoc
+
+        attributes = car_detail.get("attributes", {})
+
+        chargingPredictionMaxSoc = attributes.get("chargingPredictionMaxSoc", {})
+        charging_prediction_soc = chargingPredictionMaxSoc.get("charging_prediction_soc", {})
+        predicted_end_time = charging_prediction_soc.get("predicted_end_time", None)
+        if predicted_end_time is not None:
+            status = chargingPredictionMaxSoc.get("status", "VALID")
+            time_stamp = chargingPredictionMaxSoc.get("timestamp", 0)
+
+            if isinstance(predicted_end_time, datetime):
+                value = predicted_end_time
+            elif isinstance(predicted_end_time, str):
+                try:
+                    value = datetime.strptime(predicted_end_time, "%Y-%m-%dT%H:%M:%SZ")
+                except Exception:
+                    value = None
+            else:
+                value = None
+            if value is not None:
+                return CarAttribute(
+                    value=value,
+                    retrievalstatus=status,
+                    timestamp=time_stamp,
+                    display_value=value,
+                    unit=None,
+                )
+
+        # if chargingPredictionMaxSoc is not available and update is false (not a full_message), we want to check if the car is >= CLA2025 and create the data structure with value unknown
+        # endofchargetime is not present for these cars
+        if not update and not predicted_end_time:
+            current_car = self.cars.get(vin)
+            if not attributes.get("endofchargetime") and not (
+                current_car
+                and current_car.last_full_message
+                and current_car.last_full_message.get("attributes", {}).get("endofchargetime")
+            ):
+                return CarAttribute(
+                    value=STATE_UNKNOWN,
+                    retrievalstatus="VALID",
+                    timestamp=datetime.now().timestamp(),
+                    display_value=STATE_UNKNOWN,
+                    unit=None,
+                )
+
+        # Older cars have two attributes endofchargetime and endofChargeTimeWeekday
+        # endofchargetime is in minutes after midnight
+
+        endofchargetime = attributes.get("endofchargetime", {})
+        if not endofchargetime:
+            return None
+        time_stamp = endofchargetime.get("timestamp", 0)
+        end_time_value = endofchargetime.get("int_value", None)
+        status = endofchargetime.get("status", "VALID")
+        if end_time_value is None and status == 3:
+            return CarAttribute(
+                value=STATE_UNKNOWN,
+                retrievalstatus=status,
+                timestamp=time_stamp,
+                display_value=STATE_UNKNOWN,
+                unit=None,
+            )
+
+        # endofChargeTimeWeekday is sometimes not present in the update message, we need to get it from the last full message then
+        if "endofChargeTimeWeekday" not in attributes:
+            current_car = self.cars.get(vin)
+            if not current_car or not current_car.last_full_message:
+                LOGGER.debug(
+                    "get_car_values_handle_endofchargetime - No last_full_message found for car %s",
+                    loghelper.Mask_VIN(vin),
+                )
+                return None
+            car_detail = current_car.last_full_message
+            attributes = car_detail.get("attributes", {})
+
+        end_weekday_attr = attributes.get("endofChargeTimeWeekday", {})
+        end_weekday_value = end_weekday_attr.get("int_value", None)
+        if end_weekday_value is None:
+            return None  # No value present
+
+        # Calculate the next occurrence of the given weekday and time in local timezone
+
+        try:
+            local_tz = dt.datetime.now().astimezone().tzinfo
+        except ImportError:
+            local_tz = dt.datetime.now().astimezone().tzinfo
+
+        now = dt.datetime.now(local_tz)
+        # Python's weekday: Monday=0
+        target_weekday = float(end_weekday_value) % 7
+        # Calculate days until next target_weekday
+        days_ahead = (target_weekday - now.weekday()) % 7
+
+        target_date = now + dt.timedelta(days=days_ahead)
+        hour = int(end_time_value) // 60
+        minute = int(end_time_value) % 60
+        dt_with_time = dt.datetime(target_date.year, target_date.month, target_date.day, hour, minute, tzinfo=local_tz)
+
+        return CarAttribute(
+            value=dt_with_time,
+            retrievalstatus=status,
+            timestamp=time_stamp,
+            display_value=dt_with_time.isoformat(),
             unit=None,
         )
 

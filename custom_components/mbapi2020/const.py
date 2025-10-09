@@ -1553,7 +1553,7 @@ SENSORS = {
         None,
         {},
         "mdi:ev-station",
-        None,
+        SensorDeviceClass.TIMESTAMP,
         False,
         None,
         None,
