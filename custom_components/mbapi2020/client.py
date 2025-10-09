@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import logging
 from pathlib import Path
@@ -550,7 +550,7 @@ class Client:
                 value = predicted_end_time
             elif isinstance(predicted_end_time, str):
                 try:
-                    value = datetime.strptime(predicted_end_time, "%Y-%m-%dT%H:%M:%SZ")
+                    value = datetime.strptime(predicted_end_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
                 except Exception:
                     value = None
             else:
