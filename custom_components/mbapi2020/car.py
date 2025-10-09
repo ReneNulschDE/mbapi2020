@@ -100,6 +100,9 @@ DOOR_OPTIONS = [
 
 ELECTRIC_OPTIONS = [
     "rangeelectric",
+    "chargeflap",
+    "chargeinletcoupler",
+    "chargeinletlock",
     "chargeCouplerACStatus",
     "chargeCouplerDCStatus",
     "chargeCouplerACLockStatus",

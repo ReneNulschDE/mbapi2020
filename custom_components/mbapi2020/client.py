@@ -385,6 +385,9 @@ class Client:
         # Define handlers for specific options and the generic case
         option_handlers = {
             "max_soc": self._get_car_values_handle_max_soc,
+            "chargeflap": self._get_car_values_handle_chargeflap,
+            "chargeinletcoupler": self._get_car_values_handle_chargeinletcoupler,
+            "chargeinletlock": self._get_car_values_handle_chargeinletlock,
             "chargePrograms": self._get_car_values_handle_chargePrograms,
             "endofchargetime": self._get_car_values_handle_endofchargetime,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
@@ -511,6 +514,130 @@ class Client:
                 )
 
         return None
+
+    def _get_car_values_handle_chargeflap(self, car_detail, class_instance, option, update, vin: str):
+        attributes = car_detail.get("attributes", {})
+        curr = attributes.get("chargeFlaps")
+        if not curr:
+            return None
+
+        charge_flaps_value = curr.get("charge_flaps", {})
+        values = charge_flaps_value.get("entries", [])
+        if not values:
+            return None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+        value = values[0].get("position_state", None)
+
+        if value is None:
+            return None
+
+        if value == "CHARGE_FLAPS_POSITION_STATE_OPEN":
+            value = "open"
+        elif value == "CHARGE_FLAPS_POSITION_STATE_CLOSED":
+            value = "closed"
+        elif value == "CHARGE_FLAPS_POSITION_STATE_FLAP_PRESSED":
+            value = "pressed"
+        elif value == "CHARGE_FLAPS_POSITION_STATE_UNKNOWN":
+            value = STATE_UNKNOWN
+        else:
+            value = STATE_UNKNOWN
+            LOGGER.debug(
+                "Unknown chargeFlaps position_state value: %s. Please report this value via an github issue.", value
+            )
+
+        return CarAttribute(
+            value=value,
+            retrievalstatus=status,
+            timestamp=time_stamp,
+            display_value=None,
+            unit=None,
+        )
+
+    def _get_car_values_handle_chargeinletcoupler(self, car_detail, class_instance, option, update, vin: str):
+        LOGGER.debug("_get_car_values_handle_chargeinletcoupler called: %s", loghelper.Mask_VIN(vin))
+        attributes = car_detail.get("attributes", {})
+        curr = attributes.get("chargeInlets")
+        if not curr:
+            return None
+
+        values = curr.get("charge_inlets", {}).get("entries", [])
+        if not values:
+            return None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+        value = values[0].get("coupler_state", None)
+
+        if value is None:
+            return None
+
+        if value == "CHARGE_INLETS_COUPLER_STATE_PLUGGED":
+            value = "plugged"
+        elif value == "CHARGE_INLETS_COUPLER_STATE_VEHICLE_PLUGGED":
+            value = "vehicle plugged"
+        elif value == "CHARGE_INLETS_COUPLER_STATE_VEHICLE_NOT_PLUGGED":
+            value = "vehicle not plugged"
+        elif value == "CHARGE_INLETS_COUPLER_STATE_DEFECT":
+            value = "defect"
+        elif value == "CHARGE_INLETS_COUPLER_STATE_UNKNOWN":
+            value = STATE_UNKNOWN
+        else:
+            value = STATE_UNKNOWN
+            LOGGER.debug(
+                "Unknown chargeInlets coupler_state value: %s. Please report this value via an github issue.", value
+            )
+
+        return CarAttribute(
+            value=value,
+            retrievalstatus=status,
+            timestamp=time_stamp,
+            display_value=None,
+            unit=None,
+        )
+
+    def _get_car_values_handle_chargeinletlock(self, car_detail, class_instance, option, update, vin: str):
+        LOGGER.debug("get_car_values_handle_chargeinletlock called: %s", loghelper.Mask_VIN(vin))
+        attributes = car_detail.get("attributes", {})
+        curr = attributes.get("chargeInlets")
+        if not curr:
+            return None
+
+        values = curr.get("charge_inlets", {}).get("entries", [])
+        if not values:
+            return None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+        value = values[0].get("lock_state", None)
+
+        if value is None:
+            return None
+
+        if value == "CHARGE_INLETS_LOCK_STATE_UNLOCKED":
+            value = "unlocked"
+        elif value == "CHARGE_INLETS_LOCK_STATE_LOCKED":
+            value = "locked"
+        elif value == "CHARGE_INLETS_LOCK_STATE_LOCK_STATE_NOT_CLEAR":
+            value = "state not clear"
+        elif value == "CHARGE_INLETS_LOCK_STATE_NOT_AVAILABLE":
+            value = "state not available"
+        elif value == "CHARGE_INLETS_LOCK_STATE_UNKNOWN":
+            value = STATE_UNKNOWN
+        else:
+            value = STATE_UNKNOWN
+            LOGGER.debug(
+                "Unknown chargeInlets lock_state value: %s. Please report this value via an github issue.", value
+            )
+
+        return CarAttribute(
+            value=value,
+            retrievalstatus=status,
+            timestamp=time_stamp,
+            display_value=None,
+            unit=None,
+        )
 
     def _get_car_values_handle_chargePrograms(self, car_detail, class_instance, option, update, vin: str):
         attributes = car_detail.get("attributes", {})
