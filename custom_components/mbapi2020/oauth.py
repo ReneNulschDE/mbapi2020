@@ -241,7 +241,8 @@ class Oauth:
 
         async with self._session.post(url, json={"username": email}, headers=headers, proxy=SYSTEM_PROXY) as response:
             if response.status >= 400:
-                raise MBAuthError(f"Username submission failed: {response.status}")
+                error_text = await response.text()
+                raise MBAuthError(f"Username submission failed: {response.status} - {error_text}")
 
     async def _submit_password(self, email: str, password: str) -> dict[str, Any]:
         """Submit password and get pre-login data."""
