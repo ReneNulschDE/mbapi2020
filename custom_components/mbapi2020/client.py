@@ -14,7 +14,6 @@ import uuid
 
 from aiohttp import ClientSession
 from google.protobuf.json_format import MessageToJson
-import pytz
 
 from custom_components.mbapi2020.proto import client_pb2
 import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
