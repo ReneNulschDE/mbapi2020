@@ -359,7 +359,7 @@ class Websocket:
                         config_entry = getattr(self.oauth, "_config_entry", None)
                         if config_entry and "password" in config_entry.data:
                             password = config_entry.data["password"]
-                            username = config_entry.data.get("username")
+                            username = config_entry.data.get("username").strip()
                             region = config_entry.data.get("region")
                             if username and password and hasattr(self.oauth, "async_login_new"):
                                 LOGGER.info(
@@ -538,7 +538,8 @@ class Websocket:
                 await asyncio.shield(asyncio.wait_for(self._websocket_task, timeout=2.0))
             except asyncio.TimeoutError:
                 LOGGER.warning("websocket task didn't finish in time, cancelling")
-                self._websocket_task.cancel()
+                if self._websocket_task:
+                    self._websocket_task.cancel()
                 with contextlib.suppress(Exception):
                     await self._websocket_task
             except asyncio.CancelledError:

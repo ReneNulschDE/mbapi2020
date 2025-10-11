@@ -76,6 +76,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             session = async_get_clientsession(self.hass, VERIFY_SSL)
             client = Client(self.hass, session, None, region=user_input[CONF_REGION])
+            user_input[CONF_USERNAME] = user_input[CONF_USERNAME].strip()
             try:
                 token_info = await client.oauth.async_login_new(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
             except (MBAuthError, MbapiError) as error:
