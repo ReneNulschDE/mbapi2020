@@ -598,7 +598,6 @@ class Client:
         )
 
     def _get_car_values_handle_chargeinletlock(self, car_detail, class_instance, option, update, vin: str):
-        LOGGER.debug("get_car_values_handle_chargeinletlock called: %s", loghelper.Mask_VIN(vin))
         attributes = car_detail.get("attributes", {})
         curr = attributes.get("chargeInlets")
         if not curr:
