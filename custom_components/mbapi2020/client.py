@@ -555,7 +555,6 @@ class Client:
         )
 
     def _get_car_values_handle_chargeinletcoupler(self, car_detail, class_instance, option, update, vin: str):
-        LOGGER.debug("_get_car_values_handle_chargeinletcoupler called: %s", loghelper.Mask_VIN(vin))
         attributes = car_detail.get("attributes", {})
         curr = attributes.get("chargeInlets")
         if not curr:
