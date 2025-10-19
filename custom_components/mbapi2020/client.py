@@ -10,6 +10,7 @@ import logging
 from pathlib import Path
 import threading
 import time
+import traceback
 import uuid
 
 from aiohttp import ClientSession
@@ -707,64 +708,85 @@ class Client:
 
         # Older cars have two attributes endofchargetime and endofChargeTimeWeekday
         # endofchargetime is in minutes after midnight
+        try:
+            endofchargetime = attributes.get("endofchargetime", {})
+            if not endofchargetime:
+                return None
+            time_stamp = endofchargetime.get("timestamp", 0)
+            end_time_value = endofchargetime.get("int_value", None)
+            status = endofchargetime.get("status", "VALID")
+            if end_time_value is None and status == 3:
+                return CarAttribute(
+                    value=STATE_UNKNOWN,
+                    retrievalstatus=status,
+                    timestamp=time_stamp,
+                    display_value=STATE_UNKNOWN,
+                    unit=None,
+                )
 
-        endofchargetime = attributes.get("endofchargetime", {})
-        if not endofchargetime:
-            return None
-        time_stamp = endofchargetime.get("timestamp", 0)
-        end_time_value = endofchargetime.get("int_value", None)
-        status = endofchargetime.get("status", "VALID")
-        if end_time_value is None and status == 3:
-            return CarAttribute(
-                value=STATE_UNKNOWN,
-                retrievalstatus=status,
-                timestamp=time_stamp,
-                display_value=STATE_UNKNOWN,
-                unit=None,
-            )
-
-        # endofChargeTimeWeekday is sometimes not present in the update message, we need to get it from the last full message then
-        if "endofChargeTimeWeekday" not in attributes:
-            current_car = self.cars.get(vin)
-            if not current_car or not current_car.last_full_message:
-                LOGGER.debug(
-                    "get_car_values_handle_endofchargetime - No last_full_message found for car %s",
+            if end_time_value is None:
+                LOGGER.warning(
+                    "get_car_values_handle_endofchargetime - endofChargeTime value is None for car %s",
                     loghelper.Mask_VIN(vin),
                 )
                 return None
-            car_detail = current_car.last_full_message
-            attributes = car_detail.get("attributes", {})
 
-        end_weekday_attr = attributes.get("endofChargeTimeWeekday", {})
-        end_weekday_value = end_weekday_attr.get("int_value", None)
-        if end_weekday_value is None:
-            return None  # No value present
+            # endofChargeTimeWeekday is sometimes not present in the update message, we need to get it from the last full message then
+            if "endofChargeTimeWeekday" not in attributes:
+                current_car = self.cars.get(vin)
+                if not current_car or not current_car.last_full_message:
+                    LOGGER.debug(
+                        "get_car_values_handle_endofchargetime - No last_full_message found for car %s",
+                        loghelper.Mask_VIN(vin),
+                    )
+                    return None
+                car_detail = current_car.last_full_message
+                attributes = car_detail.get("attributes", {})
 
-        # Calculate the next occurrence of the given weekday and time in local timezone
-
-        try:
             local_tz = dt.datetime.now().astimezone().tzinfo
-        except ImportError:
-            local_tz = dt.datetime.now().astimezone().tzinfo
+            end_weekday_attr = attributes.get("endofChargeTimeWeekday", {})
+            end_weekday_value = end_weekday_attr.get("int_value", None)
+            if end_weekday_value is None:
+                # Wenn kein Wochentag vorhanden ist (sehr alte elek. modelle), aus end_time_value ableiten:
+                # Ist die Uhrzeit bereits vergangen -> Wochentag von morgen, sonst von heute.
+                now = dt.datetime.now(local_tz)
+                hour = int(end_time_value) // 60
+                minute = int(end_time_value) % 60
+                target_dt_today = dt.datetime(now.year, now.month, now.day, hour, minute, tzinfo=local_tz)
+                if target_dt_today < now:
+                    end_weekday_value = (now + dt.timedelta(days=1)).weekday()
+                else:
+                    end_weekday_value = now.weekday()
 
-        now = dt.datetime.now(local_tz)
-        # Python's weekday: Monday=0
-        target_weekday = float(end_weekday_value) % 7
-        # Calculate days until next target_weekday
-        days_ahead = (target_weekday - now.weekday()) % 7
+            # Calculate the next occurrence of the given weekday and time in local timezone
+            now = dt.datetime.now(local_tz)
+            # Python's weekday: Monday=0
+            target_weekday = float(end_weekday_value) % 7
+            # Calculate days until next target_weekday
+            days_ahead = (target_weekday - now.weekday()) % 7
 
-        target_date = now + dt.timedelta(days=days_ahead)
-        hour = int(end_time_value) // 60
-        minute = int(end_time_value) % 60
-        dt_with_time = dt.datetime(target_date.year, target_date.month, target_date.day, hour, minute, tzinfo=local_tz)
+            target_date = now + dt.timedelta(days=days_ahead)
+            hour = int(end_time_value) // 60
+            minute = int(end_time_value) % 60
+            dt_with_time = dt.datetime(
+                target_date.year, target_date.month, target_date.day, hour, minute, tzinfo=local_tz
+            )
 
-        return CarAttribute(
-            value=dt_with_time,
-            retrievalstatus=status,
-            timestamp=time_stamp,
-            display_value=dt_with_time.isoformat(),
-            unit=None,
-        )
+            return CarAttribute(
+                value=dt_with_time,
+                retrievalstatus=status,
+                timestamp=time_stamp,
+                display_value=dt_with_time.isoformat(),
+                unit=None,
+            )
+        except Exception as e:
+            LOGGER.error(
+                "Error processing endofchargetime for car %s: %s, %s",
+                loghelper.Mask_VIN(vin),
+                e,
+                traceback.format_exc(),
+            )
+            return None
 
     def _get_car_values_handle_charging_break_clock_timer(self, car_detail, class_instance, option, update, vin: str):
         attributes = car_detail.get("attributes", {})
