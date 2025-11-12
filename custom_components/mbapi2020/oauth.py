@@ -141,9 +141,11 @@ class Oauth:
                     raise MBAuth2FAError("Two-factor authentication (2FA) is not supported.")
 
                 if pre_login_data.get("result", "") == "GOTO_LOGIN_LEGAL_TEXTS":
-                    raise MBLegalTermsError("Acceptance of legal terms is required.")
-
-                raise MBAuthError(f"Unexpected authorization result: {pre_login_data.get('result', '')}")
+                    home_ountry = pre_login_data.get("homeCountry", "")
+                    consent_country = pre_login_data.get("consentCountry", "")
+                    pre_login_data = await self._submit_legal_consent(home_ountry, consent_country)
+                    if pre_login_data.get("result", "") != "RESUME2OIDCP":
+                        raise MBLegalTermsError("Problem accepting legal terms during login. %s", pre_login_data)
 
             # Step 5: Resume authorization and get code
             auth_code = await self._resume_authorization(resume_url, pre_login_data["token"])
@@ -273,6 +275,37 @@ class Oauth:
                 raise MBAuthError(f"Password submission failed: {response.status} - {error_text}")
 
             return await response.json()
+
+    async def _submit_legal_consent(self, home_country: str, consent_country: str) -> dict[str, Any]:
+        """Submit legal consent and get pre-login data."""
+        # Generate random request ID
+        rid = secrets.token_urlsafe(24)
+
+        headers = {
+            "accept": "application/json, text/plain, */*",
+            "content-type": "application/json",
+            "origin": helper.Login_Base_Url(self._region),
+            "accept-language": "de-DE,de;q=0.9",
+            "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
+            "referer": f"{helper.Login_Base_Url(self._region)}/ciam/auth/login",
+        }
+
+        data = {
+            "texts": {},
+            "homeCountry": home_country,
+            "consentCountry": consent_country,
+            "rid": rid,
+        }
+
+        url = f"{helper.Login_Base_Url(self._region)}/ciam/auth/toas/saveLoginConsent"
+
+        async with self._session.post(url, json=data, headers=headers, proxy=SYSTEM_PROXY) as response:
+            if response.status >= 400:
+                error_text = await response.text()
+                raise MBAuthError(f"legal_consent submission failed: {response.status} - {error_text}")
+
+            return await response.json()
+
 
     async def _resume_authorization(self, resume_url: str, token: str) -> str:
         """Resume authorization and extract code."""
