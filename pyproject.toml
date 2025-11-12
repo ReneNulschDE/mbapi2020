@@ -793,16 +793,16 @@ split-on-trailing-comma = false
 #"script/burp-*" = ["W410"]
 
 # Allow relative imports within auth and within components
-"homeassistant/auth/*/*" = ["TID252"]
-"homeassistant/components/*/*/*" = ["TID252"]
-"tests/components/*/*/*" = ["TID252"]
+"custom_components/*/*/*" = ["TID252"]
 
 # Temporary
-"homeassistant/**" = ["PTH"]
 "tests/**" = ["PTH"]
+
+"custom_components/mbapi2020/proto/*.py" = ["F401"]  # Alle .py-Dateien im src-Verzeichnis
 
 [tool.ruff.lint.mccabe]
 max-complexity = 25
 
 [tool.ruff.lint.pydocstyle]
 property-decorators = ["propcache.cached_property"]
+
