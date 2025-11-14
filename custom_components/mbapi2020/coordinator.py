@@ -83,8 +83,8 @@ class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not self.entry_setup_complete:
             return
 
-        from .binary_sensor import create_missing_binary_sensors_for_car
-        from .sensor import create_missing_sensors_for_car
+        from .binary_sensor import create_missing_binary_sensors_for_car  # noqa: PLC0415
+        from .sensor import create_missing_sensors_for_car  # noqa: PLC0415
 
         car = self.client.cars.get(vin)
         if not car:
