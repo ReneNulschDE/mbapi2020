@@ -345,8 +345,9 @@ asyncio_default_fixture_loop_scope = "function"
 filterwarnings = []
 
 
-#[tool.ruff]
-#required-version = ">=0.6.8"
+[tool.ruff]
+line-length = 120
+required-version = ">=0.6.8"
 
 [tool.ruff.lint]
 select = [

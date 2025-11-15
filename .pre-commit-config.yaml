@@ -1,4 +1,30 @@
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.5
+    hooks:
+#      - id: ruff
+#        args:
+#          - --fix
+      - id: ruff-format
+        files: ^((custom_components/mbapi2020|pylint|script|tests|simulator)/.+)?[^/]+\.py$
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+  - repo: https://github.com/cdce8p/python-typing-update
+    rev: v0.8.1
+    hooks:
+      # Run `python-typing-update` hook manually from time to time
+      # to update python typing syntax.
+      # Will require manual work, before submitting changes!
+      # pre-commit run --hook-stage manual python-typing-update --all-files
+      - id: python-typing-update
+        stages: [manual]
+        args:
+          - --py313-plus
+          - --force
+          - --keep-updates
+        files: ^(custom_components/ha-mysmartbike|tests|script|simulator)/.+\.py$
   - repo: local
     hooks:
       - id: const-check-proxy-not-disabled
