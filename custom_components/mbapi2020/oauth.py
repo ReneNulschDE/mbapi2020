@@ -146,6 +146,8 @@ class Oauth:
                     pre_login_data = await self._submit_legal_consent(home_ountry, consent_country)
                     if pre_login_data.get("result", "") != "RESUME2OIDCP":
                         raise MBLegalTermsError("Problem accepting legal terms during login. %s", pre_login_data)
+                else:
+                    raise MBAuthError("Unexpected login result: %s", pre_login_data)
 
             # Step 5: Resume authorization and get code
             auth_code = await self._resume_authorization(resume_url, pre_login_data["token"])
@@ -164,11 +166,42 @@ class Oauth:
             _LOGGER.info("OAuth2 login successful")
             return token_info
 
-        except (MBAuth2FAError, MBLegalTermsError) as e:
+        except (MBAuth2FAError, MBLegalTermsError):
             raise
         except Exception as e:
             _LOGGER.error("OAuth2 login failed: %s", e)
             raise MBAuthError(f"Login failed: {e}") from e
+
+    def _get_mobile_safari_headers(
+        self,
+        accept: str = "application/json, text/plain, */*",
+        include_referer: bool = True,
+    ) -> dict[str, str]:
+        """Build headers with mobile Safari user agent and common fields."""
+        base_url = helper.Login_Base_Url(self._region)
+        headers = {
+            "accept": accept,
+            "content-type": "application/json",
+            "origin": base_url,
+            "accept-language": "de-DE,de;q=0.9",
+            "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
+        }
+
+        if include_referer:
+            headers["referer"] = f"{base_url}/ciam/auth/login"
+
+        return headers
+
+    def _extract_code_from_redirect_url(self, redirect_url: str) -> str:
+        """Extract authorization code from redirect URL."""
+        parsed_url = urllib.parse.urlparse(redirect_url)
+        params = urllib.parse.parse_qs(parsed_url.query)
+        code = params.get("code", [None])[0]
+
+        if not code:
+            raise MBAuthError("Authorization code not found in redirect URL")
+
+        return code
 
     async def _get_authorization_resume(self) -> str:
         """Get authorization URL and extract resume parameter."""
@@ -208,13 +241,10 @@ class Oauth:
 
     async def _send_user_agent_info(self) -> None:
         """Send user agent information."""
-        headers = {
-            "accept": "*/*",
-            "content-type": "application/json",
-            "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "de-DE,de;q=0.9",
-            "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
-        }
+        headers = self._get_mobile_safari_headers(
+            accept="*/*",
+            include_referer=False,
+        )
 
         data = {
             "browserName": "Mobile Safari",
@@ -230,15 +260,7 @@ class Oauth:
 
     async def _submit_username(self, email: str) -> None:
         """Submit username."""
-        headers = {
-            "accept": "application/json, text/plain, */*",
-            "content-type": "application/json",
-            "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "de-DE,de;q=0.9",
-            "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
-            "referer": f"{helper.Login_Base_Url(self._region)}/ciam/auth/login",
-        }
-
+        headers = self._get_mobile_safari_headers()
         url = f"{helper.Login_Base_Url(self._region)}/ciam/auth/login/user"
 
         async with self._session.post(url, json={"username": email}, headers=headers, proxy=SYSTEM_PROXY) as response:
@@ -248,17 +270,8 @@ class Oauth:
 
     async def _submit_password(self, email: str, password: str) -> dict[str, Any]:
         """Submit password and get pre-login data."""
-        # Generate random request ID
         rid = secrets.token_urlsafe(24)
-
-        headers = {
-            "accept": "application/json, text/plain, */*",
-            "content-type": "application/json",
-            "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "de-DE,de;q=0.9",
-            "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
-            "referer": f"{helper.Login_Base_Url(self._region)}/ciam/auth/login",
-        }
+        headers = self._get_mobile_safari_headers()
 
         data = {
             "username": email,
@@ -278,23 +291,12 @@ class Oauth:
 
     async def _submit_legal_consent(self, home_country: str, consent_country: str) -> dict[str, Any]:
         """Submit legal consent and get pre-login data."""
-        # Generate random request ID
-        rid = secrets.token_urlsafe(24)
-
-        headers = {
-            "accept": "application/json, text/plain, */*",
-            "content-type": "application/json",
-            "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "de-DE,de;q=0.9",
-            "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
-            "referer": f"{helper.Login_Base_Url(self._region)}/ciam/auth/login",
-        }
+        headers = self._get_mobile_safari_headers()
 
         data = {
             "texts": {},
             "homeCountry": home_country,
             "consentCountry": consent_country,
-            "rid": rid,
         }
 
         url = f"{helper.Login_Base_Url(self._region)}/ciam/auth/toas/saveLoginConsent"
@@ -306,17 +308,11 @@ class Oauth:
 
             return await response.json()
 
-
     async def _resume_authorization(self, resume_url: str, token: str) -> str:
         """Resume authorization and extract code."""
-        headers = {
-            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "content-type": "application/x-www-form-urlencoded",
-            "origin": helper.Login_Base_Url(self._region),
-            "accept-language": "de-DE,de;q=0.9",
-            "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
-            "referer": f"{helper.Login_Base_Url(self._region)}/ciam/auth/login",
-        }
+        headers = self._get_mobile_safari_headers()
+        headers["accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+        headers["content-type"] = "application/x-www-form-urlencoded"
 
         data = aiohttp.FormData({"token": token})
 
@@ -328,16 +324,10 @@ class Oauth:
                 proxy=SYSTEM_PROXY,
                 allow_redirects=False,
             ) as response:
-                # Handle redirect
-                if response.status in [302, 301]:
+                if response.status in (302, 301):
                     redirect_url = response.headers.get("location", "")
                     if redirect_url.startswith("rismycar://"):
-                        parsed_url = urllib.parse.urlparse(redirect_url)
-                        params = urllib.parse.parse_qs(parsed_url.query)
-                        code = params.get("code", [None])[0]
-                        if not code:
-                            raise MBAuthError("Authorization code not found in redirect")
-                        return code
+                        return self._extract_code_from_redirect_url(redirect_url)
 
                 raise MBAuthError(f"Unexpected response during authorization: {response.status}")
 
@@ -350,12 +340,11 @@ class Oauth:
                 end = error_str.find("'", start)
                 redirect_url = error_str[start:end]
 
-                parsed_url = urllib.parse.urlparse(redirect_url)
-                params = urllib.parse.parse_qs(parsed_url.query)
-                code = params.get("code", [None])[0]
-                if not code:
-                    raise MBAuthError("Authorization code not found in redirect URL") from e
-                return code
+                try:
+                    return self._extract_code_from_redirect_url(redirect_url)
+                except MBAuthError as extract_error:
+                    raise MBAuthError("Authorization code not found in redirect URL") from extract_error
+
             raise MBAuthError(f"Unexpected URL error: {e}") from e
 
     async def _exchange_code_for_tokens(self, code: str) -> dict[str, Any]:
