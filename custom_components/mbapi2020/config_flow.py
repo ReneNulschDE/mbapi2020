@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from datetime import datetime, timedelta
-import uuid
 
 from awesomeversion import AwesomeVersion
 import voluptuous as vol
@@ -18,7 +16,6 @@ from homeassistant.helpers.storage import STORAGE_DIR
 
 from .client import Client
 from .const import (
-    CONF_ACCESS_TOKEN,
     CONF_ALLOWED_REGIONS,
     CONF_DEBUG_FILE_SAVE,
     CONF_DELETE_AUTH_FILE,
@@ -27,7 +24,6 @@ from .const import (
     CONF_FT_DISABLE_CAPABILITY_CHECK,
     CONF_OVERWRITE_PRECONDNOW,
     CONF_PIN,
-    CONF_REFRESH_TOKEN,
     CONF_REGION,
     DOMAIN,
     LOGGER,
@@ -58,6 +54,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     def __init__(self):
+        """Initialize the ConfigFlow state."""
         self._reauth_entry = None
         self._data = None
         self._reauth_mode = False
@@ -67,9 +64,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Username/Password-Flow."""
 
         if user_input is not None:
-            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
-                f"{user_input[CONF_USERNAME]}-{user_input[CONF_REGION]}"
-            )
+            await self.async_set_unique_id(f"{user_input[CONF_USERNAME]}-{user_input[CONF_REGION]}")
 
             if not self._reauth_mode:
                 self._abort_if_unique_id_configured()
