@@ -216,6 +216,13 @@ positionHeading
 
 - Charging power
 
+- Charging Power Limit
+
+  ```
+  attributes:
+  chargingPowerRestriction
+  ```
+
 - Starter Battery State
 
   ```
