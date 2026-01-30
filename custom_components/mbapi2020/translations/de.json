@@ -114,11 +114,11 @@
         "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
         "max_soc": {
           "name": "Max Soc",
-          "description": "Maximaler Ladezustand (muss zwischen 50 und 100 liegen und durch 10 teilbar sein)"
+          "description": "Maximaler Ladezustand (muss zwischen 50 (einige neue Fahrzeuge wie der 2025 CLA unterstützen 30) und 100 liegen und durch 10 teilbar sein)"
         },
         "charge_program": {
           "name": "Ladeprogramm",
-          "description": "(Optional, Standard=0) Zu änderndes Ladeprogramm (0=Standard, 2=Zuhause, 3=Arbeit)"
+          "description": "(Optional, Standard=0) Zu änderndes Ladeprogramm (0=Standard, 2=Zuhause, 3=Arbeit) (nicht für 2025 CLA verwendet)"
         }
       }
     },
@@ -598,8 +598,7 @@
       "options": {
         "0": "Standard",
         "2": "Zuhause",
-        "3": "Arbeit",
-        "4": "Nicht unterstützt"
+        "3": "Arbeit"
       }
     },
     "charging_break_clocktimer_configure_action": {

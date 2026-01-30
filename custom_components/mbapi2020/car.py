@@ -112,6 +112,8 @@ ELECTRIC_OPTIONS = [
     "chargingBreakClockTimer",
     "chargingstatus",
     "chargingPower",
+    "chargingPowerEcoLimit",
+    "chargingPowerRestriction",
     "departureTimeMode",
     "distanceElectricalReset",
     "distanceElectricalStart",

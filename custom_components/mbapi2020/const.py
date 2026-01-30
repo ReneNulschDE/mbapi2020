@@ -214,7 +214,7 @@ SERVICE_SEND_ROUTE_SCHEMA = vol.Schema(
 SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),
+        vol.Required("max_soc", default=100): vol.All(vol.Coerce(int), vol.In([30, 40, 50, 60, 70, 80, 90, 100])),
         vol.Optional("charge_program", default=0): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),
     }
 )
@@ -803,6 +803,22 @@ SENSORS = {
         SensorStateClass.MEASUREMENT,
         "Zero",
         1,
+    ],
+    "chargingpowerecolimit": [
+        "Charging Power Limit",
+        UnitOfPower.KILO_WATT,  # Deprecated: DO NOT USE
+        "electric",
+        "chargingPowerEcoLimit",
+        "value",
+        None,
+        {"chargingPowerRestriction_cclist_3"},
+        "mdi:ev-station",
+        SensorDeviceClass.POWER,
+        False,
+        None,
+        SensorStateClass.MEASUREMENT,
+        None,
+        None,
     ],
     "rcp_features": [
         "RCP Features",

@@ -85,12 +85,22 @@ battery_max_soc_configure:
       selector:
         select:
           options:
-            - "50"
-            - "60"
-            - "70"
-            - "80"
-            - "90"
-            - "100"
+            - label: "30% (CLA >= 2025)"
+              value: "30"
+            - label: "40% (CLA >= 2025)"
+              value: "40"
+            - label: "50%"
+              value: "50"
+            - label: "60%"
+              value: "60"
+            - label: "70%"
+              value: "70"
+            - label: "80%"
+              value: "80"
+            - label: "90%"
+              value: "90"
+            - label: "100%"
+              value: "100"
     charge_program:
       description: "(optional) Charge Program - (0=Default, 2=Home, 3=Work)"
       example: "0"

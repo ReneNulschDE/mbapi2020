@@ -126,11 +126,11 @@
         },
         "max_soc": {
           "name": "Max Soc",
-          "description": "The maximum value for the state of charge of the HV battery (Value needs to be between 50 and 100 and divisible by ten)"
+          "description": "The maximum value for the state of charge of the HV battery (Value needs to be between 50 (some new cars like 2025 CLA supporting 30) and 100 and divisible by ten)"
         },
         "charge_program": {
           "name": "Charge program",
-          "description": "(Optional, Default=0) Charge program to change (0=Default, 2=Home, 3=Work)"
+          "description": "(Optional, Default=0) Charge program to change (0=Default, 2=Home, 3=Work) (not used for 2025 CLA)"
         }
       }
     },
