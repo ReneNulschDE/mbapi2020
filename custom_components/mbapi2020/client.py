@@ -389,8 +389,9 @@ class Client:
             "chargeinletcoupler": self._get_car_values_handle_chargeinletcoupler,
             "chargeinletlock": self._get_car_values_handle_chargeinletlock,
             "chargePrograms": self._get_car_values_handle_chargePrograms,
-            "endofchargetime": self._get_car_values_handle_endofchargetime,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
+            "chargingPowerRestriction": self._get_car_values_handle_charging_power_restriction,
+            "endofchargetime": self._get_car_values_handle_endofchargetime,
             "ignitionstate": self._get_car_values_handle_ignitionstate,
             "precondStatus": self._get_car_values_handle_precond_status,
             "temperature_points_frontLeft": self._get_car_values_handle_temperature_points,
@@ -650,6 +651,33 @@ class Client:
 
         status = curr.get("status", "VALID")
         time_stamp = curr.get("timestamp", 0)
+
+        return CarAttribute(
+            value=value,
+            retrievalstatus=status,
+            timestamp=time_stamp,
+            display_value=None,
+            unit=None,
+        )
+
+    def _get_car_values_handle_charging_power_restriction(self, car_detail, class_instance, option, update, vin: str):
+        attributes = car_detail.get("attributes", {})
+        curr = attributes.get("chargingPowerRestriction")
+        if not curr:
+            return None
+
+        charge_flaps_value = curr.get("charging_power_restrictions", {})
+        values = charge_flaps_value.get("charging_power_restriction", [])
+        if not values:
+            return None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+
+        if len(values) == 0:
+            return None
+
+        value = ", ".join(item.replace("CHARGING_POWER_RESTRICTION_", "") for item in values)
 
         return CarAttribute(
             value=value,

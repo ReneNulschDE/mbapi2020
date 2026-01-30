@@ -811,7 +811,7 @@ SENSORS = {
         "chargingPowerEcoLimit",
         "value",
         None,
-        {"chargingPowerRestriction_cclist_3"},
+        {"chargingPowerRestriction"},
         "mdi:ev-station",
         SensorDeviceClass.POWER,
         False,
