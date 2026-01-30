@@ -1417,6 +1417,7 @@ class Client:
             # charging_config.charge_program = charge_program
             message.commandRequest.charging_configure.CopyFrom(charging_config)
         else:
+            max_soc = max(max_soc, 50)
             charge_program_config = pb2_commands.ChargeProgramConfigure()
             charge_program_config.max_soc.value = max_soc
             charge_program_config.charge_program = charge_program
