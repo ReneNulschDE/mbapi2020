@@ -466,6 +466,9 @@
     },
     "entity": {
         "sensor": {
+            "chargingpowerecolimit": {
+                "name": "Limit nabíjecího výkonu"
+            },
             "lock": {
                 "state": {
                     "0": "Odemčeno",
@@ -653,7 +656,7 @@
     "selector": {
         "charge_program": {
             "options": {
-                "0": "V ýchozí",
+                "0": "Výchozí",
                 "2": "Doma",
                 "3": "Práce"
             }

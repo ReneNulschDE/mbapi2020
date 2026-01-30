@@ -68,6 +68,9 @@
     },
     "entity": {
         "sensor": {
+            "chargingpowerecolimit": {
+                "name": "מגבלת הספק טעינה"
+            },
             "lock": {
                 "state_attributes": {
                     "doorlockstatusfrontright": {

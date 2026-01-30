@@ -473,6 +473,9 @@
     },
     "entity": {
         "sensor": {
+            "chargingpowerecolimit": {
+                "name": "Límite de potencia de carga"
+            },
             "auxheatstatus": {
                 "state": {
                     "0": "Inactivo",

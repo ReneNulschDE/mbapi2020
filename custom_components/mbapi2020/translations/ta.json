@@ -461,6 +461,9 @@
     },
     "entity": {
         "sensor": {
+            "chargingpowerecolimit": {
+                "name": "சார்ஜிங் பவர் வரம்பு"
+            },
             "lock": {
                 "state_attributes": {
                     "doorstatusfrontleft": {

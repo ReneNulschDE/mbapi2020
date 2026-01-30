@@ -399,6 +399,9 @@
   "entity": {
     "binary_sensor": { "chargingactive": { "name": "Ladevorgang aktiv" } },
     "sensor": {
+      "chargingpowerecolimit": {
+        "name": "Ladeleistungsbegrenzung"
+      },
       "auxheatstatus": {
         "state": {
           "0": "Inaktiv",

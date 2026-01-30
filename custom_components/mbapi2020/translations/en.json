@@ -496,6 +496,9 @@
       }
     },
     "sensor": {
+      "chargingpowerecolimit": {
+        "name": "Charging power limit"
+      },
       "auxheatstatus": {
         "state": {
           "0": "Inactive",

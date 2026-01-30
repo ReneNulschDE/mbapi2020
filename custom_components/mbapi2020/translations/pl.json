@@ -378,6 +378,9 @@
     },
     "entity": {
         "sensor": {
+            "chargingpowerecolimit": {
+                "name": "Limit mocy ładowania"
+            },
             "lock": {
                 "state": {
                     "0": "Odblokowany",

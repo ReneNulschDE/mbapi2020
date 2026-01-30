@@ -48,5 +48,12 @@
             "api_endpoint_reachable": "MB API endpoint raggiungibile",
             "websocket_connection_state": "MB Websocket stato di connessione"
         }
+    },
+    "entity": {
+        "sensor": {
+            "chargingpowerecolimit": {
+                "name": "Limite potenza di ricarica"
+            }
+        }
     }
 }

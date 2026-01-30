@@ -7,7 +7,20 @@
         "error": {
             "cannot_connect": "Kan geen verbinding maken",
             "invalid_auth": "Ongeldige autorisatie",
-            "onbekend": "Onbekende fout. Controleer de Home Assistant-log voor meer informatie."
+            "unknown": "Onbekende fout. Controleer de Home Assistant-log voor meer informatie.",
+            "2fa_required": "Tweefactorauthenticatie (2FA) accounts worden niet ondersteund.",
+            "legal_terms": "Je moet eerst de juridische voorwaarden op de Mercedes-website accepteren"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "region": "Regio",
+                    "username": "MB gebruikersnaam (e-mailadres)",
+                    "password": "Wachtwoord"
+                },
+                "description": "Voer je accountgegevens in.",
+                "title": "Mercedes ME 2020 verbinding instellen"
+            }
         }
     },
     "issues": {
@@ -31,12 +44,13 @@
         "step": {
             "init": {
                 "data": {
-                    "cap_check_disabled": "Schakel capaciteitscontrole uit",
+                    "cap_check_disabled": "Schakel functiecontrole uit",
                     "enable_china_gcj_02": "Schakel GCJ-02-vertaling in (alleen China)",
                     "delete_auth_file": "Verwijder authenticatietoken nu. Vereist een herstart van Home Assistant na opslaan.",
-                    "excluded_cars": "UITGESLOTEN CHASSISNUMMERS (komma-gescheiden)",
+                    "excluded_cars": "Uitgesloten chassisnummers (komma-gescheiden)",
                     "pin": "PIN-code (aan te maken in de mobiele app)",
-                    "save_files": "ALLEEN DEBUG: Schakel het opslaan van serverberichten in de berichtenmap in."
+                    "save_files": "ALLEEN DEBUG: Schakel het opslaan van serverberichten in de berichtenmap in",
+                    "overwrite_cap_precondnow": "Exp: Overschrijf capability precondnow (zet op true)"
                 },
                 "description": "Configureer je opties. Sommige wijzigingen vereisen een herstart van Home Assistant.",
                 "title": "Mercedes ME 2020-opties"
@@ -57,8 +71,8 @@
             "description": "Vernieuw het API-toegangstoken"
         },
         "auxheat_configure": {
-            "name": "Auxheat configureren",
-            "description": "Commando voor het configureren van de extra verwarming. Het is mogelijk om drie dagtijden in te stellen en één actieve tijd te selecteren.",
+            "name": "Hulpverwarming configureren",
+            "description": "Commando voor het configureren van de hulpverwarming. Het is mogelijk om drie dagtijden in te stellen en één actieve tijd te selecteren.",
             "fields": {
                 "vin": {
                     "name": "Chassisnummer",
@@ -83,8 +97,8 @@
             }
         },
         "auxheat_start": {
-            "name": "Auxheat starten",
-            "description": "Start de extra verwarming van een auto die wordt gedefinieerd door een vin.",
+            "name": "Hulpverwarming starten",
+            "description": "Start de hulpverwarming van een auto die wordt gedefinieerd door een VIN.",
             "fields": {
                 "vin": {
                     "name": "Chassisnummer",
@@ -93,8 +107,8 @@
             }
         },
         "auxheat_stop": {
-            "name": "Auxheat stoppen",
-            "description": "Stop de extra verwarming van een auto die wordt gedefinieerd door een vin.",
+            "name": "Hulpverwarming stoppen",
+            "description": "Stop de hulpverwarming van een auto die wordt gedefinieerd door een VIN.",
             "fields": {
                 "vin": {
                     "name": "Chassisnummer",
@@ -150,9 +164,9 @@
         },
         "doors_lock": {
             "name": "Deuren vergrendelen",
-            "description": "Vergrendel een auto die wordt gedefinieerd door een vin.",
+            "description": "Vergrendel een auto die wordt gedefinieerd door een VIN.",
             "fields": {
-                "Chassisnummer": {
+                "vin": {
                     "name": "Chassisnummer",
                     "description": "Chassisnummer van de auto"
                 }
@@ -230,7 +244,7 @@
         },
         "preheat_start_departure_time": {
             "name": "Voorverwarming starten met vertrektijd",
-            "description": "Start de voorverwarming van een auto die wordt gedefinieerd door een vin en een opgegeven vertrektijd..",
+            "description": "Start de voorverwarming van een auto die wordt gedefinieerd door een VIN en een opgegeven vertrektijd.",
             "fields": {
                 "vin": {
                     "name": "Chassisnummer",
@@ -320,11 +334,11 @@
                 },
                 "rear_left": {
                     "name": "Achter links",
-                    "description": "Doeltemperatuur voor de zone achter links in CELSIUS. (if available)"
+                    "description": "Doeltemperatuur voor de zone achter links in CELSIUS (indien beschikbaar)"
                 },
                 "rear_right": {
                     "name": "Achter rechts",
-                    "description": "Doeltemperatuur voor de zone achter rechts in CELSIUS. (if available)"
+                    "description": "Doeltemperatuur voor de zone achter rechts in CELSIUS (indien beschikbaar)"
                 }
             }
         },
@@ -472,7 +486,15 @@
         }
     },
     "entity": {
+        "binary_sensor": {
+            "chargingactive": {
+                "name": "Opladen actief"
+            }
+        },
         "sensor": {
+            "chargingpowerecolimit": {
+                "name": "Laadvermogen Limiet"
+            },
             "auxheatstatus": {
                 "state": {
                     "0": "Inactief",
@@ -498,6 +520,27 @@
                     "1": "Gesloten",
                     "2": "Klep ingedrukt",
                     "3": "Onbekend"
+                }
+            },
+            "chargingstatus": {
+                "state": {
+                    "0": "Opladen",
+                    "1": "Opladen beëindigd",
+                    "2": "Oplaadpauze",
+                    "3": "Losgekoppeld",
+                    "4": "Fout",
+                    "5": "Langzaam",
+                    "6": "Snel",
+                    "7": "Ontladen",
+                    "8": "Niet aan het opladen",
+                    "9": "Langzaam opladen na bereiken ritdoel",
+                    "10": "Opladen na bereiken ritdoel",
+                    "11": "Snel opladen na bereiken ritdoel",
+                    "12": "Verbonden",
+                    "13": "AC opladen",
+                    "14": "DC opladen",
+                    "15": "Batterijkalibratie actief",
+                    "16": "Onbekend"
                 }
             },
             "departuretimemode": {
@@ -669,6 +712,14 @@
                     "2": "Lage druk",
                     "3": "Lekkage"
                 }
+            },
+            "selectedchargeprogram": {
+                "state": {
+                    "0": "Standaard",
+                    "2": "Thuis",
+                    "3": "Werk",
+                    "4": "Niet ondersteund"
+                }
             }
         },
         "switch": {
@@ -677,6 +728,17 @@
             },
             "precond": {
                 "name": "Voorverwarming klimaatregeling"
+            }
+        },
+        "button": {
+            "btn_preheat_start_now": {
+                "name": "Voorverwarming starten"
+            },
+            "btn_preheat_stop_now": {
+                "name": "Voorverwarming stoppen"
+            },
+            "btn_sigpos_start_now": {
+                "name": "Lichtsignaal knipperen"
             }
         }
     },
