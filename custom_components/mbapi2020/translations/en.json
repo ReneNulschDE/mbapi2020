@@ -720,7 +720,8 @@
         "state": {
           "0": "Standard",
           "2": "Home",
-          "3": "Work"
+          "3": "Work",
+          "4": "Not supported"
         }
       }
     },
