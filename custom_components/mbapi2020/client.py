@@ -1393,9 +1393,11 @@ class Client:
             charge_program,
         )
 
-        if not self._is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE"):
+        if not self._is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE") and not self._is_car_feature_available(
+            vin, "CHARGING_CONFIGURE"
+        ):
             LOGGER.warning(
-                "Can't configure battery_max_soc for car %s. Feature not availabe for this car.",
+                "Can't configure battery_max_soc for car %s. Features BATTERY_MAX_SOC_CONFIGURE or CHARGING_CONFIGURE not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return
@@ -1404,10 +1406,21 @@ class Client:
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        charge_program_config = pb2_commands.ChargeProgramConfigure()
-        charge_program_config.max_soc.value = max_soc
-        charge_program_config.charge_program = charge_program
-        message.commandRequest.charge_program_configure.CopyFrom(charge_program_config)
+
+        if self._is_car_feature_available(vin, "CHARGING_CONFIGURE"):
+            LOGGER.debug(
+                "CHARGING_CONFIGURE=true for car %s. Will use ChargingConfigure.",
+                loghelper.Mask_VIN(vin),
+            )
+            charging_config = pb2_commands.ChargingConfigure()
+            charging_config.max_soc.value = max_soc
+            charging_config.charge_program = charge_program
+            message.commandRequest.charging_configure.CopyFrom(charging_config)
+        else:
+            charge_program_config = pb2_commands.ChargeProgramConfigure()
+            charge_program_config.max_soc.value = max_soc
+            charge_program_config.charge_program = charge_program
+            message.commandRequest.charge_program_configure.CopyFrom(charge_program_config)
 
         await self.execute_car_command(message)
         LOGGER.info("End battery_max_soc_configure for vin %s", loghelper.Mask_VIN(vin))
