@@ -155,9 +155,7 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
             if self._state:
                 return datetime.fromtimestamp(int(self._state))
         elif self._internal_name == "chargingpowerecolimit":
-            LOGGER.debug("Raw chargingPowerEcoLimit value: %s", self._state)
             if self._state and int(self._state) <= 0:
-                LOGGER.debug("kleiner 0 chargingPowerEcoLimit value: %s", self._state)
                 return None
             return self._state
         elif self._internal_name == "chargingpowerkw":
