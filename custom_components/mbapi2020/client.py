@@ -1744,11 +1744,13 @@ class Client:
         """Configure preconditioning departure time mode.
 
         departure_time_mode: 0=DISABLED, 1=SINGLE_DEPARTURE, 2=WEEKLY_DEPARTURE
+            Note: WEEKLY_DEPARTURE (mode 2) is not supported on all car models
+            (e.g., EQB supports only DISABLED and SINGLE_DEPARTURE)
         departure_time: Minutes after midnight (0-1439), only used when mode > 0
         """
         LOGGER.info("Start preconditioning_configure for vin %s with mode %s", loghelper.Mask_VIN(vin), departure_time_mode)
 
-        if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
+        if not self._is_car_feature_available(vin, "ZEV_PRECONDITION_CONFIGURE"):
             LOGGER.warning(
                 "Can't configure PreCond for car %s. Feature not available for this car",
                 loghelper.Mask_VIN(vin),

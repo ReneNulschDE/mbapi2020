@@ -254,7 +254,7 @@ preheat_stop_departure_time:
         text:
 
 preconditioning_configure:
-  description: "Configure preconditioning departure time mode. Use mode 0 to disable scheduled departure preconditioning."
+  description: "Configure preconditioning departure time mode. Use mode 0 to disable scheduled departure preconditioning. Note: WEEKLY_DEPARTURE mode is not available on all car models."
   fields:
     vin:
       description: "vin of the car"
