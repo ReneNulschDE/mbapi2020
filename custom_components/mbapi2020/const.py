@@ -159,6 +159,7 @@ SERVICE_PREHEAT_START = "preheat_start"
 SERVICE_PREHEAT_START_DEPARTURE_TIME = "preheat_start_departure_time"
 SERVICE_PREHEAT_STOP_DEPARTURE_TIME = "preheat_stop_departure_time"
 SERVICE_PREHEAT_STOP = "preheat_stop"
+SERVICE_PRECONDITIONING_CONFIGURE = "preconditioning_configure"
 SERVICE_WINDOWS_OPEN = "windows_open"
 SERVICE_WINDOWS_CLOSE = "windows_close"
 SERVICE_WINDOWS_MOVE = "windows_move"
@@ -422,6 +423,13 @@ SERVICE_PRECONDITIONING_CONFIGURE_SEATS_SCHEMA = vol.Schema(
         vol.Required("front_right"): cv.boolean,
         vol.Required("rear_left"): cv.boolean,
         vol.Required("rear_right"): cv.boolean,
+    }
+)
+SERVICE_PRECONDITIONING_CONFIGURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Required("departure_time_mode", default=0): vol.All(vol.Coerce(int), vol.In([0, 1, 2])),
+        vol.Optional("departure_time", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
     }
 )
 

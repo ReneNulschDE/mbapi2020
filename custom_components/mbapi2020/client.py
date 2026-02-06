@@ -1735,23 +1735,36 @@ class Client:
         LOGGER.info("End preheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_stop_departure_time(self, vin: str):
-        """Send a preconditioning stop by time command to the car."""
+        """Disable scheduled departure preconditioning."""
         LOGGER.info("Start preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
+        await self.preconditioning_configure(vin, departure_time_mode=0)
+        LOGGER.info("End preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
-        if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_STOP"):
+    async def preconditioning_configure(self, vin: str, departure_time_mode: int = 0, departure_time: int = 0):
+        """Configure preconditioning departure time mode.
+
+        departure_time_mode: 0=DISABLED, 1=SINGLE_DEPARTURE, 2=WEEKLY_DEPARTURE
+        departure_time: Minutes after midnight (0-1439), only used when mode > 0
+        """
+        LOGGER.info("Start preconditioning_configure for vin %s with mode %s", loghelper.Mask_VIN(vin), departure_time_mode)
+
+        if not self._is_car_feature_available(vin, "ZEV_PRECONDITIONING_START"):
             LOGGER.warning(
-                "Can't stop PreCond for car %s. Feature not availabe for this car.",
+                "Can't configure PreCond for car %s. Feature not available for this car",
                 loghelper.Mask_VIN(vin),
             )
             return
+
         message = client_pb2.ClientMessage()
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.zev_preconditioning_stop.type = pb2_commands.ZEVPreconditioningType.departure
+        message.commandRequest.zev_precondition_configure.departure_time_mode = departure_time_mode
+        if departure_time_mode > 0:
+            message.commandRequest.zev_precondition_configure.departure_time = departure_time
 
         await self.execute_car_command(message)
-        LOGGER.info("End preheat_stop_departure_time for vin %s", loghelper.Mask_VIN(vin))
+        LOGGER.info("End preconditioning_configure for vin %s", loghelper.Mask_VIN(vin))
 
     async def temperature_configure(
         self,

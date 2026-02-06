@@ -11,6 +11,7 @@
         "download_images": "mdi:download",
         "engine_start": "mdi:engine",
         "engine_stop": "mdi:engine-off",
+        "preconditioning_configure": "mdi:car-seat-heater",
         "preconditioning_configure_seats": "mdi:car-seat-heater",
         "preheat_start": "mdi:car-seat-heater",
         "preheat_start_departure_time": "mdi:car-seat-heater",
