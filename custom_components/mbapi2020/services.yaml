@@ -253,6 +253,40 @@ preheat_stop_departure_time:
       selector:
         text:
 
+preconditioning_configure:
+  description: "Configure preconditioning departure time mode. Use mode 0 to disable scheduled departure preconditioning. Note: WEEKLY_DEPARTURE mode is not available on all car models."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
+    departure_time_mode:
+      description: "Departure time mode: 0=DISABLED, 1=SINGLE_DEPARTURE, 2=WEEKLY_DEPARTURE"
+      example: "0"
+      default: 0
+      selector:
+        select:
+          options:
+            - label: "Disabled"
+              value: "0"
+            - label: "Single Departure"
+              value: "1"
+            - label: "Weekly Departure"
+              value: "2"
+    departure_time:
+      description: "Departure time in minutes after midnight (0-1439). Only used when mode > 0."
+      example: "480"
+      default: 0
+      required: False
+      selector:
+        number:
+          min: 0
+          max: 1439
+          step: 1
+          mode: slider
+
 sigpos_start:
   description: "Start light signaling of a car defined by a vin."
   fields:

@@ -26,6 +26,8 @@ from .const import (
     SERVICE_DOWNLOAD_IMAGES,
     SERVICE_ENGINE_START,
     SERVICE_ENGINE_STOP,
+    SERVICE_PRECONDITIONING_CONFIGURE,
+    SERVICE_PRECONDITIONING_CONFIGURE_SCHEMA,
     SERVICE_PRECONDITIONING_CONFIGURE_SEATS,
     SERVICE_PRECONDITIONING_CONFIGURE_SEATS_SCHEMA,
     SERVICE_PREHEAT_START,
@@ -169,6 +171,13 @@ def setup_services(hass: HomeAssistant) -> None:
             call.data.get(CONF_VIN)
         )
 
+    async def preconditioning_configure(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.preconditioning_configure(
+            call.data.get(CONF_VIN),
+            call.data.get("departure_time_mode"),
+            call.data.get("departure_time"),
+        )
+
     async def windows_open(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.windows_open(
             call.data.get(CONF_VIN), call.data.get(CONF_PIN)
@@ -239,6 +248,11 @@ def setup_services(hass: HomeAssistant) -> None:
         (SERVICE_DOWNLOAD_IMAGES, download_images, SERVICE_VIN_SCHEMA),
         (SERVICE_ENGINE_START, engine_start, SERVICE_VIN_SCHEMA),
         (SERVICE_ENGINE_STOP, engine_stop, SERVICE_VIN_SCHEMA),
+        (
+            SERVICE_PRECONDITIONING_CONFIGURE,
+            preconditioning_configure,
+            SERVICE_PRECONDITIONING_CONFIGURE_SCHEMA,
+        ),
         (
             SERVICE_PRECONDITIONING_CONFIGURE_SEATS,
             preconditioning_configure_seats,

@@ -360,6 +360,12 @@ Some services require that the security PIN is created in your mobile Android/IO
 - preheat_stop:
   Stop the preheating of a zero emission car defined by a vin.
 
+- preheat_stop_departure_time:
+  Disable scheduled departure preconditioning of a zero emission car defined by a vin.
+
+- preconditioning_configure:
+  Configure the departure time preconditioning mode (disabled, single, or weekly) of a zero emission car defined by a vin.
+
 - send_route:
   Send a route to a car defined by a vin.
 
