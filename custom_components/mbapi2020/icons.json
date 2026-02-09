@@ -1,42 +1,44 @@
 {
-    "services": {
-        "auxheat_configure": "mdi:radiator",
-        "auxheat_start": "mdi:radiator",
-        "auxheat_stop": "mdi:radiator",
-        "battery_max_soc_configure": "mdi:car-battery",
-        "charging_break_clocktimer_configure": "mdi:power-plug-off",
-        "charge_program_configure": "mdi:car-battery",
-        "doors_unlock": "mdi:car-door",
-        "doors_lock": "mdi:car-door",
-        "download_images": "mdi:download",
-        "engine_start": "mdi:engine",
-        "engine_stop": "mdi:engine-off",
-        "preconditioning_configure": "mdi:car-seat-heater",
-        "preconditioning_configure_seats": "mdi:car-seat-heater",
-        "preheat_start": "mdi:car-seat-heater",
-        "preheat_start_departure_time": "mdi:car-seat-heater",
-        "preheat_stop": "mdi:car-seat-heater",
-        "preheat_stop_departure_time": "mdi:car-seat-heater",
-        "sigpos_start": "mdi:bugle",
-        "sunroof_open": "mdi:car-door",
-        "sunroof_tilt": "mdi:car-door",
-        "sunroof_close": "mdi:car-door",
-        "windows_open": "mdi:car-door",
-        "windows_close": "mdi:car-door",
-        "windows_move": "mdi:car-door",
-        "send_route": "mdi:routes",
-        "temperature_configure": "mdi:temperature-check"
-    },
-    "entity": {
-        "sensor": {
-            "selectedchargeprogram": {
-                "default": "mdi:ev-station",
-                "state": {
-                    "0": "mdi:ev-station",
-                    "2": "mdi:home-battery",
-                    "3": "mdi:office-building"
-                }
-            }
+  "services": {
+    "auxheat_configure": "mdi:radiator",
+    "auxheat_start": "mdi:radiator",
+    "auxheat_stop": "mdi:radiator",
+    "battery_max_soc_configure": "mdi:car-battery",
+    "charging_break_clocktimer_configure": "mdi:power-plug-off",
+    "charge_program_configure": "mdi:car-battery",
+    "doors_unlock": "mdi:car-door",
+    "doors_lock": "mdi:car-door",
+    "download_images": "mdi:download",
+    "engine_start": "mdi:engine",
+    "engine_stop": "mdi:engine-off",
+    "hv_battery_start_conditioning": "mdi:car-battery",
+    "hv_battery_stop_conditioning": "mdi:car-battery",
+    "preconditioning_configure": "mdi:car-seat-heater",
+    "preconditioning_configure_seats": "mdi:car-seat-heater",
+    "preheat_start": "mdi:car-seat-heater",
+    "preheat_start_departure_time": "mdi:car-seat-heater",
+    "preheat_stop": "mdi:car-seat-heater",
+    "preheat_stop_departure_time": "mdi:car-seat-heater",
+    "sigpos_start": "mdi:bugle",
+    "sunroof_open": "mdi:car-door",
+    "sunroof_tilt": "mdi:car-door",
+    "sunroof_close": "mdi:car-door",
+    "windows_open": "mdi:car-door",
+    "windows_close": "mdi:car-door",
+    "windows_move": "mdi:car-door",
+    "send_route": "mdi:routes",
+    "temperature_configure": "mdi:temperature-check"
+  },
+  "entity": {
+    "sensor": {
+      "selectedchargeprogram": {
+        "default": "mdi:ev-station",
+        "state": {
+          "0": "mdi:ev-station",
+          "2": "mdi:home-battery",
+          "3": "mdi:office-building"
         }
+      }
     }
+  }
 }

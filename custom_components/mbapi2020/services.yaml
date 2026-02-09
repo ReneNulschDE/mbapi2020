@@ -194,6 +194,26 @@ engine_stop:
       selector:
         text:
 
+hv_battery_start_conditioning:
+  description: "Start the HV battery conditioning of a car defined by a vin."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
+
+hv_battery_stop_conditioninge_stop:
+  description: "Stop the HV battery conditioning of a car defined by a vin."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
+
 preheat_start:
   description: "Start the pre-heating of a car defined by a vin."
   fields:

@@ -129,6 +129,16 @@ def setup_services(hass: HomeAssistant) -> None:
     async def engine_stop(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.engine_stop(call.data.get(CONF_VIN))
 
+    async def hv_battery_start_conditioning(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.hv_battery_start_conditioning(
+            call.data.get(CONF_VIN)
+        )
+
+    async def hv_battery_stop_conditioning(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.hv_battery_stop_conditioning(
+            call.data.get(CONF_VIN)
+        )
+
     async def sigpos_start(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.sigpos_start(call.data.get(CONF_VIN))
 
@@ -248,6 +258,8 @@ def setup_services(hass: HomeAssistant) -> None:
         (SERVICE_DOWNLOAD_IMAGES, download_images, SERVICE_VIN_SCHEMA),
         (SERVICE_ENGINE_START, engine_start, SERVICE_VIN_SCHEMA),
         (SERVICE_ENGINE_STOP, engine_stop, SERVICE_VIN_SCHEMA),
+        #        (SERVICE_HV_BATTERY_START_CONDITIONING, hv_battery_start_conditioning, SERVICE_VIN_SCHEMA),
+        #        (SERVICE_HV_BATTERY_STOP_CONDITIONING, hv_battery_stop_conditioning, SERVICE_VIN_SCHEMA),
         (
             SERVICE_PRECONDITIONING_CONFIGURE,
             preconditioning_configure,
@@ -300,6 +312,9 @@ def remove_services(hass: HomeAssistant) -> None:
     hass.services.async_remove(DOMAIN, SERVICE_DOWNLOAD_IMAGES)
     hass.services.async_remove(DOMAIN, SERVICE_ENGINE_START)
     hass.services.async_remove(DOMAIN, SERVICE_ENGINE_STOP)
+    #    hass.services.async_remove(DOMAIN, SERVICE_HV_BATTERY_START_CONDITIONING)
+    #    hass.services.async_remove(DOMAIN, SERVICE_HV_BATTERY_STOP_CONDITIONING)
+    hass.services.async_remove(DOMAIN, SERVICE_PRECONDITIONING_CONFIGURE)
     hass.services.async_remove(DOMAIN, SERVICE_PRECONDITIONING_CONFIGURE_SEATS)
     hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START)
     hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START_DEPARTURE_TIME)

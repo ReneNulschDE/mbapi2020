@@ -489,7 +489,7 @@ class Client:
                     loghelper.Mask_VIN(vin),
                 )
                 return None
-            car_detail = current_car.last_full_message if current_car.last_full_message else car_detail
+            car_detail = current_car.last_full_message or car_detail
             attributes = car_detail.get("attributes", {})
             charge_programs = attributes.get("chargePrograms")
             if not charge_programs:
@@ -1502,6 +1502,48 @@ class Client:
         await self.execute_car_command(message)
         LOGGER.info("End engine_stop for vin %s", loghelper.Mask_VIN(vin))
 
+    async def hv_battery_start_conditioning(self, vin: str):
+        """Send the hv battery conditioning start command to the car."""
+        LOGGER.info("Start hv_battery_start_conditioning for vin %s", loghelper.Mask_VIN(vin))
+
+        if not self._is_car_feature_available(vin, "HVBATTERY_START_CONDITIONING"):
+            LOGGER.warning(
+                "Can't start hv battery conditioning for car %s. Feature not available for this car.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        hv_battery_conditioning_start = pb2_commands.HvBatteryStartConditioning()
+        message.commandRequest.hv_battery_start_conditioning.CopyFrom(hv_battery_conditioning_start)
+
+        await self.execute_car_command(message)
+        LOGGER.info("End hv_battery_start_conditioning for vin %s", loghelper.Mask_VIN(vin))
+
+    async def hv_battery_stop_conditioning(self, vin: str):
+        """Send the hv battery conditioning stop command to the car."""
+        LOGGER.info("Start hv_battery_stop_conditioning for vin %s", loghelper.Mask_VIN(vin))
+
+        if not self._is_car_feature_available(vin, "HVBATTERY_STOP_CONDITIONING"):
+            LOGGER.warning(
+                "Can't stop hv battery conditioning for car %s. Feature not available for this car.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        message = client_pb2.ClientMessage()
+
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        hv_battery_conditioning_stop = pb2_commands.HvBatteryStopConditioning()
+        message.commandRequest.hv_battery_stop_conditioning.CopyFrom(hv_battery_conditioning_stop)
+
+        await self.execute_car_command(message)
+        LOGGER.info("End hv_battery_stop_conditioning for vin %s", loghelper.Mask_VIN(vin))
+
     async def send_route_to_car(
         self,
         vin: str,
@@ -1748,7 +1790,9 @@ class Client:
             (e.g., EQB supports only DISABLED and SINGLE_DEPARTURE)
         departure_time: Minutes after midnight (0-1439), only used when mode > 0
         """
-        LOGGER.info("Start preconditioning_configure for vin %s with mode %s", loghelper.Mask_VIN(vin), departure_time_mode)
+        LOGGER.info(
+            "Start preconditioning_configure for vin %s with mode %s", loghelper.Mask_VIN(vin), departure_time_mode
+        )
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITION_CONFIGURE"):
             LOGGER.warning(

@@ -206,6 +206,26 @@
         }
       }
     },
+    "hv_battery_start_conditioning": {
+      "name": "HV Battery start conditioning",
+      "description": "Start the HV battery conditioning of a car defined by a vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
+    "hv_battery_stop_conditioning": {
+      "name": "HV Battery stop conditioning",
+      "description": "Stop the HV battery conditioning of a car defined by a vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        }
+      }
+    },
     "preconditioning_configure_seats": {
       "name": "Preconditioning configure seats",
       "description": "Send a preconditioning seat configuration command to a car defined by a VIN.",
