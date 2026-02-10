@@ -1,20 +1,14 @@
 {
   "domain": "mbapi2020",
   "name": "MercedesME 2020",
-  "codeowners": [
-    "@ReneNulschDE"
-  ],
+  "codeowners": ["@ReneNulschDE"],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/ReneNulschDE/mbapi2020",
   "integration_type": "hub",
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/ReneNulschDE/mbapi2020/issues",
-  "loggers": [
-    "custom_components.mbapi2020"
-  ],
-  "requirements": [
-    "protobuf>=3.19.1"
-  ],
-  "version": "0.31.0"
+  "loggers": ["custom_components.mbapi2020"],
+  "requirements": ["protobuf>=3.19.1"],
+  "version": "0.33.0"
 }
