@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import uuid
 
 from awesomeversion import AwesomeVersion
 import voluptuous as vol
@@ -27,6 +28,7 @@ from .const import (
     CONF_REGION,
     DOMAIN,
     LOGGER,
+    REGION_CHINA,
     TOKEN_FILE_PREFIX,
     VERIFY_SSL,
 )
@@ -35,13 +37,27 @@ from .errors import MbapiError, MBAuth2FAError, MBAuthError, MBLegalTermsError
 AUTH_METHOD_TOKEN = "token"
 AUTH_METHOD_USERPASS = "userpass"
 
+REGION_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_REGION): vol.In(CONF_ALLOWED_REGIONS),
+    }
+)
+
 USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
-        vol.Required(CONF_REGION): vol.In(CONF_ALLOWED_REGIONS),
     }
 )
+
+USER_SCHEMA_CHINA = vol.Schema(
+    {
+        vol.Required(CONF_USERNAME): str,
+    }
+)
+
+USER_STEP_PIN = vol.Schema({vol.Required(CONF_PASSWORD): str})
+
 
 # Version threshold for config_entry setting in options flow
 # See: https://github.com/home-assistant/core/pull/129562
@@ -59,11 +75,25 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._data = None
         self._reauth_mode = False
         self._auth_method = AUTH_METHOD_TOKEN
+        self._region = None
 
     async def async_step_user(self, user_input=None):
-        """Username/Password-Flow."""
+        """Region selection step."""
 
         if user_input is not None:
+            self._region = user_input[CONF_REGION]
+            return await self.async_step_credentials()
+
+        return self.async_show_form(step_id="user", data_schema=REGION_SCHEMA)
+
+    async def async_step_credentials(self, user_input=None):
+        """Credentials step - username/password or username only for China."""
+
+        is_china = self._region == REGION_CHINA
+        schema = USER_SCHEMA_CHINA if is_china else USER_SCHEMA
+
+        if user_input is not None:
+            user_input[CONF_REGION] = self._region
             await self.async_set_unique_id(f"{user_input[CONF_USERNAME]}-{user_input[CONF_REGION]}")
 
             if not self._reauth_mode:
@@ -72,25 +102,56 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             session = async_get_clientsession(self.hass, VERIFY_SSL)
             client = Client(self.hass, session, None, region=user_input[CONF_REGION])
             user_input[CONF_USERNAME] = user_input[CONF_USERNAME].strip()
-            try:
-                token_info = await client.oauth.async_login_new(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
-            except (MBAuthError, MbapiError) as error:
-                LOGGER.error("Login error: %s", error)
-                return self.async_show_form(step_id="user", data_schema=USER_SCHEMA, errors={"base": "invalid_auth"})
-            except MBAuth2FAError as error:
-                LOGGER.error("Login error - 2FA accounts are not supported: %s", error)
-                return self.async_show_form(step_id="user", data_schema=USER_SCHEMA, errors={"base": "2fa_required"})
-            except MBLegalTermsError as error:
-                LOGGER.error("Login error - Legal terms not accepted: %s", error)
-                return self.async_show_form(step_id="user", data_schema=USER_SCHEMA, errors={"base": "legal_terms"})
-            # Token speichern und Entry anlegen
-            self._data = {
-                CONF_USERNAME: user_input[CONF_USERNAME],
-                CONF_REGION: user_input[CONF_REGION],
-                CONF_PASSWORD: user_input[CONF_PASSWORD],
-                "token": token_info,
-                "device_guid": client.oauth._device_guid,  # noqa: SLF001
-            }
+
+            if is_china:
+                nonce = str(uuid.uuid4())
+                user_input["nonce"] = nonce
+                errors = {}
+
+                try:
+                    await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
+                except (MBAuthError, MbapiError):
+                    errors = {"base": "pinrequest_failed"}
+                    return self.async_show_form(step_id="credentials", data_schema=schema, errors=errors)
+
+                if not errors:
+                    self._data = user_input
+                    return await self.async_step_pin()
+
+                LOGGER.error("Request PIN error: %s", errors)
+
+                self._data = {
+                    CONF_USERNAME: user_input[CONF_USERNAME],
+                    CONF_REGION: user_input[CONF_REGION],
+                    "nonce": nonce,
+                }
+            else:
+                try:
+                    token_info = await client.oauth.async_login_new(
+                        user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
+                    )
+                except (MBAuthError, MbapiError) as error:
+                    LOGGER.error("Login error: %s", error)
+                    return self.async_show_form(
+                        step_id="credentials", data_schema=schema, errors={"base": "invalid_auth"}
+                    )
+                except MBAuth2FAError as error:
+                    LOGGER.error("Login error - 2FA accounts are not supported: %s", error)
+                    return self.async_show_form(
+                        step_id="credentials", data_schema=schema, errors={"base": "2fa_required"}
+                    )
+                except MBLegalTermsError as error:
+                    LOGGER.error("Login error - Legal terms not accepted: %s", error)
+                    return self.async_show_form(
+                        step_id="credentials", data_schema=schema, errors={"base": "legal_terms"}
+                    )
+                self._data = {
+                    CONF_USERNAME: user_input[CONF_USERNAME],
+                    CONF_REGION: user_input[CONF_REGION],
+                    CONF_PASSWORD: user_input[CONF_PASSWORD],
+                    "token": token_info,
+                    "device_guid": client.oauth._device_guid,  # noqa: SLF001
+                }
 
             if self._reauth_mode:
                 self.hass.config_entries.async_update_entry(self._reauth_entry, data=self._data)
@@ -101,16 +162,54 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 title=f"{self._data[CONF_USERNAME]} (Region: {self._data[CONF_REGION]})",
                 data=self._data,
             )
-        return self.async_show_form(step_id="user", data_schema=USER_SCHEMA)
+
+        return self.async_show_form(step_id="credentials", data_schema=schema)
+
+    async def async_step_pin(self, user_input=None):
+        """Handle the step where the user inputs his/her station."""
+
+        errors = {}
+
+        if user_input is not None:
+            pin = user_input[CONF_PASSWORD]
+            nonce = self._data["nonce"]
+            new_config_entry: config_entries.ConfigEntry = await self.async_set_unique_id(
+                f"{self._data[CONF_USERNAME]}-{self._data[CONF_REGION]}"
+            )
+            session = async_get_clientsession(self.hass, VERIFY_SSL)
+
+            client = Client(self.hass, session, new_config_entry, self._data[CONF_REGION])
+            try:
+                result = await client.oauth.request_access_token_with_pin(self._data[CONF_USERNAME], pin, nonce)
+            except MbapiError as error:
+                LOGGER.error("Request token error: %s", error)
+                errors = {"base": "token_with_pin_request_failed"}
+
+            if not errors:
+                LOGGER.debug("Token received")
+                self._data["token"] = result
+                self._data["device_guid"] = client.oauth._device_guid  # noqa: SLF001
+
+                if self._reauth_mode:
+                    self.hass.config_entries.async_update_entry(self._reauth_entry, data=self._data)
+                    self.hass.async_create_task(self.hass.config_entries.async_reload(self._reauth_entry.entry_id))
+                    return self.async_abort(reason="reauth_successful")
+
+                return self.async_create_entry(
+                    title=f"{self._data[CONF_USERNAME]} (Region: {self._data[CONF_REGION]})",
+                    data=self._data,
+                )
+
+        return self.async_show_form(step_id="pin", data_schema=USER_STEP_PIN, errors=errors)
 
     async def async_step_reauth(self, user_input=None):
         """Get new tokens for a config entry that can't authenticate."""
 
         self._reauth_mode = True
-
         self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        self._region = self._reauth_entry.data.get(CONF_REGION)
 
-        return self.async_show_form(step_id="user", data_schema=USER_SCHEMA)
+        return await self.async_step_credentials()
 
     # async def async_step_reconfigure(self, user_input=None):
     #     """Get new tokens for a config entry that can't authenticate."""

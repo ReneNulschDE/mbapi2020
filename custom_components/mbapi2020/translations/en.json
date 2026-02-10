@@ -14,12 +14,25 @@
     "step": {
       "user": {
         "data": {
-          "region": "Region",
+          "region": "Region"
+        },
+        "description": "Select your region.",
+        "title": "Set up the Mercedes ME 2020 connection"
+      },
+      "credentials": {
+        "data": {
           "username": "MB username (email address)",
           "password": "Password"
         },
         "description": "Enter your account details.",
-        "title": "Set up the Mercedes ME 2020 connection"
+        "title": "Mercedes ME 2020 - Login"
+      },
+      "pin": {
+        "data": {
+          "password": "TAN (received via eMail or SMS)"
+        },
+        "description": "Enter the TAN you have received via eMail or SMS to complete the authentication. If you have not received a TAN, please check your email inbox (and spam folder) or your SMS messages.",
+        "title": "Mercedes ME 2020 - TAN"
       }
     }
   },

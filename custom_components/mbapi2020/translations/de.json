@@ -14,12 +14,18 @@
     "step": {
       "user": {
         "data": {
-          "region": "Region",
+          "region": "Region"
+        },
+        "description": "Wähle deine Region aus.",
+        "title": "Mercedes ME 2020 Verbindung einrichten"
+      },
+      "credentials": {
+        "data": {
           "username": "MB Benutzername (E-Mail)",
           "password": "Passwort"
         },
         "description": "Gib deine Kontodaten ein.",
-        "title": "Mercedes ME 2020 Verbindung einrichten"
+        "title": "Mercedes ME 2020 - Anmeldung"
       }
     }
   },

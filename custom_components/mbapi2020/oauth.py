@@ -23,6 +23,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .const import (
+    DEFAULT_COUNTRY_CODE,
     DEFAULT_LOCALE,
     REGION_APAC,
     REGION_CHINA,
@@ -374,6 +375,47 @@ class Oauth:
                 raise MBAuthError(f"Token exchange failed: {response.status} - {error_text}")
 
             return await response.json()
+
+    async def request_access_token_with_pin(self, email: str, pin: str, nonce: str):
+        """Request the access token using the Pin."""
+        url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
+        encoded_email = urllib.parse.quote_plus(email, safe="@")
+
+        data = (
+            f"client_id={helper.Login_App_Id(self._region)}&grant_type=password&username={encoded_email}&password={nonce}:{pin}"
+            "&scope=openid email phone profile offline_access ciam-uid"
+        )
+
+        headers = self._get_header()
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+        headers["Stage"] = "prod"
+        headers["X-Device-Id"] = str(uuid.uuid4())
+        headers["X-Request-Id"] = str(uuid.uuid4())
+
+        token_info = await self._async_request("post", url, data=data, headers=headers)
+
+        if token_info is not None:
+            token_info = self._add_custom_values_to_token_info(token_info)
+            self._save_token_info(token_info)
+            self.token = token_info
+            return token_info
+
+        return None
+
+    async def request_pin(self, email: str, nonce: str):
+        """Initiate a PIN request."""
+        _LOGGER.info("Start request PIN %s", email)
+        _LOGGER.debug("PIN preflight request 1")
+        device_guid = self._get_or_create_device_guid()
+        headers = self._get_header()
+        url = f"{helper.Rest_url(self._region)}/v1/config"
+        await self._async_request("get", url, headers=headers)
+
+        _LOGGER.info("PIN request")
+        url = f"{helper.Rest_url(self._region)}/v1/login"
+        data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{DEFAULT_COUNTRY_CODE}", "nonce" : "{nonce}"}}'
+        headers = self._get_header()
+        return await self._async_request("post", url, data=data, headers=headers)
 
     async def async_refresh_access_token(self, refresh_token: str, is_retry: bool = False):
         """Refresh the access token."""

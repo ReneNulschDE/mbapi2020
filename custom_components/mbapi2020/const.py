@@ -39,7 +39,7 @@ REGION_NORAM = "North America"
 REGION_APAC = "Asia-Pacific"
 REGION_CHINA = "China"
 
-CONF_ALLOWED_REGIONS = [REGION_EUROPE, REGION_NORAM, REGION_APAC]
+CONF_ALLOWED_REGIONS = [REGION_EUROPE, REGION_NORAM, REGION_APAC, REGION_CHINA]
 CONF_LOCALE = "locale"
 CONF_COUNTRY_CODE = "country_code"
 CONF_EXCLUDED_CARS = "excluded_cars"
@@ -110,7 +110,8 @@ USE_PROXY = False
 VERIFY_SSL = True
 SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://192.168.178.68:9090"
 
-
+LOGIN_APP_ID_EU = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
+LOGIN_APP_ID_CN = "3f36efb1-f84b-4402-b5a2-68a118fec33e"
 LOGIN_BASE_URI = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_CN = "https://ciam-1.mercedes-benz.com.cn"
 PSAG_BASE_URI = "https://psag.query.api.dvb.corpinter.net"
@@ -127,7 +128,7 @@ WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v
 WEBSOCKET_API_BASE_PA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v2/ws"
 WEBSOCKET_API_BASE_CN = "wss://websocket.cn-prod.mobilesdk.mercedes-benz.com/v2/ws"
 WEBSOCKET_USER_AGENT = "Mercedes-Benz/3044 CFNetwork/3860.400.22 Darwin/25.3.0"
-WEBSOCKET_USER_AGENT_CN = "MyStarCN/1.47.0 (com.daimler.ris.mercedesme.cn.ios; build:1758; iOS 16.3.1) Alamofire/5.4.0"
+WEBSOCKET_USER_AGENT_CN = "MyStarCN/1.63.0 (com.daimler.ris.mercedesme.cn.ios; build:1758; iOS 16.3.1) Alamofire/5.4.0"
 WEBSOCKET_USER_AGENT_PA = (
     f"mycar-store-ap {RIS_APPLICATION_VERSION}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
 )

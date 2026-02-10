@@ -19,17 +19,21 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     REGION_APAC,
+    REGION_CHINA,
     REGION_EUROPE,
     REGION_NORAM,
     RIS_APPLICATION_VERSION,
+    RIS_APPLICATION_VERSION_CN,
     RIS_APPLICATION_VERSION_NA,
     RIS_APPLICATION_VERSION_PA,
     RIS_OS_NAME,
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
+    RIS_SDK_VERSION_CN,
     SYSTEM_PROXY,
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
+    WEBSOCKET_USER_AGENT_CN,
     WEBSOCKET_USER_AGENT_PA,
     WEBSOCKET_USER_AGENT_US,
 )
@@ -464,6 +468,12 @@ class Websocket:
             header["ris-application-version"] = RIS_APPLICATION_VERSION_PA
             header["User-Agent"] = WEBSOCKET_USER_AGENT_PA
 
+        if self._region == REGION_CHINA:
+            header["X-ApplicationName"] = "mycar-store-cn"
+            header["ris-application-version"] = RIS_APPLICATION_VERSION_CN
+            header["User-Agent"] = WEBSOCKET_USER_AGENT_CN
+            header["ris-sdk-version"] = RIS_SDK_VERSION_CN
+
         return header
 
     async def _blocked_account_reload_check(self):
@@ -496,7 +506,7 @@ class Websocket:
 
     def _should_trigger_backup_reload(self, current_time: float) -> bool:
         """Prüft ob Backup-Reload ausgeführt werden soll (alle 30 Min oder garantiert nach Mitternacht GMT)."""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         # Mindestens 5 Minuten blockiert sein
         if current_time - self._blocked_since_time < 300:
