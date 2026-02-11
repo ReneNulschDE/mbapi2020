@@ -106,6 +106,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if is_china:
                 nonce = str(uuid.uuid4())
                 user_input["nonce"] = nonce
+                user_input["device_guid"] = client.oauth._device_guid  # noqa: SLF001
                 errors = {}
 
                 try:
@@ -124,6 +125,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_USERNAME: user_input[CONF_USERNAME],
                     CONF_REGION: user_input[CONF_REGION],
                     "nonce": nonce,
+                    "device_guid": user_input["device_guid"],
                 }
             else:
                 try:
@@ -188,7 +190,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not errors:
                 LOGGER.debug("Token received")
                 self._data["token"] = result
-                self._data["device_guid"] = client.oauth._device_guid  # noqa: SLF001
 
                 if self._reauth_mode:
                     self.hass.config_entries.async_update_entry(self._reauth_entry, data=self._data)
