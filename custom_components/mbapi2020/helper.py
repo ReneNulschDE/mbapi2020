@@ -148,6 +148,12 @@ class UrlHelper:
 class CoordinatesHelper:
     @staticmethod
     def _transform_lat(lon, lat):
+        """Transform latitude for GCJ-02 offset calculation.
+
+        :param lon: Longitude offset
+        :param lat: Latitude offset
+        :return: Transformed latitude
+        """
         ret = -100.0 + 2.0 * lon + 3.0 * lat + 0.2 * lat * lat + 0.1 * lon * lat + 0.2 * math.sqrt(abs(lon))
         ret += (20.0 * math.sin(6.0 * lon * math.pi) + 20.0 * math.sin(2.0 * lon * math.pi)) * 2.0 / 3.0
         ret += (20.0 * math.sin(lat * math.pi) + 40.0 * math.sin(lat / 3.0 * math.pi)) * 2.0 / 3.0
@@ -156,39 +162,16 @@ class CoordinatesHelper:
 
     @staticmethod
     def _transform_lon(lon, lat):
+        """Transform longitude for GCJ-02 offset calculation.
+
+        :param lon: Longitude offset
+        :param lat: Latitude offset
+        :return: Transformed longitude
+        """
         ret = 300.0 + lon + 2.0 * lat + 0.1 * lon * lon + 0.1 * lon * lat + 0.1 * math.sqrt(abs(lon))
         ret += (20.0 * math.sin(6.0 * lon * math.pi) + 20.0 * math.sin(2.0 * lon * math.pi)) * 2.0 / 3.0
         ret += (20.0 * math.sin(lon * math.pi) + 40.0 * math.sin(lon / 3.0 * math.pi)) * 2.0 / 3.0
         ret += (150.0 * math.sin(lon / 12.0 * math.pi) + 300.0 * math.sin(lon / 30.0 * math.pi)) * 2.0 / 3.0
-        return ret
-
-    @staticmethod
-    def _transform_lat_gcj02(x, y):
-        """Transform latitude.
-
-        :param x: Longitude
-        :param y: Latitude
-        :return: Transformed latitude
-        """
-
-        ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * math.sqrt(math.fabs(x))
-        ret += (20.0 * math.sin(6.0 * x * math.pi) + 20.0 * math.sin(2.0 * x * math.pi)) * 2.0 / 3.0
-        ret += (20.0 * math.sin(y * math.pi) + 40.0 * math.sin(y / 3.0 * math.pi)) * 2.0 / 3.0
-        ret += (160.0 * math.sin(y / 12.0 * math.pi) + 320 * math.sin(y * math.pi / 30.0)) * 2.0 / 3.0
-        return ret
-
-    @staticmethod
-    def _transform_lon_gcj02(x, y):
-        """Transform longitude.
-
-        :param x: Longitude
-        :param y: Latitude
-        :return: Transformed longitude
-        """
-        ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * math.sqrt(math.fabs(x))
-        ret += (20.0 * math.sin(6.0 * x * math.pi) + 20.0 * math.sin(2.0 * x * math.pi)) * 2.0 / 3.0
-        ret += (20.0 * math.sin(x * math.pi) + 40.0 * math.sin(x / 3.0 * math.pi)) * 2.0 / 3.0
-        ret += (150.0 * math.sin(x / 12.0 * math.pi) + 300.0 * math.sin(x / 30.0 * math.pi)) * 2.0 / 3.0
         return ret
 
     @staticmethod
@@ -222,11 +205,11 @@ class CoordinatesHelper:
         :param gcj_lat: GCJ-02 latitude
         :return: WGS-84 longitude and latitude
         """
-        EARTH_RADIUS = 6378137.0
+        EARTH_RADIUS = 6378245.0
         EE = 0.00669342162296594323
 
-        dlat = CoordinatesHelper._transform_lat_gcj02(gcj_lon - 105.0, gcj_lat - 35.0)
-        dlon = CoordinatesHelper._transform_lon_gcj02(gcj_lon - 105.0, gcj_lat - 35.0)
+        dlat = CoordinatesHelper._transform_lat(gcj_lon - 105.0, gcj_lat - 35.0)
+        dlon = CoordinatesHelper._transform_lon(gcj_lon - 105.0, gcj_lat - 35.0)
         rad_lat = gcj_lat / 180.0 * math.pi
         magic = math.sin(rad_lat)
         magic = 1 - EE * magic * magic
