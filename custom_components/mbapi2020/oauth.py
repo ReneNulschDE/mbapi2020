@@ -25,6 +25,8 @@ from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from .const import (
     DEFAULT_COUNTRY_CODE,
     DEFAULT_LOCALE,
+    LOGIN_APP_ID_CN,
+    LOGIN_APP_ID_EU,
     REGION_APAC,
     REGION_CHINA,
     REGION_EUROPE,
@@ -55,7 +57,7 @@ class Oauth:
     """OAuth2 class for Mercedes Me integration."""
 
     # OAuth2 Configuration for new login method
-    CLIENT_ID = "62778dc4-1de3-44f4-af95-115f06a3a008"
+    CLIENT_ID = LOGIN_APP_ID_EU
     REDIRECT_URI = "rismycar://login-callback"
     SCOPE = "email profile ciam-uid phone openid offline_access"
 
@@ -75,6 +77,9 @@ class Oauth:
         self._sessionid = ""
         self._get_token_lock = asyncio.Lock()
         self._device_guid: str = (config_entry.data.get("device_guid") if config_entry else None) or str(uuid.uuid4())
+
+        if region == REGION_CHINA:
+            self.CLIENT_ID = LOGIN_APP_ID_CN
 
         # PKCE parameters for new login method
         self.code_verifier: str | None = None
