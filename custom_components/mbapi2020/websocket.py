@@ -99,9 +99,14 @@ class Websocket:
         self.component_reload_watcher: Watchdog = Watchdog(
             self._blocked_account_reload_check, 30, "Blocked_account_reload", False
         )
-        self._LOGGER = _PrefixAdapter(
-            LOGGER, {"entry_id": self.oauth._config_entry.entry_id, "instance_id": self._instance_id}
-        )
+
+        if getattr(self.oauth, "_config_entry", None):
+            self._LOGGER = _PrefixAdapter(
+                LOGGER, {"entry_id": self.oauth._config_entry.entry_id, "instance_id": self._instance_id}
+            )
+        else:
+            self._LOGGER = _PrefixAdapter(LOGGER, {"entry_id": "unknown", "instance_id": self._instance_id})
+
         self._LOGGER.info(
             "Websocket instance created (total instances created: %d, obj_id: %s)",
             Websocket._instance_counter,
@@ -235,11 +240,7 @@ class Websocket:
 
     async def initiatiate_connection_disconnect_with_reconnect(self):
         """Initiate a connection disconnect."""
-        # self._LOGGER.debug(
-        #     "ignitions_state: %s, %s",
-        #     self.oauth._config_entry.entry_id,
-        #     json.dumps(self._ignition_states),
-        # )
+
         if any(self._ignition_states.values()):
             self._LOGGER.debug(
                 "initiatiate_connection_disconnect_with_reconnect canceled - Reason: ignitions_state: %s",
