@@ -110,7 +110,7 @@ USE_PROXY = False
 VERIFY_SSL = True
 SYSTEM_PROXY: str | None = None if not USE_PROXY else "http://192.168.178.68:9090"
 
-LOGIN_APP_ID_EU = "01398c1c-dc45-4b42-882b-9f5ba9f175f1"
+LOGIN_APP_ID_EU = "62778dc4-1de3-44f4-af95-115f06a3a008"
 LOGIN_APP_ID_CN = "3f36efb1-f84b-4402-b5a2-68a118fec33e"
 LOGIN_BASE_URI = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_CN = "https://ciam-1.mercedes-benz.com.cn"
