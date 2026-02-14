@@ -265,7 +265,7 @@ class Client:
         self._coordinator_ref = coordinator_ref
         await self.websocket.async_connect(self.on_data)
 
-    def _build_car(self, received_car_data, update_mode):
+    def _build_car(self, received_car_data, update_mode, is_rest_data=False):
         if received_car_data.get("vin") in self.excluded_cars:
             LOGGER.debug("CAR excluded: %s", loghelper.Mask_VIN(received_car_data.get("vin")))
             return
@@ -287,6 +287,17 @@ class Client:
 
         if not update_mode:
             car.last_full_message = received_car_data
+
+        # Set data collection mode based on data source
+        if is_rest_data:
+            car.data_collection_mode = "pull"
+        else:
+            car.data_collection_mode = "push"
+
+        # For REST data, create synthetic windowStatusOverall if missing
+        if is_rest_data and received_car_data.get("attributes"):
+            if "windowStatusOverall" not in received_car_data["attributes"]:
+                self._create_synthetic_window_status_overall(received_car_data, car.finorvin)
 
         car.odometer = self._get_car_values(
             received_car_data,
@@ -911,6 +922,81 @@ class Client:
 
         return None
 
+    def _create_synthetic_window_status_overall(self, car_data, vin):
+        """Create a synthetic windowStatusOverall based on individual window statuses for REST data."""
+        if not car_data.get("attributes"):
+            return
+
+        # Debug: Log all available window-related attributes
+        # window_attrs_found = [key for key in car_data["attributes"].keys() if "window" in key.lower()]
+        # if window_attrs_found:
+        #     LOGGER.debug("Available window attributes for %s: %s", loghelper.Mask_VIN(vin), window_attrs_found)
+        # else:
+        #     LOGGER.debug("No window attributes found in REST data for %s", loghelper.Mask_VIN(vin))
+
+        # Define main window status attributes to check
+        main_window_attrs = [
+            "windowstatusfrontleft",
+            "windowstatusfrontright",
+            "windowstatusrearleft",
+            "windowstatusrearright",
+        ]
+
+        # Check individual window statuses
+        window_statuses = []
+        latest_timestamp = 0
+
+        for attr_name in main_window_attrs:
+            if attr_name in car_data["attributes"]:
+                attr_data = car_data["attributes"][attr_name]
+                value = attr_data.get("int_value", 0)
+                timestamp = attr_data.get("timestamp", 0)
+
+                # Convert timestamp to int for comparison
+                try:
+                    timestamp = int(timestamp) if timestamp else 0
+                    latest_timestamp = max(latest_timestamp, timestamp)
+                except (ValueError, TypeError):
+                    pass
+
+                # Add to window statuses if value is available
+                if value is not None:
+                    window_statuses.append(value)
+
+        # Calculate overall status based on individual windows
+        # If we have valid window statuses, determine overall state
+        if window_statuses:
+            # Assume "CLOSED" = 0, "OPEN" = 1 or similar numeric values
+            # If all windows are closed (0), overall should be "CLOSED"
+            # If any window is open (>0), overall should be "OPEN"
+            try:
+                numeric_statuses = [int(status) for status in window_statuses if status is not None]
+                if numeric_statuses:
+                    overall_value = "OPEN" if any(status != 2 for status in numeric_statuses) else "CLOSED"
+                else:
+                    overall_value = "CLOSED"  # Default to closed if no valid data
+            except (ValueError, TypeError):
+                # If values are not numeric, try string comparison
+                overall_value = "CLOSED"
+        else:
+            # No individual window data available, default to CLOSED
+            overall_value = "CLOSED"
+
+        # Create the synthetic windowStatusOverall attribute
+        car_data["attributes"]["windowStatusOverall"] = {
+            "timestamp": str(latest_timestamp) if latest_timestamp > 0 else "0",
+            "bool_value": overall_value == "CLOSED",
+            "status": "VALID",  # Use same status as other synthetic attributes
+            "timestamp_in_ms": str(latest_timestamp * 1000 + 223),
+        }
+
+        LOGGER.debug(
+            "Created synthetic windowStatusOverall for %s: %s (based on %d individual windows)",
+            loghelper.Mask_VIN(vin),
+            overall_value,
+            len(window_statuses),
+        )
+
     def _get_car_value(self, class_instance, object_name, attrib_name, default_value):
         return getattr(
             getattr(class_instance, object_name, default_value),
@@ -924,10 +1010,24 @@ class Client:
         self._write_debug_output(data, "rfu")
         # Don't understand the protobuf dict errors --> convert to json
         vep_json = json.loads(MessageToJson(data, preserving_proto_field_name=True))
-        vin = vep_json.get("vin", None)
-        if not vin:
-            LOGGER.debug("No VIN found in VEPUpdate data: %s", vep_json)
-            return
+
+        # Check if this is a nested vepUpdates structure or a direct VIN structure
+        if "vepUpdates" in vep_json and "updates" in vep_json["vepUpdates"]:
+            # This is a multi-car update structure
+            cars = vep_json["vepUpdates"]["updates"]
+            for vin in cars:
+                if vin in self.excluded_cars:
+                    continue
+                current_car = cars.get(vin)
+                if current_car:
+                    self._build_car(current_car, update_mode=False, is_rest_data=True)
+        else:
+            # This is a single car structure
+            vin = vep_json.get("vin", None)
+            if not vin:
+                LOGGER.debug("No VIN found in VEPUpdate data: %s", vep_json)
+                return
+            self._build_car(vep_json, update_mode=False, is_rest_data=True)
 
         if not self._first_vepupdates_processed:
             self._vepupdates_time_first_message = datetime.now()
