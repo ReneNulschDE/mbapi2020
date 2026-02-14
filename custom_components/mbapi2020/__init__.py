@@ -290,7 +290,19 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         websocket._pingwatchdog.cancel()
         websocket.component_reload_watcher.cancel()
 
+        # EVENT_HOMEASSISTANT_STOP-Listener deregistrieren, damit alte
+        # Instanzen beim HA-Shutdown nicht erneut aufgerufen werden.
+        if websocket.ha_stop_handler:
+            websocket.ha_stop_handler()
+            websocket.ha_stop_handler = None
+
         result = await websocket.async_stop()
+
+        websocket._reconnectwatchdog.cancel()
+        websocket._watchdog.cancel()
+        websocket._pingwatchdog.cancel()
+        websocket.component_reload_watcher.cancel()
+
         hass.data[DOMAIN][config_entry.entry_id].client.websocket = None
         if unload_ok := await hass.config_entries.async_unload_platforms(config_entry, MERCEDESME_COMPONENTS):
             del hass.data[DOMAIN][config_entry.entry_id]
