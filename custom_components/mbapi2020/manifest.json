@@ -10,5 +10,5 @@
   "issue_tracker": "https://github.com/ReneNulschDE/mbapi2020/issues",
   "loggers": ["custom_components.mbapi2020"],
   "requirements": ["protobuf>=3.19.1"],
-  "version": "0.33.0"
+  "version": "0.34.0"
 }
