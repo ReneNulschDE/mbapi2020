@@ -541,7 +541,10 @@ class Websocket:
 
     def _should_trigger_backup_reload(self, current_time: float) -> bool:
         """Prüft ob Backup-Reload ausgeführt werden soll (alle 30 Min oder garantiert nach Mitternacht GMT)."""
-        from datetime import datetime
+
+        # Kein Backup-Reload für China - Reauth ist dort nicht verfügbar
+        if self._region == REGION_CHINA:
+            return False
 
         # Mindestens 5 Minuten blockiert sein
         if current_time - self._blocked_since_time < 300:
