@@ -14,11 +14,12 @@ IMPORTANT:
 
 - Please login once into the Mercedes-Benz IOS or Android app before you install this component. (For North America, the app name is Mercedes Me Connect)
 
-- Tested Countries: AT, AU, BE, CA, CH, ~~CN~~, DE, DK, ES, FI, FR, IN, IT, IR, NL, NO, NZ, PT, RO, SE, TH, UK, US
+- Tested Countries: AT, AU, BE, CA, CH, CN, DE, DK, ES, FI, FR, IN, IT, IR, NL, NO, NZ, PT, RO, SE, TH, UK, US
 
-- North America: For Cars 2019 or newer only
-- Thailand, India: Please use region "Europe".
-- China: Is not working currently, See #339 in case you would like to help
+- North America: For Cars built 2019 or newer only
+- Thailand, India: Please use the region "Europe".
+- Mexico, Brazil,...: Please use the region "APAC" 
+- China: has some limitations. See [here](https://github.com/ReneNulschDE/mbapi2020/releases/tag/v0.33.0) for more details.
 - Smart cars data are not available after 2025-01-06
 - Discussions, Feature Requests via [HA-Community Forum](https://community.home-assistant.io/t/mercedes-me-component/41911)
 
