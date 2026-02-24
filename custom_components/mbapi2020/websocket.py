@@ -134,7 +134,15 @@ class Websocket:
     async def _reconnect_attempt(self) -> None:
         """Attempt reconnection without cancelling the reconnect watchdog."""
         self._LOGGER.debug("Starting reconnect attempt")
-        await self._async_connect_internal()
+        try:
+            await self._async_connect_internal()
+        except Exception as err:
+            self._LOGGER.error("Reconnect attempt failed: %s (%s)", err, type(err).__name__)
+        finally:
+            # Re-trigger reconnect watchdog if not stopping and not connected
+            if not self.is_stopping and self.connection_state != STATE_CONNECTED:
+                self._LOGGER.debug("Re-triggering reconnect watchdog after failed attempt")
+                await self._reconnectwatchdog.trigger()
 
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
@@ -422,8 +430,11 @@ class Websocket:
                 await asyncio.sleep(retry_in)
                 retry_in = 10 * self.ws_connect_retry_counter * self.ws_connect_retry_counter
             except Exception as error:
-                self._LOGGER.error("Other error %s", error)
-                raise
+                self._LOGGER.error("Other error: %s (%s)", error, type(error).__name__)
+                self.connection_state = STATE_RECONNECTING
+                await asyncio.sleep(retry_in)
+                retry_in = retry_in * 2 if retry_in < 120 else 120
+                self.ws_connect_retry_counter += 1
 
     async def _websocket_handler(self, session: ClientSession, **kwargs):
         websocket_url = helper.Websocket_url(self._region)
