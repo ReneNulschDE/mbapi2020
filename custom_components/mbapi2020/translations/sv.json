@@ -1,1 +1,198 @@
-{}
+{
+    "config": {
+        "abort": {
+            "already_configured": "Komponenten är redan konfigurerad.",
+            "reauth_successful": "Återautentisering lyckades! Komponenten laddas om."
+        },
+        "error": {
+            "unknown": "Okänt fel. Kontrollera Home Assistant-loggen för mer information.",
+            "2fa_required": "Tvåfaktorsautentisering (2FA)-konton stöds inte.",
+            "legal_terms": "Du måste först godkänna de juridiska villkoren på Mercedes webbplats"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "region": "Region"
+                },
+                "description": "Välj region.",
+                "title": "Konfigurera Mercedes ME 2020-anslutningen"
+            },
+            "credentials": {
+                "data": {
+                    "username": "MB användarnamn (e-postadress)",
+                    "password": "Lösenord"
+                },
+                "description": "Ange dina kontouppgifter.",
+                "title": "Mercedes ME 2020 - Inloggningsuppgifter"
+            },
+            "pin": {
+                "data": {
+                    "password": "TAN (mottaget via e-post eller SMS)"
+                },
+                "description": "Ange det TAN-nummer du har fått via e-post eller SMS för att slutföra autentiseringen. Om du inte har fått något TAN, kontrollera din e-postinkorg (och skräppostmappen) eller dina SMS-meddelanden.",
+                "title": "Mercedes ME 2020 - TAN"
+            }
+        }
+    },
+    "issues": {
+        "restart_required": {
+            "fix_flow": {
+                "step": {
+                    "confirm_restart": {
+                        "description": "Omstart av Home Assistant krävs för att slutföra autentiseringsuppdateringen. Klicka på skicka för att starta om nu.",
+                        "title": "Omstart krävs"
+                    }
+                }
+            },
+            "title": "Omstart krävs"
+        }
+    },
+    "options": {
+        "abort": {
+            "already_configured": "Komponenten är redan konfigurerad.",
+            "reauth_successful": "Återautentisering lyckades! Komponenten laddas om."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "cap_check_disabled": "Inaktivera kompabilitetskontroll",
+                    "enable_china_gcj_02": "Aktivera GCJ-02-översättning (endast Kina)",
+                    "delete_auth_file": "Ta bort autentiseringstoken nu. Kräver att Home Assistant startas om efter att du har sparat.",
+                    "excluded_cars": "VIN-nummer exkluderade (komma-separerade)",
+                    "pin": "Säkerhets-PIN (ska skapas i mobilappen)",
+                    "save_files": "ENDAST DEBUG: Aktivera spara servermeddelanden i mappen meddelanden",
+                    "overwrite_cap_precondnow": "Exp: Skriv över funktionsförutsättning nu (inställd på sant)"
+                },
+                "description": "Konfigurera dina inställningar. Vissa ändringar kräver att Home Assistant startas om.",
+                "title": "Mercedes ME 2020 Inställningar"
+            }
+        }
+    },
+    "system_health": {
+        "info": {
+            "api_endpoint_reachable": "MB API är nåbart",
+            "websocket_connection_state": "MB WS-tillstånd",
+            "cars_connected": "Anslutna bilar",
+            "version": "Version"
+        }
+    },
+    "services": {
+        "refresh_access_token": {
+            "name": "Uppdatera åtkomsttoken",
+            "description": "Uppdatera API-åtkomsttoken"
+        },
+        "auxheat_configure": {
+            "name": "Konfigurera parkeringsvärmare",
+            "description": "Kommando för att konfigurera parkeringsvärmaren. Det är möjligt att definiera tre tidpunkter och välja en aktiv tid.",
+            "fields": {
+                "vin": {
+                    "name": "Vin",
+                    "description": "Bilens Vin/Fin"
+                },
+                "time_selection": {
+                    "name": "Välj tid",
+                    "description": "Den aktiverade förinställda tiden för extravärmaren (0=inget_val, 1=tid_1, 2=tid_2, 3=tid_3)"
+                },
+                "time_1": {
+                    "description": "Tidpunkt i minuter efter midnatt. Exempelvis är 480 ett giltigt värde för kl. 08.00. Värdeområdet är 0 till 1439."
+                },
+                "time_2": {
+                    "description": "Tidpunkt i minuter efter midnatt. T.ex. är 480 ett giltigt värde för kl. 08.00. Värdeområdet är 0 till 1439."
+                },
+                "time_3": {
+                    "description": "Tidpunkt i minuter efter midnatt. T.ex. är 480 ett giltigt värde för kl. 08.00. Värdeområdet är 0 till 1439."
+                }
+            }
+        },
+        "auxheat_start": {
+            "name": "Starta parkeringsvärmare",
+            "description": "Starta parkeringsvärmaren för en bil definierad av ett VIN-nummer.",
+            "fields": {
+                "vin": {
+                    "name": "Vin",
+                    "description": "Bilens Vin/Fin"
+                }
+            }
+        },
+        "auxheat_stop": {
+            "name": "Stoppa parkeringsvärmare",
+            "description": "Stoppa parkeringsvärmaren för en bil definierad av ett VIN-nummer.",
+            "fields": {
+                "vin": {
+                    "name": "Vin",
+                    "description": "Bilens Vin/Fin"
+                }
+            }
+        },
+        "battery_max_soc_configure": {
+            "name": "Konfigurera batteriets maximala laddningsnivå (SoC)",
+            "description": "Konfigurera det maximala värdet för laddningsnivån (SoC) i högspänningsbatteriet för en bil definierad av ett VIN-nummer.",
+            "fields": {
+                "vin": {
+                    "name": "Vin",
+                    "description": "Bilens Vin/Fin"
+                },
+                "max_soc": {
+                    "name": "Maximal laddningsnivå (SoC)",
+                    "description": "Det maximala värdet för högspänningsbatteriets laddningsnivå (SoC). Värdet måste vara mellan 50 (vissa nya bilar, som 2025 års CLA, stöder 30) och 100, samt vara jämnt delbart med tio."
+                },
+                "charge_program": {
+                    "name": "Laddningsprogram",
+                    "description": "(Valfritt, förvalt=0) Laddningsprogram som ska ändras (0=Förvalt, 2=Hem, 3=Arbete) (används ej för 2025 års CLA)"
+                }
+            }
+        },
+        "charge_program_configure": {
+            "name": "Konfigurera laddningsprogram",
+            "description": "Kommando för att välja laddningsprogram.",
+            "fields": {
+                "vin": {
+                    "name": "Vin",
+                    "description": "Bilens Vin/Fin"
+                },
+                "charge_program": {
+                    "name": "Laddningsprogram",
+                    "description": "Det aktiverade laddningsprogrammet (0=Förvalt, 2=Hem, 3=Arbete)"
+                },
+                "max_soc": {
+                    "name": "Maximal laddningsnivå (SoC)",
+                    "description": "Det maximala värdet för högspänningsbatteriets laddningsnivå (SoC). Värdet måste vara mellan 50 och 100 och vara jämnt delbart med tio."
+                }
+            }
+        },
+        "doors_unlock": {
+            "name": "Lås upp dörrar",
+            "description": "Lås upp en bil definierad av ett VIN-nummer. Konfiguration av PIN-kod krävs. Se integreringsalternativen i inställningarna.",
+            "fields": {
+                "vin": {
+                    "name": "Vin",
+                    "description": "Bilens Vin/Fin"
+                },
+                "pin": {
+                    "name": "PIN-kod",
+                    "description": "Säkerhetskod (PIN), krävs om den inte finns sparad i inställningarna."
+                }
+            }
+        },
+        "doors_lock": {
+            "name": "Lås dörrar",
+            "description": "Lås en bil definierad av ett VIN-nummer.",
+            "fields": {
+                "vin": {
+                    "name": "Vin",
+                    "description": "Bilens Vin/Fin"
+                }
+            }
+        },
+        "download_images": {
+            "name": "Hämta bilder",
+            "description": "Hämtar app-bilder till komponentens resursmapp för en bil definierad av ett VIN-nummer.",
+            "fields": {
+                "vin": {
+                    "name": "Vin",
+                    "description": "Bilens Vin/Fin"
+                }
+            }
+        }
+    }
+}
