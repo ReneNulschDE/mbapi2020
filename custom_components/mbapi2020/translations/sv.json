@@ -156,7 +156,7 @@
                 },
                 "max_soc": {
                     "name": "Maximal laddningsnivå (SoC)",
-                    "description": "Det maximala värdet för högspänningsbatteriets laddningsnivå (SoC). (Värdet måste vara mellan 50 och 100 och vara jämnt delbart med tio)"
+                    "description": "Det maximala värdet för högspänningsbatteriets laddningsnivå (SoC). Värdet måste vara mellan 50 och 100 och vara jämnt delbart med tio."
                 }
             }
         },
