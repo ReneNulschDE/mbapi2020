@@ -1,186 +1,824 @@
 {
-    "config": {
-        "abort": {
-            "already_configured": "הרכיב כבר מוגדר.",
-            "reauth_successful": "האימות החוזר הצליח! הרכיב בתהליך טעינה."
+  "config": {
+    "abort": {
+      "already_configured": "הרכיב כבר מוגדר.",
+      "reauth_successful": "האימות החוזר הצליח! הרכיב בתהליך טעינה."
+    },
+    "error": {
+      "cannot_connect": "cannot_connect",
+      "invalid_auth": "invalid_auth",
+      "unknown": "שגיאה לא מוכרת, בדוק את יומן המערכת לפרטים נוספים.",
+      "2fa_required": "חשבונות עם אימות דו-שלבי (2FA) אינם נתמכים.",
+      "legal_terms": "עליך לאשר את התנאים המשפטיים באתר מרצדס תחילה"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "region": "אזור"
         },
-        "error": {
-            "unknown": "שגיאה לא מוכרת, בדוק את יומן המערכת לפרטים נוספים."
-        }
-    },
-    "issues": {
-        "restart_required": {
-            "fix_flow": {
-                "step": {
-                    "confirm_restart": {
-                        "title": "דרושה הפעלה מחדש",
-                        "description": "בצע הפעלה מחדש למערכת על מנת לסיים את עדכון האימות."
-                    }
-                }
-            },
-            "title": "דרושה הפעלה מחדש"
-        }
-    },
-    "options": {
-        "abort": {
-            "already_configured": "הרכיב כבר מוגדר.",
-            "reauth_successful": "האימות החוזר הצליח! הרכיב בתהליך טעינה."
+        "description": "בחר את האזור שלך.",
+        "title": "הגדרת חיבור Mercedes ME 2020"
+      },
+      "credentials": {
+        "data": {
+          "username": "שם משתמש MB (כתובת דוא\"ל)",
+          "password": "סיסמה"
         },
-        "step": {
-            "init": {
-                "data": {
-                    "cap_check_disabled": "בטל בדיקת תאימות",
-                    "excluded_cars": "מספר VIN להתעלמות",
-                    "pin": "PIN אבטחה( צריך ליצור באפליקציה) - ",
-                    "delete_auth_file": "מחק טוקן אימות עכשיו, מצריך הפעלה מחדש לאחר השמירה."
-                },
-                "title": "אפשרויות Mercedes ME 2020",
-                "description": "הגדר את האפשרויות. חלק מהשינויים מצריכים הפעלה מחדש."
-            }
-        }
-    },
-    "system_health": {
-        "info": {
-            "api_endpoint_reachable": "MB API זמין",
-            "websocket_connection_state": "MB WS מצב",
-            "cars_connected": "רכבים מחוברים",
-            "version": "גרסא"
-        }
-    },
-    "services": {
-        "refresh_access_token": {
-            "name": "רענן טוקן חיבור",
-            "description": "רענן טוקן API"
+        "description": "הזן את פרטי החשבון שלך.",
+        "title": "Mercedes ME 2020 - התחברות"
+      },
+      "pin": {
+        "data": {
+          "password": "TAN (התקבל בדוא\"ל או SMS)"
         },
-        "auxheat_configure": {
-            "fields": {
-                "vin": {
-                    "name": "vin",
-                    "description": "vin/fin של הרכב"
-                },
-                "time_selection": {
-                    "name": "בחר זמן"
-                }
-            },
-            "name": "הגדרות חימום",
-            "description": "פקודה להגדרת חימום. אפשרי להגדיר 3 מצבי יום ואחד פעיל"
-        }
-    },
-    "entity": {
-        "sensor": {
-            "chargingpowerecolimit": {
-                "name": "מגבלת הספק טעינה"
-            },
-            "lock": {
-                "state_attributes": {
-                    "doorlockstatusfrontright": {
-                        "state": {
-                            "false": "נעול",
-                            "true": "לא נעול"
-                        },
-                        "name": "נעילת דלת קדמית ימנית"
-                    },
-                    "doorlockstatusrearleft": {
-                        "name": "נעילת דלת שמאלית אחורית",
-                        "state": {
-                            "false": "נעול",
-                            "true": "לא נעול"
-                        }
-                    },
-                    "doorlockstatusrearright": {
-                        "name": "נעילת דלת אחורית ימנית",
-                        "state": {
-                            "false": "נעול",
-                            "true": "לא נעול"
-                        }
-                    },
-                    "doorlockstatusfrontleft": {
-                        "state": {
-                            "false": "נעול",
-                            "true": "לא נעול"
-                        }
-                    },
-                    "doorlockstatusgas": {
-                        "state": {
-                            "false": "נעול",
-                            "true": "לא נעול"
-                        },
-                        "name": "נעילת פתח דלק"
-                    },
-                    "enginehoodstatus": {
-                        "state": {
-                            "false": "סגור",
-                            "true": "פתוח"
-                        },
-                        "name": "מכסה מנוע"
-                    },
-                    "doorstatusoverall": {
-                        "name": "מצב נעילת דלתות",
-                        "state": {
-                            "0": "פתוח",
-                            "1": "סגור",
-                            "2": "לא קיים",
-                            "3": "לא ידוע"
-                        }
-                    },
-                    "sunroofstatus": {
-                        "name": "מצב סאנרוף",
-                        "state": {
-                            "0": "סגור",
-                            "1": "פתוח",
-                            "2": "אורוור פתוח",
-                            "3": "בפתיחה",
-                            "7": "פותח",
-                            "8": "סוגר"
-                        }
-                    }
-                }
-            },
-            "interiorprotectionsensorstatus": {
-                "state": {
-                    "0": "לא פעיל",
-                    "2": "פעיל",
-                    "1": "לא פעיל"
-                }
-            },
-            "sunroofstatus": {
-                "state": {
-                    "0": "סגור",
-                    "7": "פותח",
-                    "8": "סוגר",
-                    "1": "פתוח"
-                }
-            },
-            "chargeflapacstatus": {
-                "state": {
-                    "3": "לא ידוע",
-                    "1": "סגור",
-                    "0": "פתוח"
-                }
-            },
-            "chargeflapdcstatus": {
-                "state": {
-                    "0": "פתוח",
-                    "3": "לא ידוע",
-                    "1": "סגור"
-                }
-            },
-            "departuretimemode": {
-                "state": {
-                    "2": "שבועי",
-                    "0": "מושבת",
-                    "1": "יומי"
-                }
-            }
-        }
-    },
-    "selector": {
-        "charge_program": {
-            "options": {
-                "0": "ברירת מחדל",
-                "2": "בית",
-                "3": "עבודה"
-            }
-        }
+        "description": "הזן את קוד ה-TAN שקיבלת בדוא\"ל או SMS כדי להשלים את האימות. אם לא קיבלת TAN, בדוק את תיבת הדוא\"ל שלך (כולל תיקיית ספאם) או את הודעות ה-SMS שלך.",
+        "title": "Mercedes ME 2020 - TAN"
+      }
     }
+  },
+  "issues": {
+    "restart_required": {
+      "fix_flow": {
+        "step": {
+          "confirm_restart": {
+            "description": "בצע הפעלה מחדש למערכת על מנת לסיים את עדכון האימות.",
+            "title": "דרושה הפעלה מחדש"
+          }
+        }
+      },
+      "title": "דרושה הפעלה מחדש"
+    }
+  },
+  "options": {
+    "abort": {
+      "already_configured": "הרכיב כבר מוגדר.",
+      "reauth_successful": "האימות החוזר הצליח! הרכיב בתהליך טעינה."
+    },
+    "step": {
+      "init": {
+        "data": {
+          "cap_check_disabled": "בטל בדיקת תאימות",
+          "enable_china_gcj_02": "הפעל תרגום GCJ-02 (סין בלבד)",
+          "delete_auth_file": "מחק טוקן אימות עכשיו, מצריך הפעלה מחדש לאחר השמירה.",
+          "excluded_cars": "מספרי VIN להתעלמות (מופרדים בפסיקים)",
+          "pin": "PIN אבטחה (צריך ליצור באפליקציה)",
+          "save_files": "ניפוי באגים בלבד: שמור הודעות שרת לתיקיית הודעות",
+          "overwrite_cap_precondnow": "ניסיוני: דרוס יכולת precondnow (קבע כ-true)"
+        },
+        "description": "הגדר את האפשרויות. חלק מהשינויים מצריכים הפעלה מחדש.",
+        "title": "אפשרויות Mercedes ME 2020"
+      }
+    }
+  },
+  "system_health": {
+    "info": {
+      "api_endpoint_reachable": "MB API זמין",
+      "websocket_connection_state": "MB WS מצב",
+      "cars_connected": "רכבים מחוברים",
+      "version": "גרסה"
+    }
+  },
+  "services": {
+    "refresh_access_token": {
+      "name": "רענן טוקן גישה",
+      "description": "רענן את טוקן הגישה ל-API"
+    },
+    "auxheat_configure": {
+      "name": "הגדרת חימום עזר",
+      "description": "פקודה להגדרת חימום העזר. ניתן להגדיר שלושה זמנים ולבחור זמן פעיל אחד.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "time_selection": {
+          "name": "בחירת זמן",
+          "description": "זמן חימום עזר מוגדר מראש שהופעל (0=ללא בחירה, 1=time_1, 2=time_2, 3=time_3)"
+        },
+        "time_1": {
+          "name": "time_1",
+          "description": "שעה ביום בדקות לאחר חצות. לדוגמה, ערך תקין עבור 8 בבוקר הוא 480. טווח ערכים הוא 0 עד 1439."
+        },
+        "time_2": {
+          "name": "time_2",
+          "description": "שעה ביום בדקות לאחר חצות. לדוגמה, ערך תקין עבור 8 בבוקר הוא 480. טווח ערכים הוא 0 עד 1439."
+        },
+        "time_3": {
+          "name": "time_3",
+          "description": "שעה ביום בדקות לאחר חצות. לדוגמה, ערך תקין עבור 8 בבוקר הוא 480. טווח ערכים הוא 0 עד 1439."
+        }
+      }
+    },
+    "auxheat_start": {
+      "name": "הפעלת חימום עזר",
+      "description": "הפעל את חימום העזר של רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "auxheat_stop": {
+      "name": "כיבוי חימום עזר",
+      "description": "כבה את חימום העזר של רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "battery_max_soc_configure": {
+      "name": "הגדרת מקסימום טעינת סוללה",
+      "description": "הגדר את הערך המקסימלי למצב הטעינה של סוללת ה-HV של רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "max_soc": {
+          "name": "Max Soc",
+          "description": "הערך המקסימלי למצב הטעינה של סוללת ה-HV (הערך צריך להיות בין 50 (חלק מהרכבים החדשים כמו CLA 2025 תומכים ב-30) ל-100 ומתחלק ב-10)"
+        },
+        "charge_program": {
+          "name": "תוכנית טעינה",
+          "description": "(אופציונלי, ברירת מחדל=0) תוכנית טעינה לשינוי (0=ברירת מחדל, 2=בית, 3=עבודה) (לא בשימוש ב-CLA 2025)"
+        }
+      }
+    },
+    "charge_program_configure": {
+      "name": "הגדרת תוכנית טעינה",
+      "description": "פקודה לבחירת תוכנית הטעינה.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "charge_program": {
+          "name": "תוכנית טעינה",
+          "description": "תוכנית הטעינה המופעלת (0=ברירת מחדל, 2=בית, 3=עבודה)"
+        },
+        "max_soc": {
+          "name": "Max Soc",
+          "description": "הערך המקסימלי למצב הטעינה של סוללת ה-HV (הערך צריך להיות בין 50 ל-100 ומתחלק ב-10)"
+        }
+      }
+    },
+    "doors_unlock": {
+      "name": "פתיחת דלתות",
+      "description": "פתח דלתות רכב לפי מספר Vin. נדרשת הגדרת PIN. ראה דיאלוג אפשרויות האינטגרציה.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "קוד PIN אבטחה, נדרש אם לא נשמר בהגדרות."
+        }
+      }
+    },
+    "doors_lock": {
+      "name": "נעילת דלתות",
+      "description": "נעל דלתות רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "download_images": {
+      "name": "הורדת תמונות",
+      "description": "הורד את תמונות האפליקציה לתיקיית המשאבים של הרכיב עבור רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "engine_start": {
+      "name": "הפעלת מנוע",
+      "description": "הפעל את מנוע הרכב לפי מספר Vin. נדרשת הגדרת PIN. ראה דיאלוג אפשרויות האינטגרציה.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "engine_stop": {
+      "name": "כיבוי מנוע",
+      "description": "כבה את מנוע הרכב לפי מספר Vin. נדרשת הגדרת PIN. ראה דיאלוג אפשרויות האינטגרציה.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "hv_battery_start_conditioning": {
+      "name": "הפעלת מיזוג סוללת HV",
+      "description": "הפעל מיזוג סוללת HV של רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "hv_battery_stop_conditioning": {
+      "name": "כיבוי מיזוג סוללת HV",
+      "description": "כבה מיזוג סוללת HV של רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "preconditioning_configure_seats": {
+      "name": "הגדרת מיזוג מושבים מראש",
+      "description": "שלח פקודת הגדרת מיזוג מושבים מראש לרכב לפי מספר VIN.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "front_left": {
+          "name": "קדמי שמאלי",
+          "description": "הפעל אם המושב הקדמי השמאלי צריך מיזוג מראש."
+        },
+        "front_right": {
+          "name": "קדמי ימני",
+          "description": "הפעל אם המושב הקדמי הימני צריך מיזוג מראש."
+        },
+        "rear_left": {
+          "name": "אחורי שמאלי",
+          "description": "הפעל אם המושב האחורי השמאלי צריך מיזוג מראש."
+        },
+        "rear_right": {
+          "name": "אחורי ימני",
+          "description": "הפעל אם המושב האחורי הימני צריך מיזוג מראש."
+        }
+      }
+    },
+    "preheat_start": {
+      "name": "הפעלת מיזוג מראש",
+      "description": "הפעל מיזוג מראש של רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "type": {
+          "name": "סוג",
+          "description": "שיטת ההפעלה. 0=עכשיו (ברירת מחדל), 1=מיידי - השתמש במיידי אם הרכב שלך לא תומך בעכשיו."
+        }
+      }
+    },
+    "preheat_start_departure_time": {
+      "name": "הפעלת מיזוג מראש עם שעת יציאה",
+      "description": "הפעל מיזוג מראש של רכב לפי מספר Vin ושעת יציאה נתונה.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "time": {
+          "name": "שעה",
+          "description": "שעת יציאה בדקות לאחר חצות. לדוגמה, ערך תקין עבור 8 בבוקר הוא 480. טווח ערכים הוא 0 עד 1439."
+        }
+      }
+    },
+    "preheat_stop": {
+      "name": "כיבוי מיזוג מראש",
+      "description": "כבה מיזוג מראש של רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "preheat_stop_departure_time": {
+      "name": "כיבוי מיזוג מראש מצב שעת יציאה",
+      "description": "כבה את מיזוג מראש בשעת יציאה מתוזמנת של רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "preconditioning_configure": {
+      "name": "הגדרת שעת יציאה למיזוג מראש",
+      "description": "הגדר מצב שעת יציאה למיזוג מראש. השתמש במצב 0 (מושבת) לביטול מיזוג מראש מתוזמן.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "departure_time_mode": {
+          "name": "מצב שעת יציאה",
+          "description": "0=מושבת, 1=יציאה חד-פעמית, 2=יציאה שבועית"
+        },
+        "departure_time": {
+          "name": "שעת יציאה",
+          "description": "שעת יציאה בדקות לאחר חצות (0-1439). בשימוש רק כאשר מצב > 0."
+        }
+      }
+    },
+    "sigpos_start": {
+      "name": "הפעלת איתות מיקום",
+      "description": "הפעל איתות אור של רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "sunroof_open": {
+      "name": "פתיחת גג שמש",
+      "description": "פתח את גג השמש של רכב לפי מספר Vin. נדרשת הגדרת PIN. ראה דיאלוג אפשרויות האינטגרציה.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "sunroof_tilt": {
+      "name": "הטיית גג שמש",
+      "description": "הטה את גג השמש של רכב לפי מספר Vin. נדרשת הגדרת PIN. ראה דיאלוג אפשרויות האינטגרציה.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "sunroof_close": {
+      "name": "סגירת גג שמש",
+      "description": "סגור את גג השמש של רכב לפי מספר Vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "temperature_configure": {
+      "name": "הגדרת טמפרטורת יעד (מיזוג מראש/חימום עזר)",
+      "description": "הגדר את טמפרטורות היעד למיזוג מראש/חימום עזר עבור אזורים ברכב לפי מספר VIN.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "front_left": {
+          "name": "קדמי שמאלי",
+          "description": "טמפרטורת יעד עבור האזור הקדמי השמאלי בצלזיוס."
+        },
+        "front_right": {
+          "name": "קדמי ימני",
+          "description": "טמפרטורת יעד עבור האזור הקדמי הימני בצלזיוס."
+        },
+        "rear_left": {
+          "name": "אחורי שמאלי",
+          "description": "טמפרטורת יעד עבור האזור האחורי השמאלי בצלזיוס. (אם זמין)"
+        },
+        "rear_right": {
+          "name": "אחורי ימני",
+          "description": "טמפרטורת יעד עבור האזור האחורי הימני בצלזיוס. (אם זמין)"
+        }
+      }
+    },
+    "windows_open": {
+      "name": "פתיחת חלונות",
+      "description": "פתח את חלונות הרכב לפי מספר Vin. נדרשת הגדרת PIN. ראה דיאלוג אפשרויות האינטגרציה.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "קוד PIN אבטחה, נדרש אם לא נשמר בהגדרות."
+        }
+      }
+    },
+    "windows_close": {
+      "name": "סגירת חלונות",
+      "description": "סגור את חלונות הרכב לפי מספר Vin. נדרשת הגדרת PIN. ראה דיאלוג אפשרויות האינטגרציה.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        }
+      }
+    },
+    "windows_move": {
+      "name": "הזזת חלונות",
+      "description": "הזז את חלונות הרכב לפי מספר Vin למיקום חדש. נדרשת הגדרת PIN. ראה דיאלוג אפשרויות האינטגרציה.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "front_left": {
+          "name": "קדמי שמאלי",
+          "description": "המיקום החדש של החלון הקדמי השמאלי (0=סגור, 10=אוורור, 100=פתוח)"
+        },
+        "front_right": {
+          "name": "קדמי ימני",
+          "description": "המיקום החדש של החלון הקדמי הימני (0=סגור, 10=אוורור, 100=פתוח)"
+        },
+        "rear_left": {
+          "name": "אחורי שמאלי",
+          "description": "המיקום החדש של החלון האחורי השמאלי (0=סגור, 10=אוורור, 100=פתוח)"
+        },
+        "rear_right": {
+          "name": "אחורי ימני",
+          "description": "המיקום החדש של החלון האחורי הימני (0=סגור, 10=אוורור, 100=פתוח)"
+        }
+      }
+    },
+    "send_route": {
+      "name": "שליחת מסלול",
+      "description": "שלח מסלול לרכב. (מיקום בודד בלבד)",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "title": {
+          "name": "כותרת",
+          "description": "כותרת המסלול"
+        },
+        "latitude": {
+          "name": "קו רוחב",
+          "description": "קו הרוחב של המיקום"
+        },
+        "longitude": {
+          "name": "קו אורך",
+          "description": "קו האורך של המיקום"
+        },
+        "city": {
+          "name": "עיר",
+          "description": "שם העיר של המיקום"
+        },
+        "postcode": {
+          "name": "מיקוד",
+          "description": "מיקוד המיקום"
+        },
+        "street": {
+          "name": "רחוב",
+          "description": "שם הרחוב של המיקום"
+        }
+      }
+    },
+    "charging_break_clocktimer_configure": {
+      "name": "הגדרת טיימר הפסקת טעינה",
+      "description": "הגדר הפסקות טעינה (AC בלבד). פעולה זו תדרוס את כל ההגדרות עבור כל החריצים ברכב שלך.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin של הרכב"
+        },
+        "status_timer_1": {
+          "name": "מצב (טיימר 1)",
+          "description": ""
+        },
+        "starttime_timer_1": {
+          "name": "שעת התחלה (טיימר 1)",
+          "description": "שעת התחלה של חלון הפסקת הטעינה (טיימר 1)"
+        },
+        "stoptime_timer_1": {
+          "name": "שעת סיום (טיימר 1)",
+          "description": "שעת סיום של חלון הפסקת הטעינה (טיימר 1)"
+        },
+        "status_timer_2": {
+          "name": "מצב (טיימר 2)",
+          "description": ""
+        },
+        "starttime_timer_2": {
+          "name": "שעת התחלה (טיימר 2)",
+          "description": "שעת התחלה של חלון הפסקת הטעינה (טיימר 2)"
+        },
+        "stoptime_timer_2": {
+          "name": "שעת סיום (טיימר 2)",
+          "description": "שעת סיום של חלון הפסקת הטעינה (טיימר 2)"
+        },
+        "status_timer_3": {
+          "name": "מצב (טיימר 3)",
+          "description": ""
+        },
+        "starttime_timer_3": {
+          "name": "שעת התחלה (טיימר 3)",
+          "description": "שעת התחלה של חלון הפסקת הטעינה (טיימר 3)"
+        },
+        "stoptime_timer_3": {
+          "name": "שעת סיום (טיימר 3)",
+          "description": "שעת סיום של חלון הפסקת הטעינה (טיימר 3)"
+        },
+        "status_timer_4": {
+          "name": "מצב (טיימר 4)",
+          "description": ""
+        },
+        "starttime_timer_4": {
+          "name": "שעת התחלה (טיימר 4)",
+          "description": "שעת התחלה של חלון הפסקת הטעינה (טיימר 4)"
+        },
+        "stoptime_timer_4": {
+          "name": "שעת סיום (טיימר 4)",
+          "description": "שעת סיום של חלון הפסקת הטעינה (טיימר 4)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "chargingactive": {
+        "name": "טעינה פעילה"
+      }
+    },
+    "sensor": {
+      "chargingpowerecolimit": {
+        "name": "מגבלת הספק טעינה"
+      },
+      "auxheatstatus": {
+        "state": {
+          "0": "לא פעיל",
+          "1": "חימום רגיל",
+          "2": "אוורור רגיל",
+          "3": "חימום ידני",
+          "4": "חימום נוסף",
+          "5": "אוורור נוסף",
+          "6": "חימום אוטומטי"
+        }
+      },
+      "chargeflapacstatus": {
+        "state": {
+          "0": "פתוח",
+          "1": "סגור",
+          "2": "מכסה לחוץ",
+          "3": "לא ידוע"
+        }
+      },
+      "chargeflapdcstatus": {
+        "state": {
+          "0": "פתוח",
+          "1": "סגור",
+          "2": "מכסה לחוץ",
+          "3": "לא ידוע"
+        }
+      },
+      "chargingstatus": {
+        "state": {
+          "0": "טוען",
+          "1": "הטעינה מסתיימת",
+          "2": "הפסקת טעינה",
+          "3": "לא מחובר",
+          "4": "תקלה",
+          "5": "טעינה איטית",
+          "6": "טעינה מהירה",
+          "7": "פורק",
+          "8": "לא טוען",
+          "9": "טעינה איטית לאחר הגעה ליעד נסיעה",
+          "10": "טעינה לאחר הגעה ליעד נסיעה",
+          "11": "טעינה מהירה לאחר הגעה ליעד נסיעה",
+          "12": "מחובר",
+          "13": "טעינת AC",
+          "14": "טעינת DC",
+          "15": "כיול סוללה פעיל",
+          "16": "לא ידוע"
+        }
+      },
+      "departuretimemode": {
+        "state": {
+          "0": "מושבת",
+          "1": "יומי",
+          "2": "שבועי"
+        }
+      },
+      "ignitionstate": {
+        "state": {
+          "0": "נעול",
+          "1": "כבוי",
+          "2": "אביזרים",
+          "4": "פועל",
+          "5": "התנעה"
+        }
+      },
+      "interiorprotectionsensorstatus": {
+        "state": {
+          "0": "לא פעיל",
+          "1": "לא פעיל",
+          "2": "פעיל"
+        },
+        "state_attributes": {}
+      },
+      "lock": {
+        "state": {
+          "0": "לא נעול",
+          "1": "נעול פנימית",
+          "2": "נעול",
+          "3": "נעול חלקית",
+          "4": "לא ידוע"
+        },
+        "state_attributes": {
+          "decklidstatus": {
+            "name": "מכסה תא מטען",
+            "state": {
+              "false": "סגור",
+              "true": "פתוח"
+            }
+          },
+          "doorstatusfrontleft": {
+            "name": "דלת קדמית שמאלית",
+            "state": {
+              "false": "סגור",
+              "true": "פתוח"
+            }
+          },
+          "doorstatusfrontright": {
+            "name": "דלת קדמית ימנית",
+            "state": {
+              "false": "סגור",
+              "true": "פתוח"
+            }
+          },
+          "doorstatusrearleft": {
+            "name": "דלת אחורית שמאלית",
+            "state": {
+              "false": "סגור",
+              "true": "פתוח"
+            }
+          },
+          "doorstatusrearright": {
+            "name": "דלת אחורית ימנית",
+            "state": {
+              "false": "סגור",
+              "true": "פתוח"
+            }
+          },
+          "doorlockstatusfrontleft": {
+            "name": "נעילת דלת קדמית שמאלית",
+            "state": {
+              "false": "נעול",
+              "true": "לא נעול"
+            }
+          },
+          "doorlockstatusfrontright": {
+            "name": "נעילת דלת קדמית ימנית",
+            "state": {
+              "false": "נעול",
+              "true": "לא נעול"
+            }
+          },
+          "doorlockstatusrearleft": {
+            "name": "נעילת דלת אחורית שמאלית",
+            "state": {
+              "false": "נעול",
+              "true": "לא נעול"
+            }
+          },
+          "doorlockstatusrearright": {
+            "name": "נעילת דלת אחורית ימנית",
+            "state": {
+              "false": "נעול",
+              "true": "לא נעול"
+            }
+          },
+          "doorlockstatusgas": {
+            "name": "נעילת פתח דלק",
+            "state": {
+              "false": "נעול",
+              "true": "לא נעול"
+            }
+          },
+          "enginehoodstatus": {
+            "name": "מכסה מנוע",
+            "state": {
+              "false": "סגור",
+              "true": "פתוח"
+            }
+          },
+          "doorstatusoverall": {
+            "name": "מצב דלתות כללי",
+            "state": {
+              "0": "פתוח",
+              "1": "סגור",
+              "2": "לא קיים",
+              "3": "לא ידוע"
+            }
+          },
+          "sunroofstatus": {
+            "name": "מצב גג שמש",
+            "state": {
+              "0": "סגור",
+              "1": "פתוח",
+              "2": "אוורור פתוח",
+              "3": "בתנועה",
+              "4": "מיקום נגד רעש",
+              "5": "הזזה ביניים",
+              "6": "הרמה ביניים",
+              "7": "פותח",
+              "8": "סוגר",
+              "9": "הרמה נגד רעש",
+              "10": "מיקום ביניים",
+              "11": "פתיחה בהרמה",
+              "12": "סגירה בהרמה"
+            }
+          }
+        }
+      },
+      "sunroofstatus": {
+        "state": {
+          "0": "סגור",
+          "1": "פתוח",
+          "2": "אוורור פתוח",
+          "3": "בתנועה",
+          "4": "נגד רעש",
+          "5": "הזזה ביניים",
+          "6": "הרמה ביניים",
+          "7": "פותח",
+          "8": "סוגר",
+          "9": "הרמה נגד רעש",
+          "10": "מיקום ביניים",
+          "11": "פתיחה בהרמה",
+          "12": "סגירה בהרמה"
+        },
+        "state_attributes": {}
+      },
+      "starterbatterystate": {
+        "state": {
+          "0": "ירוק",
+          "1": "צהוב",
+          "2": "אדום"
+        }
+      },
+      "tirewarningsrdk": {
+        "state": {
+          "0": "ללא אזהרה",
+          "1": "אזהרה קלה",
+          "2": "לחץ נמוך",
+          "3": "נקר"
+        }
+      },
+      "selectedchargeprogram": {
+        "state": {
+          "0": "רגיל",
+          "2": "בית",
+          "3": "עבודה",
+          "4": "לא נתמך"
+        }
+      }
+    },
+    "switch": {
+      "auxheat": {
+        "name": "חימום עזר"
+      },
+      "precond": {
+        "name": "מיזוג מראש"
+      }
+    },
+    "button": {
+      "btn_preheat_start_now": {
+        "name": "הפעלת מיזוג מראש"
+      },
+      "btn_preheat_stop_now": {
+        "name": "כיבוי מיזוג מראש"
+      },
+      "btn_sigpos_start_now": {
+        "name": "הבזקת אורות"
+      }
+    }
+  },
+  "selector": {
+    "charge_program": {
+      "options": {
+        "0": "ברירת מחדל",
+        "2": "בית",
+        "3": "עבודה"
+      }
+    },
+    "charging_break_clocktimer_configure_action": {
+      "options": {
+        "notset": "לא מוגדר",
+        "active": "פעיל",
+        "inactive": "לא פעיל"
+      }
+    },
+    "temperature_configure": {
+      "options": {
+        "0": "נמוך",
+        "30": "גבוה"
+      }
+    }
+  }
 }

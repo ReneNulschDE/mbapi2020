@@ -1,1 +1,824 @@
-{}
+{
+  "config": {
+    "abort": {
+      "already_configured": "Komponenten er allerede konfigurert.",
+      "reauth_successful": "Ny autentisering vellykket! Komponent lastes inn på nytt."
+    },
+    "error": {
+      "cannot_connect": "cannot_connect",
+      "invalid_auth": "invalid_auth",
+      "unknown": "Ukjent feil. Sjekk Home Assistant-loggen for mer informasjon.",
+      "2fa_required": "Kontoer med tofaktorautentisering (2FA) støttes ikke.",
+      "legal_terms": "Du må godta de juridiske vilkårene på Mercedes-nettsiden først"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "region": "Region"
+        },
+        "description": "Velg din region.",
+        "title": "Sett opp Mercedes ME 2020-tilkoblingen"
+      },
+      "credentials": {
+        "data": {
+          "username": "MB brukernavn (e-postadresse)",
+          "password": "Passord"
+        },
+        "description": "Skriv inn kontoinformasjonen din.",
+        "title": "Mercedes ME 2020 - Innlogging"
+      },
+      "pin": {
+        "data": {
+          "password": "TAN (mottatt via e-post eller SMS)"
+        },
+        "description": "Skriv inn TAN-koden du har mottatt via e-post eller SMS for å fullføre autentiseringen. Hvis du ikke har mottatt en TAN, sjekk innboksen din (og søppelpostmappen) eller SMS-meldingene dine.",
+        "title": "Mercedes ME 2020 - TAN"
+      }
+    }
+  },
+  "issues": {
+    "restart_required": {
+      "fix_flow": {
+        "step": {
+          "confirm_restart": {
+            "description": "Omstart av Home Assistant er nødvendig for å fullføre autentiseringsoppdateringen. Klikk send for å starte på nytt nå.",
+            "title": "Omstart påkrevd"
+          }
+        }
+      },
+      "title": "Omstart påkrevd"
+    }
+  },
+  "options": {
+    "abort": {
+      "already_configured": "Komponenten er allerede konfigurert.",
+      "reauth_successful": "Ny autentisering vellykket! Komponent lastes inn på nytt."
+    },
+    "step": {
+      "init": {
+        "data": {
+          "cap_check_disabled": "Deaktiver funksjonssjekk",
+          "enable_china_gcj_02": "Aktiver GCJ-02-oversettelse (kun Kina)",
+          "delete_auth_file": "Slett autentiseringstoken nå. Krever omstart av Home Assistant etter lagring.",
+          "excluded_cars": "Ekskluderte VIN-numre (kommaseparert)",
+          "pin": "Sikkerhets-PIN (opprettes i mobilappen)",
+          "save_files": "KUN FEILSØKING: Aktiver lagring av servermeldinger til meldingsmappen",
+          "overwrite_cap_precondnow": "Eksp: Overskriv funksjon precondnow (sett til sann)"
+        },
+        "description": "Konfigurer alternativene dine. Noen endringer krever omstart av Home Assistant.",
+        "title": "Mercedes ME 2020-alternativer"
+      }
+    }
+  },
+  "system_health": {
+    "info": {
+      "api_endpoint_reachable": "MB API tilgjengelig",
+      "websocket_connection_state": "MB WS-tilstand",
+      "cars_connected": "Tilkoblede biler",
+      "version": "Versjon"
+    }
+  },
+  "services": {
+    "refresh_access_token": {
+      "name": "Oppdater tilgangstoken",
+      "description": "Oppdater API-tilgangstokenet"
+    },
+    "auxheat_configure": {
+      "name": "Konfigurer tilleggsvarme",
+      "description": "Kommando for å konfigurere tilleggsvarmen. Det er mulig å definere tre tidspunkter og velge ett aktivt tidspunkt.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "time_selection": {
+          "name": "Tidsvalg",
+          "description": "Det aktiverte forhåndsinnstilte tidspunktet for tilleggsvarme (0=ingen_valg, 1=tid_1, 2=tid_2, 3=tid_3)"
+        },
+        "time_1": {
+          "name": "time_1",
+          "description": "Tidspunkt i minutter etter midnatt. F.eks. er 480 en gyldig verdi for kl. 08.00. Verdiområdet er 0 til 1439."
+        },
+        "time_2": {
+          "name": "time_2",
+          "description": "Tidspunkt i minutter etter midnatt. F.eks. er 480 en gyldig verdi for kl. 08.00. Verdiområdet er 0 til 1439."
+        },
+        "time_3": {
+          "name": "time_3",
+          "description": "Tidspunkt i minutter etter midnatt. F.eks. er 480 en gyldig verdi for kl. 08.00. Verdiområdet er 0 til 1439."
+        }
+      }
+    },
+    "auxheat_start": {
+      "name": "Start tilleggsvarme",
+      "description": "Start tilleggsvarmen for en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "auxheat_stop": {
+      "name": "Stopp tilleggsvarme",
+      "description": "Stopp tilleggsvarmen for en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "battery_max_soc_configure": {
+      "name": "Konfigurer maks ladenivå for batteri",
+      "description": "Konfigurer maksimalverdien for ladenivå (SoC) til høyspentbatteriet for en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "max_soc": {
+          "name": "Maks ladenivå",
+          "description": "Maksimalverdien for høyspentbatteriets ladenivå (verdien må være mellom 50 (noen nye biler som 2025 CLA støtter 30) og 100 og delelig med ti)"
+        },
+        "charge_program": {
+          "name": "Ladeprogram",
+          "description": "(Valgfritt, Standard=0) Ladeprogram som skal endres (0=Standard, 2=Hjem, 3=Jobb) (brukes ikke for 2025 CLA)"
+        }
+      }
+    },
+    "charge_program_configure": {
+      "name": "Konfigurer ladeprogram",
+      "description": "Kommando for å velge ladeprogram.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "charge_program": {
+          "name": "Ladeprogram",
+          "description": "Det aktiverte ladeprogrammet (0=Standard, 2=Hjem, 3=Jobb)"
+        },
+        "max_soc": {
+          "name": "Maks ladenivå",
+          "description": "Maksimalverdien for høyspentbatteriets ladenivå (verdien må være mellom 50 og 100 og delelig med ti)"
+        }
+      }
+    },
+    "doors_unlock": {
+      "name": "Lås opp dører",
+      "description": "Lås opp en bil definert av et VIN-nummer. PIN-oppsett påkrevd. Se alternativdialogen for integrasjonen.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "pin": {
+          "name": "PIN-kode",
+          "description": "Sikkerhetskode, påkrevd hvis den ikke er lagret i innstillingene."
+        }
+      }
+    },
+    "doors_lock": {
+      "name": "Lås dører",
+      "description": "Lås en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "download_images": {
+      "name": "Last ned bilder",
+      "description": "Laster ned app-bilder til komponentens ressursmappe for en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "engine_start": {
+      "name": "Start motor",
+      "description": "Start motoren på en bil definert av et VIN-nummer. PIN-oppsett påkrevd. Se alternativdialogen for integrasjonen.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "engine_stop": {
+      "name": "Stopp motor",
+      "description": "Stopp motoren på en bil definert av et VIN-nummer. PIN-oppsett påkrevd. Se alternativdialogen for integrasjonen.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "hv_battery_start_conditioning": {
+      "name": "Start kondisjonering av høyspentbatteri",
+      "description": "Start kondisjoneringen av høyspentbatteriet for en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "hv_battery_stop_conditioning": {
+      "name": "Stopp kondisjonering av høyspentbatteri",
+      "description": "Stopp kondisjoneringen av høyspentbatteriet for en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "preconditioning_configure_seats": {
+      "name": "Konfigurer seter for forklimatisering",
+      "description": "Send en konfigureringskommando for seteklimatisering til en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "front_left": {
+          "name": "Venstre foran",
+          "description": "Aktiver hvis venstre forsete skal forklimatiseres."
+        },
+        "front_right": {
+          "name": "Høyre foran",
+          "description": "Aktiver hvis høyre forsete skal forklimatiseres."
+        },
+        "rear_left": {
+          "name": "Venstre bak",
+          "description": "Aktiver hvis venstre baksete skal forklimatiseres."
+        },
+        "rear_right": {
+          "name": "Høyre bak",
+          "description": "Aktiver hvis høyre baksete skal forklimatiseres."
+        }
+      }
+    },
+    "preheat_start": {
+      "name": "Start forklimatisering",
+      "description": "Start forklimatiseringen for en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "type": {
+          "name": "Type",
+          "description": "Metode som brukes for å starte prosessen. 0=Nå (Standard), 1=Umiddelbart - Bruk Umiddelbart hvis bilen din ikke støtter Nå."
+        }
+      }
+    },
+    "preheat_start_departure_time": {
+      "name": "Start forklimatisering med avreisetid",
+      "description": "Start forklimatiseringen for en bil definert av et VIN-nummer og en angitt avreisetid.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "time": {
+          "name": "Tid",
+          "description": "Avreisetid i minutter etter midnatt. F.eks. er 480 en gyldig verdi for kl. 08.00. Verdiområdet er 0 til 1439."
+        }
+      }
+    },
+    "preheat_stop": {
+      "name": "Stopp forklimatisering",
+      "description": "Stopp forklimatiseringen for en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "preheat_stop_departure_time": {
+      "name": "Stopp forklimatisering for avreisetid",
+      "description": "Stopp den konfigurerte forklimatiseringen for avreisetid for en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "preconditioning_configure": {
+      "name": "Konfigurer forklimatisering for avreise",
+      "description": "Konfigurer modus for forklimatisering ved avreise. Bruk modus 0 (Deaktivert) for å avbryte planlagt forklimatisering ved avreise.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "departure_time_mode": {
+          "name": "Avreisetidsmodus",
+          "description": "0=Deaktivert, 1=Enkeltavreise, 2=Ukentlig avreise"
+        },
+        "departure_time": {
+          "name": "Avreisetid",
+          "description": "Avreisetid i minutter etter midnatt (0-1439). Brukes kun når modus > 0."
+        }
+      }
+    },
+    "sigpos_start": {
+      "name": "Start signalposisjon",
+      "description": "Start lyssignalering for en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "sunroof_open": {
+      "name": "Åpne soltak",
+      "description": "Åpne soltaket på en bil definert av et VIN-nummer. PIN-oppsett påkrevd. Se alternativdialogen for integrasjonen.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "sunroof_tilt": {
+      "name": "Vipp soltak",
+      "description": "Vipp soltaket på en bil definert av et VIN-nummer. PIN-oppsett påkrevd. Se alternativdialogen for integrasjonen.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "sunroof_close": {
+      "name": "Lukk soltak",
+      "description": "Lukk soltaket på en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "temperature_configure": {
+      "name": "Konfigurer måltemperatur (forklimatisering/tilleggsvarme)",
+      "description": "Konfigurer måltemperaturer for forklimatisering/tilleggsvarme for soner i en bil definert av et VIN-nummer.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "front_left": {
+          "name": "Venstre foran",
+          "description": "Måltemperatur for sonen venstre foran i CELSIUS."
+        },
+        "front_right": {
+          "name": "Høyre foran",
+          "description": "Måltemperatur for sonen høyre foran i CELSIUS."
+        },
+        "rear_left": {
+          "name": "Venstre bak",
+          "description": "Måltemperatur for sonen venstre bak i CELSIUS. (hvis tilgjengelig)"
+        },
+        "rear_right": {
+          "name": "Høyre bak",
+          "description": "Måltemperatur for sonen høyre bak i CELSIUS. (hvis tilgjengelig)"
+        }
+      }
+    },
+    "windows_open": {
+      "name": "Åpne vinduer",
+      "description": "Åpne vinduene på en bil definert av et VIN-nummer. PIN-oppsett påkrevd. Se alternativdialogen for integrasjonen.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "pin": {
+          "name": "PIN-kode",
+          "description": "Sikkerhetskode, påkrevd hvis den ikke er lagret i innstillingene."
+        }
+      }
+    },
+    "windows_close": {
+      "name": "Lukk vinduer",
+      "description": "Lukk vinduene på en bil definert av et VIN-nummer. PIN-oppsett påkrevd. Se alternativdialogen for integrasjonen.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        }
+      }
+    },
+    "windows_move": {
+      "name": "Flytt vinduer",
+      "description": "Flytt vinduene på en bil definert av et VIN-nummer til en ny posisjon. PIN-oppsett påkrevd. Se alternativdialogen for integrasjonen.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "front_left": {
+          "name": "Venstre foran",
+          "description": "Den nye posisjonen til venstre frontvindu (0=lukket, 10=ventilering, 100=åpent)"
+        },
+        "front_right": {
+          "name": "Høyre foran",
+          "description": "Den nye posisjonen til høyre frontvindu (0=lukket, 10=ventilering, 100=åpent)"
+        },
+        "rear_left": {
+          "name": "Venstre bak",
+          "description": "Den nye posisjonen til venstre bakvindu (0=lukket, 10=ventilering, 100=åpent)"
+        },
+        "rear_right": {
+          "name": "Høyre bak",
+          "description": "Den nye posisjonen til høyre bakvindu (0=lukket, 10=ventilering, 100=åpent)"
+        }
+      }
+    },
+    "send_route": {
+      "name": "Send rute",
+      "description": "Sender en rute til bilen. (Kun enkelt lokasjon)",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "title": {
+          "name": "Tittel",
+          "description": "Rutens tittel"
+        },
+        "latitude": {
+          "name": "Breddegrad",
+          "description": "Lokasjonens breddegrad"
+        },
+        "longitude": {
+          "name": "Lengdegrad",
+          "description": "Lokasjonens lengdegrad"
+        },
+        "city": {
+          "name": "By",
+          "description": "Lokasjonens bynavn"
+        },
+        "postcode": {
+          "name": "Postnummer",
+          "description": "Lokasjonens postnummer"
+        },
+        "street": {
+          "name": "Gate",
+          "description": "Lokasjonens gatenavn"
+        }
+      }
+    },
+    "charging_break_clocktimer_configure": {
+      "name": "Konfigurer tidtaker for ladepause",
+      "description": "Konfigurer ladepauser (kun AC). Dette vil overskrive hele konfigurasjonen for alle plasser i bilen din.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "status_timer_1": {
+          "name": "Status (Tidtaker 1)",
+          "description": ""
+        },
+        "starttime_timer_1": {
+          "name": "Starttid (Tidtaker 1)",
+          "description": "Starttid for ladepausevinduet (Tidtaker 1)"
+        },
+        "stoptime_timer_1": {
+          "name": "Sluttid (Tidtaker 1)",
+          "description": "Sluttid for ladepausevinduet (Tidtaker 1)"
+        },
+        "status_timer_2": {
+          "name": "Status (Tidtaker 2)",
+          "description": ""
+        },
+        "starttime_timer_2": {
+          "name": "Starttid (Tidtaker 2)",
+          "description": "Starttid for ladepausevinduet (Tidtaker 2)"
+        },
+        "stoptime_timer_2": {
+          "name": "Sluttid (Tidtaker 2)",
+          "description": "Sluttid for ladepausevinduet (Tidtaker 2)"
+        },
+        "status_timer_3": {
+          "name": "Status (Tidtaker 3)",
+          "description": ""
+        },
+        "starttime_timer_3": {
+          "name": "Starttid (Tidtaker 3)",
+          "description": "Starttid for ladepausevinduet (Tidtaker 3)"
+        },
+        "stoptime_timer_3": {
+          "name": "Sluttid (Tidtaker 3)",
+          "description": "Sluttid for ladepausevinduet (Tidtaker 3)"
+        },
+        "status_timer_4": {
+          "name": "Status (Tidtaker 4)",
+          "description": ""
+        },
+        "starttime_timer_4": {
+          "name": "Starttid (Tidtaker 4)",
+          "description": "Starttid for ladepausevinduet (Tidtaker 4)"
+        },
+        "stoptime_timer_4": {
+          "name": "Sluttid (Tidtaker 4)",
+          "description": "Sluttid for ladepausevinduet (Tidtaker 4)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "chargingactive": {
+        "name": "Lading aktiv"
+      }
+    },
+    "sensor": {
+      "chargingpowerecolimit": {
+        "name": "Ladeeffektgrense"
+      },
+      "auxheatstatus": {
+        "state": {
+          "0": "Inaktiv",
+          "1": "Normal oppvarming",
+          "2": "Normal ventilasjon",
+          "3": "Manuell oppvarming",
+          "4": "Ettervarming",
+          "5": "Etterventilasjon",
+          "6": "Automatisk oppvarming"
+        }
+      },
+      "chargeflapacstatus": {
+        "state": {
+          "0": "Åpen",
+          "1": "Lukket",
+          "2": "Luke trykket inn",
+          "3": "Ukjent"
+        }
+      },
+      "chargeflapdcstatus": {
+        "state": {
+          "0": "Åpen",
+          "1": "Lukket",
+          "2": "Luke trykket inn",
+          "3": "Ukjent"
+        }
+      },
+      "chargingstatus": {
+        "state": {
+          "0": "lader",
+          "1": "lading avsluttes",
+          "2": "Ladepause",
+          "3": "frakoblet",
+          "4": "feil",
+          "5": "langsom",
+          "6": "rask",
+          "7": "lader ut",
+          "8": "lader ikke",
+          "9": "langsom lading etter å ha nådd reisemål",
+          "10": "lading etter å ha nådd reisemål",
+          "11": "rask lading etter å ha nådd reisemål",
+          "12": "Tilkoblet",
+          "13": "AC-lading",
+          "14": "DC-lading",
+          "15": "Batterikalibrering aktiv",
+          "16": "ukjent"
+        }
+      },
+      "departuretimemode": {
+        "state": {
+          "0": "Deaktivert",
+          "1": "Daglig",
+          "2": "Ukentlig"
+        }
+      },
+      "ignitionstate": {
+        "state": {
+          "0": "Låst",
+          "1": "Av",
+          "2": "Tilbehør",
+          "4": "På",
+          "5": "Start"
+        }
+      },
+      "interiorprotectionsensorstatus": {
+        "state": {
+          "0": "Ikke aktiv",
+          "1": "Ikke aktiv",
+          "2": "Aktiv"
+        },
+        "state_attributes": {}
+      },
+      "lock": {
+        "state": {
+          "0": "Ulåst",
+          "1": "Låst internt",
+          "2": "Låst",
+          "3": "Delvis ulåst",
+          "4": "Ukjent"
+        },
+        "state_attributes": {
+          "decklidstatus": {
+            "name": "Bagasjelokk",
+            "state": {
+              "false": "lukket",
+              "true": "åpen"
+            }
+          },
+          "doorstatusfrontleft": {
+            "name": "Dør venstre foran",
+            "state": {
+              "false": "lukket",
+              "true": "åpen"
+            }
+          },
+          "doorstatusfrontright": {
+            "name": "Dør høyre foran",
+            "state": {
+              "false": "lukket",
+              "true": "åpen"
+            }
+          },
+          "doorstatusrearleft": {
+            "name": "Dør venstre bak",
+            "state": {
+              "false": "lukket",
+              "true": "åpen"
+            }
+          },
+          "doorstatusrearright": {
+            "name": "Dør høyre bak",
+            "state": {
+              "false": "lukket",
+              "true": "åpen"
+            }
+          },
+          "doorlockstatusfrontleft": {
+            "name": "Dørlås venstre foran",
+            "state": {
+              "false": "låst",
+              "true": "ulåst"
+            }
+          },
+          "doorlockstatusfrontright": {
+            "name": "Dørlås høyre foran",
+            "state": {
+              "false": "låst",
+              "true": "ulåst"
+            }
+          },
+          "doorlockstatusrearleft": {
+            "name": "Dørlås venstre bak",
+            "state": {
+              "false": "låst",
+              "true": "ulåst"
+            }
+          },
+          "doorlockstatusrearright": {
+            "name": "Dørlås høyre bak",
+            "state": {
+              "false": "låst",
+              "true": "ulåst"
+            }
+          },
+          "doorlockstatusgas": {
+            "name": "Tanklokk",
+            "state": {
+              "false": "låst",
+              "true": "ulåst"
+            }
+          },
+          "enginehoodstatus": {
+            "name": "Motorpanser",
+            "state": {
+              "false": "lukket",
+              "true": "åpen"
+            }
+          },
+          "doorstatusoverall": {
+            "name": "Samlet dørstatus",
+            "state": {
+              "0": "åpen",
+              "1": "lukket",
+              "2": "finnes ikke",
+              "3": "ukjent"
+            }
+          },
+          "sunroofstatus": {
+            "name": "Soltakstatus",
+            "state": {
+              "0": "lukket",
+              "1": "åpen",
+              "2": "vipp åpen",
+              "3": "i bevegelse",
+              "4": "vindavvisende posisjon",
+              "5": "mellomposisjon glidende",
+              "6": "mellomposisjon vipp",
+              "7": "åpner",
+              "8": "lukker",
+              "9": "vindavvisende vipp",
+              "10": "mellomposisjon",
+              "11": "åpner vipp",
+              "12": "lukker vipp"
+            }
+          }
+        }
+      },
+      "sunroofstatus": {
+        "state": {
+          "0": "Lukket",
+          "1": "Åpen",
+          "2": "Vipp åpen",
+          "3": "I bevegelse",
+          "4": "Vindavvisende posisjon",
+          "5": "Mellomposisjon glidende",
+          "6": "Mellomposisjon vipp",
+          "7": "Åpner",
+          "8": "Lukker",
+          "9": "Vindavvisende vipp",
+          "10": "Mellomposisjon",
+          "11": "Åpner vipp",
+          "12": "Lukker vipp"
+        },
+        "state_attributes": {}
+      },
+      "starterbatterystate": {
+        "state": {
+          "0": "Grønn",
+          "1": "Gul",
+          "2": "Rød"
+        }
+      },
+      "tirewarningsrdk": {
+        "state": {
+          "0": "Ingen advarsel",
+          "1": "Myk advarsel",
+          "2": "Lavt trykk",
+          "3": "Punktering"
+        }
+      },
+      "selectedchargeprogram": {
+        "state": {
+          "0": "Standard",
+          "2": "Hjem",
+          "3": "Jobb",
+          "4": "Støttes ikke"
+        }
+      }
+    },
+    "switch": {
+      "auxheat": {
+        "name": "Tilleggsvarme"
+      },
+      "precond": {
+        "name": "Forklimatisering"
+      }
+    },
+    "button": {
+      "btn_preheat_start_now": {
+        "name": "Start forklimatisering"
+      },
+      "btn_preheat_stop_now": {
+        "name": "Stopp forklimatisering"
+      },
+      "btn_sigpos_start_now": {
+        "name": "Blink med lysene"
+      }
+    }
+  },
+  "selector": {
+    "charge_program": {
+      "options": {
+        "0": "Standard",
+        "2": "Hjem",
+        "3": "Jobb"
+      }
+    },
+    "charging_break_clocktimer_configure_action": {
+      "options": {
+        "notset": "Ikke satt",
+        "active": "Aktiv",
+        "inactive": "Inaktiv"
+      }
+    },
+    "temperature_configure": {
+      "options": {
+        "0": "Lav",
+        "30": "Høy"
+      }
+    }
+  }
+}

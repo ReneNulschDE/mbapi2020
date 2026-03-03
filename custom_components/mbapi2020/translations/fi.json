@@ -1,17 +1,824 @@
 {
-    "services": {
-        "refresh_access_token": {
-            "name": "Virkistä pääsypoletti",
-            "description": "Virkistä API-pääsypoletti"
-        }
+  "config": {
+    "abort": {
+      "already_configured": "Komponentti on jo määritetty.",
+      "reauth_successful": "Uudelleentodennus onnistui! Komponentin uudelleenlataus käynnissä."
     },
-    "config": {
-        "step": {
-            "user": {
-                "data": {
-                    "refresh_token": "Virkistä poletti"
-                }
-            }
-        }
+    "error": {
+      "cannot_connect": "cannot_connect",
+      "invalid_auth": "invalid_auth",
+      "unknown": "Tuntematon virhe. Tarkista Home Assistant -loki lisätietoja varten.",
+      "2fa_required": "Kaksivaiheisen todennuksen (2FA) tilejä ei tueta.",
+      "legal_terms": "Sinun on hyväksyttävä käyttöehdot Mercedes-verkkosivustolla ensin"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "region": "Alue"
+        },
+        "description": "Valitse alueesi.",
+        "title": "Mercedes ME 2020 -yhteyden määritys"
+      },
+      "credentials": {
+        "data": {
+          "username": "MB-käyttäjänimi (sähköpostiosoite)",
+          "password": "Salasana"
+        },
+        "description": "Syötä tilisi tiedot.",
+        "title": "Mercedes ME 2020 - Kirjautuminen"
+      },
+      "pin": {
+        "data": {
+          "password": "TAN (vastaanotettu sähköpostilla tai tekstiviestillä)"
+        },
+        "description": "Syötä sähköpostilla tai tekstiviestillä vastaanottamasi TAN-koodi todennuksen viimeistelemiseksi. Jos et ole vastaanottanut TAN-koodia, tarkista sähköpostisi saapuneet-kansio (ja roskaposti) tai tekstiviestisi.",
+        "title": "Mercedes ME 2020 - TAN"
+      }
     }
+  },
+  "issues": {
+    "restart_required": {
+      "fix_flow": {
+        "step": {
+          "confirm_restart": {
+            "description": "Home Assistantin uudelleenkäynnistys vaaditaan todennuksen päivityksen viimeistelemiseksi. Napsauta Lähetä käynnistääksesi uudelleen nyt.",
+            "title": "Uudelleenkäynnistys vaaditaan"
+          }
+        }
+      },
+      "title": "Uudelleenkäynnistys vaaditaan"
+    }
+  },
+  "options": {
+    "abort": {
+      "already_configured": "Komponentti on jo määritetty.",
+      "reauth_successful": "Uudelleentodennus onnistui! Komponentin uudelleenlataus käynnissä."
+    },
+    "step": {
+      "init": {
+        "data": {
+          "cap_check_disabled": "Poista ominaisuuksien tarkistus käytöstä",
+          "enable_china_gcj_02": "Ota GCJ-02-muunnos käyttöön (vain Kiina)",
+          "delete_auth_file": "Poista todennuspoletti nyt. Vaatii Home Assistantin uudelleenkäynnistyksen tallennuksen jälkeen.",
+          "excluded_cars": "Poissuljetut VIN-numerot (pilkulla erotettuina)",
+          "pin": "Turva-PIN (luotava mobiilisovelluksessa)",
+          "save_files": "VAIN VIRHEENKORJAUS: Ota palvelinviestien tallennus käyttöön viestikansioon",
+          "overwrite_cap_precondnow": "Kokeellinen: Ylikirjoita precondnow-ominaisuus (aseta todeksi)"
+        },
+        "description": "Määritä asetuksesi. Jotkin muutokset vaativat Home Assistantin uudelleenkäynnistyksen.",
+        "title": "Mercedes ME 2020 -asetukset"
+      }
+    }
+  },
+  "system_health": {
+    "info": {
+      "api_endpoint_reachable": "MB API tavoitettavissa",
+      "websocket_connection_state": "MB WS -tila",
+      "cars_connected": "Yhdistetyt autot",
+      "version": "Versio"
+    }
+  },
+  "services": {
+    "refresh_access_token": {
+      "name": "Päivitä käyttöoikeuspoletti",
+      "description": "Päivitä API:n käyttöoikeuspoletti"
+    },
+    "auxheat_configure": {
+      "name": "Lisälämmittimen määritys",
+      "description": "Komento lisälämmittimen määrittämiseksi. Voit määrittää kolme kellonaikaa ja valita yhden aktiivisen ajan.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "time_selection": {
+          "name": "Aikavalinnan",
+          "description": "Valittu lisälämmityksen esiasetettu aika (0=ei valintaa, 1=aika_1, 2=aika_2, 3=aika_3)"
+        },
+        "time_1": {
+          "name": "time_1",
+          "description": "Vuorokaudenaika minuutteina keskiyöstä. Esim. klo 8:n arvo olisi 480. Arvoalue on 0–1439."
+        },
+        "time_2": {
+          "name": "time_2",
+          "description": "Vuorokaudenaika minuutteina keskiyöstä. Esim. klo 8:n arvo olisi 480. Arvoalue on 0–1439."
+        },
+        "time_3": {
+          "name": "time_3",
+          "description": "Vuorokaudenaika minuutteina keskiyöstä. Esim. klo 8:n arvo olisi 480. Arvoalue on 0–1439."
+        }
+      }
+    },
+    "auxheat_start": {
+      "name": "Lisälämmittimen käynnistys",
+      "description": "Käynnistä VIN-numerolla määritetyn auton lisälämmitin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "auxheat_stop": {
+      "name": "Lisälämmittimen pysäytys",
+      "description": "Pysäytä VIN-numerolla määritetyn auton lisälämmitin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "battery_max_soc_configure": {
+      "name": "Akun maksimi-SOC:n määritys",
+      "description": "Määritä VIN-numerolla määritetyn auton korkeajänniteakun enimmäisvaraustaso.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "max_soc": {
+          "name": "Max Soc",
+          "description": "Korkeajänniteakun enimmäisvaraustaso (arvon on oltava välillä 50 (jotkin uudet autot, kuten 2025 CLA, tukevat arvoa 30) ja 100 ja jaollinen kymmenellä)"
+        },
+        "charge_program": {
+          "name": "Latausohjelma",
+          "description": "(Valinnainen, oletus=0) Muutettava latausohjelma (0=Oletus, 2=Koti, 3=Työ) (ei käytössä 2025 CLA:ssa)"
+        }
+      }
+    },
+    "charge_program_configure": {
+      "name": "Latausohjelman määritys",
+      "description": "Komento latausohjelman valitsemiseksi.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "charge_program": {
+          "name": "Latausohjelma",
+          "description": "Valittu latausohjelma (0=Oletus, 2=Koti, 3=Työ)"
+        },
+        "max_soc": {
+          "name": "Max Soc",
+          "description": "Korkeajänniteakun enimmäisvaraustaso (arvon on oltava välillä 50 ja 100 ja jaollinen kymmenellä)"
+        }
+      }
+    },
+    "doors_unlock": {
+      "name": "Ovien avaus",
+      "description": "Avaa VIN-numerolla määritetyn auton lukitus. PIN-koodin määritys vaaditaan. Katso integraation asetusvalikko.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Turva-PIN, vaaditaan jos ei ole tallennettu asetuksiin."
+        }
+      }
+    },
+    "doors_lock": {
+      "name": "Ovien lukitus",
+      "description": "Lukitse VIN-numerolla määritetty auto.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "download_images": {
+      "name": "Lataa kuvat",
+      "description": "Lataa sovelluksen kuvat komponentin resurssikansioon VIN-numerolla määritetylle autolle.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "engine_start": {
+      "name": "Moottorin käynnistys",
+      "description": "Käynnistä VIN-numerolla määritetyn auton moottori. PIN-koodin määritys vaaditaan. Katso integraation asetusvalikko.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "engine_stop": {
+      "name": "Moottorin sammutus",
+      "description": "Sammuta VIN-numerolla määritetyn auton moottori. PIN-koodin määritys vaaditaan. Katso integraation asetusvalikko.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "hv_battery_start_conditioning": {
+      "name": "Korkeajänniteakun esikäsittelyn käynnistys",
+      "description": "Käynnistä VIN-numerolla määritetyn auton korkeajänniteakun esikäsittely.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "hv_battery_stop_conditioning": {
+      "name": "Korkeajänniteakun esikäsittelyn pysäytys",
+      "description": "Pysäytä VIN-numerolla määritetyn auton korkeajänniteakun esikäsittely.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "preconditioning_configure_seats": {
+      "name": "Istuinten esilämmityksen määritys",
+      "description": "Lähetä istuinten esilämmityskomento VIN-numerolla määritetylle autolle.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "front_left": {
+          "name": "Vasen etuistuin",
+          "description": "Ota käyttöön, jos vasen etuistuin tulisi esilämmittää."
+        },
+        "front_right": {
+          "name": "Oikea etuistuin",
+          "description": "Ota käyttöön, jos oikea etuistuin tulisi esilämmittää."
+        },
+        "rear_left": {
+          "name": "Vasen takaistuin",
+          "description": "Ota käyttöön, jos vasen takaistuin tulisi esilämmittää."
+        },
+        "rear_right": {
+          "name": "Oikea takaistuin",
+          "description": "Ota käyttöön, jos oikea takaistuin tulisi esilämmittää."
+        }
+      }
+    },
+    "preheat_start": {
+      "name": "Esilämmityksen käynnistys",
+      "description": "Käynnistä VIN-numerolla määritetyn auton esilämmitys.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "type": {
+          "name": "Tyyppi",
+          "description": "Käynnistysprosessin menetelmä. 0=Nyt (oletus), 1=Välitön - Käytä Välitön, jos autosi ei tue Nyt-toimintoa."
+        }
+      }
+    },
+    "preheat_start_departure_time": {
+      "name": "Esilämmityksen käynnistys lähtöajalla",
+      "description": "Käynnistä VIN-numerolla määritetyn auton esilämmitys annetulla lähtöajalla.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "time": {
+          "name": "Aika",
+          "description": "Lähtöaika minuutteina keskiyöstä. Esim. klo 8:n arvo olisi 480. Arvoalue on 0–1439."
+        }
+      }
+    },
+    "preheat_stop": {
+      "name": "Esilämmityksen pysäytys",
+      "description": "Pysäytä VIN-numerolla määritetyn auton esilämmitys.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "preheat_stop_departure_time": {
+      "name": "Esilämmityksen lähtöaikatilan pysäytys",
+      "description": "Pysäytä VIN-numerolla määritetyn auton ajastettu lähtöajan esilämmitys.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "preconditioning_configure": {
+      "name": "Esilämmityksen lähtöajan määritys",
+      "description": "Määritä esilämmityksen lähtöaikatila. Käytä tilaa 0 (Pois käytöstä) peruuttaaksesi ajastetun lähtöajan esilämmityksen.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "departure_time_mode": {
+          "name": "Lähtöaikatila",
+          "description": "0=Pois käytöstä, 1=Yksittäinen lähtö, 2=Viikoittainen lähtö"
+        },
+        "departure_time": {
+          "name": "Lähtöaika",
+          "description": "Lähtöaika minuutteina keskiyöstä (0–1439). Käytetään vain kun tila > 0."
+        }
+      }
+    },
+    "sigpos_start": {
+      "name": "Käynnistä merkkivalot",
+      "description": "Käynnistä VIN-numerolla määritetyn auton valomerkinanto.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "sunroof_open": {
+      "name": "Kattoikkunan avaus",
+      "description": "Avaa VIN-numerolla määritetyn auton kattoikkuna. PIN-koodin määritys vaaditaan. Katso integraation asetusvalikko.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "sunroof_tilt": {
+      "name": "Kattoikkunan kallistus",
+      "description": "Kallista VIN-numerolla määritetyn auton kattoikkuna. PIN-koodin määritys vaaditaan. Katso integraation asetusvalikko.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "sunroof_close": {
+      "name": "Kattoikkunan sulkeminen",
+      "description": "Sulje VIN-numerolla määritetyn auton kattoikkuna.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "temperature_configure": {
+      "name": "Kohdelämpötilan määritys (esilämmitys/lisälämmitin)",
+      "description": "Määritä esilämmityksen/lisälämmittimen kohdelämpötilat vyöhykkeittäin VIN-numerolla määritetylle autolle.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "front_left": {
+          "name": "Vasen etu",
+          "description": "Kohdelämpötila vyöhykkeelle vasen etu CELSIUSASTEINA."
+        },
+        "front_right": {
+          "name": "Oikea etu",
+          "description": "Kohdelämpötila vyöhykkeelle oikea etu CELSIUSASTEINA."
+        },
+        "rear_left": {
+          "name": "Vasen taka",
+          "description": "Kohdelämpötila vyöhykkeelle vasen taka CELSIUSASTEINA. (jos saatavilla)"
+        },
+        "rear_right": {
+          "name": "Oikea taka",
+          "description": "Kohdelämpötila vyöhykkeelle oikea taka CELSIUSASTEINA. (jos saatavilla)"
+        }
+      }
+    },
+    "windows_open": {
+      "name": "Ikkunoiden avaus",
+      "description": "Avaa VIN-numerolla määritetyn auton ikkunat. PIN-koodin määritys vaaditaan. Katso integraation asetusvalikko.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Turva-PIN, vaaditaan jos ei ole tallennettu asetuksiin."
+        }
+      }
+    },
+    "windows_close": {
+      "name": "Ikkunoiden sulkeminen",
+      "description": "Sulje VIN-numerolla määritetyn auton ikkunat. PIN-koodin määritys vaaditaan. Katso integraation asetusvalikko.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        }
+      }
+    },
+    "windows_move": {
+      "name": "Ikkunoiden siirto",
+      "description": "Siirrä VIN-numerolla määritetyn auton ikkunat uuteen asentoon. PIN-koodin määritys vaaditaan. Katso integraation asetusvalikko.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "front_left": {
+          "name": "Vasen etu",
+          "description": "Vasemman etuikkunan uusi asento (0=suljettu, 10=tuuletus, 100=auki)"
+        },
+        "front_right": {
+          "name": "Oikea etu",
+          "description": "Oikean etuikkunan uusi asento (0=suljettu, 10=tuuletus, 100=auki)"
+        },
+        "rear_left": {
+          "name": "Vasen taka",
+          "description": "Vasemman takaikkunan uusi asento (0=suljettu, 10=tuuletus, 100=auki)"
+        },
+        "rear_right": {
+          "name": "Oikea taka",
+          "description": "Oikean takaikkunan uusi asento (0=suljettu, 10=tuuletus, 100=auki)"
+        }
+      }
+    },
+    "send_route": {
+      "name": "Reitin lähetys",
+      "description": "Lähettää reitin autoon. (Vain yksittäinen sijainti)",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "title": {
+          "name": "Otsikko",
+          "description": "Reitin otsikko"
+        },
+        "latitude": {
+          "name": "Leveysaste",
+          "description": "Sijainnin leveysaste"
+        },
+        "longitude": {
+          "name": "Pituusaste",
+          "description": "Sijainnin pituusaste"
+        },
+        "city": {
+          "name": "Kaupunki",
+          "description": "Sijainnin kaupungin nimi"
+        },
+        "postcode": {
+          "name": "Postinumero",
+          "description": "Sijainnin postinumero"
+        },
+        "street": {
+          "name": "Katu",
+          "description": "Sijainnin kadun nimi"
+        }
+      }
+    },
+    "charging_break_clocktimer_configure": {
+      "name": "Lataustauon ajastimen määritys",
+      "description": "Määritä lataustauot (vain AC). Tämä korvaa kaikkien aikapaikkojen nykyisen määrityksen autossasi.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "status_timer_1": {
+          "name": "Tila (Ajastin 1)",
+          "description": ""
+        },
+        "starttime_timer_1": {
+          "name": "Alkamisaika (Ajastin 1)",
+          "description": "Lataustaukoikkunan alkamisaika (Ajastin 1)"
+        },
+        "stoptime_timer_1": {
+          "name": "Päättymisaika (Ajastin 1)",
+          "description": "Lataustaukoikkunan päättymisaika (Ajastin 1)"
+        },
+        "status_timer_2": {
+          "name": "Tila (Ajastin 2)",
+          "description": ""
+        },
+        "starttime_timer_2": {
+          "name": "Alkamisaika (Ajastin 2)",
+          "description": "Lataustaukoikkunan alkamisaika (Ajastin 2)"
+        },
+        "stoptime_timer_2": {
+          "name": "Päättymisaika (Ajastin 2)",
+          "description": "Lataustaukoikkunan päättymisaika (Ajastin 2)"
+        },
+        "status_timer_3": {
+          "name": "Tila (Ajastin 3)",
+          "description": ""
+        },
+        "starttime_timer_3": {
+          "name": "Alkamisaika (Ajastin 3)",
+          "description": "Lataustaukoikkunan alkamisaika (Ajastin 3)"
+        },
+        "stoptime_timer_3": {
+          "name": "Päättymisaika (Ajastin 3)",
+          "description": "Lataustaukoikkunan päättymisaika (Ajastin 3)"
+        },
+        "status_timer_4": {
+          "name": "Tila (Ajastin 4)",
+          "description": ""
+        },
+        "starttime_timer_4": {
+          "name": "Alkamisaika (Ajastin 4)",
+          "description": "Lataustaukoikkunan alkamisaika (Ajastin 4)"
+        },
+        "stoptime_timer_4": {
+          "name": "Päättymisaika (Ajastin 4)",
+          "description": "Lataustaukoikkunan päättymisaika (Ajastin 4)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "chargingactive": {
+        "name": "Lataus aktiivinen"
+      }
+    },
+    "sensor": {
+      "chargingpowerecolimit": {
+        "name": "Lataustehon raja"
+      },
+      "auxheatstatus": {
+        "state": {
+          "0": "Ei aktiivinen",
+          "1": "Normaali lämmitys",
+          "2": "Normaali tuuletus",
+          "3": "Manuaalinen lämmitys",
+          "4": "Jälkilämmitys",
+          "5": "Jälkituuletus",
+          "6": "Automaattinen lämmitys"
+        }
+      },
+      "chargeflapacstatus": {
+        "state": {
+          "0": "Auki",
+          "1": "Suljettu",
+          "2": "Luukku painettu",
+          "3": "Tuntematon"
+        }
+      },
+      "chargeflapdcstatus": {
+        "state": {
+          "0": "Auki",
+          "1": "Suljettu",
+          "2": "Luukku painettu",
+          "3": "Tuntematon"
+        }
+      },
+      "chargingstatus": {
+        "state": {
+          "0": "ladataan",
+          "1": "lataus päättyy",
+          "2": "Lataustauko",
+          "3": "irrotettu",
+          "4": "häiriö",
+          "5": "hidas",
+          "6": "nopea",
+          "7": "purkautuu",
+          "8": "ei lataa",
+          "9": "hidas lataus matkatason saavuttamisen jälkeen",
+          "10": "lataus matkatason saavuttamisen jälkeen",
+          "11": "nopea lataus matkatason saavuttamisen jälkeen",
+          "12": "Yhdistetty",
+          "13": "AC-lataus",
+          "14": "DC-lataus",
+          "15": "Akun kalibrointi aktiivinen",
+          "16": "tuntematon"
+        }
+      },
+      "departuretimemode": {
+        "state": {
+          "0": "Pois käytöstä",
+          "1": "Päivittäinen",
+          "2": "Viikoittainen"
+        }
+      },
+      "ignitionstate": {
+        "state": {
+          "0": "Lukittu",
+          "1": "Pois",
+          "2": "Lisälaitteet",
+          "4": "Päällä",
+          "5": "Käynnistys"
+        }
+      },
+      "interiorprotectionsensorstatus": {
+        "state": {
+          "0": "Ei aktiivinen",
+          "1": "Ei aktiivinen",
+          "2": "Aktiivinen"
+        },
+        "state_attributes": {}
+      },
+      "lock": {
+        "state": {
+          "0": "Lukitsematon",
+          "1": "Lukittu sis.",
+          "2": "Lukittu",
+          "3": "Osittain lukitsematon",
+          "4": "Tuntematon"
+        },
+        "state_attributes": {
+          "decklidstatus": {
+            "name": "Tavaratilan kansi",
+            "state": {
+              "false": "suljettu",
+              "true": "auki"
+            }
+          },
+          "doorstatusfrontleft": {
+            "name": "Vasen etuovi",
+            "state": {
+              "false": "suljettu",
+              "true": "auki"
+            }
+          },
+          "doorstatusfrontright": {
+            "name": "Oikea etuovi",
+            "state": {
+              "false": "suljettu",
+              "true": "auki"
+            }
+          },
+          "doorstatusrearleft": {
+            "name": "Vasen takaovi",
+            "state": {
+              "false": "suljettu",
+              "true": "auki"
+            }
+          },
+          "doorstatusrearright": {
+            "name": "Oikea takaovi",
+            "state": {
+              "false": "suljettu",
+              "true": "auki"
+            }
+          },
+          "doorlockstatusfrontleft": {
+            "name": "Vasemman etuoven lukko",
+            "state": {
+              "false": "lukittu",
+              "true": "lukitsematon"
+            }
+          },
+          "doorlockstatusfrontright": {
+            "name": "Oikean etuoven lukko",
+            "state": {
+              "false": "lukittu",
+              "true": "lukitsematon"
+            }
+          },
+          "doorlockstatusrearleft": {
+            "name": "Vasemman takaoven lukko",
+            "state": {
+              "false": "lukittu",
+              "true": "lukitsematon"
+            }
+          },
+          "doorlockstatusrearright": {
+            "name": "Oikean takaoven lukko",
+            "state": {
+              "false": "lukittu",
+              "true": "lukitsematon"
+            }
+          },
+          "doorlockstatusgas": {
+            "name": "Polttoainelukko",
+            "state": {
+              "false": "lukittu",
+              "true": "lukitsematon"
+            }
+          },
+          "enginehoodstatus": {
+            "name": "Konepelti",
+            "state": {
+              "false": "suljettu",
+              "true": "auki"
+            }
+          },
+          "doorstatusoverall": {
+            "name": "Ovien kokonaistila",
+            "state": {
+              "0": "auki",
+              "1": "suljettu",
+              "2": "ei olemassa",
+              "3": "tuntematon"
+            }
+          },
+          "sunroofstatus": {
+            "name": "Kattoikkunan tila",
+            "state": {
+              "0": "suljettu",
+              "1": "auki",
+              "2": "tuuletusasento auki",
+              "3": "liikkuu",
+              "4": "melunvaimennusasento",
+              "5": "liu'utus välitila",
+              "6": "kallistus välitila",
+              "7": "avautuu",
+              "8": "sulkeutuu",
+              "9": "melunvaimennus kallistettu",
+              "10": "väliasento",
+              "11": "kallistus avautuu",
+              "12": "kallistus sulkeutuu"
+            }
+          }
+        }
+      },
+      "sunroofstatus": {
+        "state": {
+          "0": "Suljettu",
+          "1": "Auki",
+          "2": "Tuuletusasento auki",
+          "3": "Liikkuu",
+          "4": "Melunvaimennus",
+          "5": "Liu'utus välitila",
+          "6": "Kallistus välitila",
+          "7": "Avautuu",
+          "8": "Sulkeutuu",
+          "9": "Melunvaimennus kallistettu",
+          "10": "Väliasento",
+          "11": "Kallistus avautuu",
+          "12": "Kallistus sulkeutuu"
+        },
+        "state_attributes": {}
+      },
+      "starterbatterystate": {
+        "state": {
+          "0": "Vihreä",
+          "1": "Keltainen",
+          "2": "Punainen"
+        }
+      },
+      "tirewarningsrdk": {
+        "state": {
+          "0": "Ei varoitusta",
+          "1": "Lievä varoitus",
+          "2": "Matala paine",
+          "3": "Tyhjentyminen"
+        }
+      },
+      "selectedchargeprogram": {
+        "state": {
+          "0": "Vakio",
+          "2": "Koti",
+          "3": "Työ",
+          "4": "Ei tuettu"
+        }
+      }
+    },
+    "switch": {
+      "auxheat": {
+        "name": "Lisälämmitin"
+      },
+      "precond": {
+        "name": "Sisääntulon ilmastoinnin esisäätö"
+      }
+    },
+    "button": {
+      "btn_preheat_start_now": {
+        "name": "Esilämmityksen käynnistys"
+      },
+      "btn_preheat_stop_now": {
+        "name": "Esilämmityksen pysäytys"
+      },
+      "btn_sigpos_start_now": {
+        "name": "Vilkuta valoja"
+      }
+    }
+  },
+  "selector": {
+    "charge_program": {
+      "options": {
+        "0": "Oletus",
+        "2": "Koti",
+        "3": "Työ"
+      }
+    },
+    "charging_break_clocktimer_configure_action": {
+      "options": {
+        "notset": "Ei asetettu",
+        "active": "Aktiivinen",
+        "inactive": "Ei aktiivinen"
+      }
+    },
+    "temperature_configure": {
+      "options": {
+        "0": "Matala",
+        "30": "Korkea"
+      }
+    }
+  }
 }

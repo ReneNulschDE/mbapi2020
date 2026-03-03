@@ -1,1 +1,824 @@
-{}
+{
+  "config": {
+    "abort": {
+      "already_configured": "O componente já está configurado.",
+      "reauth_successful": "Reautenticação bem-sucedida! Recarregamento do componente em curso."
+    },
+    "error": {
+      "cannot_connect": "cannot_connect",
+      "invalid_auth": "invalid_auth",
+      "unknown": "Erro desconhecido. Por favor, verifique o registo do Home Assistant para mais informações.",
+      "2fa_required": "Contas com autenticação de dois fatores (2FA) não são suportadas.",
+      "legal_terms": "É necessário aceitar os termos legais no site da Mercedes primeiro"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "region": "Região"
+        },
+        "description": "Selecione a sua região.",
+        "title": "Configurar a ligação Mercedes ME 2020"
+      },
+      "credentials": {
+        "data": {
+          "username": "Utilizador MB (endereço de e-mail)",
+          "password": "Palavra-passe"
+        },
+        "description": "Introduza os dados da sua conta.",
+        "title": "Mercedes ME 2020 - Iniciar sessão"
+      },
+      "pin": {
+        "data": {
+          "password": "TAN (recebido por e-mail ou SMS)"
+        },
+        "description": "Introduza o TAN que recebeu por e-mail ou SMS para concluir a autenticação. Se não recebeu um TAN, verifique a sua caixa de entrada de e-mail (e pasta de spam) ou as suas mensagens SMS.",
+        "title": "Mercedes ME 2020 - TAN"
+      }
+    }
+  },
+  "issues": {
+    "restart_required": {
+      "fix_flow": {
+        "step": {
+          "confirm_restart": {
+            "description": "É necessário reiniciar o Home Assistant para concluir a atualização de autenticação. Clique em submeter para reiniciar agora.",
+            "title": "Reinício necessário"
+          }
+        }
+      },
+      "title": "Reinício necessário"
+    }
+  },
+  "options": {
+    "abort": {
+      "already_configured": "O componente já está configurado.",
+      "reauth_successful": "Reautenticação bem-sucedida! Recarregamento do componente em curso."
+    },
+    "step": {
+      "init": {
+        "data": {
+          "cap_check_disabled": "Desativar verificação de capacidades",
+          "enable_china_gcj_02": "Ativar tradução GCJ-02 (apenas China)",
+          "delete_auth_file": "Eliminar o token de autenticação agora. Requer um reinício do Home Assistant após guardar.",
+          "excluded_cars": "VINs excluídos (separados por vírgula)",
+          "pin": "PIN de segurança (a criar na aplicação móvel)",
+          "save_files": "APENAS DEBUG: Ativar guardar mensagens do servidor na pasta de mensagens",
+          "overwrite_cap_precondnow": "Exp: Substituir capacidade precondnow (definir como verdadeiro)"
+        },
+        "description": "Configure as suas opções. Algumas alterações requerem um reinício do Home Assistant.",
+        "title": "Opções Mercedes ME 2020"
+      }
+    }
+  },
+  "system_health": {
+    "info": {
+      "api_endpoint_reachable": "API MB acessível",
+      "websocket_connection_state": "Estado WS MB",
+      "cars_connected": "Carros ligados",
+      "version": "Versão"
+    }
+  },
+  "services": {
+    "refresh_access_token": {
+      "name": "Atualizar token de acesso",
+      "description": "Atualizar o token de acesso à API"
+    },
+    "auxheat_configure": {
+      "name": "Configurar aquecimento auxiliar",
+      "description": "Comando para configurar o aquecimento auxiliar. É possível definir três horários e selecionar um horário ativo.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "time_selection": {
+          "name": "Seleção de horário",
+          "description": "O horário predefinido de aquecimento auxiliar ativado (0=sem_seleção, 1=time_1, 2=time_2, 3=time_3)"
+        },
+        "time_1": {
+          "name": "time_1",
+          "description": "Hora do dia em minutos após a meia-noite. Ex.: o valor válido para as 8h seria 480. O intervalo de valores é de 0 a 1439."
+        },
+        "time_2": {
+          "name": "time_2",
+          "description": "Hora do dia em minutos após a meia-noite. Ex.: o valor válido para as 8h seria 480. O intervalo de valores é de 0 a 1439."
+        },
+        "time_3": {
+          "name": "time_3",
+          "description": "Hora do dia em minutos após a meia-noite. Ex.: o valor válido para as 8h seria 480. O intervalo de valores é de 0 a 1439."
+        }
+      }
+    },
+    "auxheat_start": {
+      "name": "Iniciar aquecimento auxiliar",
+      "description": "Iniciar o aquecimento auxiliar de um carro definido por um vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "auxheat_stop": {
+      "name": "Parar aquecimento auxiliar",
+      "description": "Parar o aquecimento auxiliar de um carro definido por um vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "battery_max_soc_configure": {
+      "name": "Configurar SOC máximo da bateria",
+      "description": "Configurar o valor máximo para o estado de carga da bateria HV de um carro definido por um vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "max_soc": {
+          "name": "SOC Máx",
+          "description": "O valor máximo para o estado de carga da bateria HV (o valor deve estar entre 50 (alguns carros novos como o CLA 2025 suportam 30) e 100 e ser divisível por dez)"
+        },
+        "charge_program": {
+          "name": "Programa de carregamento",
+          "description": "(Opcional, Predefinido=0) Programa de carregamento a alterar (0=Predefinido, 2=Casa, 3=Trabalho) (não utilizado para o CLA 2025)"
+        }
+      }
+    },
+    "charge_program_configure": {
+      "name": "Configurar programa de carregamento",
+      "description": "Comando para selecionar o programa de carregamento.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "charge_program": {
+          "name": "Programa de carregamento",
+          "description": "O programa de carregamento ativado (0=Predefinido, 2=Casa, 3=Trabalho)"
+        },
+        "max_soc": {
+          "name": "SOC Máx",
+          "description": "O valor máximo para o estado de carga da bateria HV (o valor deve estar entre 50 e 100 e ser divisível por dez)"
+        }
+      }
+    },
+    "doors_unlock": {
+      "name": "Destrancar portas",
+      "description": "Destrancar um carro definido por um vin. Configuração de PIN necessária. Consulte o diálogo de opções da integração.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de segurança, necessário se não estiver guardado nas definições."
+        }
+      }
+    },
+    "doors_lock": {
+      "name": "Trancar portas",
+      "description": "Trancar um carro definido por um vin",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "download_images": {
+      "name": "Transferir imagens",
+      "description": "Transfere as imagens da aplicação para a pasta de recursos do componente para um carro definido por um vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "engine_start": {
+      "name": "Ligar motor",
+      "description": "Ligar o motor de um carro definido por um vin. Configuração de PIN necessária. Consulte o diálogo de opções da integração.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "engine_stop": {
+      "name": "Desligar motor",
+      "description": "Desligar o motor de um carro definido por um vin. Configuração de PIN necessária. Consulte o diálogo de opções da integração.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "hv_battery_start_conditioning": {
+      "name": "Iniciar condicionamento da bateria HV",
+      "description": "Iniciar o condicionamento da bateria HV de um carro definido por um vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "hv_battery_stop_conditioning": {
+      "name": "Parar condicionamento da bateria HV",
+      "description": "Parar o condicionamento da bateria HV de um carro definido por um vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "preconditioning_configure_seats": {
+      "name": "Configurar pré-condicionamento dos bancos",
+      "description": "Enviar um comando de configuração de pré-condicionamento dos bancos para um carro definido por um VIN.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "front_left": {
+          "name": "Dianteiro esquerdo",
+          "description": "Ativar se o banco dianteiro esquerdo deve ser pré-condicionado."
+        },
+        "front_right": {
+          "name": "Dianteiro direito",
+          "description": "Ativar se o banco dianteiro direito deve ser pré-condicionado."
+        },
+        "rear_left": {
+          "name": "Traseiro esquerdo",
+          "description": "Ativar se o banco traseiro esquerdo deve ser pré-condicionado."
+        },
+        "rear_right": {
+          "name": "Traseiro direito",
+          "description": "Ativar se o banco traseiro direito deve ser pré-condicionado."
+        }
+      }
+    },
+    "preheat_start": {
+      "name": "Iniciar pré-condicionamento",
+      "description": "Iniciar o pré-condicionamento de um carro definido por um vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "type": {
+          "name": "Tipo",
+          "description": "Método utilizado para iniciar o processo. 0=Agora (Predefinido), 1=Imediato - Utilize Imediato caso o seu carro não suporte Agora."
+        }
+      }
+    },
+    "preheat_start_departure_time": {
+      "name": "Iniciar pré-condicionamento com hora de partida",
+      "description": "Iniciar o pré-condicionamento de um carro definido por um vin e uma hora de partida especificada.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "time": {
+          "name": "Hora",
+          "description": "Hora de partida em minutos após a meia-noite. Ex.: o valor válido para as 8h seria 480. O intervalo de valores é de 0 a 1439."
+        }
+      }
+    },
+    "preheat_stop": {
+      "name": "Parar pré-condicionamento",
+      "description": "Parar o pré-condicionamento de um carro definido por um vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "preheat_stop_departure_time": {
+      "name": "Parar modo de pré-condicionamento com hora de partida",
+      "description": "Parar o pré-condicionamento com hora de partida configurada de um carro definido por um vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "preconditioning_configure": {
+      "name": "Configurar partida com pré-condicionamento",
+      "description": "Configurar o modo de hora de partida do pré-condicionamento. Utilize o modo 0 (Desativado) para cancelar o pré-condicionamento de partida agendado.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "departure_time_mode": {
+          "name": "Modo de hora de partida",
+          "description": "0=Desativado, 1=Partida única, 2=Partida semanal"
+        },
+        "departure_time": {
+          "name": "Hora de partida",
+          "description": "Hora de partida em minutos após a meia-noite (0-1439). Utilizado apenas quando o modo > 0."
+        }
+      }
+    },
+    "sigpos_start": {
+      "name": "Iniciar sinal de posição",
+      "description": "Iniciar sinalização luminosa de um carro definido por um vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "sunroof_open": {
+      "name": "Abrir teto de abrir",
+      "description": "Abrir o teto de abrir de um carro definido por um vin. Configuração de PIN necessária. Consulte o diálogo de opções da integração.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "sunroof_tilt": {
+      "name": "Inclinar teto de abrir",
+      "description": "Inclinar o teto de abrir de um carro definido por um vin. Configuração de PIN necessária. Consulte o diálogo de opções da integração.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "sunroof_close": {
+      "name": "Fechar teto de abrir",
+      "description": "Fechar o teto de abrir de um carro definido por um vin.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "temperature_configure": {
+      "name": "Configurar temperatura alvo (pré-cond/aquec. auxiliar)",
+      "description": "Configurar as temperaturas alvo de pré-condicionamento/aquecimento auxiliar para zonas num carro definido por um VIN.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "front_left": {
+          "name": "Dianteiro esquerdo",
+          "description": "Temperatura alvo para a zona dianteira esquerda em CELSIUS."
+        },
+        "front_right": {
+          "name": "Dianteiro direito",
+          "description": "Temperatura alvo para a zona dianteira direita em CELSIUS."
+        },
+        "rear_left": {
+          "name": "Traseiro esquerdo",
+          "description": "Temperatura alvo para a zona traseira esquerda em CELSIUS. (se disponível)"
+        },
+        "rear_right": {
+          "name": "Traseiro direito",
+          "description": "Temperatura alvo para a zona traseira direita em CELSIUS. (se disponível)"
+        }
+      }
+    },
+    "windows_open": {
+      "name": "Abrir janelas",
+      "description": "Abrir as janelas de um carro definido por um vin. Configuração de PIN necessária. Consulte o diálogo de opções da integração.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de segurança, necessário se não estiver guardado nas definições."
+        }
+      }
+    },
+    "windows_close": {
+      "name": "Fechar janelas",
+      "description": "Fechar as janelas de um carro definido por um vin. Configuração de PIN necessária. Consulte o diálogo de opções da integração.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        }
+      }
+    },
+    "windows_move": {
+      "name": "Mover janelas",
+      "description": "Mover as janelas de um carro definido por um vin para uma nova posição. Configuração de PIN necessária. Consulte o diálogo de opções da integração.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "front_left": {
+          "name": "Dianteira esquerda",
+          "description": "A nova posição da janela dianteira esquerda (0=fechada, 10=ventilação, 100=aberta)"
+        },
+        "front_right": {
+          "name": "Dianteira direita",
+          "description": "A nova posição da janela dianteira direita (0=fechada, 10=ventilação, 100=aberta)"
+        },
+        "rear_left": {
+          "name": "Traseira esquerda",
+          "description": "A nova posição da janela traseira esquerda (0=fechada, 10=ventilação, 100=aberta)"
+        },
+        "rear_right": {
+          "name": "Traseira direita",
+          "description": "A nova posição da janela traseira direita (0=fechada, 10=ventilação, 100=aberta)"
+        }
+      }
+    },
+    "send_route": {
+      "name": "Enviar rota",
+      "description": "Envia uma rota para o carro. (Apenas localização única)",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "title": {
+          "name": "Título",
+          "description": "Título da rota"
+        },
+        "latitude": {
+          "name": "Latitude",
+          "description": "Latitude da localização"
+        },
+        "longitude": {
+          "name": "Longitude",
+          "description": "Longitude da localização"
+        },
+        "city": {
+          "name": "Cidade",
+          "description": "Nome da cidade da localização"
+        },
+        "postcode": {
+          "name": "Código postal",
+          "description": "Código postal da localização"
+        },
+        "street": {
+          "name": "Rua",
+          "description": "Nome da rua da localização"
+        }
+      }
+    },
+    "charging_break_clocktimer_configure": {
+      "name": "Configurar temporizador de pausa de carregamento",
+      "description": "Configurar pausas de carregamento (apenas AC). Isto irá substituir a configuração completa para todos os slots no seu carro.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin do carro"
+        },
+        "status_timer_1": {
+          "name": "Estado (Temporizador 1)",
+          "description": ""
+        },
+        "starttime_timer_1": {
+          "name": "Hora de início (Temporizador 1)",
+          "description": "Hora de início da janela de pausa de carregamento (Temporizador 1)"
+        },
+        "stoptime_timer_1": {
+          "name": "Hora de fim (Temporizador 1)",
+          "description": "Hora de fim da janela de pausa de carregamento (Temporizador 1)"
+        },
+        "status_timer_2": {
+          "name": "Estado (Temporizador 2)",
+          "description": ""
+        },
+        "starttime_timer_2": {
+          "name": "Hora de início (Temporizador 2)",
+          "description": "Hora de início da janela de pausa de carregamento (Temporizador 2)"
+        },
+        "stoptime_timer_2": {
+          "name": "Hora de fim (Temporizador 2)",
+          "description": "Hora de fim da janela de pausa de carregamento (Temporizador 2)"
+        },
+        "status_timer_3": {
+          "name": "Estado (Temporizador 3)",
+          "description": ""
+        },
+        "starttime_timer_3": {
+          "name": "Hora de início (Temporizador 3)",
+          "description": "Hora de início da janela de pausa de carregamento (Temporizador 3)"
+        },
+        "stoptime_timer_3": {
+          "name": "Hora de fim (Temporizador 3)",
+          "description": "Hora de fim da janela de pausa de carregamento (Temporizador 3)"
+        },
+        "status_timer_4": {
+          "name": "Estado (Temporizador 4)",
+          "description": ""
+        },
+        "starttime_timer_4": {
+          "name": "Hora de início (Temporizador 4)",
+          "description": "Hora de início da janela de pausa de carregamento (Temporizador 4)"
+        },
+        "stoptime_timer_4": {
+          "name": "Hora de fim (Temporizador 4)",
+          "description": "Hora de fim da janela de pausa de carregamento (Temporizador 4)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "chargingactive": {
+        "name": "Carregamento ativo"
+      }
+    },
+    "sensor": {
+      "chargingpowerecolimit": {
+        "name": "Limite de potência de carregamento"
+      },
+      "auxheatstatus": {
+        "state": {
+          "0": "Inativo",
+          "1": "Aquecimento normal",
+          "2": "Ventilação normal",
+          "3": "Aquecimento manual",
+          "4": "Pós-aquecimento",
+          "5": "Pós-ventilação",
+          "6": "Aquecimento automático"
+        }
+      },
+      "chargeflapacstatus": {
+        "state": {
+          "0": "Aberta",
+          "1": "Fechada",
+          "2": "Aba pressionada",
+          "3": "Desconhecido"
+        }
+      },
+      "chargeflapdcstatus": {
+        "state": {
+          "0": "Aberta",
+          "1": "Fechada",
+          "2": "Aba pressionada",
+          "3": "Desconhecido"
+        }
+      },
+      "chargingstatus": {
+        "state": {
+          "0": "A carregar",
+          "1": "Carregamento a terminar",
+          "2": "Pausa de carregamento",
+          "3": "Desligado",
+          "4": "Falha",
+          "5": "Lento",
+          "6": "Rápido",
+          "7": "A descarregar",
+          "8": "Sem carregamento",
+          "9": "Carregamento lento após atingir meta de viagem",
+          "10": "A carregar após atingir meta de viagem",
+          "11": "Carregamento rápido após atingir meta de viagem",
+          "12": "Ligado",
+          "13": "Carregamento AC",
+          "14": "Carregamento DC",
+          "15": "Calibração da bateria ativa",
+          "16": "Desconhecido"
+        }
+      },
+      "departuretimemode": {
+        "state": {
+          "0": "Desativado",
+          "1": "Diário",
+          "2": "Semanal"
+        }
+      },
+      "ignitionstate": {
+        "state": {
+          "0": "Trancado",
+          "1": "Desligado",
+          "2": "Acessório",
+          "4": "Ligado",
+          "5": "Arranque"
+        }
+      },
+      "interiorprotectionsensorstatus": {
+        "state": {
+          "0": "Não ativo",
+          "1": "Não ativo",
+          "2": "Ativo"
+        },
+        "state_attributes": {}
+      },
+      "lock": {
+        "state": {
+          "0": "Destrancado",
+          "1": "Trancado int",
+          "2": "Trancado",
+          "3": "Parcialmente destrancado",
+          "4": "Desconhecido"
+        },
+        "state_attributes": {
+          "decklidstatus": {
+            "name": "Tampa da mala",
+            "state": {
+              "false": "fechada",
+              "true": "aberta"
+            }
+          },
+          "doorstatusfrontleft": {
+            "name": "Porta dianteira esquerda",
+            "state": {
+              "false": "fechada",
+              "true": "aberta"
+            }
+          },
+          "doorstatusfrontright": {
+            "name": "Porta dianteira direita",
+            "state": {
+              "false": "fechada",
+              "true": "aberta"
+            }
+          },
+          "doorstatusrearleft": {
+            "name": "Porta traseira esquerda",
+            "state": {
+              "false": "fechada",
+              "true": "aberta"
+            }
+          },
+          "doorstatusrearright": {
+            "name": "Porta traseira direita",
+            "state": {
+              "false": "fechada",
+              "true": "aberta"
+            }
+          },
+          "doorlockstatusfrontleft": {
+            "name": "Fecho da porta dianteira esquerda",
+            "state": {
+              "false": "trancada",
+              "true": "destrancada"
+            }
+          },
+          "doorlockstatusfrontright": {
+            "name": "Fecho da porta dianteira direita",
+            "state": {
+              "false": "trancada",
+              "true": "destrancada"
+            }
+          },
+          "doorlockstatusrearleft": {
+            "name": "Fecho da porta traseira esquerda",
+            "state": {
+              "false": "trancada",
+              "true": "destrancada"
+            }
+          },
+          "doorlockstatusrearright": {
+            "name": "Fecho da porta traseira direita",
+            "state": {
+              "false": "trancada",
+              "true": "destrancada"
+            }
+          },
+          "doorlockstatusgas": {
+            "name": "Fecho do depósito",
+            "state": {
+              "false": "trancado",
+              "true": "destrancado"
+            }
+          },
+          "enginehoodstatus": {
+            "name": "Capô do motor",
+            "state": {
+              "false": "fechado",
+              "true": "aberto"
+            }
+          },
+          "doorstatusoverall": {
+            "name": "Estado geral das portas",
+            "state": {
+              "0": "aberta",
+              "1": "fechada",
+              "2": "não existente",
+              "3": "desconhecido"
+            }
+          },
+          "sunroofstatus": {
+            "name": "Estado do teto de abrir",
+            "state": {
+              "0": "fechado",
+              "1": "aberto",
+              "2": "abertura por elevação",
+              "3": "em funcionamento",
+              "4": "posição anti-vibração",
+              "5": "deslizamento intermédio",
+              "6": "elevação intermédia",
+              "7": "a abrir",
+              "8": "a fechar",
+              "9": "elevação anti-vibração",
+              "10": "posição intermédia",
+              "11": "abertura por elevação",
+              "12": "fecho por elevação"
+            }
+          }
+        }
+      },
+      "sunroofstatus": {
+        "state": {
+          "0": "Fechado",
+          "1": "Aberto",
+          "2": "Abertura por elevação",
+          "3": "Em funcionamento",
+          "4": "Anti-vibração",
+          "5": "Deslizamento intermédio",
+          "6": "Elevação intermédia",
+          "7": "A abrir",
+          "8": "A fechar",
+          "9": "Elevação anti-vibração",
+          "10": "Posição intermédia",
+          "11": "Abertura por elevação",
+          "12": "Fecho por elevação"
+        },
+        "state_attributes": {}
+      },
+      "starterbatterystate": {
+        "state": {
+          "0": "Verde",
+          "1": "Amarelo",
+          "2": "Vermelho"
+        }
+      },
+      "tirewarningsrdk": {
+        "state": {
+          "0": "Sem aviso",
+          "1": "Aviso suave",
+          "2": "Pressão baixa",
+          "3": "Furo"
+        }
+      },
+      "selectedchargeprogram": {
+        "state": {
+          "0": "Padrão",
+          "2": "Casa",
+          "3": "Trabalho",
+          "4": "Não suportado"
+        }
+      }
+    },
+    "switch": {
+      "auxheat": {
+        "name": "Aquecimento auxiliar"
+      },
+      "precond": {
+        "name": "Climatização pré-entrada"
+      }
+    },
+    "button": {
+      "btn_preheat_start_now": {
+        "name": "Iniciar pré-climatização"
+      },
+      "btn_preheat_stop_now": {
+        "name": "Parar pré-climatização"
+      },
+      "btn_sigpos_start_now": {
+        "name": "Piscar luzes"
+      }
+    }
+  },
+  "selector": {
+    "charge_program": {
+      "options": {
+        "0": "Predefinido",
+        "2": "Casa",
+        "3": "Trabalho"
+      }
+    },
+    "charging_break_clocktimer_configure_action": {
+      "options": {
+        "notset": "Não definido",
+        "active": "Ativo",
+        "inactive": "Inativo"
+      }
+    },
+    "temperature_configure": {
+      "options": {
+        "0": "Baixo",
+        "30": "Alto"
+      }
+    }
+  }
+}
