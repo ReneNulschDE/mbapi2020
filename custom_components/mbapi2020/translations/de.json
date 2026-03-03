@@ -26,6 +26,13 @@
         },
         "description": "Gib deine Kontodaten ein.",
         "title": "Mercedes ME 2020 - Anmeldung"
+      },
+      "pin": {
+        "data": {
+          "password": "TAN (per E-Mail oder SMS erhalten)"
+        },
+        "description": "Gib die TAN ein, die du per E-Mail oder SMS erhalten hast, um die Authentifizierung abzuschließen. Falls du keine TAN erhalten hast, prüfe bitte deinen E-Mail-Posteingang (und Spam-Ordner) oder deine SMS-Nachrichten.",
+        "title": "Mercedes ME 2020 - TAN"
       }
     }
   },
@@ -182,6 +189,20 @@
         "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
       }
     },
+    "hv_battery_start_conditioning": {
+      "name": "HV-Batterie Konditionierung starten",
+      "description": "Startet die HV-Batterie-Konditionierung eines Fahrzeugs (VIN).",
+      "fields": {
+        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+      }
+    },
+    "hv_battery_stop_conditioning": {
+      "name": "HV-Batterie Konditionierung stoppen",
+      "description": "Stoppt die HV-Batterie-Konditionierung eines Fahrzeugs (VIN).",
+      "fields": {
+        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+      }
+    },
     "preconditioning_configure_seats": {
       "name": "Sitze vorklimatisieren konfigurieren",
       "description": "Sendet Sitzkonfigurationsbefehl für Vorklimatisierung an ein Fahrzeug (VIN).",
@@ -239,6 +260,21 @@
       "description": "Stoppt konfigurierte Vorklimatisierung mit Abfahrtszeit.",
       "fields": {
         "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+      }
+    },
+    "preconditioning_configure": {
+      "name": "Vorklimatisierung Abfahrt konfigurieren",
+      "description": "Konfiguriert den Abfahrtszeit-Modus der Vorklimatisierung. Verwende Modus 0 (Deaktiviert) um die geplante Abfahrts-Vorklimatisierung abzubrechen.",
+      "fields": {
+        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "departure_time_mode": {
+          "name": "Abfahrtszeit-Modus",
+          "description": "0=Deaktiviert, 1=Einzelne Abfahrt, 2=Wöchentliche Abfahrt"
+        },
+        "departure_time": {
+          "name": "Abfahrtszeit",
+          "description": "Abfahrtszeit in Minuten nach Mitternacht (0-1439). Wird nur bei Modus > 0 verwendet."
+        }
       }
     },
     "sigpos_start": {
