@@ -49,6 +49,7 @@ RECONNECT_WATCHDOG_TIMEOUT = 60
 STATE_CONNECTED = "connected"
 STATE_RECONNECTING = "reconnecting"
 INITIATE_RELOGIN_AFTER_429 = True
+MAX_RELOGIN_ATTEMPTS = 3
 
 LOGGER = logging.getLogger(__name__)
 
@@ -125,7 +126,7 @@ class Websocket:
 
         self._queue_task: asyncio.Task = None
         self._websocket_task: asyncio.Task = None
-        self._relogin_429_done: bool = False
+        self._relogin_429_attempts: int = 0
         self._async_stop_call_count: int = 0
         self._connect_internal_active_count: int = 0
         self._blocked_since_time: float | None = None
@@ -408,7 +409,7 @@ class Websocket:
                     if self._blocked_since_time is None:
                         self._blocked_since_time = time.time()
 
-                    if INITIATE_RELOGIN_AFTER_429 and not self._relogin_429_done:
+                    if INITIATE_RELOGIN_AFTER_429 and self._relogin_429_attempts < MAX_RELOGIN_ATTEMPTS:
                         config_entry = getattr(self.oauth, "_config_entry", None)
                         if config_entry and "password" in config_entry.data:
                             password = config_entry.data["password"]
@@ -419,11 +420,15 @@ class Websocket:
                                 try:
                                     token_info = await self.oauth.async_login_new(username, password)
                                     self._LOGGER.info("Relogin successful after 429")
-                                    # Token im config_entry aktualisieren, falls nötig
-                                    self._relogin_429_done = True
+                                    self._relogin_429_attempts = MAX_RELOGIN_ATTEMPTS
                                 except Exception as relogin_err:
-                                    self._LOGGER.error("Relogin after 429 failed: %s", relogin_err)
-                                    self._relogin_429_done = True  # Auch bei Fehler nicht nochmal versuchen
+                                    self._relogin_429_attempts += 1
+                                    self._LOGGER.error(
+                                        "Relogin after 429 failed (attempt %d/%d): %s",
+                                        self._relogin_429_attempts,
+                                        MAX_RELOGIN_ATTEMPTS,
+                                        relogin_err,
+                                    )
 
                 self.ws_connect_retry_counter += 1
                 self.connection_state = STATE_RECONNECTING
@@ -463,6 +468,7 @@ class Websocket:
             # Reset blocked timestamp wenn Verbindung erfolgreich ist
             if self._blocked_since_time is not None:
                 self._blocked_since_time = None
+            self._relogin_429_attempts = 0
 
             msg = await self._connection.receive()
 
