@@ -2083,7 +2083,7 @@ class Client:
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.windows_move.pin = self.pin
+        message.commandRequest.windows_move.pin = _pin
         if front_left is not None:
             if front_left == 0:
                 message.commandRequest.windows_move.front_left.SetInParent()
