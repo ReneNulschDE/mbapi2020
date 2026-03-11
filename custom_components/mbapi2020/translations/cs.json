@@ -429,6 +429,10 @@
           "name": "VIN",
           "description": "VIN/FIN vozu"
         },
+        "pin": {
+          "name": "PIN",
+          "description": "Bezpečnostní PIN, vyžadován, pokud není uložen v nastavení."
+        },
         "front_left": {
           "name": "Přední levé",
           "description": "Nová pozice předního levého okna (0=zavřené, 10=ventilace, 100=otevřené)"

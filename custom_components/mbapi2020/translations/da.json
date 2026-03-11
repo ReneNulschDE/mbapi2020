@@ -429,6 +429,10 @@
           "name": "Vin",
           "description": "Bilens Vin/Fin"
         },
+        "pin": {
+          "name": "PIN-kode",
+          "description": "Sikkerhedskode (PIN), påkrævet hvis den ikke er gemt i indstillingerne."
+        },
         "front_left": {
           "name": "Venstre for",
           "description": "Den nye position for det venstre forvindue (0=lukket, 10=udluftning, 100=åbent)"

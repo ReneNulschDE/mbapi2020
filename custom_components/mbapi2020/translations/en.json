@@ -429,6 +429,10 @@
           "name": "Vin",
           "description": "Vin/Fin of the car"
         },
+        "pin": {
+          "name": "Pin",
+          "description": "Security pin, required if not stored in the settings."
+        },
         "front_left": {
           "name": "Front left",
           "description": "The new position of the front left window (0=closed, 10=ventilating, 100=open)"

@@ -429,6 +429,10 @@
           "name": "Chassisnummer",
           "description": "Chassisnummer van de auto"
         },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN-code, vereist als deze niet is opgeslagen in de instellingen."
+        },
         "front_left": {
           "name": "Voor links",
           "description": "De nieuwe positie van het linker voorraam (0=gesloten, 10=ventileren, 100=open)"

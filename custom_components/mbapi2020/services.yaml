@@ -111,7 +111,7 @@ battery_max_soc_configure:
             - "0"
             - "2"
             - "3"
-          translation_key: "charge_program" 
+          translation_key: "charge_program"
 
 charge_program_configure:
   description: "Command to select the charge program."
@@ -380,6 +380,12 @@ windows_move:
       description: "vin of the car"
       example: "Wxxxxxxxxxxxxxx"
       required: True
+      selector:
+        text:
+    pin:
+      description: "Security pin"
+      example: "1234"
+      required: False
       selector:
         text:
     front_left:

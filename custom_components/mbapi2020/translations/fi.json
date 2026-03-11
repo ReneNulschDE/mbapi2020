@@ -429,6 +429,10 @@
           "name": "Vin",
           "description": "Auton VIN/FIN-numero"
         },
+        "pin": {
+          "name": "Pin",
+          "description": "Turva-PIN, vaaditaan jos ei ole tallennettu asetuksiin."
+        },
         "front_left": {
           "name": "Vasen etu",
           "description": "Vasemman etuikkunan uusi asento (0=suljettu, 10=tuuletus, 100=auki)"

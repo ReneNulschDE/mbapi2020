@@ -429,6 +429,10 @@
           "name": "Vin",
           "description": "Vin/Fin du vehicule"
         },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de sécurité, requis s'il n'est pas enregistré dans les paramètres."
+        },
         "front_left": {
           "name": "Avant gauche",
           "description": "La nouvelle position de la vitre avant gauche (0=fermee, 10=entrebaillee, 100=ouverte)"

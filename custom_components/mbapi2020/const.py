@@ -246,6 +246,7 @@ SERVICE_VIN_CHARGE_PROGRAM_SCHEMA = vol.Schema(
 SERVICE_WINDOWS_MOVE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
+        vol.Optional(CONF_PIN): cv.string,
         vol.Optional("front_left", default=None): vol.Any(
             None,
             vol.All(vol.Coerce(int), vol.In([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])),

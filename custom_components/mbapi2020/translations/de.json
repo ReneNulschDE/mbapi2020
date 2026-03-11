@@ -351,6 +351,10 @@
       "description": "Bewegt die Fenster eines Fahrzeugs (VIN) auf eine neue Position. PIN-Einrichtung erforderlich.",
       "fields": {
         "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "pin": {
+          "name": "Pin",
+          "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert"
+        },
         "front_left": {
           "name": "Vorne links",
           "description": "Neue Position des vorderen linken Fensters (0=geschlossen, 10=belüftet, 100=offen)"

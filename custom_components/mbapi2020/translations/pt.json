@@ -429,6 +429,10 @@
           "name": "Vin",
           "description": "Vin/Fin do carro"
         },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN de segurança, necessário se não estiver guardado nas definições."
+        },
         "front_left": {
           "name": "Dianteira esquerda",
           "description": "A nova posição da janela dianteira esquerda (0=fechada, 10=ventilação, 100=aberta)"

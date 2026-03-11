@@ -2048,12 +2048,7 @@ class Client:
         LOGGER.info("End windows_close for vin %s", loghelper.Mask_VIN(vin))
 
     async def windows_move(
-        self,
-        vin: str,
-        front_left: int,
-        front_right: int,
-        rear_left: int,
-        rear_right: int,
+        self, vin: str, front_left: int, front_right: int, rear_left: int, rear_right: int, pin: str = ""
     ):
         """Send the windows move command to the car."""
         LOGGER.info(
@@ -2064,6 +2059,18 @@ class Client:
             rear_left,
             rear_right,
         )
+
+        if pin and pin.strip():
+            _pin = pin
+        else:
+            _pin = self.pin
+
+        if not _pin:
+            LOGGER.warning(
+                "Can't move the windows - car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
 
         if not self._is_car_feature_available(vin, "variableOpenableWindow"):
             LOGGER.warning(

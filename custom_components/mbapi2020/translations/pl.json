@@ -429,6 +429,10 @@
           "name": "VIN",
           "description": "VIN/FIN pojazdu"
         },
+        "pin": {
+          "name": "PIN",
+          "description": "PIN bezpieczeństwa, wymagany gdy nie zapisano w ustawieniach."
+        },
         "front_left": {
           "name": "Lewe przednie",
           "description": "Nowa pozycja przedniego lewego okna (0=zamknięte, 10=wentylacja, 100=otwarte)"

@@ -212,6 +212,7 @@ def setup_services(hass: HomeAssistant) -> None:
             call.data.get("front_right"),
             call.data.get("rear_left"),
             call.data.get("rear_right"),
+            call.data.get(CONF_PIN),
         )
 
     async def send_route_to_car(call) -> None:
