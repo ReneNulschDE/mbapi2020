@@ -101,6 +101,7 @@ class Client:
 
         self._first_vepupdates_processed: bool = False
         self._vepupdates_timeout_seconds: int = 25
+        self._vepupdates_time_first_message: datetime | None = None
 
         self.oauth: Oauth = Oauth(
             hass=self._hass,
