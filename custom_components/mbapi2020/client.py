@@ -1241,7 +1241,7 @@ class Client:
                 LOGGER.warning(
                     "charge_program_configure - Error: %s - %s",
                     err,
-                    self.cars.get(vin).electric.__getattribute__("chargePrograms"),
+                    getattr(self.cars.get(vin).electric, "chargePrograms", None),
                 )
 
         message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
