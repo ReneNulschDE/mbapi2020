@@ -183,6 +183,12 @@ engine_start:
       required: True
       selector:
         text:
+    pin:
+      description: "Security pin"
+      example: "1234"
+      required: False
+      selector:
+        text:
 
 engine_stop:
   description: "Stop the engine of a car defined by a vin."

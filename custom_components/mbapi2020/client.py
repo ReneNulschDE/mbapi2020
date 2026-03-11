@@ -1554,9 +1554,21 @@ class Client:
         await self.execute_car_command(message)
         LOGGER.info("End battery_max_soc_configure for vin %s", loghelper.Mask_VIN(vin))
 
-    async def engine_start(self, vin: str):
+    async def engine_start(self, vin: str, pin: str = ""):
         """Send the engine start command to the car."""
         LOGGER.info("Start engine start for vin %s", loghelper.Mask_VIN(vin))
+
+        if pin and pin.strip():
+            _pin = pin
+        else:
+            _pin = self.pin
+
+        if not _pin:
+            LOGGER.warning(
+                "Can't start the car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
 
         if not self._is_car_feature_available(vin, "ENGINE_START"):
             LOGGER.warning(
@@ -1567,16 +1579,9 @@ class Client:
 
         message = client_pb2.ClientMessage()
 
-        if not self.pin:
-            LOGGER.warning(
-                "Can't start the car %s. PIN not set. Please set the PIN -> Integration, Options ",
-                loghelper.Mask_VIN(vin),
-            )
-            return
-
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.engine_start.pin = self.pin
+        message.commandRequest.engine_start.pin = _pin
 
         await self.execute_car_command(message)
         LOGGER.info("End engine start for vin %s", loghelper.Mask_VIN(vin))

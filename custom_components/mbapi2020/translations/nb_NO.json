@@ -206,6 +206,10 @@
         "vin": {
           "name": "Vin",
           "description": "Bilens Vin/Fin"
+        },
+        "pin": {
+          "name": "PIN-kode",
+          "description": "Sikkerhetskode, påkrevd hvis den ikke er lagret i innstillingene."
         }
       }
     },

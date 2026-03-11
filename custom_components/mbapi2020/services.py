@@ -124,7 +124,10 @@ def setup_services(hass: HomeAssistant) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.doors_lock(call.data.get(CONF_VIN))
 
     async def engine_start(call) -> None:
-        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.engine_start(call.data.get(CONF_VIN))
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.engine_start(
+            call.data.get(CONF_VIN),
+            call.data.get(CONF_PIN),
+        )
 
     async def engine_stop(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.engine_stop(call.data.get(CONF_VIN))
@@ -257,7 +260,7 @@ def setup_services(hass: HomeAssistant) -> None:
         (SERVICE_DOORS_LOCK_URL, doors_lock, SERVICE_VIN_SCHEMA),
         (SERVICE_DOORS_UNLOCK_URL, doors_unlock, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_DOWNLOAD_IMAGES, download_images, SERVICE_VIN_SCHEMA),
-        (SERVICE_ENGINE_START, engine_start, SERVICE_VIN_SCHEMA),
+        (SERVICE_ENGINE_START, engine_start, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_ENGINE_STOP, engine_stop, SERVICE_VIN_SCHEMA),
         #        (SERVICE_HV_BATTERY_START_CONDITIONING, hv_battery_start_conditioning, SERVICE_VIN_SCHEMA),
         #        (SERVICE_HV_BATTERY_STOP_CONDITIONING, hv_battery_stop_conditioning, SERVICE_VIN_SCHEMA),

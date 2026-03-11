@@ -206,6 +206,10 @@
         "vin": {
           "name": "VIN",
           "description": "VIN/FIN pojazdu"
+        },
+        "pin": {
+          "name": "PIN",
+          "description": "PIN bezpieczeństwa, wymagany gdy nie zapisano w ustawieniach."
         }
       }
     },

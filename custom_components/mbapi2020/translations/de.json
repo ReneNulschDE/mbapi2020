@@ -179,7 +179,11 @@
       "name": "Motor starten",
       "description": "Startet den Motor eines Fahrzeugs (VIN). PIN-Einrichtung erforderlich.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "pin": {
+          "name": "Pin",
+          "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert"
+        }
       }
     },
     "engine_stop": {
