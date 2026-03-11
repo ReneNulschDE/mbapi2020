@@ -352,6 +352,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin של הרכב"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "קוד PIN אבטחה, נדרש אם לא נשמר בהגדרות."
         }
       }
     },

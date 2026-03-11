@@ -1687,9 +1687,21 @@ class Client:
         await self.execute_car_command(message)
         LOGGER.info("End sigpos_start for vin %s", loghelper.Mask_VIN(vin))
 
-    async def sunroof_open(self, vin: str):
+    async def sunroof_open(self, vin: str, pin: str = ""):
         """Send a sunroof open command to the car."""
         LOGGER.info("Start sunroof_open for vin %s", loghelper.Mask_VIN(vin))
+
+        if pin and pin.strip():
+            _pin = pin
+        else:
+            _pin = self.pin
+
+        if not _pin:
+            LOGGER.warning(
+                "Can't open the sunroof - car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
 
         if not self._is_car_feature_available(vin, "SUNROOF_OPEN"):
             LOGGER.warning(
@@ -1700,16 +1712,9 @@ class Client:
 
         message = client_pb2.ClientMessage()
 
-        if not self.pin:
-            LOGGER.warning(
-                "Can't open the sunroof - car %s. PIN not set. Please set the PIN -> Integration, Options ",
-                loghelper.Mask_VIN(vin),
-            )
-            return
-
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.sunroof_open.pin = self.pin
+        message.commandRequest.sunroof_open.pin = _pin
 
         await self.execute_car_command(message)
         LOGGER.info("End sunroof_open for vin %s", loghelper.Mask_VIN(vin))
