@@ -300,7 +300,8 @@
       "name": "Schiebedach kippen",
       "description": "Kippt das Schiebedach eines Fahrzeugs (VIN). PIN-Einrichtung erforderlich.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "pin": { "name": "Pin", "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert" }
       }
     },
     "sunroof_close": {

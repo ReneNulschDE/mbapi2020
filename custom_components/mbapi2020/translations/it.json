@@ -366,6 +366,10 @@
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin dell'auto"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN di sicurezza, necessario se non memorizzato nelle impostazioni."
         }
       }
     },

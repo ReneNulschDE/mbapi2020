@@ -366,6 +366,10 @@
         "vin": {
           "name": "Vin",
           "description": "Auton VIN/FIN-numero"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Turva-PIN, vaaditaan jos ei ole tallennettu asetuksiin."
         }
       }
     },

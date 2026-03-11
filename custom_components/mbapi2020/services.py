@@ -152,7 +152,10 @@ def setup_services(hass: HomeAssistant) -> None:
         )
 
     async def sunroof_tilt(call) -> None:
-        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.sunroof_tilt(call.data.get(CONF_VIN))
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.sunroof_tilt(
+            call.data.get(CONF_VIN),
+            call.data.get(CONF_PIN),
+        )
 
     async def sunroof_close(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.sunroof_close(call.data.get(CONF_VIN))
@@ -292,7 +295,7 @@ def setup_services(hass: HomeAssistant) -> None:
         (SERVICE_SEND_ROUTE, send_route_to_car, SERVICE_SEND_ROUTE_SCHEMA),
         (SERVICE_SIGPOS_START, sigpos_start, SERVICE_VIN_SCHEMA),
         (SERVICE_SUNROOF_OPEN, sunroof_open, SERVICE_VIN_PIN_SCHEMA),
-        (SERVICE_SUNROOF_TILT, sunroof_tilt, SERVICE_VIN_SCHEMA),
+        (SERVICE_SUNROOF_TILT, sunroof_tilt, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_SUNROOF_CLOSE, sunroof_close, SERVICE_VIN_SCHEMA),
         (SERVICE_TEMPERATURE_CONFIGURE, temperature_configure, SERVICE_TEMPERATURE_CONFIGURE_SCHEMA),
         (SERVICE_WINDOWS_OPEN, windows_open, SERVICE_VIN_PIN_SCHEMA),
