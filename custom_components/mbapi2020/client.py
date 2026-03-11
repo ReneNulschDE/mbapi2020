@@ -1038,7 +1038,6 @@ class Client:
             )
 
         self._build_car(vep_json, update_mode=False)
-
         if self._dataload_complete_fired:
             current_car = self.cars.get(vin)
             current_car.data_collection_mode = "pull"
@@ -1435,9 +1434,8 @@ class Client:
             Path(download_path).mkdir(parents=True, exist_ok=True)
 
             def save_images() -> None:
-                with Path.open(target_file_name, mode="wb") as zf:
+                with Path(target_file_name).open(mode="wb") as zf:
                     zf.write(zip_file)
-                    zf.close()
 
             try:
                 await self._hass.async_add_executor_job(save_images)
@@ -2155,9 +2153,8 @@ class Client:
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
 
-            current_file = Path.open(f"{path}/{datatype}{int(round(time.time() * 1000))}", "wb")
-            current_file.write(data.SerializeToString())
-            current_file.close()
+            with Path(f"{path}/{datatype}{int(round(time.time() * 1000))}").open("wb") as current_file:
+                current_file.write(data.SerializeToString())
 
             self.write_debug_json_output(MessageToJson(data, preserving_proto_field_name=True), datatype)
 
@@ -2168,12 +2165,13 @@ class Client:
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
 
-            current_file = Path.open(f"{path}/{datatype}{int(round(time.time() * 1000))}.json", "w")
-            if use_dumps:
-                current_file.write(f"{json.dumps(data, indent=4)}")
-            else:
-                current_file.write(f"{data}")
-            current_file.close()
+            with Path(f"{path}/{datatype}{int(round(time.time() * 1000))}.json").open(
+                "w", encoding="utf-8"
+            ) as current_file:
+                if use_dumps:
+                    current_file.write(f"{json.dumps(data, indent=4)}")
+                else:
+                    current_file.write(f"{data}")
 
     async def set_rlock_mode(self):
         """Set thread locking mode on init."""
