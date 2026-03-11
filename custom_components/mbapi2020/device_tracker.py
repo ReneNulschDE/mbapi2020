@@ -63,7 +63,7 @@ class MercedesMEDeviceTracker(MercedesMeEntity, TrackerEntity, RestoreEntity):
         if self._use_chinese_location_data:
             lng, lat = ch.gcj02_to_wgs84(gcj_lon=lng, gcj_lat=lat)
 
-        return lat if lat else None
+        return lat or None
 
     @property
     def longitude(self) -> float | None:
@@ -74,7 +74,7 @@ class MercedesMEDeviceTracker(MercedesMeEntity, TrackerEntity, RestoreEntity):
         if self._use_chinese_location_data:
             lng, lat = ch.gcj02_to_wgs84(gcj_lon=lng, gcj_lat=lat)
 
-        return lng if lng else None
+        return lng or None
 
     @property
     def source_type(self):
