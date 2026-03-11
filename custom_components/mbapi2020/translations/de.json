@@ -87,7 +87,10 @@
       "name": "Standheizung konfigurieren",
       "description": "Befehl zum Konfigurieren der Standheizung. Es ist möglich, drei Tageszeiten zu definieren und eine aktive Zeit auszuwählen.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "time_selection": {
           "name": "Zeit Auswahl",
           "description": "Aktiviertes Standheizungs-Preset (0=no_selection, 1=time_1, 2=time_2, 3=time_3)"
@@ -110,21 +113,30 @@
       "name": "Standheizung starten",
       "description": "Startet die Standheizung eines Fahrzeugs (VIN)",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "auxheat_stop": {
       "name": "Standheizung stoppen",
       "description": "Stoppt die Standheizung eines Fahrzeugs (VIN)",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "battery_max_soc_configure": {
       "name": "Maximale Akku-Ladezustand konfigurieren",
       "description": "Konfiguriert den maximalen Ladezustand der HV-Batterie für ein Fahrzeug (VIN).",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "max_soc": {
           "name": "Max Soc",
           "description": "Maximaler Ladezustand (muss zwischen 50 (einige neue Fahrzeuge wie der 2025 CLA unterstützen 30) und 100 liegen und durch 10 teilbar sein)"
@@ -139,7 +151,10 @@
       "name": "Ladeprogramm auswählen",
       "description": "Befehl zum Auswählen des Ladeprogramms.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "charge_program": {
           "name": "Ladeprogramm",
           "description": "Aktiviertes Ladeprogramm (0=Standard, 2=Zuhause, 3=Arbeit)"
@@ -154,7 +169,10 @@
       "name": "Türen entriegeln",
       "description": "Entriegelt ein Fahrzeug (VIN). PIN-Einrichtung erforderlich.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "pin": {
           "name": "Pin",
           "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert"
@@ -165,21 +183,30 @@
       "name": "Türen verriegeln",
       "description": "Verriegelt ein Fahrzeug (VIN)",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "download_images": {
       "name": "Bilder herunterladen",
       "description": "Lädt App-Bilder in den Ressourcenordner des Components herunter.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "engine_start": {
       "name": "Motor starten",
       "description": "Startet den Motor eines Fahrzeugs (VIN). PIN-Einrichtung erforderlich.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "pin": {
           "name": "Pin",
           "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert"
@@ -190,28 +217,40 @@
       "name": "Motor stoppen",
       "description": "Stoppt den Motor eines Fahrzeugs (VIN). PIN-Einrichtung erforderlich.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "hv_battery_start_conditioning": {
       "name": "HV-Batterie Konditionierung starten",
       "description": "Startet die HV-Batterie-Konditionierung eines Fahrzeugs (VIN).",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "hv_battery_stop_conditioning": {
       "name": "HV-Batterie Konditionierung stoppen",
       "description": "Stoppt die HV-Batterie-Konditionierung eines Fahrzeugs (VIN).",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "preconditioning_configure_seats": {
       "name": "Sitze vorklimatisieren konfigurieren",
       "description": "Sendet Sitzkonfigurationsbefehl für Vorklimatisierung an ein Fahrzeug (VIN).",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "front_left": {
           "name": "Vorne links",
           "description": "Aktivieren wenn Sitz vorne links vorklimatisiert werden soll"
@@ -234,7 +273,10 @@
       "name": "Vorklimatisierung starten",
       "description": "Startet die Vorklimatisierung eines Fahrzeugs (VIN).",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "type": {
           "name": "Typ",
           "description": "Methode zum Starten (0=Jetzt (Standard), 1=Sofort - Verwende 'Sofort' falls Fahrzeug 'Jetzt' nicht unterstützt)"
@@ -245,7 +287,10 @@
       "name": "Vorklimatisierung mit Abfahrtszeit starten",
       "description": "Startet die Vorklimatisierung mit gegebener Abfahrtszeit.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "time": {
           "name": "Zeit",
           "description": "Abfahrtszeit in Minuten nach Mitternacht (z. B. 8 Uhr = 480). Wertebereich 0-1439."
@@ -256,21 +301,30 @@
       "name": "Vorklimatisierung stoppen",
       "description": "Stoppt die Vorklimatisierung eines Fahrzeugs (VIN).",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "preheat_stop_departure_time": {
       "name": "Vorklimatisierung mit Abfahrtszeit stoppen",
       "description": "Stoppt konfigurierte Vorklimatisierung mit Abfahrtszeit.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "preconditioning_configure": {
       "name": "Vorklimatisierung Abfahrt konfigurieren",
       "description": "Konfiguriert den Abfahrtszeit-Modus der Vorklimatisierung. Verwende Modus 0 (Deaktiviert) um die geplante Abfahrts-Vorklimatisierung abzubrechen.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "departure_time_mode": {
           "name": "Abfahrtszeit-Modus",
           "description": "0=Deaktiviert, 1=Einzelne Abfahrt, 2=Wöchentliche Abfahrt"
@@ -285,37 +339,58 @@
       "name": "Signalposition starten",
       "description": "Startet Lichtsignal eines Fahrzeugs (VIN).",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "sunroof_open": {
       "name": "Schiebedach öffnen",
       "description": "Öffnet das Schiebedach eines Fahrzeugs (VIN). PIN-Einrichtung erforderlich.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
-        "pin": { "name": "Pin", "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert"
+        }
       }
     },
     "sunroof_tilt": {
       "name": "Schiebedach kippen",
       "description": "Kippt das Schiebedach eines Fahrzeugs (VIN). PIN-Einrichtung erforderlich.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
-        "pin": { "name": "Pin", "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert"
+        }
       }
     },
     "sunroof_close": {
       "name": "Schiebedach schließen",
       "description": "Schließt das Schiebedach eines Fahrzeugs (VIN).",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "temperature_configure": {
       "name": "Zieltemperatur konfigurieren (precond/auxheat)",
       "description": "Konfiguriert Zieltemperaturen für Zonen in einem Fahrzeug (VIN).",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "front_left": {
           "name": "Vorne links",
           "description": "Zieltemperatur für Zone vorne links in CELSIUS."
@@ -338,7 +413,10 @@
       "name": "Fenster öffnen",
       "description": "Öffnet die Fenster eines Fahrzeugs (VIN). PIN-Einrichtung erforderlich.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "pin": {
           "name": "Pin",
           "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert"
@@ -349,14 +427,20 @@
       "name": "Fenster schließen",
       "description": "Schließt die Fenster eines Fahrzeugs (VIN). PIN-Einrichtung erforderlich.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" }
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        }
       }
     },
     "windows_move": {
       "name": "Fenster bewegen",
       "description": "Bewegt die Fenster eines Fahrzeugs (VIN) auf eine neue Position. PIN-Einrichtung erforderlich.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
         "pin": {
           "name": "Pin",
           "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert"
@@ -383,8 +467,14 @@
       "name": "Route senden",
       "description": "Sendet eine Route an das Fahrzeug. (Nur ein Standort)",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
-        "title": { "name": "Titel", "description": "Titel der Route" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
+        "title": {
+          "name": "Titel",
+          "description": "Titel der Route"
+        },
         "latitude": {
           "name": "Breitengrad",
           "description": "Breitengrad des Standorts"
@@ -393,7 +483,10 @@
           "name": "Längengrad",
           "description": "Längengrad des Standorts"
         },
-        "city": { "name": "Stadt", "description": "Stadt des Standorts" },
+        "city": {
+          "name": "Stadt",
+          "description": "Stadt des Standorts"
+        },
         "postcode": {
           "name": "Postleitzahl",
           "description": "Postleitzahl des Standorts"
@@ -408,8 +501,14 @@
       "name": "Ladepausen Timer konfigurieren",
       "description": "Konfiguriert Ladepausen (nur AC). Überschreibt die komplette Konfiguration für alle Slots im Fahrzeug.",
       "fields": {
-        "vin": { "name": "Vin", "description": "Vin/Fin des Fahrzeugs" },
-        "status_timer_1": { "name": "Status (Timer 1)", "description": "" },
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
+        "status_timer_1": {
+          "name": "Status (Timer 1)",
+          "description": ""
+        },
         "starttime_timer_1": {
           "name": "Startzeit (Timer 1)",
           "description": "Startzeit des Ladepausefensters (Timer 1)"
@@ -418,7 +517,10 @@
           "name": "Endzeit (Timer 1)",
           "description": "Endzeit des Ladepausefensters (Timer 1)"
         },
-        "status_timer_2": { "name": "Status (Timer 2)", "description": "" },
+        "status_timer_2": {
+          "name": "Status (Timer 2)",
+          "description": ""
+        },
         "starttime_timer_2": {
           "name": "Startzeit (Timer 2)",
           "description": "Startzeit des Ladepausefensters (Timer 2)"
@@ -427,7 +529,10 @@
           "name": "Endzeit (Timer 2)",
           "description": "Endzeit des Ladepausefensters (Timer 2)"
         },
-        "status_timer_3": { "name": "Status (Timer 3)", "description": "" },
+        "status_timer_3": {
+          "name": "Status (Timer 3)",
+          "description": ""
+        },
         "starttime_timer_3": {
           "name": "Startzeit (Timer 3)",
           "description": "Startzeit des Ladepausefensters (Timer 3)"
@@ -436,7 +541,10 @@
           "name": "Endzeit (Timer 3)",
           "description": "Endzeit des Ladepausefensters (Timer 3)"
         },
-        "status_timer_4": { "name": "Status (Timer 4)", "description": "" },
+        "status_timer_4": {
+          "name": "Status (Timer 4)",
+          "description": ""
+        },
         "starttime_timer_4": {
           "name": "Startzeit (Timer 4)",
           "description": "Startzeit des Ladepausefensters (Timer 4)"
@@ -449,7 +557,11 @@
     }
   },
   "entity": {
-    "binary_sensor": { "chargingactive": { "name": "Ladevorgang aktiv" } },
+    "binary_sensor": {
+      "chargingactive": {
+        "name": "Ladevorgang aktiv"
+      }
+    },
     "sensor": {
       "chargingpowerecolimit": {
         "name": "Ladeleistungsbegrenzung"
@@ -503,7 +615,11 @@
         }
       },
       "departuretimemode": {
-        "state": { "0": "Deaktiviert", "1": "Täglich", "2": "Wöchentlich" }
+        "state": {
+          "0": "Deaktiviert",
+          "1": "Täglich",
+          "2": "Wöchentlich"
+        }
       },
       "ignitionstate": {
         "state": {
@@ -515,7 +631,11 @@
         }
       },
       "interiorprotectionsensorstatus": {
-        "state": { "0": "Nicht aktiv", "1": "Nicht aktiv", "2": "Aktiv" },
+        "state": {
+          "0": "Nicht aktiv",
+          "1": "Nicht aktiv",
+          "2": "Aktiv"
+        },
         "state_attributes": {}
       },
       "lock": {
@@ -529,47 +649,80 @@
         "state_attributes": {
           "decklidstatus": {
             "name": "Kofferraumklappe",
-            "state": { "false": "geschlossen", "true": "offen" }
+            "state": {
+              "false": "geschlossen",
+              "true": "offen"
+            }
           },
           "doorstatusfrontleft": {
             "name": "Tür vorne links",
-            "state": { "false": "geschlossen", "true": "offen" }
+            "state": {
+              "false": "geschlossen",
+              "true": "offen"
+            }
           },
           "doorstatusfrontright": {
             "name": "Tür vorne rechts",
-            "state": { "false": "geschlossen", "true": "offen" }
+            "state": {
+              "false": "geschlossen",
+              "true": "offen"
+            }
           },
           "doorstatusrearleft": {
             "name": "Tür hinten links",
-            "state": { "false": "geschlossen", "true": "offen" }
+            "state": {
+              "false": "geschlossen",
+              "true": "offen"
+            }
           },
           "doorstatusrearright": {
             "name": "Tür hinten rechts",
-            "state": { "false": "geschlossen", "true": "offen" }
+            "state": {
+              "false": "geschlossen",
+              "true": "offen"
+            }
           },
           "doorlockstatusfrontleft": {
             "name": "Türschloss vorne links",
-            "state": { "false": "verriegelt", "true": "entriegelt" }
+            "state": {
+              "false": "verriegelt",
+              "true": "entriegelt"
+            }
           },
           "doorlockstatusfrontright": {
             "name": "Türschloss vorne rechts",
-            "state": { "false": "verriegelt", "true": "entriegelt" }
+            "state": {
+              "false": "verriegelt",
+              "true": "entriegelt"
+            }
           },
           "doorlockstatusrearleft": {
             "name": "Türschloss hinten links",
-            "state": { "false": "verriegelt", "true": "entriegelt" }
+            "state": {
+              "false": "verriegelt",
+              "true": "entriegelt"
+            }
           },
           "doorlockstatusrearright": {
             "name": "Türschloss hinten rechts",
-            "state": { "false": "verriegelt", "true": "entriegelt" }
+            "state": {
+              "false": "verriegelt",
+              "true": "entriegelt"
+            }
           },
           "doorlockstatusgas": {
             "name": "Tankklappenschloss",
-            "state": { "false": "verriegelt", "true": "entriegelt" }
+            "state": {
+              "false": "verriegelt",
+              "true": "entriegelt"
+            }
           },
           "enginehoodstatus": {
             "name": "Motorhaube",
-            "state": { "false": "geschlossen", "true": "offen" }
+            "state": {
+              "false": "geschlossen",
+              "true": "offen"
+            }
           },
           "doorstatusoverall": {
             "name": "Allgemeiner Türstatus",
@@ -619,7 +772,11 @@
         "state_attributes": {}
       },
       "starterbatterystate": {
-        "state": { "0": "Grün", "1": "Gelb", "2": "Rot" }
+        "state": {
+          "0": "Grün",
+          "1": "Gelb",
+          "2": "Rot"
+        }
       },
       "tirewarningsrdk": {
         "state": {
@@ -639,13 +796,23 @@
       }
     },
     "switch": {
-      "auxheat": { "name": "Standheizung" },
-      "precond": { "name": "Vorklimatisierung" }
+      "auxheat": {
+        "name": "Standheizung"
+      },
+      "precond": {
+        "name": "Vorklimatisierung"
+      }
     },
     "button": {
-      "btn_preheat_start_now": { "name": "Vorklimatisierung starten" },
-      "btn_preheat_stop_now": { "name": "Vorklimatisierung stoppen" },
-      "btn_sigpos_start_now": { "name": "Signallicht blinken" }
+      "btn_preheat_start_now": {
+        "name": "Vorklimatisierung starten"
+      },
+      "btn_preheat_stop_now": {
+        "name": "Vorklimatisierung stoppen"
+      },
+      "btn_sigpos_start_now": {
+        "name": "Signallicht blinken"
+      }
     }
   },
   "selector": {
@@ -663,6 +830,11 @@
         "inactive": "Inaktiv"
       }
     },
-    "temperature_configure": { "options": { "0": "Niedrig", "30": "Hoch" } }
+    "temperature_configure": {
+      "options": {
+        "0": "Niedrig",
+        "30": "Hoch"
+      }
+    }
   }
 }
