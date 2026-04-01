@@ -1285,7 +1285,7 @@ class Client:
         config = pb2_commands.ChargingBreakClocktimerConfigure()
         entry_set: bool = False
 
-        if status_t1 and start_t1 and stop_t1 and status_t1 in ("active", "inactive"):
+        if status_t1 and start_t1 is not None and stop_t1 is not None and status_t1 in ("active", "inactive"):
             t1 = config.chargingbreak_clocktimer_configure_entry.add()
             t1.timerId = 1
             if status_t1 == "active":
@@ -1299,7 +1299,7 @@ class Client:
             t1.endTimeMinute = (stop_t1.seconds % 3600) // 60
             entry_set = True
 
-        if status_t2 and start_t2 and stop_t2 and status_t2 in ("active", "inactive"):
+        if status_t2 and start_t2 is not None and stop_t2 is not None and status_t2 in ("active", "inactive"):
             t2 = config.chargingbreak_clocktimer_configure_entry.add()
             t2.timerId = 2
             if status_t2 == "active":
@@ -1313,7 +1313,7 @@ class Client:
             t2.endTimeMinute = (stop_t2.seconds % 3600) // 60
             entry_set = True
 
-        if status_t3 and start_t3 and stop_t3 and status_t3 in ("active", "inactive"):
+        if status_t3 and start_t3 is not None and stop_t3 is not None and status_t3 in ("active", "inactive"):
             t3 = config.chargingbreak_clocktimer_configure_entry.add()
             t3.timerId = 3
             if status_t3 == "active":
@@ -1327,7 +1327,7 @@ class Client:
             t3.endTimeMinute = (stop_t3.seconds % 3600) // 60
             entry_set = True
 
-        if status_t4 and start_t4 and stop_t4 and status_t4 in ("active", "inactive"):
+        if status_t4 and start_t4 is not None and stop_t4 is not None and status_t4 in ("active", "inactive"):
             t4 = config.chargingbreak_clocktimer_configure_entry.add()
             t4.timerId = 4
             if status_t4 == "active":
