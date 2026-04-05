@@ -1,27 +1,19 @@
-# Security Policy
+# Security Notice
 
-## Reporting Security Issues
+## Hardcoded OAuth Client IDs
+- EU: `62778dc4-1de3-44f4-af95-115f06a3a008` (const.py line 113)
+- CN: `3f36efb1-f84b-4402-b5a2-68a118fec33e` (const.py line 114)
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+## Password Stored in HA Config Entry
+The user's Mercedes Me password is stored in the HA config_entry data
+(const.py line 90) and reused for automatic re-login on 429 errors
+(websocket.py line 414-420). This persists the password on disk.
 
-Please send an email to [secure-mbapi2020@nulsch.de](mailto:secure-mbapi2020@nulsch.de). 
+## ROPC Grant with PIN
+oauth.py line 390 sends credentials via password grant:
+`grant_type=password&username={email}&password={nonce}:{pin}`
 
-You should receive a response within 24 hours. If for some reason you do not, please follow up via email and keep in mind this project is the hobby of one person.
-
-Please include the requested information listed below (as much as you can provide) to help us better understand the nature and scope of the possible issue:
-
-  * Type of issue (e.g. buffer overflow, SQL injection, cross-site scripting, etc.)
-  * Full paths of source file(s) related to the manifestation of the issue
-  * The location of the affected source code (tag/branch/commit or direct URL)
-  * Any special configuration required to reproduce the issue
-  * Step-by-step instructions to reproduce the issue
-  * Proof-of-concept or exploit code (if possible)
-  * Impact of the issue, including how an attacker might exploit the issue
-
-This information will help me triage your report more quickly.
-
-If you are reporting for a bug bounty, then this is the wrong project. I do not have a bug bounty programm.
-
-## Preferred Languages
-
-I prefer all communications to be in English or German.
+## Recommendations
+1. Remove password from config_entry after initial login
+2. Use refresh_token exclusively for session recovery
+3. Move OAuth client IDs to environment variables
