@@ -253,6 +253,18 @@ class Client:
             ack_command.acknowledge_data_change_event.sequence_number = sequence_number
             return ack_command
 
+        if msg_type == "vehicle_status_updates":
+            self._write_debug_output(data, "vsu")
+            LOGGER.info(
+                "vehicle_status_updates - Data: %s",
+                MessageToJson(data, preserving_proto_field_name=True),
+            )
+            sequence_number = data.vehicle_status_updates.sequence_number
+            LOGGER.debug("vehicle_status_updates Sequence: %s", sequence_number)
+            ack_command = client_pb2.ClientMessage()
+            ack_command.acknowledge_vehicle_status_updates.sequence_number = sequence_number
+            return ack_command
+
         self._write_debug_output(data, "unk")
         LOGGER.debug("Message Type not implemented: %s", msg_type)
 
