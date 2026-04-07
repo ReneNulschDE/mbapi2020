@@ -254,9 +254,11 @@ class Watchdog:
 
     def cancel(self, *, graceful: bool = True):
         """Cancel the watchdog.
+
         graceful=True: stoppe nur den Timer; lasse einen laufenden expire-Task fertiglaufen.
         graceful=False: cancelt auch einen laufenden expire-Task (vorsichtig verwenden).
         """
+
         if self._timer_task:
             self._timer_task.cancel()
             self._timer_task = None
@@ -279,9 +281,9 @@ class Watchdog:
         """Log and act when the watchdog expires."""
         try:
             if self._log_events:
-                LOGGER.debug(f"{self._topic} Watchdog expired – calling {self._action.__name__}")
+                LOGGER.debug("%s Watchdog expired – calling %s", self._topic, self._action.__name__)
             await self._action()
-        except asyncio.CancelledError:
+        except asyncio.CancelledError:  # noqa: TRY203
             # Don't log here - will be logged in _on_expire_task_done callback
             raise
 
@@ -314,13 +316,13 @@ class Watchdog:
         if task.cancelled():
             # Task was cancelled - this is normal during shutdown
             if self._log_events:
-                LOGGER.debug(f"{self._topic} Watchdog expire task cancelled.")
+                LOGGER.debug("%s Watchdog expire task cancelled.", self._topic)
         else:
             # Safe exception handling - only check for exceptions if not cancelled
             try:
                 exc = task.exception()
                 if exc and self._log_events:
-                    LOGGER.error(f"{self._topic} Watchdog expire task failed: {exc}")
+                    LOGGER.error("%s Watchdog expire task failed: %s", self._topic, exc)
             except asyncio.CancelledError:
                 # This shouldn't happen, but just in case
                 pass
