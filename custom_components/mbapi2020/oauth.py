@@ -48,7 +48,7 @@ from .const import (
     X_APPLICATIONNAME_ECE,
     X_APPLICATIONNAME_US,
 )
-from .helper import UrlHelper as helper
+from .helper import LogHelper, UrlHelper as helper
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -409,7 +409,7 @@ class Oauth:
 
     async def request_pin(self, email: str, nonce: str):
         """Initiate a PIN request."""
-        _LOGGER.info("Start request PIN %s", email)
+        _LOGGER.info("Start request PIN %s", LogHelper.Mask_email(email))
         _LOGGER.debug("PIN preflight request 1")
         headers = self._get_header()
         url = f"{helper.Rest_url(self._region)}/v1/config"
