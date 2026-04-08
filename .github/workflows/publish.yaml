@@ -20,8 +20,10 @@ jobs:
       - name: Adjust version number
         if: ${{ github.event_name == 'release' }}
         shell: bash
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
-          yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
+          yq -i -o json ".version=\"$TAG_NAME\"" \
             "${{ github.workspace }}/custom_components/${{ steps.information.outputs.name }}/manifest.json"
       - name: Create zip file for the integration
         shell: bash
