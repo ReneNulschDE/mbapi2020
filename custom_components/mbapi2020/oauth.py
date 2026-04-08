@@ -474,12 +474,15 @@ class Oauth:
 
         if self.is_token_expired(token_info):
             async with self._get_token_lock:
-                _LOGGER.debug("%s token expired -> start refresh", __name__)
-                if not token_info or "refresh_token" not in token_info:
-                    _LOGGER.warning("Refresh token is missing - reauth required")
-                    return None
+                if not self.is_token_expired(self.token or token_info):
+                    token_info = self.token
+                else:
+                    _LOGGER.debug("%s token expired -> start refresh", __name__)
+                    if not token_info or "refresh_token" not in token_info:
+                        _LOGGER.warning("Refresh token is missing - reauth required")
+                        return None
 
-                token_info = await self.async_refresh_access_token(token_info["refresh_token"], is_retry=False)
+                    token_info = await self.async_refresh_access_token(token_info["refresh_token"], is_retry=False)
 
         self.token = token_info
         return token_info
