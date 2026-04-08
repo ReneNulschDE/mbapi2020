@@ -417,7 +417,7 @@ class Oauth:
 
         _LOGGER.info("PIN request")
         url = f"{helper.Rest_url(self._region)}/v1/login"
-        data = f'{{"emailOrPhoneNumber" : "{email}", "countryCode" : "{DEFAULT_COUNTRY_CODE}", "nonce" : "{nonce}"}}'
+        data = json.dumps({"emailOrPhoneNumber": email, "countryCode": DEFAULT_COUNTRY_CODE, "nonce": nonce})
         headers = self._get_header()
         return await self._async_request("post", url, data=data, headers=headers)
 
