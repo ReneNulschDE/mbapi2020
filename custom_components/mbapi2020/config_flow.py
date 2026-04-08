@@ -239,7 +239,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         """Manage the options."""
 
         if user_input is not None:
-            LOGGER.debug("user_input: %s", user_input)
+            LOGGER.debug(
+                "user_input: %s",
+                {k: ("xxxx" if v else v) if k == CONF_PIN else v for k, v in user_input.items()},
+            )
             if user_input[CONF_DELETE_AUTH_FILE] is True:
                 auth_file = self.hass.config.path(STORAGE_DIR, f"{TOKEN_FILE_PREFIX}-{self.config_entry.entry_id}")
                 LOGGER.warning("DELETE Auth Information requested %s", auth_file)
