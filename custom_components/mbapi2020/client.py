@@ -143,7 +143,7 @@ class Client:
 
         msg_type = data.WhichOneof("msg")
 
-        if self.websocket.ws_connect_retry_counter > 0:
+        if self.websocket and self.websocket.ws_connect_retry_counter > 0:
             self.websocket.ws_connect_retry_counter = 0
             self.websocket.ws_connect_retry_counter_reseted = True
 

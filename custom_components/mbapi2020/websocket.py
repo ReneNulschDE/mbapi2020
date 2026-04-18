@@ -287,6 +287,9 @@ class Websocket:
 
     async def call(self, message, car_command: bool = False):
         """Send a message to the MB websocket servers."""
+        if self.is_stopping:
+            return
+
         try:
             reconnect_task = None
 
