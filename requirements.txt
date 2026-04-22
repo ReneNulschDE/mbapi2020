@@ -1,2 +1,2 @@
-protobuf>=3.19.1
+protobuf>=7.34.1
 pre-commit
