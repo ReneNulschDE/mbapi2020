@@ -44,18 +44,6 @@ APP_STORE_COUNTRY_BY_REGION = {
     REGION_EUROPE: "de",
     REGION_NORAM: "us",
 }
-VERSION_KEY_CANDIDATES = (
-    "minimumVersion",
-    "minimumAppVersion",
-    "minimumSupportedVersion",
-    "minVersion",
-    "minAppVersion",
-    "recommendedVersion",
-    "latestVersion",
-    "appVersion",
-    "version",
-)
-VERSION_PATTERN = re.compile(r"\d+\.\d+(?:\.\d+)?(?:\s*\(\d+\))?")
 APP_STORE_ID_PATTERN = re.compile(r"/id(\d+)")
 
 
@@ -177,14 +165,12 @@ class AppVersionManager:
             if status not in UPDATE_REQUIRED_STATUSES:
                 return False
 
-            new_version = self._extract_version(force_update)
-            if not new_version:
-                new_version = await self._lookup_app_store_version(session, force_update.get("storeUrl"))
+            new_version = await self._lookup_app_store_version(session, force_update.get("storeUrl"))
             if not new_version:
                 LOGGER.warning(
                     (
                         "Mercedes app config requested status %s for %s, but no newer version could be "
-                        "extracted from forceUpdate or the App Store."
+                        "resolved from the App Store fallback."
                     ),
                     status,
                     self._region,
@@ -307,48 +293,3 @@ class AppVersionManager:
             header["Accept-Encoding"] = "gzip"
             header["Sec-WebSocket-Extensions"] = "permessage-deflate"
         return header
-
-    def _extract_version(self, data: dict[str, Any]) -> str | None:
-        """Extract the most likely app version from a forceUpdate payload."""
-        for key in VERSION_KEY_CANDIDATES:
-            version = self._extract_version_from_value(data.get(key))
-            if version:
-                return version
-
-        for key, value in data.items():
-            lower_key = key.lower()
-            if "version" in lower_key and "sdk" not in lower_key and "os" not in lower_key:
-                version = self._extract_version_from_value(value)
-                if version:
-                    return version
-
-            if isinstance(value, dict):
-                version = self._extract_version(value)
-                if version:
-                    return version
-
-            if isinstance(value, list):
-                for item in value:
-                    if isinstance(item, dict):
-                        version = self._extract_version(item)
-                        if version:
-                            return version
-
-        return None
-
-    def _extract_version_from_value(self, value: Any) -> str | None:
-        """Extract a version-looking string from nested config values."""
-        if isinstance(value, str):
-            match = VERSION_PATTERN.search(value)
-            return match.group(0) if match else None
-        if isinstance(value, dict):
-            for nested_value in value.values():
-                version = self._extract_version_from_value(nested_value)
-                if version:
-                    return version
-        if isinstance(value, list):
-            for item in value:
-                version = self._extract_version_from_value(item)
-                if version:
-                    return version
-        return None
