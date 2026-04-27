@@ -17,25 +17,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from .app_version import AppVersionManager
 from .const import (
-    REGION_APAC,
-    REGION_CHINA,
-    REGION_EUROPE,
-    REGION_NORAM,
-    RIS_APPLICATION_VERSION,
-    RIS_APPLICATION_VERSION_CN,
-    RIS_APPLICATION_VERSION_NA,
-    RIS_APPLICATION_VERSION_PA,
     RIS_OS_NAME,
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
-    RIS_SDK_VERSION_CN,
     SYSTEM_PROXY,
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
-    WEBSOCKET_USER_AGENT_CN,
-    WEBSOCKET_USER_AGENT_PA,
-    WEBSOCKET_USER_AGENT_US,
 )
 from .helper import LogHelper as loghelper, UrlHelper as helper, Watchdog
 from .oauth import Oauth
@@ -68,7 +57,13 @@ class Websocket:
     _instance_counter: int = 0
 
     def __init__(
-        self, hass, oauth, region, session_id=str(uuid.uuid4()).upper(), ignition_states: dict[str, bool] | None = None
+        self,
+        hass,
+        oauth,
+        region,
+        session_id=str(uuid.uuid4()).upper(),
+        ignition_states: dict[str, bool] | None = None,
+        app_version: AppVersionManager | None = None,
     ) -> None:
         """Initialize."""
         Websocket._instance_counter += 1
@@ -82,6 +77,7 @@ class Websocket:
         self._on_data_received: Callable[..., Awaitable] = None
         self._connection = None
         self._region = region
+        self._app_version = app_version or AppVersionManager(region)
         self.connection_state = "unknown"
         self.is_connecting = False
         self.ha_stop_handler = None
@@ -488,6 +484,8 @@ class Websocket:
                 await self._watchdog.trigger()
 
     async def _websocket_connection_headers(self):
+        session = async_get_clientsession(self._hass, VERIFY_SSL)
+        await self._app_version.async_refresh(session)
         token = await self.oauth.async_get_cached_token()
         header = {
             "Authorization": token["access_token"],
@@ -507,30 +505,7 @@ class Websocket:
         return self._get_region_header(header)
 
     def _get_region_header(self, header) -> list:
-        if self._region == REGION_EUROPE:
-            header["X-ApplicationName"] = "mycar-store-ece"
-            header["ris-application-version"] = RIS_APPLICATION_VERSION
-
-        if self._region == REGION_NORAM:
-            header["X-ApplicationName"] = "mycar-store-us"
-            header["ris-application-version"] = RIS_APPLICATION_VERSION_NA
-            header["User-Agent"] = WEBSOCKET_USER_AGENT_US
-            header["X-Locale"] = "en-US"
-            header["Accept-Encoding"] = "gzip"
-            header["Sec-WebSocket-Extensions"] = "permessage-deflate"
-
-        if self._region == REGION_APAC:
-            header["X-ApplicationName"] = "mycar-store-ap"
-            header["ris-application-version"] = RIS_APPLICATION_VERSION_PA
-            header["User-Agent"] = WEBSOCKET_USER_AGENT_PA
-
-        if self._region == REGION_CHINA:
-            header["X-ApplicationName"] = "mycar-store-cn"
-            header["ris-application-version"] = RIS_APPLICATION_VERSION_CN
-            header["User-Agent"] = WEBSOCKET_USER_AGENT_CN
-            header["ris-sdk-version"] = RIS_SDK_VERSION_CN
-
-        return header
+        return self._app_version.apply_websocket_headers(header)
 
     async def _blocked_account_reload_check(self):
         if self.account_blocked and self.ws_connect_retry_counter_reseted:

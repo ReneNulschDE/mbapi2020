@@ -15,16 +15,12 @@ import google.protobuf.message
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from .app_version import AppVersionManager
 from .const import (
-    REGION_CHINA,
-    RIS_APPLICATION_VERSION,
     RIS_OS_VERSION,
-    RIS_SDK_VERSION,
     SYSTEM_PROXY,
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
-    WEBSOCKET_USER_AGENT_CN,
-    X_APPLICATIONNAME,
 )
 from .helper import UrlHelper as helper
 from .oauth import Oauth
@@ -42,11 +38,13 @@ class WebApi:
         oauth: Oauth,
         session: ClientSession,
         region: str,
+        app_version: AppVersionManager,
     ) -> None:
         """Initialize."""
         self._session: ClientSession = session
         self._oauth: Oauth = oauth
         self._region = region
+        self._app_version = app_version
         self.hass = hass
         self.session_id = str(uuid.uuid4()).upper()
 
@@ -67,29 +65,27 @@ class WebApi:
 
         token = await self._oauth.async_get_cached_token()
 
+        if not self._session or self._session.closed:
+            self._session = async_get_clientsession(self.hass, VERIFY_SSL)
+
         if not rcp_headers:
+            await self._app_version.async_refresh(self._session)
             kwargs["headers"] = {
                 "Authorization": f"Bearer {token['access_token']}",
                 "X-SessionId": self.session_id,
                 "X-TrackingId": str(uuid.uuid4()).upper(),
-                "X-ApplicationName": X_APPLICATIONNAME,
-                "ris-application-version": RIS_APPLICATION_VERSION,
                 "ris-os-name": "ios",
                 "ris-os-version": RIS_OS_VERSION,
-                "ris-sdk-version": RIS_SDK_VERSION,
                 "X-Locale": "de-DE",
-                "User-Agent": WEBSOCKET_USER_AGENT,
                 "Content-Type": "application/json; charset=UTF-8",
             }
+            self._app_version.apply_webapi_headers(kwargs["headers"])
         else:
             kwargs["headers"] = {
                 "Authorization": f"Bearer {token['access_token']}",
                 "User-Agent": WEBSOCKET_USER_AGENT,
                 "Accept-Language": "de-DE;q=1.0, en-DE;q=0.9",
             }
-
-        if not self._session or self._session.closed:
-            self._session = async_get_clientsession(self.hass, VERIFY_SSL)
 
         try:
             if "url" in kwargs:
