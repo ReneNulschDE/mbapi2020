@@ -12,12 +12,12 @@ import uuid
 
 from aiohttp import ClientSession, WSMsgType, WSServerHandshakeError, client_exceptions
 
+from custom_components.mbapi2020.app_version import AppVersionManager
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .app_version import AppVersionManager
 from .const import (
     RIS_OS_NAME,
     RIS_OS_VERSION,

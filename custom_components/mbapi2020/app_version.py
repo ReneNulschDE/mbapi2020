@@ -7,7 +7,6 @@ from dataclasses import dataclass
 import logging
 import re
 import time
-from urllib.parse import urlparse
 from urllib.parse import urlencode
 import uuid
 from typing import Any
@@ -70,16 +69,22 @@ def _build_region_profile(region: str) -> RegionAppProfile:
                 sdk_version=RIS_SDK_VERSION,
                 oauth_user_agent=WEBSOCKET_USER_AGENT,
                 webapi_user_agent=WEBSOCKET_USER_AGENT,
-                websocket_user_agent_template="mycar-store-us v{version}, ios 26.3, SDK 4.4.2",
+                websocket_user_agent_template=(
+                    f"mycar-store-us v{{version}}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
+                ),
             )
         case current if current == REGION_APAC:
             return RegionAppProfile(
                 application_name="mycar-store-ap",
                 default_version=RIS_APPLICATION_VERSION_PA,
                 sdk_version=RIS_SDK_VERSION,
-                oauth_user_agent=f"mycar-store-ap {RIS_APPLICATION_VERSION_PA}, ios 26.3, SDK 4.4.2",
+                oauth_user_agent=(
+                    f"mycar-store-ap {RIS_APPLICATION_VERSION_PA}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
+                ),
                 webapi_user_agent=WEBSOCKET_USER_AGENT,
-                websocket_user_agent_template="mycar-store-ap {version}, ios 26.3, SDK 4.4.2",
+                websocket_user_agent_template=(
+                    f"mycar-store-ap {{version}}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
+                ),
             )
         case current if current == REGION_CHINA:
             return RegionAppProfile(
@@ -130,7 +135,7 @@ class AppVersionManager:
     def oauth_user_agent(self) -> str:
         """Return the user agent used for OAuth/config calls."""
         if self._region == REGION_APAC:
-            return f"mycar-store-ap {self._application_version}, ios 26.3, SDK 4.4.2"
+            return f"mycar-store-ap {self._application_version}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
         return self._profile.oauth_user_agent
 
     def webapi_user_agent(self) -> str:
@@ -153,9 +158,9 @@ class AppVersionManager:
                 return False
 
             config = await self._fetch_remote_config(session)
+            self._last_check_monotonic = time.monotonic()
             if not isinstance(config, dict):
                 return False
-            self._last_check_monotonic = time.monotonic()
 
             force_update = config.get("forceUpdate")
             if not isinstance(force_update, dict):
@@ -231,7 +236,7 @@ class AppVersionManager:
             return None
 
         params = {"id": match.group(1)}
-        if country := self._get_app_store_country(store_url):
+        if country := APP_STORE_COUNTRY_BY_REGION.get(self._region):
             params["country"] = country
 
         url = f"https://itunes.apple.com/lookup?{urlencode(params)}"
@@ -257,14 +262,6 @@ class AppVersionManager:
 
         version = results[0].get("version")
         return version if isinstance(version, str) else None
-
-    def _get_app_store_country(self, store_url: str) -> str | None:
-        """Resolve the App Store storefront country for lookups."""
-        path_parts = [part for part in urlparse(store_url).path.split("/") if part]
-        if path_parts and len(path_parts[0]) == 2:
-            return path_parts[0].lower()
-
-        return APP_STORE_COUNTRY_BY_REGION.get(self._region)
 
     def apply_oauth_headers(self, header: dict[str, str]) -> dict[str, str]:
         """Apply region-specific OAuth request headers."""

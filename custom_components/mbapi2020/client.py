@@ -24,7 +24,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import system_info
 
-from .app_version import AppVersionManager
+from custom_components.mbapi2020.app_version import AppVersionManager
 from .car import (
     AUX_HEAT_OPTIONS,
     BINARY_SENSOR_OPTIONS,

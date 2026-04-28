@@ -17,8 +17,8 @@ import uuid
 import aiohttp
 from aiohttp import ClientSession
 
-from .app_version import AppVersionManager
 from custom_components.mbapi2020.errors import MBAuth2FAError, MBAuthError, MBLegalTermsError
+from custom_components.mbapi2020.app_version import AppVersionManager
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
