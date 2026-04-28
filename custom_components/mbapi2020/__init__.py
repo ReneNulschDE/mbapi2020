@@ -285,6 +285,9 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     if len(hass.data[DOMAIN][config_entry.entry_id].client.cars) > 0:
         # Cancel all watchdogs on final shutdown
         websocket = hass.data[DOMAIN][config_entry.entry_id].client.websocket
+        # Mark instance as unloaded so any in-flight shutdown task does not re-arm the
+        # reconnect watchdog after we have already cancelled it (race during 429 reload).
+        websocket._unloaded = True
         websocket._reconnectwatchdog.cancel()
         websocket._watchdog.cancel()
         websocket._pingwatchdog.cancel()

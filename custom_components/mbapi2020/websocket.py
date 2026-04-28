@@ -18,6 +18,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
+    DOMAIN,
     REGION_APAC,
     REGION_CHINA,
     REGION_EUROPE,
@@ -131,9 +132,16 @@ class Websocket:
         self._connect_internal_active_count: int = 0
         self._blocked_since_time: float | None = None
         self._last_backup_reload_time: float | None = None
+        # Set by async_unload_entry to prevent dangling tasks (e.g. _graceful_shutdown_and_optionally_reconnect)
+        # from re-arming watchdogs after the integration has been unloaded.
+        self._unloaded: bool = False
 
     async def _reconnect_attempt(self) -> None:
         """Attempt reconnection without cancelling the reconnect watchdog."""
+        if self._is_orphaned():
+            self._LOGGER.debug("Aborting reconnect attempt – instance is orphaned")
+            return
+
         self._LOGGER.debug("Starting reconnect attempt")
         try:
             await self._async_connect_internal()
@@ -141,9 +149,31 @@ class Websocket:
             self._LOGGER.error("Reconnect attempt failed: %s (%s)", err, type(err).__name__)
         finally:
             # Re-trigger reconnect watchdog if not stopping and not connected
-            if not self.is_stopping and self.connection_state != STATE_CONNECTED:
+            if not self.is_stopping and self.connection_state != STATE_CONNECTED and not self._is_orphaned():
                 self._LOGGER.debug("Re-triggering reconnect watchdog after failed attempt")
                 await self._reconnectwatchdog.trigger()
+
+    def _is_orphaned(self) -> bool:
+        """Return True if this websocket instance no longer belongs to an active config entry.
+
+        A reload replaces the websocket on the config entry's data slot. If this instance is
+        not the one currently registered, it must not start new connections or re-arm watchdogs.
+        """
+        if self._unloaded:
+            return True
+        config_entry = getattr(self.oauth, "_config_entry", None)
+        if config_entry is None:
+            return True
+        domain_data = self._hass.data.get(DOMAIN)
+        if not domain_data:
+            return True
+        entry_data = domain_data.get(config_entry.entry_id)
+        if entry_data is None:
+            return True
+        client = getattr(entry_data, "client", None)
+        if client is None:
+            return True
+        return getattr(client, "websocket", None) is not self
 
     async def async_connect(self, on_data=None) -> None:
         """Connect to the socket."""
@@ -271,8 +301,11 @@ class Websocket:
         try:
             await self.async_stop()
         finally:
-            # Wenn direkt ein Reconnect gewollt ist, hier starten:
-            await self._reconnectwatchdog.trigger()
+            if self._unloaded:
+                self._LOGGER.debug("Skipping reconnect watchdog re-arm – instance unloaded")
+            else:
+                # Wenn direkt ein Reconnect gewollt ist, hier starten:
+                await self._reconnectwatchdog.trigger()
 
     async def ping(self):
         """Send a ping to the MB websocket servers."""
