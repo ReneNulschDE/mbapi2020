@@ -18,6 +18,7 @@ import aiohttp
 from aiohttp import ClientSession
 
 from custom_components.mbapi2020.errors import MBAuth2FAError, MBAuthError, MBLegalTermsError
+from custom_components.mbapi2020.app_version import AppVersionManager
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
@@ -27,26 +28,13 @@ from .const import (
     DEFAULT_LOCALE,
     LOGIN_APP_ID_CN,
     LOGIN_APP_ID_EU,
-    REGION_APAC,
     REGION_CHINA,
-    REGION_EUROPE,
-    REGION_NORAM,
-    RIS_APPLICATION_VERSION,
-    RIS_APPLICATION_VERSION_CN,
-    RIS_APPLICATION_VERSION_NA,
-    RIS_APPLICATION_VERSION_PA,
     RIS_OS_NAME,
     RIS_OS_VERSION,
     RIS_SDK_VERSION,
     SYSTEM_PROXY,
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
-    WEBSOCKET_USER_AGENT_CN,
-    WEBSOCKET_USER_AGENT_PA,
-    X_APPLICATIONNAME_AP,
-    X_APPLICATIONNAME_CN,
-    X_APPLICATIONNAME_ECE,
-    X_APPLICATIONNAME_US,
 )
 from .helper import LogHelper, UrlHelper as helper
 
@@ -67,12 +55,14 @@ class Oauth:
         session: ClientSession,
         region: str,
         config_entry: ConfigEntry,
+        app_version: AppVersionManager,
     ) -> None:
         """Initialize the extended OAuth instance."""
         self._session: ClientSession = session
         self._region: str = region
         self._hass = hass
         self._config_entry = config_entry
+        self._app_version = app_version
         self.token = None
         self._sessionid = ""
         self._get_token_lock = asyncio.Lock()
@@ -411,6 +401,7 @@ class Oauth:
         """Initiate a PIN request."""
         _LOGGER.info("Start request PIN %s", LogHelper.Mask_email(email))
         _LOGGER.debug("PIN preflight request 1")
+        await self._app_version.async_refresh(self._session, force=True)
         headers = self._get_header()
         url = f"{helper.Rest_url(self._region)}/v1/config"
         await self._async_request("get", url, headers=headers)
@@ -426,6 +417,7 @@ class Oauth:
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
 
         _LOGGER.debug("Auth token refresh preflight request 1")
+        await self._app_version.async_refresh(self._session, force=True)
         headers = self._get_header()
         url = f"{helper.Rest_url(self._region)}/v1/config"
         await self._async_request("get", url, headers=headers)
@@ -539,25 +531,7 @@ class Oauth:
 
     def _get_region_header(self, header):
         """Get region-specific headers."""
-        if self._region == REGION_EUROPE:
-            header["X-Applicationname"] = X_APPLICATIONNAME_ECE
-            header["Ris-Application-Version"] = RIS_APPLICATION_VERSION
-
-        if self._region == REGION_NORAM:
-            header["X-Applicationname"] = X_APPLICATIONNAME_US
-            header["Ris-Application-Version"] = RIS_APPLICATION_VERSION_NA
-
-        if self._region == REGION_APAC:
-            header["X-Applicationname"] = X_APPLICATIONNAME_AP
-            header["Ris-Application-Version"] = RIS_APPLICATION_VERSION_PA
-            header["User-Agent"] = WEBSOCKET_USER_AGENT_PA
-
-        if self._region == REGION_CHINA:
-            header["X-Applicationname"] = X_APPLICATIONNAME_CN
-            header["Ris-Application-Version"] = RIS_APPLICATION_VERSION_CN
-            header["User-Agent"] = WEBSOCKET_USER_AGENT_CN
-
-        return header
+        return self._app_version.apply_oauth_headers(header)
 
     async def _async_request(self, method: str, url: str, data: str = "", **kwargs):
         """Make a request against the API."""

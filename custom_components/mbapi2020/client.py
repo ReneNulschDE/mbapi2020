@@ -24,6 +24,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import system_info
 
+from custom_components.mbapi2020.app_version import AppVersionManager
 from .car import (
     AUX_HEAT_OPTIONS,
     BINARY_SENSOR_OPTIONS,
@@ -102,15 +103,23 @@ class Client:
         self._first_vepupdates_processed: bool = False
         self._vepupdates_timeout_seconds: int = 25
         self._vepupdates_time_first_message: datetime | None = None
+        self.app_version = AppVersionManager(self._region)
 
         self.oauth: Oauth = Oauth(
             hass=self._hass,
             session=session,
             region=self._region,
             config_entry=config_entry,
+            app_version=self.app_version,
         )
         self.oauth.session_id = self.session_id
-        self.webapi: WebApi = WebApi(self._hass, session=session, oauth=self.oauth, region=self._region)
+        self.webapi: WebApi = WebApi(
+            self._hass,
+            session=session,
+            oauth=self.oauth,
+            region=self._region,
+            app_version=self.app_version,
+        )
         self.webapi.session_id = self.session_id
         self.websocket: Websocket = Websocket(
             hass=self._hass,
@@ -118,6 +127,7 @@ class Client:
             region=self._region,
             session_id=self.session_id,
             ignition_states=self.ignition_states,
+            app_version=self.app_version,
         )
 
         self.cars: dict[str, Car] = {}
