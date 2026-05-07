@@ -178,6 +178,19 @@ class Websocket:
         self._reconnectwatchdog.cancel(graceful=True)
         await self._async_connect_internal(on_data)
 
+    async def _force_immediate_reconnect_for_command(self) -> None:
+        """Bypass the reconnect cooldown for user-initiated car commands.
+
+        The reconnect watchdog normally waits RECONNECT_WATCHDOG_TIMEOUT seconds
+        after a disconnect (protects against 429 blocking under background traffic).
+        A user-initiated car command must not be silently dropped during that window,
+        so cancel the pending watchdog and clear is_stopping; the call() path will
+        then spawn an immediate async_connect().
+        """
+        self._LOGGER.debug("Forcing immediate reconnect for car command (bypassing reconnect cooldown)")
+        self._reconnectwatchdog.cancel(graceful=True)
+        self.is_stopping = False
+
     async def _async_connect_internal(self, on_data=None) -> None:
         """Internal connect method without cancelling reconnect watchdog."""
         if self.is_connecting:
@@ -317,8 +330,14 @@ class Websocket:
 
     async def call(self, message, car_command: bool = False):
         """Send a message to the MB websocket servers."""
-        if self.is_stopping:
+        if self._unloaded:
             return
+
+        if self.is_stopping and not car_command:
+            return
+
+        if car_command and self.is_stopping:
+            await self._force_immediate_reconnect_for_command()
 
         try:
             reconnect_task = None
