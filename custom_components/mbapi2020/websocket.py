@@ -636,7 +636,7 @@ class Websocket:
                 self._LOGGER.warning("websocket task didn't finish in time, cancelling")
                 if self._websocket_task:
                     self._websocket_task.cancel()
-                with contextlib.suppress(Exception):
+                with contextlib.suppress(Exception, asyncio.CancelledError):
                     await self._websocket_task
             except asyncio.CancelledError:
                 # Beim Shutdown ignorieren
@@ -648,7 +648,7 @@ class Websocket:
                 await asyncio.shield(asyncio.wait_for(self._queue_task, timeout=2.0))
             except asyncio.TimeoutError:
                 self._queue_task.cancel()
-                with contextlib.suppress(Exception):
+                with contextlib.suppress(Exception, asyncio.CancelledError):
                     await self._queue_task
             except asyncio.CancelledError:
                 pass
