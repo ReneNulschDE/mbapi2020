@@ -593,6 +593,14 @@
           "3": "Ukendt"
         }
       },
+      "chargeflapstate": {
+        "state": {
+          "open": "Åben",
+          "closed": "Lukket",
+          "pressed": "Klap trykket",
+          "unknown": "Ukendt"
+        }
+      },
       "chargingstatus": {
         "state": {
           "0": "oplader",

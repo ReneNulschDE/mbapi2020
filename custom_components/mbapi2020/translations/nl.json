@@ -593,6 +593,14 @@
           "3": "Onbekend"
         }
       },
+      "chargeflapstate": {
+        "state": {
+          "open": "Open",
+          "closed": "Gesloten",
+          "pressed": "Klep ingedrukt",
+          "unknown": "Onbekend"
+        }
+      },
       "chargingstatus": {
         "state": {
           "0": "Opladen",

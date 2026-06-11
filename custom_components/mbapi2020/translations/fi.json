@@ -593,6 +593,14 @@
           "3": "Tuntematon"
         }
       },
+      "chargeflapstate": {
+        "state": {
+          "open": "Auki",
+          "closed": "Suljettu",
+          "pressed": "Luukku painettu",
+          "unknown": "Tuntematon"
+        }
+      },
       "chargingstatus": {
         "state": {
           "0": "ladataan",

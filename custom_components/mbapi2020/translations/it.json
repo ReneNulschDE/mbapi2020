@@ -593,6 +593,14 @@
           "3": "Sconosciuto"
         }
       },
+      "chargeflapstate": {
+        "state": {
+          "open": "Aperto",
+          "closed": "Chiuso",
+          "pressed": "Sportellino premuto",
+          "unknown": "Sconosciuto"
+        }
+      },
       "chargingstatus": {
         "state": {
           "0": "In ricarica",
