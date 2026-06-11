@@ -596,8 +596,8 @@
       "chargeflapstate": {
         "state": {
           "open": "Ouvert",
-          "closed": "Ferme",
-          "pressed": "Trappe pressee",
+          "closed": "Fermée",
+          "pressed": "Trappe pressée",
           "unknown": "Inconnu"
         }
       },

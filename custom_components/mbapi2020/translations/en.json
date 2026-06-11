@@ -597,7 +597,7 @@
         "state": {
           "open": "Open",
           "closed": "Closed",
-          "pressed": "Flap pressed",
+          "pressed": "Pressed",
           "unknown": "Unknown"
         }
       },

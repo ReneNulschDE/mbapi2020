@@ -595,8 +595,8 @@
       },
       "chargeflapstate": {
         "state": {
-          "open": "Abierto",
-          "closed": "Cerrado",
+          "open": "Abierta",
+          "closed": "Cerrada",
           "pressed": "Aleta presionada",
           "unknown": "Desconocido"
         }
