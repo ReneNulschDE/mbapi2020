@@ -593,6 +593,14 @@
           "3": "לא ידוע"
         }
       },
+      "chargeflapstate": {
+        "state": {
+          "open": "פתוח",
+          "closed": "סגור",
+          "pressed": "מכסה לחוץ",
+          "unknown": "לא ידוע"
+        }
+      },
       "chargingstatus": {
         "state": {
           "0": "טוען",

@@ -593,6 +593,14 @@
           "3": "Unknown"
         }
       },
+      "chargeflapstate": {
+        "state": {
+          "open": "Open",
+          "closed": "Closed",
+          "pressed": "Pressed",
+          "unknown": "Unknown"
+        }
+      },
       "chargingstatus": {
         "state": {
           "0": "charging",

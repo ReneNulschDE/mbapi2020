@@ -593,6 +593,14 @@
           "3": "Neznámé"
         }
       },
+      "chargeflapstate": {
+        "state": {
+          "open": "Otevřené",
+          "closed": "Zavřené",
+          "pressed": "Klapka stisknuta",
+          "unknown": "Neznámé"
+        }
+      },
       "chargingstatus": {
         "state": {
           "0": "Nabíjení",
