@@ -63,6 +63,7 @@ from .const import (
 )
 from .helper import LogHelper as loghelper
 from .oauth import Oauth
+from .vsu_helper import normalize_vsu_car
 from .webapi import WebApi
 from .websocket import Websocket
 
@@ -264,11 +265,8 @@ class Client:
             return ack_command
 
         if msg_type == "vehicle_status_updates":
-            self._write_debug_output(data, "vsu")
-            LOGGER.info(
-                "vehicle_status_updates - Data: %s",
-                MessageToJson(data, preserving_proto_field_name=True),
-            )
+            self._process_vehicle_status_updates(data)
+
             sequence_number = data.vehicle_status_updates.sequence_number
             LOGGER.debug("vehicle_status_updates Sequence: %s", sequence_number)
             ack_command = client_pb2.ClientMessage()
@@ -1152,6 +1150,75 @@ class Client:
                 )
             if fire_complete_event:
                 LOGGER.debug("_process_vep_updates - all completed - fire event: _on_dataload_complete")
+                self._hass.async_create_task(self._on_dataload_complete())
+                self._dataload_complete_fired = True
+
+    def _process_vehicle_status_updates(self, data):
+        LOGGER.debug("Start _process_vehicle_status_updates")
+
+        self._write_debug_output(data, "vsu")
+
+        vsu_json = json.loads(MessageToJson(data, preserving_proto_field_name=True))
+        cars = vsu_json.get("vehicle_status_updates", {}).get("vehicle_status_updates", {})
+
+        if not self._first_vepupdates_processed:
+            self._vepupdates_time_first_message = datetime.now()
+            self._first_vepupdates_processed = True
+            self._hass.loop.call_later(
+                30, lambda: self._hass.async_add_executor_job(self._safe_create_on_dataload_complete_task)
+            )
+
+        for vin, vsu_car in cars.items():
+            if vin in self.excluded_cars:
+                continue
+
+            current_car = normalize_vsu_car(vsu_car)
+
+            if DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY and current_car.get("full_update", False) is True:
+                current_car["full_update"] = False
+                LOGGER.debug(
+                    "DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY mode. %s",
+                    loghelper.Mask_VIN(vin),
+                )
+
+            if current_car.get("full_update") is True:
+                LOGGER.debug("Full Update (VSU). %s", loghelper.Mask_VIN(vin))
+                if not self._disable_rlock:
+                    with self.__lock:
+                        self._build_car(current_car, update_mode=False)
+                else:
+                    self._build_car(current_car, update_mode=False)
+
+            else:
+                LOGGER.debug("Partial Update (VSU). %s", loghelper.Mask_VIN(vin))
+                if not self._disable_rlock:
+                    with self.__lock:
+                        self._build_car(current_car, update_mode=True)
+                else:
+                    self._build_car(current_car, update_mode=True)
+
+            if self._dataload_complete_fired:
+                current_car_obj = self.cars.get(vin)
+                if current_car_obj:
+                    current_car_obj.data_collection_mode = "push"
+                    current_car_obj.publish_updates()
+
+                    if self._coordinator_ref:
+                        self._hass.async_create_task(self._coordinator_ref.check_missing_sensors_for_vin(vin))
+
+        if not self._dataload_complete_fired:
+            fire_complete_event: bool = True
+            for car in self.cars.values():
+                if not car.entry_setup_complete:
+                    fire_complete_event = False
+                LOGGER.debug(
+                    "_process_vehicle_status_updates - %s - complete: %s - %s",
+                    loghelper.Mask_VIN(car.finorvin),
+                    car.entry_setup_complete,
+                    car.messages_received,
+                )
+            if fire_complete_event:
+                LOGGER.debug("_process_vehicle_status_updates - all completed - fire event: _on_dataload_complete")
                 self._hass.async_create_task(self._on_dataload_complete())
                 self._dataload_complete_fired = True
 

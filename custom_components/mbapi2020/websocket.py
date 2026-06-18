@@ -28,6 +28,7 @@ from .const import (
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
 )
+from .proto_diag import diagnose_proto_message
 from .helper import LogHelper as loghelper, UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
@@ -391,7 +392,11 @@ class Websocket:
                     self._queue.task_done()
                     continue
 
-                self._LOGGER.debug("Got notification: %s", message.WhichOneof("msg"))
+                msg_type = message.WhichOneof("msg")
+                self._LOGGER.debug("Got notification: %s", msg_type)
+
+                if msg_type == "vehicle_status_updates":
+                    diagnose_proto_message(message, data, message.DESCRIPTOR, label=msg_type)
 
                 try:
                     ack_message = self._on_data_received(message)
