@@ -35,7 +35,7 @@ def _probe_unknown_fields_api() -> bool:
 
 _DEEP_SCAN_ENABLED = _probe_unknown_fields_api()
 
-LOGGER.warning(
+LOGGER.debug(
     "proto_diag startup: PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=%s, UnknownFields() callable=%s",
     os.environ.get("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "<unset>"),
     _DEEP_SCAN_ENABLED,
