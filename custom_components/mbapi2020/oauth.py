@@ -40,6 +40,10 @@ from .helper import LogHelper, UrlHelper as helper
 
 _LOGGER = logging.getLogger(__name__)
 
+GATEWAY_ERROR_CODES = (502, 503, 504)
+LOGIN_MAX_ATTEMPTS = 3
+LOGIN_RETRY_BACKOFF_SECONDS = 5
+
 
 class Oauth:
     """OAuth2 class for Mercedes Me integration."""
@@ -130,7 +134,13 @@ class Oauth:
             await self._submit_username(email)
 
             # Step 4: Submit password and get pre-login token
-            pre_login_data = await self._submit_password(email, password)
+            rid = secrets.token_urlsafe(24)
+            pre_login_data = await self._submit_password(email, password, rid)
+
+            # Step 4b: Decline the passkey setup prompt if the account gets offered one
+            if pre_login_data and pre_login_data.get("passkeyDemoEnabled"):
+                _LOGGER.debug("Passkey setup prompt detected - declining to continue password login")
+                pre_login_data = await self._disable_passkey_demo(email, password, rid)
 
             if pre_login_data and pre_login_data.get("result", "") != "RESUME2OIDCP":
                 if pre_login_data.get("result", "") == "GOTO_LOGIN_OTP":
@@ -188,6 +198,32 @@ class Oauth:
 
         return headers
 
+    async def _login_request(self, method: str, url: str, step: str, **kwargs) -> tuple[int, str, str]:
+        """Perform a login step request, retrying transient gateway errors.
+
+        Returns:
+            tuple: (status, final_url, body_text)
+
+        """
+        kwargs.setdefault("proxy", SYSTEM_PROXY)
+
+        for attempt in range(1, LOGIN_MAX_ATTEMPTS + 1):
+            async with self._session.request(method, url, **kwargs) as response:
+                if response.status in GATEWAY_ERROR_CODES and attempt < LOGIN_MAX_ATTEMPTS:
+                    _LOGGER.warning(
+                        "%s failed with %s - retry %s/%s",
+                        step,
+                        response.status,
+                        attempt,
+                        LOGIN_MAX_ATTEMPTS - 1,
+                    )
+                else:
+                    return response.status, str(response.url), await response.text()
+
+            await asyncio.sleep(LOGIN_RETRY_BACKOFF_SECONDS * attempt)
+
+        raise MBAuthError(f"{step} failed after {LOGIN_MAX_ATTEMPTS} attempts")
+
     def _extract_code_from_redirect_url(self, redirect_url: str) -> str:
         """Extract authorization code from redirect URL."""
         parsed_url = urllib.parse.urlparse(redirect_url)
@@ -220,20 +256,20 @@ class Oauth:
 
         auth_url = f"{helper.Login_Base_Url(self._region)}/as/authorization.oauth2"
 
-        async with self._session.get(
-            auth_url, params=params, headers=headers, proxy=SYSTEM_PROXY, allow_redirects=True
-        ) as response:
-            if response.status >= 400:
-                raise MBAuthError(f"Authorization request failed: {response.status}")
+        status, final_url, _ = await self._login_request(
+            "get", auth_url, "Authorization request", params=params, headers=headers, allow_redirects=True
+        )
+        if status >= 400:
+            raise MBAuthError(f"Authorization request failed: {status}")
 
-            parsed_url = urllib.parse.urlparse(str(response.url))
-            url_params = urllib.parse.parse_qs(parsed_url.query)
-            resume = url_params.get("resume", [None])[0]
+        parsed_url = urllib.parse.urlparse(final_url)
+        url_params = urllib.parse.parse_qs(parsed_url.query)
+        resume = url_params.get("resume", [None])[0]
 
-            if not resume:
-                raise MBAuthError("Resume parameter not found in authorization response")
+        if not resume:
+            raise MBAuthError("Resume parameter not found in authorization response")
 
-            return resume
+        return resume
 
     async def _send_user_agent_info(self) -> None:
         """Send user agent information."""
@@ -259,14 +295,14 @@ class Oauth:
         headers = self._get_mobile_safari_headers()
         url = f"{helper.Login_Base_Url(self._region)}/ciam/auth/login/user"
 
-        async with self._session.post(url, json={"username": email}, headers=headers, proxy=SYSTEM_PROXY) as response:
-            if response.status >= 400:
-                error_text = await response.text()
-                raise MBAuthError(f"Username submission failed: {response.status} - {error_text}")
+        status, _, body = await self._login_request(
+            "post", url, "Username submission", json={"username": email}, headers=headers
+        )
+        if status >= 400:
+            raise MBAuthError(f"Username submission failed: {status} - {body}")
 
-    async def _submit_password(self, email: str, password: str) -> dict[str, Any]:
+    async def _submit_password(self, email: str, password: str, rid: str) -> dict[str, Any]:
         """Submit password and get pre-login data."""
-        rid = secrets.token_urlsafe(24)
         headers = self._get_mobile_safari_headers()
 
         data = {
@@ -278,12 +314,31 @@ class Oauth:
 
         url = f"{helper.Login_Base_Url(self._region)}/ciam/auth/login/pass"
 
-        async with self._session.post(url, json=data, headers=headers, proxy=SYSTEM_PROXY) as response:
-            if response.status >= 400:
-                error_text = await response.text()
-                raise MBAuthError(f"Password submission failed: {response.status} - {error_text}")
+        status, _, body = await self._login_request("post", url, "Password submission", json=data, headers=headers)
+        if status >= 400:
+            raise MBAuthError(f"Password submission failed: {status} - {body}")
 
-            return await response.json()
+        return json.loads(body)
+
+    async def _disable_passkey_demo(self, email: str, password: str, rid: str) -> dict[str, Any]:
+        """Decline the passkey setup prompt and continue the login flow."""
+        headers = self._get_mobile_safari_headers()
+
+        data = {
+            "username": email,
+            "password": password,
+            "rememberMe": False,
+            "rid": rid,
+            "disablePasskeyDemo": True,
+        }
+
+        url = f"{helper.Login_Base_Url(self._region)}/ciam/auth/disablePasskeyDemo"
+
+        status, _, body = await self._login_request("post", url, "Passkey prompt skip", json=data, headers=headers)
+        if status >= 400:
+            raise MBAuthError(f"Passkey prompt skip failed: {status} - {body}")
+
+        return json.loads(body)
 
     async def _submit_legal_consent(self, home_country: str, consent_country: str) -> dict[str, Any]:
         """Submit legal consent and get pre-login data."""
