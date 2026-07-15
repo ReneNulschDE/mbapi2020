@@ -109,10 +109,18 @@ class MercedesMELock(MercedesMeEntity, LockEntity, RestoreEntity):
         """Return true if device is locked."""
 
         value = self._get_car_value(self._feature_name, self._object_name, self._attrib_name, None)
-        if value and int(value) in (1, 2):
+        if value is None:
+            return None
+
+        try:
+            status = int(value)
+        except (TypeError, ValueError):
+            return None
+
+        if status in (1, 2):
             return True
 
-        if value and int(value) in (0, 3):
+        if status in (0, 3):
             return False
 
         return None
