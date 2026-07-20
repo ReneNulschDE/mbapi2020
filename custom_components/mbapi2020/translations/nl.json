@@ -783,7 +783,9 @@
         "state": {
           "0": "Groen",
           "1": "Geel",
-          "2": "Rood"
+          "2": "Rood",
+          "3": "Oranje",
+          "4": "Groen/geel"
         }
       },
       "tirewarningsrdk": {

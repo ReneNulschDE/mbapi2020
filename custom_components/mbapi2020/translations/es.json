@@ -783,7 +783,9 @@
         "state": {
           "0": "Verde",
           "1": "Amarillo",
-          "2": "Rojo"
+          "2": "Rojo",
+          "3": "Naranja",
+          "4": "Verde/Amarillo"
         }
       },
       "tirewarningsrdk": {

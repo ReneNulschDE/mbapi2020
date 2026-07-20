@@ -783,7 +783,9 @@
         "state": {
           "0": "Zelená",
           "1": "Žlutá",
-          "2": "Červená"
+          "2": "Červená",
+          "3": "Oranžová",
+          "4": "Zeleno-žlutá"
         }
       },
       "tirewarningsrdk": {

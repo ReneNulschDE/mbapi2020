@@ -783,7 +783,9 @@
         "state": {
           "0": "Vihreä",
           "1": "Keltainen",
-          "2": "Punainen"
+          "2": "Punainen",
+          "3": "Oranssi",
+          "4": "Vihreä/keltainen"
         }
       },
       "tirewarningsrdk": {

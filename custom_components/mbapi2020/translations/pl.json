@@ -781,7 +781,9 @@
         "state": {
           "0": "Zielony",
           "1": "Żółty",
-          "2": "Czerwony"
+          "2": "Czerwony",
+          "3": "Pomarańczowy",
+          "4": "Zielono-żółty"
         }
       },
       "tirewarningsrdk": {

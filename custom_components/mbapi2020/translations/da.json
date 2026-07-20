@@ -783,7 +783,9 @@
         "state": {
           "0": "Grøn",
           "1": "Gul",
-          "2": "Rød"
+          "2": "Rød",
+          "3": "Orange",
+          "4": "Grøn/gul"
         }
       },
       "tirewarningsrdk": {
