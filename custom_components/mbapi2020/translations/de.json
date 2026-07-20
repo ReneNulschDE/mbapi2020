@@ -807,7 +807,9 @@
           "0": "Zwischenposition",
           "1": "Offen",
           "2": "Geschlossen",
-          "3": "Lüften"
+          "3": "Lüften",
+          "4": "Zwischenposition Lüften",
+          "5": "Fährt"
         }
       },
       "windowstatusrearright": {
@@ -815,7 +817,9 @@
           "0": "Zwischenposition",
           "1": "Offen",
           "2": "Geschlossen",
-          "3": "Lüften"
+          "3": "Lüften",
+          "4": "Zwischenposition Lüften",
+          "5": "Fährt"
         }
       },
       "windowstatusfrontright": {
@@ -823,7 +827,9 @@
           "0": "Zwischenposition",
           "1": "Offen",
           "2": "Geschlossen",
-          "3": "Lüften"
+          "3": "Lüften",
+          "4": "Zwischenposition Lüften",
+          "5": "Fährt"
         }
       },
       "windowstatusfrontleft": {
@@ -831,7 +837,9 @@
           "0": "Zwischenposition",
           "1": "Offen",
           "2": "Geschlossen",
-          "3": "Lüften"
+          "3": "Lüften",
+          "4": "Zwischenposition Lüften",
+          "5": "Fährt"
         }
       }
     },

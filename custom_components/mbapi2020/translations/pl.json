@@ -805,7 +805,9 @@
           "0": "Pozycja pośrednia",
           "1": "Otwarte",
           "2": "Zamknięte",
-          "3": "Wentylacja"
+          "3": "Wentylacja",
+          "4": "Pośrednia pozycja wentylacji",
+          "5": "W ruchu"
         }
       },
       "windowstatusrearright": {
@@ -813,7 +815,9 @@
           "0": "Pozycja pośrednia",
           "1": "Otwarte",
           "2": "Zamknięte",
-          "3": "Wentylacja"
+          "3": "Wentylacja",
+          "4": "Pośrednia pozycja wentylacji",
+          "5": "W ruchu"
         }
       },
       "windowstatusfrontright": {
@@ -821,7 +825,9 @@
           "0": "Pozycja pośrednia",
           "1": "Otwarte",
           "2": "Zamknięte",
-          "3": "Wentylacja"
+          "3": "Wentylacja",
+          "4": "Pośrednia pozycja wentylacji",
+          "5": "W ruchu"
         }
       },
       "windowstatusfrontleft": {
@@ -829,7 +835,9 @@
           "0": "Pozycja pośrednia",
           "1": "Otwarte",
           "2": "Zamknięte",
-          "3": "Wentylacja"
+          "3": "Wentylacja",
+          "4": "Pośrednia pozycja wentylacji",
+          "5": "W ruchu"
         }
       }
     },

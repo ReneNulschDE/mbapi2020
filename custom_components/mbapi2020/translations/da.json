@@ -807,7 +807,9 @@
           "0": "Mellemposition",
           "1": "Åben",
           "2": "Lukket",
-          "3": "Ventilerer"
+          "3": "Ventilerer",
+          "4": "Mellemposition ventilation",
+          "5": "Kører"
         }
       },
       "windowstatusrearright": {
@@ -815,7 +817,9 @@
           "0": "Mellemposition",
           "1": "Åben",
           "2": "Lukket",
-          "3": "Ventilerer"
+          "3": "Ventilerer",
+          "4": "Mellemposition ventilation",
+          "5": "Kører"
         }
       },
       "windowstatusfrontright": {
@@ -823,7 +827,9 @@
           "0": "Mellemposition",
           "1": "Åben",
           "2": "Lukket",
-          "3": "Ventilerer"
+          "3": "Ventilerer",
+          "4": "Mellemposition ventilation",
+          "5": "Kører"
         }
       },
       "windowstatusfrontleft": {
@@ -831,7 +837,9 @@
           "0": "Mellemposition",
           "1": "Åben",
           "2": "Lukket",
-          "3": "Ventilerer"
+          "3": "Ventilerer",
+          "4": "Mellemposition ventilation",
+          "5": "Kører"
         }
       }
     },

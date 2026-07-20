@@ -807,7 +807,9 @@
           "0": "Mezipoloha",
           "1": "Otevřeno",
           "2": "Zavřeno",
-          "3": "Větrání"
+          "3": "Větrání",
+          "4": "Mezipoloha větrání",
+          "5": "V pohybu"
         }
       },
       "windowstatusrearright": {
@@ -815,7 +817,9 @@
           "0": "Mezipoloha",
           "1": "Otevřeno",
           "2": "Zavřeno",
-          "3": "Větrání"
+          "3": "Větrání",
+          "4": "Mezipoloha větrání",
+          "5": "V pohybu"
         }
       },
       "windowstatusfrontright": {
@@ -823,7 +827,9 @@
           "0": "Mezipoloha",
           "1": "Otevřeno",
           "2": "Zavřeno",
-          "3": "Větrání"
+          "3": "Větrání",
+          "4": "Mezipoloha větrání",
+          "5": "V pohybu"
         }
       },
       "windowstatusfrontleft": {
@@ -831,7 +837,9 @@
           "0": "Mezipoloha",
           "1": "Otevřeno",
           "2": "Zavřeno",
-          "3": "Větrání"
+          "3": "Větrání",
+          "4": "Mezipoloha větrání",
+          "5": "V pohybu"
         }
       }
     },

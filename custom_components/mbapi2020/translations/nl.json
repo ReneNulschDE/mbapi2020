@@ -807,7 +807,9 @@
           "0": "Tussenpositie",
           "1": "Open",
           "2": "Gesloten",
-          "3": "Ventileren"
+          "3": "Ventileren",
+          "4": "Tussenpositie ventileren",
+          "5": "In beweging"
         }
       },
       "windowstatusrearright": {
@@ -815,7 +817,9 @@
           "0": "Tussenpositie",
           "1": "Open",
           "2": "Gesloten",
-          "3": "Ventileren"
+          "3": "Ventileren",
+          "4": "Tussenpositie ventileren",
+          "5": "In beweging"
         }
       },
       "windowstatusfrontright": {
@@ -823,7 +827,9 @@
           "0": "Tussenpositie",
           "1": "Open",
           "2": "Gesloten",
-          "3": "Ventileren"
+          "3": "Ventileren",
+          "4": "Tussenpositie ventileren",
+          "5": "In beweging"
         }
       },
       "windowstatusfrontleft": {
@@ -831,7 +837,9 @@
           "0": "Tussenpositie",
           "1": "Open",
           "2": "Gesloten",
-          "3": "Ventileren"
+          "3": "Ventileren",
+          "4": "Tussenpositie ventileren",
+          "5": "In beweging"
         }
       }
     },

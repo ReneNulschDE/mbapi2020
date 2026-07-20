@@ -807,7 +807,9 @@
           "0": "Posición intermedia",
           "1": "Abierto",
           "2": "Cerrado",
-          "3": "Ventilando"
+          "3": "Ventilando",
+          "4": "Posición intermedia de ventilación",
+          "5": "En movimiento"
         }
       },
       "windowstatusrearright": {
@@ -815,7 +817,9 @@
           "0": "Posición intermedia",
           "1": "Abierto",
           "2": "Cerrado",
-          "3": "Ventilando"
+          "3": "Ventilando",
+          "4": "Posición intermedia de ventilación",
+          "5": "En movimiento"
         }
       },
       "windowstatusfrontright": {
@@ -823,7 +827,9 @@
           "0": "Posición intermedia",
           "1": "Abierto",
           "2": "Cerrado",
-          "3": "Ventilando"
+          "3": "Ventilando",
+          "4": "Posición intermedia de ventilación",
+          "5": "En movimiento"
         }
       },
       "windowstatusfrontleft": {
@@ -831,7 +837,9 @@
           "0": "Posición intermedia",
           "1": "Abierto",
           "2": "Cerrado",
-          "3": "Ventilando"
+          "3": "Ventilando",
+          "4": "Posición intermedia de ventilación",
+          "5": "En movimiento"
         }
       }
     },

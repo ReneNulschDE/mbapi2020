@@ -807,7 +807,9 @@
           "0": "Mellomstilling",
           "1": "Åpen",
           "2": "Lukket",
-          "3": "Lufting"
+          "3": "Lufting",
+          "4": "Mellomstilling lufting",
+          "5": "Beveger seg"
         }
       },
       "windowstatusrearright": {
@@ -815,7 +817,9 @@
           "0": "Mellomstilling",
           "1": "Åpen",
           "2": "Lukket",
-          "3": "Lufting"
+          "3": "Lufting",
+          "4": "Mellomstilling lufting",
+          "5": "Beveger seg"
         }
       },
       "windowstatusfrontright": {
@@ -823,7 +827,9 @@
           "0": "Mellomstilling",
           "1": "Åpen",
           "2": "Lukket",
-          "3": "Lufting"
+          "3": "Lufting",
+          "4": "Mellomstilling lufting",
+          "5": "Beveger seg"
         }
       },
       "windowstatusfrontleft": {
@@ -831,7 +837,9 @@
           "0": "Mellomstilling",
           "1": "Åpen",
           "2": "Lukket",
-          "3": "Lufting"
+          "3": "Lufting",
+          "4": "Mellomstilling lufting",
+          "5": "Beveger seg"
         }
       }
     },

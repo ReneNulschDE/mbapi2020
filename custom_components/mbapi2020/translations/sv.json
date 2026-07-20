@@ -807,7 +807,9 @@
           "0": "Mellanläge",
           "1": "Öppen",
           "2": "Stängd",
-          "3": "Ventilerar"
+          "3": "Ventilerar",
+          "4": "Mellanläge ventilation",
+          "5": "Rör sig"
         }
       },
       "windowstatusrearright": {
@@ -815,7 +817,9 @@
           "0": "Mellanläge",
           "1": "Öppen",
           "2": "Stängd",
-          "3": "Ventilerar"
+          "3": "Ventilerar",
+          "4": "Mellanläge ventilation",
+          "5": "Rör sig"
         }
       },
       "windowstatusfrontright": {
@@ -823,7 +827,9 @@
           "0": "Mellanläge",
           "1": "Öppen",
           "2": "Stängd",
-          "3": "Ventilerar"
+          "3": "Ventilerar",
+          "4": "Mellanläge ventilation",
+          "5": "Rör sig"
         }
       },
       "windowstatusfrontleft": {
@@ -831,7 +837,9 @@
           "0": "Mellanläge",
           "1": "Öppen",
           "2": "Stängd",
-          "3": "Ventilerar"
+          "3": "Ventilerar",
+          "4": "Mellanläge ventilation",
+          "5": "Rör sig"
         }
       }
     },

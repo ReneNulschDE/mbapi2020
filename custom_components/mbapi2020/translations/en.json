@@ -807,7 +807,9 @@
           "0": "Intermediate",
           "1": "Open",
           "2": "Closed",
-          "3": "Ventilating"
+          "3": "Ventilating",
+          "4": "Intermediate ventilating",
+          "5": "Running"
         }
       },
       "windowstatusrearright": {
@@ -815,7 +817,9 @@
           "0": "Intermediate",
           "1": "Open",
           "2": "Closed",
-          "3": "Ventilating"
+          "3": "Ventilating",
+          "4": "Intermediate ventilating",
+          "5": "Running"
         }
       },
       "windowstatusfrontright": {
@@ -823,7 +827,9 @@
           "0": "Intermediate",
           "1": "Open",
           "2": "Closed",
-          "3": "Ventilating"
+          "3": "Ventilating",
+          "4": "Intermediate ventilating",
+          "5": "Running"
         }
       },
       "windowstatusfrontleft": {
@@ -831,7 +837,9 @@
           "0": "Intermediate",
           "1": "Open",
           "2": "Closed",
-          "3": "Ventilating"
+          "3": "Ventilating",
+          "4": "Intermediate ventilating",
+          "5": "Running"
         }
       }
     },

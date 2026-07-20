@@ -807,7 +807,9 @@
           "0": "Väliasento",
           "1": "Auki",
           "2": "Kiinni",
-          "3": "Tuuletus"
+          "3": "Tuuletus",
+          "4": "Välituuletusasento",
+          "5": "Liikkuu"
         }
       },
       "windowstatusrearright": {
@@ -815,7 +817,9 @@
           "0": "Väliasento",
           "1": "Auki",
           "2": "Kiinni",
-          "3": "Tuuletus"
+          "3": "Tuuletus",
+          "4": "Välituuletusasento",
+          "5": "Liikkuu"
         }
       },
       "windowstatusfrontright": {
@@ -823,7 +827,9 @@
           "0": "Väliasento",
           "1": "Auki",
           "2": "Kiinni",
-          "3": "Tuuletus"
+          "3": "Tuuletus",
+          "4": "Välituuletusasento",
+          "5": "Liikkuu"
         }
       },
       "windowstatusfrontleft": {
@@ -831,7 +837,9 @@
           "0": "Väliasento",
           "1": "Auki",
           "2": "Kiinni",
-          "3": "Tuuletus"
+          "3": "Tuuletus",
+          "4": "Välituuletusasento",
+          "5": "Liikkuu"
         }
       }
     },
