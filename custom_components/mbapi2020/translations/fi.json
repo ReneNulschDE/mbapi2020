@@ -801,6 +801,38 @@
           "3": "Työ",
           "4": "Ei tuettu"
         }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Väliasento",
+          "1": "Auki",
+          "2": "Kiinni",
+          "3": "Tuuletus"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Väliasento",
+          "1": "Auki",
+          "2": "Kiinni",
+          "3": "Tuuletus"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Väliasento",
+          "1": "Auki",
+          "2": "Kiinni",
+          "3": "Tuuletus"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Väliasento",
+          "1": "Auki",
+          "2": "Kiinni",
+          "3": "Tuuletus"
+        }
       }
     },
     "switch": {

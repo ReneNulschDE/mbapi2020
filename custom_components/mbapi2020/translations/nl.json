@@ -801,6 +801,38 @@
           "3": "Werk",
           "4": "Niet ondersteund"
         }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Tussenpositie",
+          "1": "Open",
+          "2": "Gesloten",
+          "3": "Ventileren"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Tussenpositie",
+          "1": "Open",
+          "2": "Gesloten",
+          "3": "Ventileren"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Tussenpositie",
+          "1": "Open",
+          "2": "Gesloten",
+          "3": "Ventileren"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Tussenpositie",
+          "1": "Open",
+          "2": "Gesloten",
+          "3": "Ventileren"
+        }
       }
     },
     "switch": {

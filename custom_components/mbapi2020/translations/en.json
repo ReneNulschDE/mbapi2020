@@ -801,6 +801,38 @@
           "3": "Work",
           "4": "Not supported"
         }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Intermediate",
+          "1": "Open",
+          "2": "Closed",
+          "3": "Ventilating"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Intermediate",
+          "1": "Open",
+          "2": "Closed",
+          "3": "Ventilating"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Intermediate",
+          "1": "Open",
+          "2": "Closed",
+          "3": "Ventilating"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Intermediate",
+          "1": "Open",
+          "2": "Closed",
+          "3": "Ventilating"
+        }
       }
     },
     "switch": {

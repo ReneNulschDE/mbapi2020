@@ -801,6 +801,38 @@
           "3": "Arbejde",
           "4": "Ikke understøttet"
         }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Mellemposition",
+          "1": "Åben",
+          "2": "Lukket",
+          "3": "Ventilerer"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Mellemposition",
+          "1": "Åben",
+          "2": "Lukket",
+          "3": "Ventilerer"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Mellemposition",
+          "1": "Åben",
+          "2": "Lukket",
+          "3": "Ventilerer"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Mellemposition",
+          "1": "Åben",
+          "2": "Lukket",
+          "3": "Ventilerer"
+        }
       }
     },
     "switch": {

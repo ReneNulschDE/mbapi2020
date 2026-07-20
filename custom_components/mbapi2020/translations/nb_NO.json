@@ -801,6 +801,38 @@
           "3": "Jobb",
           "4": "Støttes ikke"
         }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Mellomstilling",
+          "1": "Åpen",
+          "2": "Lukket",
+          "3": "Lufting"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Mellomstilling",
+          "1": "Åpen",
+          "2": "Lukket",
+          "3": "Lufting"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Mellomstilling",
+          "1": "Åpen",
+          "2": "Lukket",
+          "3": "Lufting"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Mellomstilling",
+          "1": "Åpen",
+          "2": "Lukket",
+          "3": "Lufting"
+        }
       }
     },
     "switch": {

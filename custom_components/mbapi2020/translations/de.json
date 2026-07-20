@@ -801,6 +801,38 @@
           "3": "Arbeit",
           "4": "Nicht unterstützt"
         }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Zwischenposition",
+          "1": "Offen",
+          "2": "Geschlossen",
+          "3": "Lüften"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Zwischenposition",
+          "1": "Offen",
+          "2": "Geschlossen",
+          "3": "Lüften"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Zwischenposition",
+          "1": "Offen",
+          "2": "Geschlossen",
+          "3": "Lüften"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Zwischenposition",
+          "1": "Offen",
+          "2": "Geschlossen",
+          "3": "Lüften"
+        }
       }
     },
     "switch": {

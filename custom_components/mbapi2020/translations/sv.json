@@ -801,6 +801,38 @@
           "3": "Arbete",
           "4": "Stöds inte"
         }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Mellanläge",
+          "1": "Öppen",
+          "2": "Stängd",
+          "3": "Ventilerar"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Mellanläge",
+          "1": "Öppen",
+          "2": "Stängd",
+          "3": "Ventilerar"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Mellanläge",
+          "1": "Öppen",
+          "2": "Stängd",
+          "3": "Ventilerar"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Mellanläge",
+          "1": "Öppen",
+          "2": "Stängd",
+          "3": "Ventilerar"
+        }
       }
     },
     "switch": {

@@ -801,6 +801,38 @@
           "3": "Lavoro",
           "4": "Non supportato"
         }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Posizione intermedia",
+          "1": "Aperto",
+          "2": "Chiuso",
+          "3": "Ventilazione"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Posizione intermedia",
+          "1": "Aperto",
+          "2": "Chiuso",
+          "3": "Ventilazione"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Posizione intermedia",
+          "1": "Aperto",
+          "2": "Chiuso",
+          "3": "Ventilazione"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Posizione intermedia",
+          "1": "Aperto",
+          "2": "Chiuso",
+          "3": "Ventilazione"
+        }
       }
     },
     "switch": {

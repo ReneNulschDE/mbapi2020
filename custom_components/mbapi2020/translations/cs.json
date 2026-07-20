@@ -801,6 +801,38 @@
           "3": "Práce",
           "4": "Nepodporováno"
         }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Mezipoloha",
+          "1": "Otevřeno",
+          "2": "Zavřeno",
+          "3": "Větrání"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Mezipoloha",
+          "1": "Otevřeno",
+          "2": "Zavřeno",
+          "3": "Větrání"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Mezipoloha",
+          "1": "Otevřeno",
+          "2": "Zavřeno",
+          "3": "Větrání"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Mezipoloha",
+          "1": "Otevřeno",
+          "2": "Zavřeno",
+          "3": "Větrání"
+        }
       }
     },
     "switch": {

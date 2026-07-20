@@ -801,6 +801,38 @@
           "3": "Travail",
           "4": "Non pris en charge"
         }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Position intermédiaire",
+          "1": "Ouvert",
+          "2": "Fermé",
+          "3": "Aération"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Position intermédiaire",
+          "1": "Ouvert",
+          "2": "Fermé",
+          "3": "Aération"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Position intermédiaire",
+          "1": "Ouvert",
+          "2": "Fermé",
+          "3": "Aération"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Position intermédiaire",
+          "1": "Ouvert",
+          "2": "Fermé",
+          "3": "Aération"
+        }
       }
     },
     "switch": {

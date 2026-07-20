@@ -801,6 +801,38 @@
           "3": "Trabajo",
           "4": "No compatible"
         }
+      },
+      "windowstatusrearleft": {
+        "state": {
+          "0": "Posición intermedia",
+          "1": "Abierto",
+          "2": "Cerrado",
+          "3": "Ventilando"
+        }
+      },
+      "windowstatusrearright": {
+        "state": {
+          "0": "Posición intermedia",
+          "1": "Abierto",
+          "2": "Cerrado",
+          "3": "Ventilando"
+        }
+      },
+      "windowstatusfrontright": {
+        "state": {
+          "0": "Posición intermedia",
+          "1": "Abierto",
+          "2": "Cerrado",
+          "3": "Ventilando"
+        }
+      },
+      "windowstatusfrontleft": {
+        "state": {
+          "0": "Posición intermedia",
+          "1": "Abierto",
+          "2": "Cerrado",
+          "3": "Ventilando"
+        }
       }
     },
     "switch": {
