@@ -2066,7 +2066,7 @@ class Client:
             zone_front_left.zone = 1
             if front_left:
                 zone_front_left.temperature_in_celsius = front_left
-            elif car.precond.temperature_points_frontLeft:
+            elif getattr(car.precond, "temperature_points_frontLeft", None):
                 zone_front_left.temperature_in_celsius = car.precond.temperature_points_frontLeft.value
             entry_set = True
 
@@ -2075,7 +2075,7 @@ class Client:
             zone_front_right.zone = 2
             if front_right:
                 zone_front_right.temperature_in_celsius = front_right
-            elif car.precond.temperature_points_frontRight:
+            elif getattr(car.precond, "temperature_points_frontRight", None):
                 zone_front_right.temperature_in_celsius = car.precond.temperature_points_frontRight.value
             entry_set = True
 
@@ -2084,7 +2084,7 @@ class Client:
             zone_rear_left.zone = 4
             if rear_left:
                 zone_rear_left.temperature_in_celsius = rear_left
-            elif car.precond.temperature_points_rearLeft:
+            elif getattr(car.precond, "temperature_points_rearLeft", None):
                 zone_rear_left.temperature_in_celsius = car.precond.temperature_points_rearLeft.value
             entry_set = True
 
@@ -2093,7 +2093,7 @@ class Client:
             zone_rear_right.zone = 5
             if rear_right:
                 zone_rear_right.temperature_in_celsius = rear_right
-            elif car.precond.temperature_points_rearRight:
+            elif getattr(car.precond, "temperature_points_rearRight", None):
                 zone_rear_right.temperature_in_celsius = car.precond.temperature_points_rearRight.value
             entry_set = True
 
