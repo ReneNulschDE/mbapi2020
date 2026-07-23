@@ -26,7 +26,6 @@ from .const import (
 )
 from .helper import UrlHelper as helper
 from .oauth import Oauth
-from .ssl_helper import async_get_ssl_context
 from .proto import vehicle_events_pb2
 
 LOGGER = logging.getLogger(__name__)
@@ -65,7 +64,6 @@ class WebApi:
         url = f"{helper.Rest_url(self._region)}{endpoint}"
         kwargs.setdefault("headers", {})
         kwargs.setdefault("proxy", SYSTEM_PROXY)
-        kwargs.setdefault("ssl", await async_get_ssl_context(self.hass))
 
         token = await self._oauth.async_get_cached_token()
 
@@ -212,7 +210,6 @@ class WebApi:
 
         kwargs.setdefault("headers", headers)
         kwargs.setdefault("proxy", SYSTEM_PROXY)
-        kwargs.setdefault("ssl", await async_get_ssl_context(self.hass))
 
         url = f"{helper.PSAG_url(self._region)}/api/app/v2/vehicles/{vin}/profileInformation"
 

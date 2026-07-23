@@ -32,7 +32,6 @@ from .const import (
     WEBSOCKET_USER_AGENT_CN,
 )
 from .helper import UrlHelper as helper
-from .ssl_helper import get_cached_ssl_context
 
 LOGGER = logging.getLogger(__name__)
 
@@ -213,7 +212,7 @@ class AppVersionManager:
         url = f"{helper.Rest_url(self._region)}/v1/config"
 
         try:
-            async with session.get(url, headers=headers, proxy=SYSTEM_PROXY, ssl=get_cached_ssl_context()) as response:
+            async with session.get(url, headers=headers, proxy=SYSTEM_PROXY) as response:
                 if response.status >= 400:
                     LOGGER.debug(
                         "Skipping app-version refresh for %s, config returned HTTP %s",

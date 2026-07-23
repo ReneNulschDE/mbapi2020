@@ -32,7 +32,6 @@ from .proto_diag import diagnose_proto_message
 from .helper import LogHelper as loghelper, UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
-from .ssl_helper import async_get_ssl_context
 
 DEFAULT_WATCHDOG_TIMEOUT = 30
 DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 180
@@ -503,7 +502,6 @@ class Websocket:
         websocket_url = helper.Websocket_url(self._region)
 
         kwargs.setdefault("proxy", SYSTEM_PROXY)
-        kwargs.setdefault("ssl", await async_get_ssl_context(self._hass))
         kwargs.setdefault("headers", await self._websocket_connection_headers())
 
         self.is_connecting = True
