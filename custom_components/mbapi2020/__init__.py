@@ -28,6 +28,7 @@ from custom_components.mbapi2020.coordinator import MBAPI2020DataUpdateCoordinat
 from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
+from custom_components.mbapi2020.ssl_helper import async_get_ssl_context
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady
@@ -55,6 +56,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     LOGGER.debug("Start async_setup_entry.")
 
     try:
+        # Warm the SSL context cache so early requests (e.g. app version refresh) use it
+        await async_get_ssl_context(hass)
+
         coordinator = MBAPI2020DataUpdateCoordinator(hass, config_entry)
         hass.data.setdefault(DOMAIN, {})[config_entry.entry_id] = coordinator
 

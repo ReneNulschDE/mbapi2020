@@ -37,6 +37,7 @@ from .const import (
     WEBSOCKET_USER_AGENT,
 )
 from .helper import LogHelper, UrlHelper as helper
+from .ssl_helper import async_get_ssl_context
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -206,6 +207,7 @@ class Oauth:
 
         """
         kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", await async_get_ssl_context(self._hass))
 
         for attempt in range(1, LOGIN_MAX_ATTEMPTS + 1):
             async with self._session.request(method, url, **kwargs) as response:
@@ -286,7 +288,9 @@ class Oauth:
 
         url = f"{helper.Login_Base_Url(self._region)}/ciam/auth/ua"
 
-        async with self._session.post(url, json=data, headers=headers, proxy=SYSTEM_PROXY) as response:
+        async with self._session.post(
+            url, json=data, headers=headers, proxy=SYSTEM_PROXY, ssl=await async_get_ssl_context(self._hass)
+        ) as response:
             if response.status >= 400:
                 _LOGGER.warning("User agent info submission failed: %s", response.status)
 
@@ -352,7 +356,9 @@ class Oauth:
 
         url = f"{helper.Login_Base_Url(self._region)}/ciam/auth/toas/saveLoginConsent"
 
-        async with self._session.post(url, json=data, headers=headers, proxy=SYSTEM_PROXY) as response:
+        async with self._session.post(
+            url, json=data, headers=headers, proxy=SYSTEM_PROXY, ssl=await async_get_ssl_context(self._hass)
+        ) as response:
             if response.status >= 400:
                 error_text = await response.text()
                 raise MBAuthError(f"legal_consent submission failed: {response.status} - {error_text}")
@@ -373,6 +379,7 @@ class Oauth:
                 data=data,
                 headers=headers,
                 proxy=SYSTEM_PROXY,
+                ssl=await async_get_ssl_context(self._hass),
                 allow_redirects=False,
             ) as response:
                 if response.status in (302, 301):
@@ -419,7 +426,9 @@ class Oauth:
 
         url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
 
-        async with self._session.post(url, data=form_data, headers=headers, proxy=SYSTEM_PROXY) as response:
+        async with self._session.post(
+            url, data=form_data, headers=headers, proxy=SYSTEM_PROXY, ssl=await async_get_ssl_context(self._hass)
+        ) as response:
             if response.status >= 400:
                 error_text = await response.text()
                 raise MBAuthError(f"Token exchange failed: {response.status} - {error_text}")
@@ -592,6 +601,7 @@ class Oauth:
         """Make a request against the API."""
         kwargs.setdefault("headers", {})
         kwargs.setdefault("proxy", SYSTEM_PROXY)
+        kwargs.setdefault("ssl", await async_get_ssl_context(self._hass))
 
         if not self._session or self._session.closed:
             device_guid = self._device_guid
