@@ -853,6 +853,23 @@
         "name": "Pre-entry climate control"
       }
     },
+    "cover": {
+      "windows": {
+        "name": "Windows"
+      },
+      "window_front_left": {
+        "name": "Window front left"
+      },
+      "window_front_right": {
+        "name": "Window front right"
+      },
+      "window_rear_left": {
+        "name": "Window rear left"
+      },
+      "window_rear_right": {
+        "name": "Window rear right"
+      }
+    },
     "button": {
       "btn_preheat_start_now": {
         "name": "Preclimate start"
