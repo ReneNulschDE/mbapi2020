@@ -31,6 +31,7 @@ MERCEDESME_COMPONENTS = [
     Platform.LOCK,
     Platform.BINARY_SENSOR,
     Platform.BUTTON,
+    Platform.COVER,
     Platform.DEVICE_TRACKER,
     Platform.SWITCH,
 ]
