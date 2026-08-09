@@ -884,27 +884,68 @@ class Client:
     def _get_car_values_handle_precond_status(self, car_detail, class_instance, option, update, vin: str):
         attributes = car_detail.get("attributes", {})
 
+        def _attr_to_bool(attr: dict[str, Any]) -> bool:
+            """Coerce legacy/VSU attribute payloads to a boolean state."""
+            if not attr:
+                return False
+
+            if "bool_value" in attr:
+                return bool(attr.get("bool_value"))
+
+            raw_value = attr.get("value")
+            if isinstance(raw_value, bool):
+                return raw_value
+            if isinstance(raw_value, int):
+                return raw_value > 0
+            if isinstance(raw_value, str):
+                lowered = raw_value.lower()
+                if lowered in ("true", "false"):
+                    return lowered == "true"
+                if raw_value.lstrip("-").isdigit():
+                    return int(raw_value) > 0
+
+            raw_int = attr.get("int_value")
+            if raw_int is not None:
+                try:
+                    return int(raw_int) > 0
+                except (TypeError, ValueError):
+                    return False
+
+            return False
+
         # Retrieve attributes with defaults to handle missing keys
         precond_now_attr = attributes.get("precondNow", {})
         precond_active_attr = attributes.get("precondActive", {})
         precond_operating_mode_attr = attributes.get("precondOperatingMode", {})
+        precond_state_attr = attributes.get("precondState", {})
+        precond_state_value = precond_state_attr.get("value", {}) if isinstance(precond_state_attr, dict) else {}
 
-        # Extract values and convert to boolean where necessary
-        precond_now_value = precond_now_attr.get("bool_value", False)
-        precond_active_value = precond_active_attr.get("bool_value", False)
+        # VSU reports precondNow as an enum attribute and precondState as a
+        # nested message, while the legacy VEP path used plain booleans.
+        precond_now_value = _attr_to_bool(precond_now_attr)
+        precond_active_value = _attr_to_bool(precond_active_attr)
         precond_operating_mode_value = precond_operating_mode_attr.get("int_value", 0)
         precond_operating_mode_bool = int(precond_operating_mode_value) > 0
+        precond_state_activation_value = False
+        if isinstance(precond_state_value, dict):
+            precond_state_activation_value = bool(precond_state_value.get("activation_state", False))
 
         # Calculate precondStatus
-        value = precond_now_value or precond_active_value or precond_operating_mode_bool
+        value = (
+            precond_now_value
+            or precond_active_value
+            or precond_operating_mode_bool
+            or precond_state_activation_value
+        )
 
         # Determine if any of the attributes are present
-        if precond_now_attr or precond_active_attr or precond_operating_mode_attr:
+        if precond_now_attr or precond_active_attr or precond_operating_mode_attr or precond_state_attr:
             status = "VALID"
             time_stamp = max(
                 int(precond_now_attr.get("timestamp", 0)),
                 int(precond_active_attr.get("timestamp", 0)),
                 int(precond_operating_mode_attr.get("timestamp", 0)),
+                int(precond_state_attr.get("timestamp", 0)),
             )
             return CarAttribute(
                 value=value,

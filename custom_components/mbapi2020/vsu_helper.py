@@ -68,6 +68,16 @@ _VSU_STATUS_TO_LEGACY: dict[str, str | int] = {
     "VALUE_NOT_AVAILABLE": 4,
 }
 
+# Some VSU attributes are enum/bool protobuf fields whose default value is
+# omitted by MessageToJson (proto3 semantics). Preserve the legacy behaviour by
+# synthesizing an explicit inactive/off value when the attribute is present with
+# metadata but without a JSON ``value`` field.
+_VSU_DEFAULT_OMITTED_VALUES: dict[str, bool | int] = {
+    "precondNow": 0,
+    "precondActive": False,
+    "precondOperatingMode": 0,
+}
+
 
 def _snake_to_camel(name: str) -> str:
     """Convert snake_case to camelCase.
@@ -207,7 +217,11 @@ def _normalize_attribute(key: str, vsu_attr: dict[str, Any]) -> tuple[str, dict[
     if display_value is not None:
         legacy["display_value"] = display_value
 
-    _normalize_value(legacy_key, vsu_attr.get("value"), legacy)
+    raw_value = vsu_attr.get("value")
+    if raw_value is None and metadata and legacy_key in _VSU_DEFAULT_OMITTED_VALUES:
+        raw_value = _VSU_DEFAULT_OMITTED_VALUES[legacy_key]
+
+    _normalize_value(legacy_key, raw_value, legacy)
 
     return legacy_key, legacy
 
