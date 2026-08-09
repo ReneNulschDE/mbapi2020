@@ -11,6 +11,7 @@ from pathlib import Path
 import threading
 import time
 import traceback
+from typing import Any
 import uuid
 
 from aiohttp import ClientSession
@@ -932,10 +933,7 @@ class Client:
 
         # Calculate precondStatus
         value = (
-            precond_now_value
-            or precond_active_value
-            or precond_operating_mode_bool
-            or precond_state_activation_value
+            precond_now_value or precond_active_value or precond_operating_mode_bool or precond_state_activation_value
         )
 
         # Determine if any of the attributes are present
