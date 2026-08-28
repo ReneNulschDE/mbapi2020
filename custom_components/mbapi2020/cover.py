@@ -25,12 +25,17 @@ from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, STATE_CONFI
 from .coordinator import MBAPI2020DataUpdateCoordinator
 from .helper import LogHelper as loghelper
 
-WINDOW_STATUS_CLOSED = {"2", 2}
-WINDOW_STATUS_OPEN = {"1", 1}
-WINDOW_STATUS_VENTILATING = {"3", 3}
-WINDOW_STATUS_INTERMEDIATE = {"0", 0, "4", 4}
-WINDOW_STATUS_OVERALL_CLOSED = {"0", 0, "CLOSED", "closed"}
-WINDOW_STATUS_OVERALL_OPEN = {"OPEN", "open"}
+# Positions for the individual windows, based on the proto enum Windowstatus:
+# 0 INTERMEDIATE, 1 COMPLETELY_OPENED, 2 COMPLETELY_CLOSED, 3 AIRING_POSITION
+WINDOW_STATUS_POSITIONS: dict[int, int] = {0: 50, 1: 100, 2: 0, 3: 10}
+
+# Positions for the window summary, based on the proto enum WindowStatusOverall:
+# 0 OPEN, 1 CLOSED, 2 COMPLETELY_OPEN, 3 AIRING
+# Note the numbering differs from the individual windows above
+WINDOW_STATUS_OVERALL_POSITIONS: dict[int, int] = {0: 50, 1: 0, 2: 100, 3: 10}
+
+# Retrieval status values that indicate the car did not report a usable value
+WINDOW_STATUS_INVALID_RETRIEVAL_STATUS = {3, "3", 4, "4", "NOT_RECEIVED", "error"}
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -117,27 +122,27 @@ WINDOW_COVER_DESCRIPTIONS: list[MercedesMeCoverEntityDescription] = [
 
 
 def _status_to_position(status: Any, *, overall: bool = False) -> int | None:
-    if overall:
-        if isinstance(status, bool):
-            return 0 if status else 100
-        if status in WINDOW_STATUS_OVERALL_CLOSED:
-            return 0
-        if status in WINDOW_STATUS_OVERALL_OPEN:
-            return 100
-        try:
-            return 100 if int(status) > 0 else 0
-        except (TypeError, ValueError):
-            return None
+    """Translate a reported window status into a cover position."""
+    if status is None:
+        return None
 
-    if status in WINDOW_STATUS_CLOSED:
-        return 0
-    if status in WINDOW_STATUS_OPEN:
-        return 100
-    if status in WINDOW_STATUS_VENTILATING:
-        return 10
-    if status in WINDOW_STATUS_INTERMEDIATE:
-        return 50
-    return None
+    # The REST fallback builds a synthetic windowStatusOverall where True means
+    # that all windows are closed
+    if isinstance(status, bool):
+        return 0 if status else 100
+
+    if isinstance(status, str):
+        normalized = status.strip().upper()
+        if normalized == "CLOSED":
+            return 0
+        if normalized == "OPEN":
+            return 100
+
+    positions = WINDOW_STATUS_OVERALL_POSITIONS if overall else WINDOW_STATUS_POSITIONS
+    try:
+        return positions.get(int(status))
+    except (TypeError, ValueError):
+        return None
 
 
 class MercedesMeCover(MercedesMeEntity, CoverEntity):
@@ -157,11 +162,15 @@ class MercedesMeCover(MercedesMeEntity, CoverEntity):
     def supported_features(self) -> CoverEntityFeature:
         """Return the supported features."""
         features = CoverEntityFeature(0)
-        supports_variable_window = self._skip_capability_check or self._car.features.get("variableOpenableWindow") is True
+        supports_variable_window = (
+            self._skip_capability_check or self._car.features.get("variableOpenableWindow") is True
+        )
 
         if self.entity_description.key == "windows":
             if (
-                self._skip_capability_check or self._car.features.get("WINDOWS_OPEN") is True or supports_variable_window
+                self._skip_capability_check
+                or self._car.features.get("WINDOWS_OPEN") is True
+                or supports_variable_window
             ):
                 features |= CoverEntityFeature.OPEN
             if (
@@ -217,7 +226,12 @@ class MercedesMeCover(MercedesMeEntity, CoverEntity):
 
     @property
     def _window_status(self) -> Any:
-        return self._get_car_value("windows", self.entity_description.status_attribute, "value", None)
+        status_attribute = self.entity_description.status_attribute
+        retrieval_status = self._get_car_value("windows", status_attribute, "retrievalstatus", "error")
+        if retrieval_status in WINDOW_STATUS_INVALID_RETRIEVAL_STATUS:
+            return None
+
+        return self._get_car_value("windows", status_attribute, "value", None)
 
     @property
     def _is_overall_cover(self) -> bool:
