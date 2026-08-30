@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import datetime as dt
 from datetime import datetime, timezone
 import json
@@ -22,9 +21,10 @@ from custom_components.mbapi2020.proto import client_pb2
 import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import system_info
+from homeassistant.helpers.event import async_call_later
 
 from .car import (
     AUX_HEAT_OPTIONS,
@@ -73,6 +73,9 @@ LOGGER = logging.getLogger(__name__)
 DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = False
 GEOFENCING_MAX_RETRIES = 1
 
+# Fallback delay: create the entities even if not every car reported a full data set
+DATALOAD_COMPLETE_FALLBACK_DELAY = 30
+
 
 class Client:
     """define the client."""
@@ -95,6 +98,7 @@ class Client:
         self._region = region
         self._on_dataload_complete = None
         self._dataload_complete_fired = False
+        self._dataload_fallback_handle = None
         self._coordinator_ref = None
         self._disable_rlock = False
         self.__lock = None
@@ -1110,9 +1114,7 @@ class Client:
         if not self._first_vepupdates_processed:
             self._vepupdates_time_first_message = datetime.now()
             self._first_vepupdates_processed = True
-            self._hass.loop.call_later(
-                30, lambda: self._hass.async_add_executor_job(self._safe_create_on_dataload_complete_task)
-            )
+            self._arm_dataload_complete_fallback()
 
         self._build_car(vep_json, update_mode=False)
         if self._dataload_complete_fired:
@@ -1137,6 +1139,7 @@ class Client:
                 LOGGER.debug("_process_vep_updates - all completed - fire event: _on_dataload_complete")
                 self._hass.async_create_task(self._on_dataload_complete())
                 self._dataload_complete_fired = True
+                self._cancel_dataload_complete_fallback()
 
     def _process_vep_updates(self, data):
         LOGGER.debug("Start _process_vep_updates")
@@ -1150,9 +1153,7 @@ class Client:
         if not self._first_vepupdates_processed:
             self._vepupdates_time_first_message = datetime.now()
             self._first_vepupdates_processed = True
-            self._hass.loop.call_later(
-                30, lambda: self._hass.async_add_executor_job(self._safe_create_on_dataload_complete_task)
-            )
+            self._arm_dataload_complete_fallback()
 
         for vin in cars:
             if vin in self.excluded_cars:
@@ -1209,6 +1210,7 @@ class Client:
                 LOGGER.debug("_process_vep_updates - all completed - fire event: _on_dataload_complete")
                 self._hass.async_create_task(self._on_dataload_complete())
                 self._dataload_complete_fired = True
+                self._cancel_dataload_complete_fallback()
 
     def _process_vehicle_status_updates(self, data):
         LOGGER.debug("Start _process_vehicle_status_updates")
@@ -1221,9 +1223,7 @@ class Client:
         if not self._first_vepupdates_processed:
             self._vepupdates_time_first_message = datetime.now()
             self._first_vepupdates_processed = True
-            self._hass.loop.call_later(
-                30, lambda: self._hass.async_add_executor_job(self._safe_create_on_dataload_complete_task)
-            )
+            self._arm_dataload_complete_fallback()
 
         for vin, vsu_car in cars.items():
             if vin in self.excluded_cars:
@@ -1278,6 +1278,7 @@ class Client:
                 LOGGER.debug("_process_vehicle_status_updates - all completed - fire event: _on_dataload_complete")
                 self._hass.async_create_task(self._on_dataload_complete())
                 self._dataload_complete_fired = True
+                self._cancel_dataload_complete_fallback()
 
     def _process_assigned_vehicles(self, data):
         if not self._dataload_complete_fired:
@@ -2382,7 +2383,33 @@ class Client:
                     car.has_geofencing = False
                 car.geo_fencing_retry_counter = car.geo_fencing_retry_counter + 1
 
-    def _safe_create_on_dataload_complete_task(self):
-        """Create task in a thread-safe way."""
-        # Zurück zum Event Loop
-        asyncio.run_coroutine_threadsafe(self._on_dataload_complete(), self._hass.loop)
+    @callback
+    def _arm_dataload_complete_fallback(self) -> None:
+        """Start the fallback timer for the entity creation."""
+        if self._dataload_fallback_handle is not None:
+            return
+
+        self._dataload_fallback_handle = async_call_later(
+            self._hass, DATALOAD_COMPLETE_FALLBACK_DELAY, self._async_dataload_complete_fallback
+        )
+
+    @callback
+    def _cancel_dataload_complete_fallback(self) -> None:
+        """Cancel the fallback timer for the entity creation."""
+        if self._dataload_fallback_handle is not None:
+            self._dataload_fallback_handle()
+            self._dataload_fallback_handle = None
+
+    @callback
+    def _async_dataload_complete_fallback(self, _now) -> None:
+        """Create the entities when not every car reported a full data set in time."""
+        self._dataload_fallback_handle = None
+
+        if self._dataload_complete_fired:
+            return
+
+        LOGGER.debug(
+            "Dataload fallback after %s seconds - fire event: _on_dataload_complete", DATALOAD_COMPLETE_FALLBACK_DELAY
+        )
+        self._dataload_complete_fired = True
+        self._hass.async_create_task(self._on_dataload_complete())

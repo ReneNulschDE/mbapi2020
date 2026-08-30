@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -37,6 +38,7 @@ class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.config_entry: ConfigEntry = config_entry
         self.initialized: bool = False
         self.entry_setup_complete: bool = False
+        self._entry_setup_lock = asyncio.Lock()
         session = async_get_clientsession(hass, VERIFY_SSL)
 
         # Find the right way to migrate old configs
@@ -63,15 +65,22 @@ class MBAPI2020DataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         return {}  # self.client.cars
 
-    @callback
     async def on_dataload_complete(self):
-        """Create sensors after the web_socket initial data is complete."""
-        if not self.entry_setup_complete:
-            LOGGER.info("Car Load complete - start sensor creation")
-            await self.hass.config_entries.async_forward_entry_setups(self.config_entry, MERCEDESME_COMPONENTS)
+        """Create sensors after the web_socket initial data is complete.
 
-        self.entry_setup_complete = True
-        self.client._dataload_complete_fired = True
+        The lock is required because this can be called concurrently from the
+        regular completion path and from the fallback timer in the client.
+        Home Assistant does not guard against forwarding an entry twice while
+        the entry setup is still in progress, so a second call would raise
+        "Config entry ... has already been setup!" for every platform.
+        """
+        async with self._entry_setup_lock:
+            if not self.entry_setup_complete:
+                LOGGER.info("Car Load complete - start sensor creation")
+                await self.hass.config_entries.async_forward_entry_setups(self.config_entry, MERCEDESME_COMPONENTS)
+                self.entry_setup_complete = True
+
+            self.client._dataload_complete_fired = True
 
     async def ws_connect(self):
         """Register handlers and connect to the websocket."""
