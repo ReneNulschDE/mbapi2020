@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "Ładowanie aktywne"
+      },
+      "decklidstatus": {
+        "name": "Klapa bagażnika"
+      },
+      "doorlockstatusdecklid": {
+        "name": "Zamek klapy bagażnika"
       }
     },
     "sensor": {

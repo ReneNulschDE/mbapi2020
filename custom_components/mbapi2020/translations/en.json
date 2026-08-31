@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "Charging active"
+      },
+      "decklidstatus": {
+        "name": "Deck lid"
+      },
+      "doorlockstatusdecklid": {
+        "name": "Deck lid lock"
       }
     },
     "sensor": {

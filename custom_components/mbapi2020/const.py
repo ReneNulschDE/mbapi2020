@@ -643,6 +643,38 @@ BinarySensors = {
         None,
         None,
     ],
+    "decklidstatus": [
+        "Deck lid",
+        None,  # Deprecated: DO NOT USE
+        "doors",
+        "decklidstatus",
+        "value",
+        None,
+        None,
+        None,
+        BinarySensorDeviceClass.OPENING,
+        False,
+        None,
+        None,
+        None,
+        None,
+    ],
+    "doorlockstatusdecklid": [
+        "Deck lid lock",
+        None,  # Deprecated: DO NOT USE
+        "doors",
+        "doorlockstatusdecklid",
+        "value",
+        None,
+        None,
+        None,
+        BinarySensorDeviceClass.LOCK,
+        False,
+        None,
+        None,
+        None,
+        None,
+    ],
     "chargeflapacstatus": [
         "Charge Flap AC Status",
         None,  # Deprecated: DO NOT USE

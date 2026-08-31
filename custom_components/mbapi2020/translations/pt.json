@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "Carregamento ativo"
+      },
+      "decklidstatus": {
+        "name": "Tampa da mala"
+      },
+      "doorlockstatusdecklid": {
+        "name": "Fecho da tampa da mala"
       }
     },
     "sensor": {

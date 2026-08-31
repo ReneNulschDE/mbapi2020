@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "Ladevorgang aktiv"
+      },
+      "decklidstatus": {
+        "name": "Kofferraumklappe"
+      },
+      "doorlockstatusdecklid": {
+        "name": "Kofferraumklappenschloss"
       }
     },
     "sensor": {

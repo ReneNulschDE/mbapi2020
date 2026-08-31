@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "Lading aktiv"
+      },
+      "decklidstatus": {
+        "name": "Bagasjelokk"
+      },
+      "doorlockstatusdecklid": {
+        "name": "Bagasjelokklås"
       }
     },
     "sensor": {
