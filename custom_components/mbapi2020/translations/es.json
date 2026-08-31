@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "Carga activa"
+      },
+      "decklidstatus": {
+        "name": "Tapa del maletero"
+      },
+      "doorlockstatusdecklid": {
+        "name": "Bloqueo de la tapa del maletero"
       }
     },
     "sensor": {

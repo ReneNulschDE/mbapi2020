@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "Charge en cours"
+      },
+      "decklidstatus": {
+        "name": "Couvercle de coffre"
+      },
+      "doorlockstatusdecklid": {
+        "name": "Serrure du couvercle de coffre"
       }
     },
     "sensor": {

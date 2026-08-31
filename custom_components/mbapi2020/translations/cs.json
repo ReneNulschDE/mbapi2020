@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "Nabíjení aktivní"
+      },
+      "decklidstatus": {
+        "name": "Zavazadlový prostor"
+      },
+      "doorlockstatusdecklid": {
+        "name": "Zámek zavazadlového prostoru"
       }
     },
     "sensor": {

@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "Ricarica attiva"
+      },
+      "decklidstatus": {
+        "name": "Cofano posteriore"
+      },
+      "doorlockstatusdecklid": {
+        "name": "Serratura cofano posteriore"
       }
     },
     "sensor": {

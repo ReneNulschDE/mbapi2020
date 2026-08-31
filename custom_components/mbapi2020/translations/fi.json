@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "Lataus aktiivinen"
+      },
+      "decklidstatus": {
+        "name": "Tavaratilan kansi"
+      },
+      "doorlockstatusdecklid": {
+        "name": "Tavaratilan kannen lukko"
       }
     },
     "sensor": {

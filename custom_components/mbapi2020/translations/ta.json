@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "சார்ஜிங் செயலில்"
+      },
+      "decklidstatus": {
+        "name": "டெக் மூடி"
+      },
+      "doorlockstatusdecklid": {
+        "name": "டெக் மூடி பூட்டு"
       }
     },
     "sensor": {

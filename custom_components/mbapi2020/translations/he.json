@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "טעינה פעילה"
+      },
+      "decklidstatus": {
+        "name": "מכסה תא מטען"
+      },
+      "doorlockstatusdecklid": {
+        "name": "נעילת מכסה תא מטען"
       }
     },
     "sensor": {

@@ -560,6 +560,12 @@
     "binary_sensor": {
       "chargingactive": {
         "name": "Заряджання активне"
+      },
+      "decklidstatus": {
+        "name": "Кришка багажника"
+      },
+      "doorlockstatusdecklid": {
+        "name": "Замок кришки багажника"
       }
     },
     "sensor": {
