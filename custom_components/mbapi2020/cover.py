@@ -26,12 +26,17 @@ from .coordinator import MBAPI2020DataUpdateCoordinator
 from .helper import LogHelper as loghelper
 
 # Positions for the individual windows, based on the proto enum Windowstatus:
-# 0 INTERMEDIATE, 1 COMPLETELY_OPENED, 2 COMPLETELY_CLOSED, 3 AIRING_POSITION
-WINDOW_STATUS_POSITIONS: dict[int, int] = {0: 50, 1: 100, 2: 0, 3: 10}
+# 0 INTERMEDIATE, 1 COMPLETELY_OPENED, 2 COMPLETELY_CLOSED, 3 AIRING_POSITION,
+# 4 INTERMEDIATE_AIRING_POSITION, 5 RUNNING
+# RUNNING is deliberately absent: it means the window is moving and carries no
+# direction, so any position would be a guess. The entity reports unknown until
+# the car sends the status it settled on.
+WINDOW_STATUS_POSITIONS: dict[int, int] = {0: 50, 1: 100, 2: 0, 3: 10, 4: 50}
 
 # Positions for the window summary, based on the proto enum WindowStatusOverall:
-# 0 OPEN, 1 CLOSED, 2 COMPLETELY_OPEN, 3 AIRING
-# Note the numbering differs from the individual windows above
+# 0 OPEN, 1 CLOSED, 2 COMPLETELY_OPEN, 3 AIRING, 4 RUNNING
+# Note the numbering differs from the individual windows above, and RUNNING is
+# absent here for the same reason
 WINDOW_STATUS_OVERALL_POSITIONS: dict[int, int] = {0: 50, 1: 0, 2: 100, 3: 10}
 
 # Retrieval status values that indicate the car did not report a usable value
