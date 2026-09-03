@@ -143,7 +143,21 @@
         },
         "charge_program": {
           "name": "Latausohjelma",
-          "description": "(Valinnainen, oletus=0) Muutettava latausohjelma (0=Oletus, 2=Koti, 3=Työ) (ei käytössä 2025 CLA:ssa)"
+          "description": "(Valinnainen) Määritettävä latausohjelma (0=Oletus, 2=Koti, 3=Työ). Jos arvoa ei anneta, käytetään autossa parhaillaan käytössä olevaa ohjelmaa. (ei käytössä 2025 CLA:ssa)"
+        }
+      }
+    },
+    "charge_coupler_stop": {
+      "name": "Latauksen pysäytys ja liittimen vapautus",
+      "description": "Pysäyttää käynnissä olevan latauksen ja vapauttaa latausliittimen VIN-numerolla määritetystä autosta. PIN-koodin määritys vaaditaan. Katso integraation asetusvalikko.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Auton VIN/FIN-numero"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Turva-PIN, vaaditaan jos ei ole tallennettu asetuksiin."
         }
       }
     },

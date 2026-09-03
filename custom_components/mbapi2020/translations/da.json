@@ -143,7 +143,21 @@
         },
         "charge_program": {
           "name": "Ladeprogram",
-          "description": "(Valgfri, Standard=0) Ladeprogram der skal ændres (0=Standard, 2=Hjem, 3=Arbejde) (bruges ikke til 2025 CLA)"
+          "description": "(Valgfri) Ladeprogram der skal konfigureres (0=Standard, 2=Hjem, 3=Arbejde). Hvis det udelades, bruges det program, bilen aktuelt kører. (bruges ikke til 2025 CLA)"
+        }
+      }
+    },
+    "charge_coupler_stop": {
+      "name": "Stop opladning og frigiv ladestik",
+      "description": "Stopper den igangværende opladning og frigiver ladestikket på en bil defineret af et VIN-nummer. PIN-kode opsætning påkrævet. Se indstillingsdialogen for integrationen.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "pin": {
+          "name": "PIN-kode",
+          "description": "Sikkerhedskode (PIN), påkrævet hvis den ikke er gemt i indstillingerne."
         }
       }
     },

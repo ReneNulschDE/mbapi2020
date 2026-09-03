@@ -143,7 +143,21 @@
         },
         "charge_program": {
           "name": "Programma di ricarica",
-          "description": "(Opzionale, Predefinito=0) Programma di ricarica da modificare (0=Predefinito, 2=Casa, 3=Lavoro) (non utilizzato per la CLA 2025)"
+          "description": "(Opzionale) Programma di ricarica da configurare (0=Predefinito, 2=Casa, 3=Lavoro). Se omesso, viene usato il programma attualmente attivo sull'auto. (non utilizzato per la CLA 2025)"
+        }
+      }
+    },
+    "charge_coupler_stop": {
+      "name": "Arresta la ricarica e sblocca il connettore",
+      "description": "Termina la sessione di ricarica in corso e sblocca il connettore di ricarica di un'auto definita da un VIN. Configurazione PIN necessaria. Vedi la finestra opzioni dell'integrazione.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin dell'auto"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN di sicurezza, necessario se non memorizzato nelle impostazioni."
         }
       }
     },

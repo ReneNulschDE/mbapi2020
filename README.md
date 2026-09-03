@@ -329,7 +329,10 @@ Some services require that the security PIN is created in your mobile Android/IO
   Stop the auxiliary heating of a car defined by a vin.
 
 - battery_max_soc_configure:
-  Configure the maximum value for the state of charge of the HV battery of a car defined by a vin.
+  Configure the maximum value for the state of charge of the HV battery of a car defined by a vin. If no charge program is given, the program the car is currently running is configured.
+
+- charge_coupler_stop:
+  Stop the running charging session and release the charge coupler of a car defined by a vin. PIN required.
 
 - doors_unlock:
   Unlock a car defined by a vin. PIN required.

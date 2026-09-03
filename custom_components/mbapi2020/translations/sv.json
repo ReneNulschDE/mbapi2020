@@ -143,7 +143,21 @@
         },
         "charge_program": {
           "name": "Laddningsprogram",
-          "description": "(Valfritt, förvalt=0) Laddningsprogram som ska ändras (0=Förvalt, 2=Hem, 3=Arbete) (används ej för 2025 års CLA)"
+          "description": "(Valfritt) Laddningsprogram som ska konfigureras (0=Förvalt, 2=Hem, 3=Arbete). Om det utelämnas används det program bilen kör just nu. (används ej för 2025 års CLA)"
+        }
+      }
+    },
+    "charge_coupler_stop": {
+      "name": "Stoppa laddning och frigör laddkontakt",
+      "description": "Avslutar den pågående laddningen och frigör laddkontakten på en bil definierad av ett VIN-nummer. Konfiguration av PIN-kod krävs. Se integreringsalternativen i inställningarna.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Bilens Vin/Fin"
+        },
+        "pin": {
+          "name": "PIN-kod",
+          "description": "Säkerhetskod (PIN), krävs om den inte finns sparad i inställningarna."
         }
       }
     },

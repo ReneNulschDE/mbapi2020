@@ -143,7 +143,21 @@
         },
         "charge_program": {
           "name": "Charge program",
-          "description": "(Optional, Default=0) Charge program to change (0=Default, 2=Home, 3=Work) (not used for 2025 CLA)"
+          "description": "(Optional) Charge program to configure (0=Default, 2=Home, 3=Work). If omitted, the program the car is currently running is used. (not used for 2025 CLA)"
+        }
+      }
+    },
+    "charge_coupler_stop": {
+      "name": "Charge coupler stop",
+      "description": "Stop the running charging session and release the charge coupler of a car defined by a vin. PIN setup required. See options dialog of the integration.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "security pin, required if not stored in the settings."
         }
       }
     },

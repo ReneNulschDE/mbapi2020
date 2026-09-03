@@ -143,7 +143,21 @@
         },
         "charge_program": {
           "name": "Laadprogramma",
-          "description": "(Optioneel, standaard=0) Het laadprogramma om te wijzigen (0=Standaard, 2=Thuis, 3=Werk) (niet gebruikt voor 2025 CLA)"
+          "description": "(Optioneel) Het in te stellen laadprogramma (0=Standaard, 2=Thuis, 3=Werk). Als dit wordt weggelaten, wordt het programma gebruikt dat de auto op dit moment uitvoert. (niet gebruikt voor 2025 CLA)"
+        }
+      }
+    },
+    "charge_coupler_stop": {
+      "name": "Laden stoppen en stekker ontgrendelen",
+      "description": "Stopt de lopende laadsessie en ontgrendelt de laadstekker van een auto die wordt gedefinieerd door een VIN. PIN-instelling vereist. Zie de optiedialoog van de integratie.",
+      "fields": {
+        "vin": {
+          "name": "Chassisnummer",
+          "description": "Chassisnummer van de auto"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "PIN-code, vereist als deze niet is opgeslagen in de instellingen."
         }
       }
     },

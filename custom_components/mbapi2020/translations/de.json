@@ -143,7 +143,21 @@
         },
         "charge_program": {
           "name": "Ladeprogramm",
-          "description": "(Optional, Standard=0) Zu änderndes Ladeprogramm (0=Standard, 2=Zuhause, 3=Arbeit) (nicht für 2025 CLA verwendet)"
+          "description": "(Optional) Zu konfigurierendes Ladeprogramm (0=Standard, 2=Zuhause, 3=Arbeit). Ohne Angabe wird das aktuell aktive Ladeprogramm des Fahrzeugs verwendet. (nicht für 2025 CLA verwendet)"
+        }
+      }
+    },
+    "charge_coupler_stop": {
+      "name": "Ladekupplung entriegeln",
+      "description": "Beendet den laufenden Ladevorgang und entriegelt die Ladekupplung eines Fahrzeugs (VIN). PIN-Einrichtung erforderlich.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Sicherheits-PIN, erforderlich wenn nicht in den Einstellungen gespeichert"
         }
       }
     },

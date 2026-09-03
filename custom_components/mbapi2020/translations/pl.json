@@ -143,7 +143,21 @@
         },
         "charge_program": {
           "name": "Program ładowania",
-          "description": "(Opcjonalnie, Domyślnie=0) Zmiana programu ładowania (0=Domyślny, 2=Dom, 3=Praca) (nie używane dla CLA 2025)"
+          "description": "(Opcjonalnie) Program ładowania do skonfigurowania (0=Domyślny, 2=Dom, 3=Praca). Jeśli pominięty, używany jest program aktualnie aktywny w pojeździe. (nie używane dla CLA 2025)"
+        }
+      }
+    },
+    "charge_coupler_stop": {
+      "name": "Zatrzymanie ładowania i zwolnienie złącza",
+      "description": "Kończy trwającą sesję ładowania i zwalnia złącze ładowania pojazdu zdefiniowanego VIN. Wymagany PIN. Sprawdź opcje w ustawieniach integracji.",
+      "fields": {
+        "vin": {
+          "name": "VIN",
+          "description": "VIN/FIN pojazdu"
+        },
+        "pin": {
+          "name": "PIN",
+          "description": "PIN bezpieczeństwa, wymagany gdy nie jest zapisany w ustawieniach."
         }
       }
     },

@@ -102,9 +102,8 @@ battery_max_soc_configure:
             - label: "100%"
               value: "100"
     charge_program:
-      description: "(optional) Charge Program - (0=Default, 2=Home, 3=Work)"
+      description: "(optional) Charge program to configure (0=Default, 2=Home, 3=Work). If omitted, the program the car is currently running is used."
       example: "0"
-      default: 0
       selector:
         select:
           options:
@@ -123,7 +122,7 @@ charge_program_configure:
       selector:
         text:
     charge_program:
-      description: "Charge program to configure (0=Default, 2=Home, 3=Work). If omitted, the program the car is currently running is used. Note the car activates the configured program after the call."
+      description: "The activated charge program (0=Default, 2=Home, 3=Work)"
       required: True
       example: "0"
       default: 0
@@ -794,7 +793,7 @@ temperature_configure:
             - "30"
 
 charge_coupler_stop:
-  description: "Stop the current charging session and release the charge coupler. PIN required."
+  description: "Stop the running charging session and release the charge coupler of a car defined by a vin."
   fields:
     vin:
       description: "vin of the car"
@@ -803,7 +802,7 @@ charge_coupler_stop:
       selector:
         text:
     pin:
-      description: "Optional security PIN. If empty, the PIN from the integration options is used."
+      description: "(optional) Security PIN. If empty, the PIN of the integration options is used."
       example: "1234"
       required: False
       selector:

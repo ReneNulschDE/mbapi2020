@@ -1561,17 +1561,18 @@ class Client:
             )
             return
 
-        _pin = pin if (pin and pin.strip()) else self.pin
+        _pin = pin.strip() if pin else self.pin
 
         if not _pin:
             LOGGER.warning(
                 "Can't stop the charge coupler for car %s. PIN not set. Please set the PIN -> Integration, Options "
-                "or use the optional parameter of the service.",
+                "or use the optional parameter of the service",
                 loghelper.Mask_VIN(vin),
             )
             return
 
         message = client_pb2.ClientMessage()
+
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.charge_coupler_stop.pin = _pin
@@ -1690,18 +1691,13 @@ class Client:
     async def battery_max_soc_configure(self, vin: str, max_soc: int, charge_program: int | None = None):
         """Send the maxsoc configure command to the car."""
         if charge_program is None:
-            # No program given: target the one the car is currently running,
-            # falling back to the default program if it can't be determined.
-            charge_program = 0
-            try:
-                selected = getattr(self.cars.get(vin).electric, "selectedChargeProgram", None)
-                if selected is not None and selected.value is not None:
-                    charge_program = int(selected.value)
-            except (AttributeError, TypeError, ValueError) as err:
-                LOGGER.debug(
-                    "battery_max_soc_configure - could not read selectedChargeProgram (%s), using program 0",
-                    err,
-                )
+            # No program given: configure the program the car is currently running,
+            # so that setting the target does not switch the car to another program.
+            current_car = self.cars.get(vin)
+            selected_program = (
+                self._get_car_value(current_car.electric, "selectedChargeProgram", "value", 0) if current_car else 0
+            )
+            charge_program = int(selected_program) if selected_program is not None else 0
 
         LOGGER.info(
             "Start battery_max_soc_configure to %s for vin %s and program %s",
@@ -1716,7 +1712,7 @@ class Client:
             and not self._is_car_feature_available(vin, "CHARGE_PROGRAM_CONFIGURE")
         ):
             LOGGER.warning(
-                "Can't configure battery_max_soc for car %s. Features BATTERY_MAX_SOC_CONFIGURE or CHARGING_CONFIGURE not availabe for this car.",
+                "Can't configure battery_max_soc for car %s. Features BATTERY_MAX_SOC_CONFIGURE, CHARGING_CONFIGURE or CHARGE_PROGRAM_CONFIGURE not availabe for this car.",
                 loghelper.Mask_VIN(vin),
             )
             return

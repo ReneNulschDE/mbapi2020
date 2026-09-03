@@ -143,7 +143,21 @@
         },
         "charge_program": {
           "name": "Nabíjecí program",
-          "description": "(Volitelné, Výchozí=0) Nabíjecí program ke změně (0=Výchozí, 2=Domov, 3=Práce) (nepoužívá se pro 2025 CLA)"
+          "description": "(Volitelné) Nabíjecí program ke konfiguraci (0=Výchozí, 2=Domov, 3=Práce). Pokud není zadán, použije se program, který vůz právě používá. (nepoužívá se pro 2025 CLA)"
+        }
+      }
+    },
+    "charge_coupler_stop": {
+      "name": "Zastavit nabíjení a uvolnit konektor",
+      "description": "Ukončí probíhající nabíjení a uvolní nabíjecí konektor vozu definovaného pomocí VIN. Vyžaduje nastavení PINu. Viz dialog s možnostmi integrace.",
+      "fields": {
+        "vin": {
+          "name": "VIN",
+          "description": "VIN/FIN vozu"
+        },
+        "pin": {
+          "name": "PIN",
+          "description": "Bezpečnostní PIN, vyžadován, pokud není uložen v nastavení."
         }
       }
     },
