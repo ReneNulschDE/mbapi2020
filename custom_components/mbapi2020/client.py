@@ -1687,8 +1687,22 @@ class Client:
         await self.execute_car_command(message)
         LOGGER.info("End auxheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
-    async def battery_max_soc_configure(self, vin: str, max_soc: int, charge_program: int = 0):
+    async def battery_max_soc_configure(self, vin: str, max_soc: int, charge_program: int | None = None):
         """Send the maxsoc configure command to the car."""
+        if charge_program is None:
+            # No program given: target the one the car is currently running,
+            # falling back to the default program if it can't be determined.
+            charge_program = 0
+            try:
+                selected = getattr(self.cars.get(vin).electric, "selectedChargeProgram", None)
+                if selected is not None and selected.value is not None:
+                    charge_program = int(selected.value)
+            except (AttributeError, TypeError, ValueError) as err:
+                LOGGER.debug(
+                    "battery_max_soc_configure - could not read selectedChargeProgram (%s), using program 0",
+                    err,
+                )
+
         LOGGER.info(
             "Start battery_max_soc_configure to %s for vin %s and program %s",
             max_soc,
