@@ -1550,6 +1550,35 @@ class Client:
         await self.execute_car_command(message)
         LOGGER.info("End Doors_unlock for vin %s", loghelper.Mask_VIN(vin))
 
+    async def charge_coupler_stop(self, vin: str, pin: str = ""):
+        """Send the charge coupler stop command to the car."""
+        LOGGER.info("Start charge_coupler_stop for vin %s", loghelper.Mask_VIN(vin))
+
+        if not self._is_car_feature_available(vin, "CHARGE_COUPLER_STOP"):
+            LOGGER.warning(
+                "Can't stop the charge coupler for car %s. Feature not availabe for this car.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        _pin = pin if (pin and pin.strip()) else self.pin
+
+        if not _pin:
+            LOGGER.warning(
+                "Can't stop the charge coupler for car %s. PIN not set. Please set the PIN -> Integration, Options "
+                "or use the optional parameter of the service.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        message = client_pb2.ClientMessage()
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.charge_coupler_stop.pin = _pin
+
+        await self.execute_car_command(message)
+        LOGGER.info("End charge_coupler_stop for vin %s", loghelper.Mask_VIN(vin))
+
     async def doors_lock(self, vin: str):
         """Send the doors lock command to the car."""
         LOGGER.info("Start Doors_lock for vin %s", loghelper.Mask_VIN(vin))
