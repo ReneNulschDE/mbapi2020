@@ -1667,8 +1667,10 @@ class Client:
             charge_program,
         )
 
-        if not self._is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE") and not self._is_car_feature_available(
-            vin, "CHARGING_CONFIGURE"
+        if (
+            not self._is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE")
+            and not self._is_car_feature_available(vin, "CHARGING_CONFIGURE")
+            and not self._is_car_feature_available(vin, "CHARGE_PROGRAM_CONFIGURE")
         ):
             LOGGER.warning(
                 "Can't configure battery_max_soc for car %s. Features BATTERY_MAX_SOC_CONFIGURE or CHARGING_CONFIGURE not availabe for this car.",
