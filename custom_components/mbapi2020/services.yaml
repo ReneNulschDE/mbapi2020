@@ -123,7 +123,7 @@ charge_program_configure:
       selector:
         text:
     charge_program:
-      description: "The activated charge program (0=Default, 2=Home, 3=Work)"
+      description: "Charge program to configure (0=Default, 2=Home, 3=Work). If omitted, the program the car is currently running is used. Note the car activates the configured program after the call."
       required: True
       example: "0"
       default: 0
