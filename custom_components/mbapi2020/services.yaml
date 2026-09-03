@@ -792,3 +792,19 @@ temperature_configure:
             - "27.5"
             - "28"
             - "30"
+
+charge_coupler_stop:
+  description: "Stop the current charging session and release the charge coupler. PIN required."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
+    pin:
+      description: "Optional security PIN. If empty, the PIN from the integration options is used."
+      example: "1234"
+      required: False
+      selector:
+        text:
