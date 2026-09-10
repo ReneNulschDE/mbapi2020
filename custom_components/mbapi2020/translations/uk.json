@@ -2,14 +2,16 @@
   "config": {
     "abort": {
       "already_configured": "Компонент уже налаштовано.",
-      "reauth_successful": "Повторну автентифікацію виконано! Триває перезавантаження компонента."
+      "reauth_successful": "Повторну автентифікацію виконано! Триває перезавантаження компонента.",
+      "china_oauth_denied": "Authorization was cancelled on the official Mercedes login page."
     },
     "error": {
       "cannot_connect": "cannot_connect",
       "invalid_auth": "invalid_auth",
       "unknown": "Невідома помилка. Перегляньте журнал Home Assistant для отримання додаткової інформації.",
       "2fa_required": "Облікові записи з двофакторною автентифікацією (2FA) не підтримуються.",
-      "legal_terms": "Спочатку потрібно прийняти юридичні умови у застосунку або на сайті Mercedes me, після чого повторіть спробу."
+      "legal_terms": "Спочатку потрібно прийняти юридичні умови у застосунку або на сайті Mercedes me, після чого повторіть спробу.",
+      "china_oauth_token_invalid": "Official login succeeded, but Mercedes rejected the tokens. Retry the official login."
     },
     "step": {
       "user": {
@@ -33,7 +35,18 @@
         },
         "description": "Введіть код TAN, який ви отримали електронною поштою або SMS, щоб завершити автентифікацію. Якщо ви не отримали TAN, перевірте вхідні листи (та папку зі спамом) або повідомлення SMS.",
         "title": "Mercedes ME 2020 — TAN"
+      },
+      "china_oauth": {
+        "description": "First sign in on the official Mercedes site, then connect the device. Do not refresh a loading page.",
+        "title": "Mercedes ME 2020 - Official login (China)"
+      },
+      "china_oauth_failed": {
+        "description": "Official login did not finish or timed out. Submit to retry.",
+        "title": "Mercedes ME 2020 - China login incomplete"
       }
+    },
+    "progress": {
+      "wait_for_china_oauth": "A helper page opens with the device code. First sign in on the official Mercedes site. Then open Connect-a-device and type the code. Do not refresh a page that is still loading.\n\n[Open the helper page]({verify_url})\n\nDevice code: `{user_code}`\n\nThis login expires in {expires_minutes} minutes."
     }
   },
   "issues": {

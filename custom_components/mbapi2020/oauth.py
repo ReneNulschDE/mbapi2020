@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import contextlib
 from copy import deepcopy
 import hashlib
 import json
@@ -17,13 +18,31 @@ import uuid
 import aiohttp
 from aiohttp import ClientSession
 
-from custom_components.mbapi2020.errors import MBAuth2FAError, MBAuthError, MBLegalTermsError
+from custom_components.mbapi2020.errors import (
+    MBAuth2FAError,
+    MBAuthError,
+    MBDeviceAuthDenied,
+    MBDeviceAuthTimeout,
+    MBLegalTermsError,
+    RequestError,
+)
 from custom_components.mbapi2020.app_version import AppVersionManager
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .const import (
+    AUTH_METHOD_DEVICE,
+    CHINA_FATAL_REFRESH_ERRORS,
+    CONF_AUTH_METHOD,
+    CIAM_DEVICE_AUTH_URL_CN,
+    CIAM_DEVICE_GRANT_TYPE,
+    CIAM_DEVICE_SCOPE,
+    CIAM_DEVICE_TOKEN_URL_CN,
+    CIAM_DEVICE_USER_AUTHZ_URL_CN,
+    CN_DIRECT_TOKEN_EXPIRES_SECONDS,
+    CN_TOKEN_RENEW_CHECK_INTERVAL_SECONDS,
+    CN_TOKEN_RENEW_LEEWAY_SECONDS,
     DEFAULT_COUNTRY_CODE,
     DEFAULT_LOCALE,
     LOGIN_APP_ID_CN,
@@ -35,6 +54,7 @@ from .const import (
     SYSTEM_PROXY,
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
+    WEBSOCKET_USER_AGENT_CN,
 )
 from .helper import LogHelper, UrlHelper as helper
 
@@ -78,6 +98,7 @@ class Oauth:
         # PKCE parameters for new login method
         self.code_verifier: str | None = None
         self.code_challenge: str | None = None
+        self._renewal_task: asyncio.Task | None = None
 
     def _generate_pkce_parameters(self) -> tuple[str, str]:
         """Generate PKCE (Proof Key for Code Exchange) parameters for OAuth2.
@@ -467,9 +488,190 @@ class Oauth:
         headers = self._get_header()
         return await self._async_request("post", url, data=data, headers=headers)
 
+    @staticmethod
+    def china_device_verify_url(user_code: str) -> str:
+        """Return the PingFederate Connect-a-device page.
+
+        Do not append ``user_code``. Sign in first on the public Mercedes
+        website, then type the code on this page.
+        """
+        del user_code
+        return CIAM_DEVICE_USER_AUTHZ_URL_CN
+
+    async def async_request_device_code(self) -> dict[str, Any]:
+        """Start the official China OAuth device-code login."""
+        if self._region != REGION_CHINA:
+            raise MBAuthError("Device-code login is only available for the China region")
+
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+            "User-Agent": WEBSOCKET_USER_AGENT_CN,
+        }
+        data = urllib.parse.urlencode(
+            {
+                "client_id": helper.Login_App_Id(self._region),
+                "scope": CIAM_DEVICE_SCOPE,
+            }
+        )
+        async with self._session.post(
+            CIAM_DEVICE_AUTH_URL_CN,
+            data=data,
+            headers=headers,
+            proxy=SYSTEM_PROXY,
+        ) as response:
+            body = await response.json(content_type=None)
+            if response.status >= 400 or not isinstance(body, dict) or not body.get("device_code"):
+                raise MBAuthError(f"China device authorization failed: {response.status} - {body}")
+
+            user_code = body["user_code"]
+            body["verification_uri_complete"] = self.china_device_verify_url(user_code)
+            _LOGGER.info(
+                "China device-code login started (user_code=%s, expires_in=%s)",
+                user_code,
+                body.get("expires_in"),
+            )
+            return body
+
+    async def async_poll_device_token(
+        self,
+        device_code: str,
+        interval: int,
+        expires_in: int,
+    ) -> dict[str, Any]:
+        """Poll CIAM until the official China login page authorizes this device."""
+        deadline = time.monotonic() + max(int(expires_in), 30)
+        poll_interval = max(int(interval), 5)
+        headers = self._get_header()
+        headers.update(self._ciam_token_headers())
+        data = urllib.parse.urlencode(
+            {
+                "grant_type": CIAM_DEVICE_GRANT_TYPE,
+                "device_code": device_code,
+                "client_id": helper.Login_App_Id(self._region),
+            }
+        )
+
+        while time.monotonic() < deadline:
+            await asyncio.sleep(poll_interval)
+            async with self._session.post(
+                CIAM_DEVICE_TOKEN_URL_CN,
+                data=data,
+                headers=headers,
+                proxy=SYSTEM_PROXY,
+            ) as response:
+                body = await response.json(content_type=None)
+                if response.status < 400 and isinstance(body, dict) and body.get("access_token"):
+                    token_info = self._add_custom_values_to_token_info(body)
+                    token_info["china_direct"] = True
+                    self._save_token_info(token_info)
+                    self.token = token_info
+                    _LOGGER.info("China device-code login completed")
+                    return token_info
+
+                error = body.get("error") if isinstance(body, dict) else None
+                if error == "authorization_pending":
+                    continue
+                if error == "slow_down":
+                    poll_interval += 5
+                    continue
+                if error in {"expired_token", "expired"}:
+                    raise MBDeviceAuthTimeout("China device-code login expired")
+                if error == "access_denied":
+                    raise MBDeviceAuthDenied("China device-code login was denied")
+                raise MBAuthError(f"China device-code token poll failed: {response.status} - {body}")
+
+        raise MBDeviceAuthTimeout("China device-code login timed out")
+
+    def _ciam_token_headers(self) -> dict[str, str]:
+        """Headers for China PingFederate token.oauth2."""
+        return {
+            "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+            "Accept": "application/json",
+            "User-Agent": WEBSOCKET_USER_AGENT_CN,
+            "Stage": "prod",
+            "X-Device-Id": self._device_guid,
+            "device-uuid": self._device_guid,
+            "X-Request-Id": str(uuid.uuid4()),
+        }
+
+    def _persist_token_info(
+        self, token_info: dict[str, Any], previous_refresh_token: str | None = None
+    ) -> dict[str, Any]:
+        """Merge, persist and activate a CIAM token response."""
+        previous = deepcopy(self.token) if self.token else {}
+        new_refresh = token_info.get("refresh_token")
+        if not new_refresh and previous_refresh_token:
+            token_info["refresh_token"] = previous_refresh_token
+        elif new_refresh and new_refresh != previous_refresh_token:
+            _LOGGER.info("Mercedes returned a rotated refresh_token; persisting it")
+        if not token_info.get("expires_in"):
+            token_info["expires_in"] = CN_DIRECT_TOKEN_EXPIRES_SECONDS
+        token_info = self._add_custom_values_to_token_info(token_info)
+        token_info = self._preserve_china_direct_metadata(token_info, previous)
+        for key in ("scope", "id_token", "token_type"):
+            if not token_info.get(key) and previous.get(key):
+                token_info[key] = previous[key]
+        self._save_token_info(token_info)
+        self.token = token_info
+        self._log_china_direct_token_status(token_info, "refreshed")
+        return token_info
+
+    async def _async_refresh_china_access_token(self, refresh_token: str) -> dict[str, Any]:
+        """Refresh a China device-code token with the same client_id that issued it."""
+        _LOGGER.info("Refreshing China CIAM token")
+        if not self._session or self._session.closed:
+            cookie_jar = aiohttp.CookieJar()
+            cookie_jar.update_cookies(
+                {"CIAM.DEVICE": self._device_guid},
+                response_url=aiohttp.URL("https://ciam-1.mercedes-benz.com.cn/"),
+            )
+            self._session = async_create_clientsession(self._hass, verify_ssl=VERIFY_SSL, cookie_jar=cookie_jar)
+
+        data = urllib.parse.urlencode(
+            {
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+                "client_id": helper.Login_App_Id(self._region),
+            }
+        )
+        headers = self._get_header()
+        headers.update(self._ciam_token_headers())
+        async with self._session.post(
+            CIAM_DEVICE_TOKEN_URL_CN,
+            data=data,
+            headers=headers,
+            proxy=SYSTEM_PROXY,
+        ) as response:
+            text = await response.text()
+            try:
+                body = json.loads(text) if text else {}
+            except json.JSONDecodeError:
+                body = {"error_description": text[:300]}
+
+            if response.status < 400 and isinstance(body, dict) and body.get("access_token"):
+                _LOGGER.info(
+                    "China CIAM refresh succeeded (expires_in=%s, refresh_token_returned=%s)",
+                    body.get("expires_in"),
+                    bool(body.get("refresh_token")),
+                )
+                return self._persist_token_info(body, refresh_token)
+
+            error = body.get("error") if isinstance(body, dict) else None
+            description = body.get("error_description") if isinstance(body, dict) else text[:300]
+            message = f"China token refresh failed: {response.status} - {error} - {description}"
+            if error in CHINA_FATAL_REFRESH_ERRORS:
+                err = MBAuthError(message)
+                err.oauth_error = error
+                raise err
+            raise RequestError(message)
+
     async def async_refresh_access_token(self, refresh_token: str, is_retry: bool = False):
         """Refresh the access token."""
         _LOGGER.info("Start async_refresh_access_token() with refresh_token")
+
+        if self._region == REGION_CHINA:
+            return await self._async_refresh_china_access_token(refresh_token)
 
         _LOGGER.debug("Auth token refresh preflight request 1")
         await self._app_version.async_refresh(self._session, force=True)
@@ -506,18 +708,144 @@ class Oauth:
 
         return token_info
 
+    def _preserve_china_direct_metadata(self, token_info: dict, previous: dict | None) -> dict:
+        """Keep the China device-code session marker across refresh_token renewals."""
+        previous = previous or {}
+        if previous.get("china_direct") or token_info.get("china_direct"):
+            token_info["china_direct"] = True
+        return token_info
+
+    def _is_china_session_active(self) -> bool:
+        """Return whether this entry belongs to the China region."""
+        return bool(self._region == REGION_CHINA and self._config_entry)
+
+    async def async_prepare_china_session(self) -> None:
+        """Validate the stored token and start auto-renewal before the first API call."""
+        if not self._is_china_session_active():
+            return
+
+        token_info = self.token
+        if not token_info and "token" in self._config_entry.data:
+            token_info = deepcopy(self._config_entry.data["token"])
+        if not token_info:
+            _LOGGER.warning("China session has no stored token - reauth required")
+            return
+
+        if self._config_entry.data.get(CONF_AUTH_METHOD) in {"token", AUTH_METHOD_DEVICE}:
+            token_info["china_direct"] = True
+        self.token = token_info
+        self._log_china_direct_token_status(token_info, "prepare")
+
+        try:
+            token_info = await self._maybe_refresh_token(token_info, "prepare")
+        except MBAuthError:
+            return
+        if token_info is not None:
+            self.token = token_info
+
+        self.async_start_renewal_watchdog()
+
+    async def _maybe_refresh_token(self, token_info: dict | None, context: str) -> dict | None:
+        """Refresh the access token when the proactive renewal window is reached."""
+        if not token_info or not self.should_refresh_token(token_info):
+            return token_info
+
+        async with self._get_token_lock:
+            current = self.token or token_info
+            if not self.should_refresh_token(current):
+                return current
+
+            if not current.get("refresh_token"):
+                _LOGGER.warning("Refresh token is missing - reauth required")
+                self.start_reauth_flow()
+                return None
+
+            _LOGGER.info("Mercedes token proactive renewal triggered (%s)", context)
+            try:
+                refreshed = await self.async_refresh_access_token(current["refresh_token"], is_retry=False)
+            except MBAuthError as err:
+                oauth_error = getattr(err, "oauth_error", None)
+                if self._region == REGION_CHINA and oauth_error not in CHINA_FATAL_REFRESH_ERRORS:
+                    _LOGGER.warning(
+                        "Token refresh failed (%s): %s; keeping current token and retrying later",
+                        context,
+                        err,
+                    )
+                    return current
+                _LOGGER.error("Mercedes refresh_token rejected (%s) - starting reauth flow", context)
+                self.start_reauth_flow()
+                raise
+            except (aiohttp.ClientError, RequestError) as err:
+                _LOGGER.warning("Token refresh failed due to a transient error (%s): %s", context, err)
+                return current
+            return refreshed or current
+
+    def start_reauth_flow(self) -> None:
+        """Ask Home Assistant to show the reauth flow for this entry."""
+        if self._config_entry is None:
+            return
+        try:
+            self._config_entry.async_start_reauth(self._hass)
+        except Exception:  # pragma: no cover - reauth must never crash callers
+            _LOGGER.exception("Failed to start reauth flow")
+
+    def async_start_renewal_watchdog(self) -> None:
+        """Start a background loop that renews China tokens before they expire."""
+        if not self._is_china_session_active():
+            return
+        if self._renewal_task and not self._renewal_task.done():
+            return
+        self._renewal_task = asyncio.create_task(self._renewal_watchdog_loop())
+
+    async def async_stop_renewal_watchdog(self) -> None:
+        """Stop the background token renewal loop."""
+        if self._renewal_task is None:
+            return
+        task = self._renewal_task
+        self._renewal_task = None
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+
+    async def _renewal_watchdog_loop(self) -> None:
+        """Periodically refresh China tokens ahead of local expiry."""
+        while self._is_china_session_active():
+            try:
+                token_info = self.token
+                if not token_info and self._config_entry and "token" in self._config_entry.data:
+                    token_info = deepcopy(self._config_entry.data["token"])
+                if token_info:
+                    refreshed = await self._maybe_refresh_token(token_info, "watchdog")
+                    if refreshed is not None:
+                        self.token = refreshed
+            except asyncio.CancelledError:
+                raise
+            except MBAuthError:
+                _LOGGER.error("Token renewal watchdog: refresh rejected, reauth flow started; stopping watchdog")
+                self._renewal_task = None
+                return
+            except Exception:
+                _LOGGER.exception("China token renewal watchdog failed")
+            await asyncio.sleep(CN_TOKEN_RENEW_CHECK_INTERVAL_SECONDS)
+
     async def async_get_cached_token(self):
         """Get a cached auth token."""
-        # _LOGGER.debug("Start async_get_cached_token()")
         token_info: dict[str, any]
 
         if self.token:
             token_info = self.token
         elif self._config_entry and self._config_entry.data and "token" in self._config_entry.data:
-            token_info = self._config_entry.data["token"]
+            token_info = deepcopy(self._config_entry.data["token"])
         else:
             _LOGGER.warning("No token information - reauth required")
             return None
+
+        if self._region == REGION_CHINA:
+            token_info = await self._maybe_refresh_token(token_info, "cached")
+            if token_info is None:
+                return None
+            self.token = token_info
+            return token_info
 
         if self.is_token_expired(token_info):
             async with self._get_token_lock:
@@ -535,8 +863,49 @@ class Oauth:
         return token_info
 
     @classmethod
+    def _china_direct_token_remaining_seconds(cls, token_info: dict | None) -> int | None:
+        """Return seconds until local expiry hint, if available."""
+        if not token_info:
+            return None
+        expires_at = token_info.get("expires_at")
+        if not expires_at:
+            return None
+        return int(expires_at) - int(time.time())
+
+    @classmethod
+    def _log_china_direct_token_status(cls, token_info: dict | None, context: str) -> None:
+        """Log China token lifetime for troubleshooting."""
+        if not token_info or not token_info.get("china_direct"):
+            return
+        remaining = cls._china_direct_token_remaining_seconds(token_info)
+        if remaining is None:
+            _LOGGER.warning("China token (%s): missing expires_at", context)
+            return
+        if remaining < 0:
+            _LOGGER.info("China token (%s): local expiry passed %s seconds ago", context, abs(remaining))
+            return
+        _LOGGER.info("China token (%s): local expiry in %s minutes", context, round(remaining / 60, 1))
+
+    @classmethod
+    def should_refresh_token(cls, token_info: dict | None) -> bool:
+        """Return whether the access token should be renewed proactively."""
+        if token_info is None:
+            return True
+        if token_info.get("china_direct") and not token_info.get("refresh_token"):
+            return False
+
+        expires_at = token_info.get("expires_at")
+        if not expires_at:
+            return True
+
+        remaining = int(expires_at) - int(time.time())
+        return remaining < CN_TOKEN_RENEW_LEEWAY_SECONDS
+
+    @classmethod
     def is_token_expired(cls, token_info) -> bool:
         """Check if the token is expired."""
+        if token_info is not None and token_info.get("china_direct"):
+            return cls.should_refresh_token(token_info)
         if token_info is not None:
             now = int(time.time())
             return token_info["expires_at"] - now < 60

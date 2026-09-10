@@ -2,14 +2,16 @@
   "config": {
     "abort": {
       "already_configured": "Komponente ist bereits konfiguriert.",
-      "reauth_successful": "Neuanmeldung erfolgreich! Komponente wird neu geladen."
+      "reauth_successful": "Neuanmeldung erfolgreich! Komponente wird neu geladen.",
+      "china_oauth_denied": "Authorization was cancelled on the official Mercedes login page."
     },
     "error": {
       "cannot_connect": "cannot_connect",
       "invalid_auth": "invalid_auth",
       "unknown": "Unbekannter Fehler. Bitte prüfe das Home Assistant Log für weitere Informationen.",
       "2fa_required": "Zwei-Faktor-Authentifizierung (2FA) Konten werden nicht unterstützt.",
-      "legal_terms": "Du musst die rechtlichen Bedingungen auf der Mercedes-Website zuerst akzeptieren"
+      "legal_terms": "Du musst die rechtlichen Bedingungen auf der Mercedes-Website zuerst akzeptieren",
+      "china_oauth_token_invalid": "Official login succeeded, but Mercedes rejected the tokens. Retry the official login."
     },
     "step": {
       "user": {
@@ -33,7 +35,18 @@
         },
         "description": "Gib die TAN ein, die du per E-Mail oder SMS erhalten hast, um die Authentifizierung abzuschließen. Falls du keine TAN erhalten hast, prüfe bitte deinen E-Mail-Posteingang (und Spam-Ordner) oder deine SMS-Nachrichten.",
         "title": "Mercedes ME 2020 - TAN"
+      },
+      "china_oauth": {
+        "description": "First sign in on the official Mercedes site, then connect the device. Do not refresh a loading page.",
+        "title": "Mercedes ME 2020 - Official login (China)"
+      },
+      "china_oauth_failed": {
+        "description": "Official login did not finish or timed out. Submit to retry.",
+        "title": "Mercedes ME 2020 - China login incomplete"
       }
+    },
+    "progress": {
+      "wait_for_china_oauth": "A helper page opens with the device code. First sign in on the official Mercedes site. Then open Connect-a-device and type the code. Do not refresh a page that is still loading.\n\n[Open the helper page]({verify_url})\n\nDevice code: `{user_code}`\n\nThis login expires in {expires_minutes} minutes."
     }
   },
   "issues": {

@@ -3,7 +3,7 @@
     "abort": {
       "already_configured": "Component is configured already.",
       "reauth_successful": "Reauth successful! Component reload in progress.",
-      "china_oauth_denied": "Authorization was cancelled on the official Mercedes login page."
+      "china_oauth_denied": "已在奔驰官方登录页取消授权。"
     },
     "error": {
       "cannot_connect": "cannot_connect",
@@ -11,26 +11,26 @@
       "unknown": "Unknown error. Please check the Home Assistant log for more information.",
       "2fa_required": "Two-factor authentication (2FA) accounts are not supported.",
       "legal_terms": "You need to accept the legal terms in the Mercedes website first",
-      "china_oauth_token_invalid": "Official login succeeded, but Mercedes rejected the tokens. Retry the official login."
+      "china_oauth_token_invalid": "官方登录已完成，但奔驰拒绝了令牌。请重试官方登录。"
     },
     "progress": {
-      "wait_for_china_oauth": "A helper page opens with the device code. First sign in on the official Mercedes site. Then open Connect-a-device and type the code. Do not refresh a page that is still loading.\n\n[Open the helper page]({verify_url})\n\nDevice code: `{user_code}`\n\nThis login expires in {expires_minutes} minutes."
+      "wait_for_china_oauth": "会先打开带设备码的辅助页。请先在奔驰官网登录，再打开「连接设备」并输入设备码。不要刷新一直在加载的页面。\n\n[打开辅助页]({verify_url})\n\n设备码：`{user_code}`\n\n此登录将在 {expires_minutes} 分钟后过期。"
     },
     "step": {
       "user": {
         "data": {
           "region": "Region"
         },
-        "description": "Select your region.",
+        "description": "选择您的区域。",
         "title": "Set up the Mercedes ME 2020 connection"
       },
       "china_oauth": {
-        "description": "First sign in on the official Mercedes site, then connect the device. Do not refresh a loading page.",
-        "title": "Mercedes ME 2020 - Official login (China)"
+        "description": "请先在奔驰官网登录，再连接设备。不要刷新一直在加载的页面。",
+        "title": "Mercedes ME 2020 - 官方登录（中国区）"
       },
       "china_oauth_failed": {
-        "description": "Official login did not finish or timed out. Submit to retry.",
-        "title": "Mercedes ME 2020 - China login incomplete"
+        "description": "官方登录未完成或已超时。提交后重试。",
+        "title": "Mercedes ME 2020 - 中国区登录未完成"
       },
       "credentials": {
         "data": {

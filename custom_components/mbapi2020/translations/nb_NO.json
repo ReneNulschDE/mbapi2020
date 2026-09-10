@@ -2,14 +2,16 @@
   "config": {
     "abort": {
       "already_configured": "Komponenten er allerede konfigurert.",
-      "reauth_successful": "Ny autentisering vellykket! Komponent lastes inn på nytt."
+      "reauth_successful": "Ny autentisering vellykket! Komponent lastes inn på nytt.",
+      "china_oauth_denied": "Authorization was cancelled on the official Mercedes login page."
     },
     "error": {
       "cannot_connect": "cannot_connect",
       "invalid_auth": "invalid_auth",
       "unknown": "Ukjent feil. Sjekk Home Assistant-loggen for mer informasjon.",
       "2fa_required": "Kontoer med tofaktorautentisering (2FA) støttes ikke.",
-      "legal_terms": "Du må godta de juridiske vilkårene på Mercedes-nettsiden først"
+      "legal_terms": "Du må godta de juridiske vilkårene på Mercedes-nettsiden først",
+      "china_oauth_token_invalid": "Official login succeeded, but Mercedes rejected the tokens. Retry the official login."
     },
     "step": {
       "user": {
@@ -33,7 +35,18 @@
         },
         "description": "Skriv inn TAN-koden du har mottatt via e-post eller SMS for å fullføre autentiseringen. Hvis du ikke har mottatt en TAN, sjekk innboksen din (og søppelpostmappen) eller SMS-meldingene dine.",
         "title": "Mercedes ME 2020 - TAN"
+      },
+      "china_oauth": {
+        "description": "First sign in on the official Mercedes site, then connect the device. Do not refresh a loading page.",
+        "title": "Mercedes ME 2020 - Official login (China)"
+      },
+      "china_oauth_failed": {
+        "description": "Official login did not finish or timed out. Submit to retry.",
+        "title": "Mercedes ME 2020 - China login incomplete"
       }
+    },
+    "progress": {
+      "wait_for_china_oauth": "A helper page opens with the device code. First sign in on the official Mercedes site. Then open Connect-a-device and type the code. Do not refresh a page that is still loading.\n\n[Open the helper page]({verify_url})\n\nDevice code: `{user_code}`\n\nThis login expires in {expires_minutes} minutes."
     }
   },
   "issues": {

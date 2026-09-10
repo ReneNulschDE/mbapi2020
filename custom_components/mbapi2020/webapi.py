@@ -50,6 +50,27 @@ class WebApi:
         self.hass = hass
         self.session_id = str(uuid.uuid4()).upper()
 
+    def _build_request_headers(self, token: dict, rcp_headers: bool) -> dict[str, str]:
+        """Build REST request headers for the current access token."""
+        if rcp_headers:
+            return {
+                "Authorization": f"Bearer {token['access_token']}",
+                "User-Agent": WEBSOCKET_USER_AGENT,
+                "Accept-Language": "de-DE;q=1.0, en-DE;q=0.9",
+            }
+
+        headers = {
+            "Authorization": f"Bearer {token['access_token']}",
+            "X-SessionId": self.session_id,
+            "X-TrackingId": str(uuid.uuid4()).upper(),
+            "ris-os-name": "ios",
+            "ris-os-version": RIS_OS_VERSION,
+            "X-Locale": "de-DE",
+            "Content-Type": "application/json; charset=UTF-8",
+        }
+        self._app_version.apply_webapi_headers(headers)
+        return headers
+
     async def _request(
         self,
         method: str,
@@ -72,22 +93,7 @@ class WebApi:
 
         if not rcp_headers:
             await self._app_version.async_refresh(self._session)
-            kwargs["headers"] = {
-                "Authorization": f"Bearer {token['access_token']}",
-                "X-SessionId": self.session_id,
-                "X-TrackingId": str(uuid.uuid4()).upper(),
-                "ris-os-name": "ios",
-                "ris-os-version": RIS_OS_VERSION,
-                "X-Locale": "de-DE",
-                "Content-Type": "application/json; charset=UTF-8",
-            }
-            self._app_version.apply_webapi_headers(kwargs["headers"])
-        else:
-            kwargs["headers"] = {
-                "Authorization": f"Bearer {token['access_token']}",
-                "User-Agent": WEBSOCKET_USER_AGENT,
-                "Accept-Language": "de-DE;q=1.0, en-DE;q=0.9",
-            }
+        kwargs["headers"] = self._build_request_headers(token, rcp_headers)
 
         try:
             if "url" in kwargs:

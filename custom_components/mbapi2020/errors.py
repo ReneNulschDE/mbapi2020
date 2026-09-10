@@ -20,6 +20,8 @@ class RequestError(MbapiError):
 class MBAuthError(ConfigEntryAuthFailed):
     """Define an error related to authentication."""
 
+    oauth_error: str | None = None
+
 
 class MBAuth2FAError(ConfigEntryAuthFailed):
     """Define an error related to two-factor authentication (2FA)."""
@@ -27,3 +29,11 @@ class MBAuth2FAError(ConfigEntryAuthFailed):
 
 class MBLegalTermsError(ConfigEntryAuthFailed):
     """Define an error related to acceptance of legal terms."""
+
+
+class MBDeviceAuthTimeout(MbapiError):
+    """Define an error when the China device-code login expires."""
+
+
+class MBDeviceAuthDenied(MbapiError):
+    """Define an error when the user denies the China device-code login."""

@@ -2,21 +2,30 @@
 
 from __future__ import annotations
 
+import asyncio
 from copy import deepcopy
-import uuid
 
+import aiohttp
 from awesomeversion import AwesomeVersion
 import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, __version__ as HAVERSION
-from homeassistant.core import callback
+from homeassistant.core import EventOrigin, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.storage import STORAGE_DIR
 
+from .china_oauth import (
+    build_china_oauth_static_url,
+    register_china_oauth_flow,
+    setup_china_oauth_frontend,
+    unregister_china_oauth_flow,
+)
 from .client import Client
 from .const import (
+    AUTH_METHOD_DEVICE,
+    CIAM_DEVICE_USER_AUTHZ_URL_CN,
     CONF_ALLOWED_REGIONS,
     CONF_DEBUG_FILE_SAVE,
     CONF_DELETE_AUTH_FILE,
@@ -32,7 +41,15 @@ from .const import (
     TOKEN_FILE_PREFIX,
     VERIFY_SSL,
 )
-from .errors import MbapiError, MBAuth2FAError, MBAuthError, MBLegalTermsError
+from .errors import (
+    MbapiError,
+    MBAuth2FAError,
+    MBAuthError,
+    MBDeviceAuthDenied,
+    MBDeviceAuthTimeout,
+    MBLegalTermsError,
+)
+from .oauth import Oauth
 
 AUTH_METHOD_TOKEN = "token"
 AUTH_METHOD_USERPASS = "userpass"
@@ -47,12 +64,6 @@ USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
-    }
-)
-
-USER_SCHEMA_CHINA = vol.Schema(
-    {
-        vol.Required(CONF_USERNAME): str,
     }
 )
 
@@ -76,21 +87,192 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._reauth_mode = False
         self._auth_method = AUTH_METHOD_TOKEN
         self._region = None
+        self._device_wait_task = None
+        self._device_client = None
+        self._device_token_info = None
+        self._device_user_code = None
+        self._device_verify_url = None
+        self._device_expires_minutes = "10"
 
     async def async_step_user(self, user_input=None):
         """Region selection step."""
 
         if user_input is not None:
             self._region = user_input[CONF_REGION]
+            if self._region == REGION_CHINA:
+                return await self.async_step_china_oauth()
             return await self.async_step_credentials()
 
         return self.async_show_form(step_id="user", data_schema=REGION_SCHEMA)
 
-    async def async_step_credentials(self, user_input=None):
-        """Credentials step - username/password or username only for China."""
+    def _reset_device_wait(self) -> None:
+        """Reset China device-code wait state so a new login round can start."""
+        if self._device_wait_task is not None and not self._device_wait_task.done():
+            self._device_wait_task.cancel()
+        self._device_wait_task = None
+        self._device_client = None
+        self._device_token_info = None
+        self._device_user_code = None
+        self._device_verify_url = None
+        unregister_china_oauth_flow(self.hass, self.flow_id)
 
-        is_china = self._region == REGION_CHINA
-        schema = USER_SCHEMA_CHINA if is_china else USER_SCHEMA
+    def _fire_china_oauth_open_event(self, verify_url: str) -> None:
+        """Ask the frontend helper to open the China login wrapper page."""
+        self.hass.bus.async_fire(
+            "mbapi2020_open_china_oauth",
+            {"url": verify_url, "flow_id": self.flow_id},
+            EventOrigin.local,
+        )
+
+    async def _async_start_china_device_login(self) -> dict:
+        """Request a China device code and keep the OAuth client for polling."""
+        session = async_get_clientsession(self.hass, VERIFY_SSL)
+        client = Client(self.hass, session, None, region=REGION_CHINA)
+        if self._reauth_mode and self._reauth_entry:
+            previous_guid = self._reauth_entry.data.get("device_guid")
+            if previous_guid:
+                client.oauth._device_guid = previous_guid  # noqa: SLF001
+        self._device_client = client
+
+        device = await client.oauth.async_request_device_code()
+        self._device_user_code = device["user_code"]
+        login_url = client.oauth.china_device_verify_url(device["user_code"])
+        register_china_oauth_flow(self.hass, self.flow_id, device["user_code"], login_url)
+        self._device_verify_url = build_china_oauth_static_url(device["user_code"], login_url)
+        self._device_expires_minutes = str(max(int(device.get("expires_in", 600)) // 60, 1))
+        return device
+
+    async def _async_wait_for_china_device_token(self, device: dict) -> dict:
+        """Wait until the official Mercedes page authorizes this device."""
+        assert self._device_client is not None
+        return await self._device_client.oauth.async_poll_device_token(
+            device["device_code"],
+            int(device.get("interval", 5)),
+            int(device.get("expires_in", 600)),
+        )
+
+    async def _async_finish_china_tokens(self, client: Client, token_info: dict):
+        """Validate China tokens and create or update the config entry."""
+        if "expires_at" not in token_info:
+            token_info = Oauth._add_custom_values_to_token_info(token_info)
+        token_info["china_direct"] = True
+        client.oauth.token = token_info
+
+        username = "china"
+        try:
+            user = await client.webapi.get_user()
+        except (MBAuthError, MbapiError, aiohttp.ClientError) as error:
+            LOGGER.error("China token validation via /v1/user failed: %s", error)
+            return None, "china_oauth_token_invalid"
+
+        if isinstance(user, dict):
+            username = (
+                user.get("email")
+                or user.get("mail")
+                or user.get("username")
+                or user.get("userName")
+                or "china"
+            )
+
+        await self.async_set_unique_id(f"{username}-{REGION_CHINA}")
+        if not self._reauth_mode:
+            self._abort_if_unique_id_configured()
+
+        self._data = {
+            CONF_USERNAME: username,
+            CONF_REGION: REGION_CHINA,
+            "token": token_info,
+            "device_guid": client.oauth._device_guid,  # noqa: SLF001
+            "auth_method": AUTH_METHOD_DEVICE,
+        }
+
+        if self._reauth_mode:
+            self.hass.config_entries.async_update_entry(self._reauth_entry, data=self._data)
+            self.hass.config_entries.async_schedule_reload(self._reauth_entry.entry_id)
+            return self.async_abort(reason="reauth_successful"), None
+
+        return self.async_create_entry(
+            title=f"{username} (Region: {REGION_CHINA})",
+            data=self._data,
+        ), None
+
+    async def async_step_china_oauth(self, user_input=None):
+        """Official Mercedes China device-code login."""
+        del user_input
+        await setup_china_oauth_frontend(self.hass)
+        if self._device_wait_task is not None and self._device_wait_task.done():
+            try:
+                self._device_token_info = self._device_wait_task.result()
+            except MBDeviceAuthTimeout:
+                self._reset_device_wait()
+                return self.async_show_progress_done(next_step_id="china_oauth_failed")
+            except MBDeviceAuthDenied:
+                self._reset_device_wait()
+                return self.async_show_progress_done(next_step_id="china_oauth_denied")
+            except asyncio.CancelledError:
+                self._reset_device_wait()
+                return self.async_show_progress_done(next_step_id="china_oauth_failed")
+            except (MBAuthError, MbapiError, aiohttp.ClientError) as error:
+                LOGGER.error("China device-code login failed: %s", error)
+                self._reset_device_wait()
+                return self.async_show_progress_done(next_step_id="china_oauth_failed")
+
+            return self.async_show_progress_done(next_step_id="china_oauth_finish")
+
+        if self._device_wait_task is None:
+            try:
+                device = await self._async_start_china_device_login()
+            except (MBAuthError, MbapiError, aiohttp.ClientError) as error:
+                LOGGER.error("China device-code start failed: %s", error)
+                self._reset_device_wait()
+                return await self.async_step_china_oauth_failed()
+            self._device_wait_task = self.hass.async_create_task(
+                self._async_wait_for_china_device_token(device)
+            )
+
+        if self._device_verify_url:
+            self._fire_china_oauth_open_event(self._device_verify_url)
+
+        return self.async_show_progress(
+            step_id="china_oauth",
+            progress_action="wait_for_china_oauth",
+            description_placeholders={
+                "user_code": self._device_user_code or "",
+                "verify_url": self._device_verify_url or CIAM_DEVICE_USER_AUTHZ_URL_CN,
+                "expires_minutes": self._device_expires_minutes,
+            },
+            progress_task=self._device_wait_task,
+        )
+
+    async def async_step_china_oauth_denied(self, user_input=None):
+        """Abort after the official page denied device authorization."""
+        del user_input
+        return self.async_abort(reason="china_oauth_denied")
+
+    async def async_step_china_oauth_finish(self, user_input=None):
+        """Create the config entry after the official page authorized the device."""
+        del user_input
+        client = self._device_client
+        token_info = self._device_token_info
+        try:
+            if client is None or not token_info:
+                return await self.async_step_china_oauth_failed()
+            result, error = await self._async_finish_china_tokens(client, token_info)
+            if error:
+                return await self.async_step_china_oauth_failed()
+            return result
+        finally:
+            self._reset_device_wait()
+
+    async def async_step_china_oauth_failed(self, user_input=None):
+        """Retry official China login after a timeout or error."""
+        if user_input is not None:
+            return await self.async_step_china_oauth()
+
+        return self.async_show_form(step_id="china_oauth_failed")
+
+    async def async_step_credentials(self, user_input=None):
+        """Credentials step - username and password for non-China regions."""
 
         if user_input is not None:
             user_input[CONF_REGION] = self._region
@@ -103,57 +285,32 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             client = Client(self.hass, session, None, region=user_input[CONF_REGION])
             user_input[CONF_USERNAME] = user_input[CONF_USERNAME].strip()
 
-            if is_china:
-                nonce = str(uuid.uuid4())
-                user_input["nonce"] = nonce
-                user_input["device_guid"] = client.oauth._device_guid  # noqa: SLF001
-                errors = {}
-
-                try:
-                    await client.oauth.request_pin(user_input[CONF_USERNAME], nonce)
-                except (MBAuthError, MbapiError):
-                    errors = {"base": "pinrequest_failed"}
-                    return self.async_show_form(step_id="credentials", data_schema=schema, errors=errors)
-
-                if not errors:
-                    self._data = user_input
-                    return await self.async_step_pin()
-
-                LOGGER.error("Request PIN error: %s", errors)
-
-                self._data = {
-                    CONF_USERNAME: user_input[CONF_USERNAME],
-                    CONF_REGION: user_input[CONF_REGION],
-                    "nonce": nonce,
-                    "device_guid": user_input["device_guid"],
-                }
-            else:
-                try:
-                    token_info = await client.oauth.async_login_new(
-                        user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
-                    )
-                except (MBAuthError, MbapiError) as error:
-                    LOGGER.error("Login error: %s", error)
-                    return self.async_show_form(
-                        step_id="credentials", data_schema=schema, errors={"base": "invalid_auth"}
-                    )
-                except MBAuth2FAError as error:
-                    LOGGER.error("Login error - 2FA accounts are not supported: %s", error)
-                    return self.async_show_form(
-                        step_id="credentials", data_schema=schema, errors={"base": "2fa_required"}
-                    )
-                except MBLegalTermsError as error:
-                    LOGGER.error("Login error - Legal terms not accepted: %s", error)
-                    return self.async_show_form(
-                        step_id="credentials", data_schema=schema, errors={"base": "legal_terms"}
-                    )
-                self._data = {
-                    CONF_USERNAME: user_input[CONF_USERNAME],
-                    CONF_REGION: user_input[CONF_REGION],
-                    CONF_PASSWORD: user_input[CONF_PASSWORD],
-                    "token": token_info,
-                    "device_guid": client.oauth._device_guid,  # noqa: SLF001
-                }
+            try:
+                token_info = await client.oauth.async_login_new(
+                    user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
+                )
+            except (MBAuthError, MbapiError) as error:
+                LOGGER.error("Login error: %s", error)
+                return self.async_show_form(
+                    step_id="credentials", data_schema=USER_SCHEMA, errors={"base": "invalid_auth"}
+                )
+            except MBAuth2FAError as error:
+                LOGGER.error("Login error - 2FA accounts are not supported: %s", error)
+                return self.async_show_form(
+                    step_id="credentials", data_schema=USER_SCHEMA, errors={"base": "2fa_required"}
+                )
+            except MBLegalTermsError as error:
+                LOGGER.error("Login error - Legal terms not accepted: %s", error)
+                return self.async_show_form(
+                    step_id="credentials", data_schema=USER_SCHEMA, errors={"base": "legal_terms"}
+                )
+            self._data = {
+                CONF_USERNAME: user_input[CONF_USERNAME],
+                CONF_REGION: user_input[CONF_REGION],
+                CONF_PASSWORD: user_input[CONF_PASSWORD],
+                "token": token_info,
+                "device_guid": client.oauth._device_guid,  # noqa: SLF001
+            }
 
             if self._reauth_mode:
                 self.hass.config_entries.async_update_entry(self._reauth_entry, data=self._data)
@@ -165,7 +322,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data=self._data,
             )
 
-        return self.async_show_form(step_id="credentials", data_schema=schema)
+        return self.async_show_form(step_id="credentials", data_schema=USER_SCHEMA)
 
     async def async_step_pin(self, user_input=None):
         """Handle the step where the user inputs his/her station."""
@@ -210,6 +367,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         self._region = self._reauth_entry.data.get(CONF_REGION)
 
+        if self._region == REGION_CHINA:
+            return await self.async_step_china_oauth()
         return await self.async_step_credentials()
 
     # async def async_step_reconfigure(self, user_input=None):

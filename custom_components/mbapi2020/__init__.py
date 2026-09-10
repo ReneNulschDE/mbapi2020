@@ -17,13 +17,16 @@ from custom_components.mbapi2020.const import (
     ATTR_MB_MANUFACTURER,
     CONF_ENABLE_CHINA_GCJ_02,
     CONF_OVERWRITE_PRECONDNOW,
+    CONF_REGION,
     DOMAIN,
     LOGGER,
     LOGIN_BASE_URI,
     MERCEDESME_COMPONENTS,
+    REGION_CHINA,
     UNITS,
     SensorConfigFields as scf,
 )
+from custom_components.mbapi2020.china_oauth import setup_china_oauth_frontend
 from custom_components.mbapi2020.coordinator import MBAPI2020DataUpdateCoordinator
 from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
@@ -46,6 +49,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     LOGGER.debug("Start async_setup - Initializing services.")
     hass.data.setdefault(DOMAIN, {})
     setup_services(hass)
+    await setup_china_oauth_frontend(hass)
 
     return True
 
@@ -53,12 +57,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up MercedesME 2020 from a config entry."""
     LOGGER.debug("Start async_setup_entry.")
+    await setup_china_oauth_frontend(hass)
 
     try:
         coordinator = MBAPI2020DataUpdateCoordinator(hass, config_entry)
         hass.data.setdefault(DOMAIN, {})[config_entry.entry_id] = coordinator
 
         await coordinator.client.set_rlock_mode()
+
+        if config_entry.data.get(CONF_REGION) == REGION_CHINA:
+            await coordinator.client.oauth.async_prepare_china_session()
 
         try:
             token_info = await coordinator.client.oauth.async_get_cached_token()
@@ -307,10 +315,12 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         websocket.component_reload_watcher.cancel()
 
         hass.data[DOMAIN][config_entry.entry_id].client.websocket = None
+        await hass.data[DOMAIN][config_entry.entry_id].client.oauth.async_stop_renewal_watchdog()
         if unload_ok := await hass.config_entries.async_unload_platforms(config_entry, MERCEDESME_COMPONENTS):
             del hass.data[DOMAIN][config_entry.entry_id]
     else:
         # No cars loaded, we destroy the config entry only
+        await hass.data[DOMAIN][config_entry.entry_id].client.oauth.async_stop_renewal_watchdog()
         del hass.data[DOMAIN][config_entry.entry_id]
         unload_ok = True
 

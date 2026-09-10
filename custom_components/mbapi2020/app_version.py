@@ -14,7 +14,9 @@ from typing import Any
 from aiohttp import ClientError, ClientSession
 
 from .const import (
+    ACCEPT_LANGUAGE_CN,
     DEFAULT_LOCALE,
+    DEFAULT_LOCALE_CN,
     REGION_APAC,
     REGION_CHINA,
     REGION_EUROPE,
@@ -25,11 +27,13 @@ from .const import (
     RIS_APPLICATION_VERSION_PA,
     RIS_OS_NAME,
     RIS_OS_VERSION,
+    RIS_OS_VERSION_CN,
     RIS_SDK_VERSION,
     RIS_SDK_VERSION_CN,
     SYSTEM_PROXY,
     WEBSOCKET_USER_AGENT,
     WEBSOCKET_USER_AGENT_CN,
+    X_APPLICATIONNAME_CN,
 )
 from .helper import UrlHelper as helper
 
@@ -148,8 +152,22 @@ class AppVersionManager:
             return self._profile.websocket_user_agent_template.format(version=self._application_version)
         return self._profile.websocket_user_agent_static or self._profile.webapi_user_agent
 
+    def _apply_china_pinned_headers(self, header: dict[str, str]) -> dict[str, str]:
+        """Use the China app profile. Following remote FORCE versions returns HTTP 418."""
+        header["X-ApplicationName"] = X_APPLICATIONNAME_CN
+        header["ris-os-name"] = RIS_OS_NAME
+        header["ris-os-version"] = RIS_OS_VERSION_CN
+        header["ris-sdk-version"] = RIS_SDK_VERSION_CN
+        header["ris-application-version"] = RIS_APPLICATION_VERSION_CN
+        header["User-Agent"] = WEBSOCKET_USER_AGENT_CN
+        header["X-Locale"] = DEFAULT_LOCALE_CN
+        header["Accept-Language"] = ACCEPT_LANGUAGE_CN
+        return header
+
     async def async_refresh(self, session: ClientSession, force: bool = False) -> bool:
         """Refresh the application version from the config endpoint when needed."""
+        if self._region == REGION_CHINA:
+            return False
         if not force and (time.monotonic() - self._last_check_monotonic) < APP_VERSION_CHECK_INTERVAL_SECONDS:
             return False
 
@@ -265,6 +283,9 @@ class AppVersionManager:
 
     def apply_oauth_headers(self, header: dict[str, str]) -> dict[str, str]:
         """Apply region-specific OAuth request headers."""
+        if self._region == REGION_CHINA:
+            return self._apply_china_pinned_headers(header)
+
         header["X-Applicationname"] = self.application_name
         header["Ris-Application-Version"] = self._application_version
         header["Ris-Sdk-Version"] = self.sdk_version
@@ -273,6 +294,9 @@ class AppVersionManager:
 
     def apply_webapi_headers(self, header: dict[str, str]) -> dict[str, str]:
         """Apply region-specific REST API headers."""
+        if self._region == REGION_CHINA:
+            return self._apply_china_pinned_headers(header)
+
         header["X-ApplicationName"] = self.application_name
         header["ris-application-version"] = self._application_version
         header["ris-sdk-version"] = self.sdk_version
@@ -281,6 +305,9 @@ class AppVersionManager:
 
     def apply_websocket_headers(self, header: dict[str, str]) -> dict[str, str]:
         """Apply region-specific websocket headers."""
+        if self._region == REGION_CHINA:
+            return self._apply_china_pinned_headers(header)
+
         header["X-ApplicationName"] = self.application_name
         header["ris-application-version"] = self._application_version
         header["ris-sdk-version"] = self.sdk_version

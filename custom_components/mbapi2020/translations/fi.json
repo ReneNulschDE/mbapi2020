@@ -2,14 +2,16 @@
   "config": {
     "abort": {
       "already_configured": "Komponentti on jo määritetty.",
-      "reauth_successful": "Uudelleentodennus onnistui! Komponentin uudelleenlataus käynnissä."
+      "reauth_successful": "Uudelleentodennus onnistui! Komponentin uudelleenlataus käynnissä.",
+      "china_oauth_denied": "Authorization was cancelled on the official Mercedes login page."
     },
     "error": {
       "cannot_connect": "cannot_connect",
       "invalid_auth": "invalid_auth",
       "unknown": "Tuntematon virhe. Tarkista Home Assistant -loki lisätietoja varten.",
       "2fa_required": "Kaksivaiheisen todennuksen (2FA) tilejä ei tueta.",
-      "legal_terms": "Sinun on hyväksyttävä käyttöehdot Mercedes-verkkosivustolla ensin"
+      "legal_terms": "Sinun on hyväksyttävä käyttöehdot Mercedes-verkkosivustolla ensin",
+      "china_oauth_token_invalid": "Official login succeeded, but Mercedes rejected the tokens. Retry the official login."
     },
     "step": {
       "user": {
@@ -33,7 +35,18 @@
         },
         "description": "Syötä sähköpostilla tai tekstiviestillä vastaanottamasi TAN-koodi todennuksen viimeistelemiseksi. Jos et ole vastaanottanut TAN-koodia, tarkista sähköpostisi saapuneet-kansio (ja roskaposti) tai tekstiviestisi.",
         "title": "Mercedes ME 2020 - TAN"
+      },
+      "china_oauth": {
+        "description": "First sign in on the official Mercedes site, then connect the device. Do not refresh a loading page.",
+        "title": "Mercedes ME 2020 - Official login (China)"
+      },
+      "china_oauth_failed": {
+        "description": "Official login did not finish or timed out. Submit to retry.",
+        "title": "Mercedes ME 2020 - China login incomplete"
       }
+    },
+    "progress": {
+      "wait_for_china_oauth": "A helper page opens with the device code. First sign in on the official Mercedes site. Then open Connect-a-device and type the code. Do not refresh a page that is still loading.\n\n[Open the helper page]({verify_url})\n\nDevice code: `{user_code}`\n\nThis login expires in {expires_minutes} minutes."
     }
   },
   "issues": {

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
+  <title>Mercedes me</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      color: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    }
+    .phone {
+      min-height: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 18px 20px 28px;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+    }
+    .brand {
+      letter-spacing: 0.18em;
+      font-size: 0.72rem;
+      color: #b9b9b9;
+      text-transform: uppercase;
+    }
+    h1 { margin: 18px 0 8px; font-size: 1.45rem; font-weight: 560; }
+    p { margin: 0 0 16px; color: #c8c8c8; line-height: 1.55; }
+    .code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 1.35rem;
+      letter-spacing: 0.12em;
+      padding: 14px 16px;
+      border: 1px solid #333;
+      background: #1a1a1a;
+      margin-bottom: 18px;
+    }
+    a, button {
+      display: block;
+      width: 100%;
+      padding: 14px 16px;
+      background: #00adef;
+      color: #001018;
+      font-size: 1rem;
+      text-align: center;
+      text-decoration: none;
+      border: 0;
+    }
+    a + a, button { margin-top: 10px; }
+    button, a.secondary { background: #2a2a2a; color: #f5f5f5; }
+    .hint { margin-top: 16px; font-size: 0.86rem; color: #8d8d8d; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="brand">MyStarCN · ONEAPP</div>
+    <h1>Mercedes official login</h1>
+    <p>First open the official Mercedes website and sign in there. Then open Connect-a-device and type the code. Do not refresh a page that is still loading.</p>
+    <div class="code" id="code">--------</div>
+    <a id="login" href="#">1. Sign in on Mercedes</a>
+    <a id="open" class="secondary" href="#">2. Connect this device</a>
+    <button type="button" id="copy">Copy device code</button>
+    <p class="hint" id="status">Captcha and TAN stay on Mercedes servers. Keep this helper page open.</p>
+  </div>
+  <script>
+    (function () {
+      const LOGIN_PAGE = "https://www.mercedes-benz.com.cn/";
+      const DEVICE_PAGE = "https://ciam-1.mercedes-benz.com.cn/as/user_authz.oauth2";
+      const params = new URLSearchParams(window.location.search);
+      const userCode = (params.get("user_code") || "").trim();
+      const fallback = params.get("login_url") || "";
+      // Do not open user_authz.oauth2?user_code= or a one-time resume URL.
+      function officialUrl(raw, fallbackUrl) {
+        if (!raw) {
+          return fallbackUrl;
+        }
+        if (raw.indexOf("user_code=") !== -1 || raw.indexOf("resume=") !== -1) {
+          return fallbackUrl;
+        }
+        return raw;
+      }
+      document.getElementById("code").textContent = userCode || "--------";
+      document.getElementById("login").href = LOGIN_PAGE;
+      document.getElementById("open").href = officialUrl(fallback, DEVICE_PAGE);
+      const status = document.getElementById("status");
+      document.getElementById("copy").addEventListener("click", function () {
+        if (!userCode) {
+          return;
+        }
+        navigator.clipboard.writeText(userCode).then(function () {
+          status.textContent = "Device code copied. Sign in first, then paste it on Connect-a-device.";
+        }).catch(function () {
+          status.textContent = "Copy failed. Type the device code manually.";
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

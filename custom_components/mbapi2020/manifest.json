@@ -3,7 +3,7 @@
   "name": "MercedesME 2020",
   "codeowners": ["@ReneNulschDE"],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": ["frontend", "http"],
   "documentation": "https://github.com/ReneNulschDE/mbapi2020",
   "integration_type": "hub",
   "iot_class": "cloud_push",

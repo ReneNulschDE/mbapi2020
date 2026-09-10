@@ -96,13 +96,16 @@ JSON_EXPORT_IGNORED_KEYS = (
 
 
 RIS_APPLICATION_VERSION_NA = "3.67.0"
-RIS_APPLICATION_VERSION_CN = "1.67.0"
+RIS_APPLICATION_VERSION_CN = "1.66.1 (3242)"
 RIS_APPLICATION_VERSION_PA = "1.67.0"
 RIS_APPLICATION_VERSION = "1.68.0 (3060)"
 RIS_SDK_VERSION = "4.10.0"
-RIS_SDK_VERSION_CN = "2.132.2"
+RIS_SDK_VERSION_CN = "4.6.7"
 RIS_OS_VERSION = "26.3"
+RIS_OS_VERSION_CN = "26.0"
 RIS_OS_NAME = "ios"
+DEFAULT_LOCALE_CN = "zh-TW"
+ACCEPT_LANGUAGE_CN = "zh-CN,zh-Hans;q=0.9"
 X_APPLICATIONNAME = "mycar-store-ece"
 X_APPLICATIONNAME_ECE = "mycar-store-ece"
 X_APPLICATIONNAME_CN = "mycar-store-cn"
@@ -117,6 +120,26 @@ LOGIN_APP_ID_EU = "62778dc4-1de3-44f4-af95-115f06a3a008"
 LOGIN_APP_ID_CN = "3f36efb1-f84b-4402-b5a2-68a118fec33e"
 LOGIN_BASE_URI = "https://id.mercedes-benz.com"
 LOGIN_BASE_URI_CN = "https://ciam-1.mercedes-benz.com.cn"
+LOGIN_WEB_URI_CN = "https://www.mercedes-benz.com.cn"
+CIAM_DEVICE_AUTH_URL_CN = f"{LOGIN_BASE_URI_CN}/as/device_authz.oauth2"
+CIAM_DEVICE_TOKEN_URL_CN = f"{LOGIN_BASE_URI_CN}/as/token.oauth2"
+CIAM_DEVICE_USER_AUTHZ_URL_CN = f"{LOGIN_BASE_URI_CN}/as/user_authz.oauth2"
+CIAM_DEVICE_WEB_LOGIN_URL_CN = f"{LOGIN_WEB_URI_CN}/"
+CIAM_DEVICE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:device_code"
+CIAM_DEVICE_SCOPE = "email profile ciam-uid phone openid offline_access"
+AUTH_METHOD_DEVICE = "device_code"
+CN_DIRECT_TOKEN_EXPIRES_SECONDS = 14399
+CN_TOKEN_RENEW_LEEWAY_SECONDS = 3600
+CN_TOKEN_RENEW_CHECK_INTERVAL_SECONDS = 300
+CHINA_FATAL_REFRESH_ERRORS = frozenset(
+    {
+        "invalid_grant",
+        "invalid_token",
+        "invalid_client",
+        "unauthorized_client",
+        "expired_token",
+    }
+)
 PSAG_BASE_URI = "https://psag.query.api.dvb.corpinter.net"
 PSAG_BASE_URI_CN = "https://psag.query.api.dvb.corpinter.net.cn"
 RCP_BASE_URI = "https://rcp-rs.query.api.dvb.corpinter.net"
@@ -131,7 +154,7 @@ WEBSOCKET_API_BASE_NA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v
 WEBSOCKET_API_BASE_PA = "wss://websocket.amap-prod.mobilesdk.mercedes-benz.com/v2/ws"
 WEBSOCKET_API_BASE_CN = "wss://websocket.cn-prod.mobilesdk.mercedes-benz.com/v2/ws"
 WEBSOCKET_USER_AGENT = "Mercedes-Benz/3044 CFNetwork/3860.400.22 Darwin/25.3.0"
-WEBSOCKET_USER_AGENT_CN = "MyStarCN/1.63.0 (com.daimler.ris.mercedesme.cn.ios; build:1758; iOS 16.3.1) Alamofire/5.4.0"
+WEBSOCKET_USER_AGENT_CN = "Mercedes-Benz/3242 CFNetwork/3860.100.1 Darwin/25.0.0"
 WEBSOCKET_USER_AGENT_PA = (
     f"mycar-store-ap {RIS_APPLICATION_VERSION}, {RIS_OS_NAME} {RIS_OS_VERSION}, SDK {RIS_SDK_VERSION}"
 )

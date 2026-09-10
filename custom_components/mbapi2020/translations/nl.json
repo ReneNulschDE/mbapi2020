@@ -2,14 +2,16 @@
   "config": {
     "abort": {
       "already_configured": "Component is al geconfigureerd.",
-      "reauth_successful": "Herautorisatie succesvol! Component wordt opnieuw geladen."
+      "reauth_successful": "Herautorisatie succesvol! Component wordt opnieuw geladen.",
+      "china_oauth_denied": "Authorization was cancelled on the official Mercedes login page."
     },
     "error": {
       "cannot_connect": "cannot_connect",
       "invalid_auth": "invalid_auth",
       "unknown": "Onbekende fout. Controleer de Home Assistant-log voor meer informatie.",
       "2fa_required": "Tweefactorauthenticatie (2FA) accounts worden niet ondersteund.",
-      "legal_terms": "Je moet eerst de juridische voorwaarden op de Mercedes-website accepteren"
+      "legal_terms": "Je moet eerst de juridische voorwaarden op de Mercedes-website accepteren",
+      "china_oauth_token_invalid": "Official login succeeded, but Mercedes rejected the tokens. Retry the official login."
     },
     "step": {
       "user": {
@@ -33,7 +35,18 @@
         },
         "description": "Voer de TAN in die je via e-mail of sms hebt ontvangen om de authenticatie te voltooien. Als je geen TAN hebt ontvangen, controleer dan je e-mailinbox (en spammap) of je sms-berichten.",
         "title": "Mercedes ME 2020 - TAN"
+      },
+      "china_oauth": {
+        "description": "First sign in on the official Mercedes site, then connect the device. Do not refresh a loading page.",
+        "title": "Mercedes ME 2020 - Official login (China)"
+      },
+      "china_oauth_failed": {
+        "description": "Official login did not finish or timed out. Submit to retry.",
+        "title": "Mercedes ME 2020 - China login incomplete"
       }
+    },
+    "progress": {
+      "wait_for_china_oauth": "A helper page opens with the device code. First sign in on the official Mercedes site. Then open Connect-a-device and type the code. Do not refresh a page that is still loading.\n\n[Open the helper page]({verify_url})\n\nDevice code: `{user_code}`\n\nThis login expires in {expires_minutes} minutes."
     }
   },
   "issues": {
