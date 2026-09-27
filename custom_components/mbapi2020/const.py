@@ -92,6 +92,8 @@ JSON_EXPORT_IGNORED_KEYS = (
     "id_token",
     "password",
     "title",
+    "device_guid",
+    "deviceGuid",
 )
 
 
