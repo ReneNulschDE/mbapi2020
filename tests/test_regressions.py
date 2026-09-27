@@ -151,7 +151,7 @@ def test_client_has_data_collection_mode_sites() -> None:
     assert _data_collection_sites(), "no data_collection_mode sites found - the guard test would be vacuous"
 
 
-@pytest.mark.parametrize(("lineno", "guarded", "mode"), _data_collection_sites(), ids=lambda v: str(v))
+@pytest.mark.parametrize(("lineno", "guarded", "mode"), _data_collection_sites(), ids=str)
 def test_data_collection_mode_is_assigned_only_after_the_guard(lineno: int, guarded: bool, mode: str) -> None:
     """Every assignment must sit inside `if current_car:`.
 
