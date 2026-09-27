@@ -355,7 +355,9 @@ class Car:
 
     def publish_updates(self):
         """Schedule call all registered callbacks."""
-        for callback in self._update_listeners:
+        # Iterate a copy: a callback can add or remove a listener, and mutating
+        # the set while iterating it raises RuntimeError.
+        for callback in list(self._update_listeners):
             callback()
 
     def check_capabilities(self, required_capabilities: list[str]) -> bool:

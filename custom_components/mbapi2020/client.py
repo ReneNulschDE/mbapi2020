@@ -1186,9 +1186,8 @@ class Client:
 
             if self._dataload_complete_fired:
                 current_car = self.cars.get(vin)
-                current_car.data_collection_mode = "push"
-
                 if current_car:
+                    current_car.data_collection_mode = "push"
                     current_car.publish_updates()
 
                     # Check for newly available sensors after vep_update
