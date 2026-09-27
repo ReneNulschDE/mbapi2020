@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
 from datetime import datetime, timezone
 import logging
 from typing import Any
@@ -180,10 +181,8 @@ def _normalize_value(legacy_key: str, value: Any, legacy: dict[str, Any]) -> Non
         if stripped.lstrip("-").isdigit():
             legacy["int_value"] = stripped
         else:
-            try:
+            with suppress(ValueError):
                 legacy["double_value"] = float(stripped)
-            except ValueError:
-                pass
 
 
 def _normalize_attribute(key: str, vsu_attr: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
