@@ -380,7 +380,19 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             # The native unit is resolved live by the native_unit_of_measurement
             # property. Freezing it here would miss units that only arrive with a
             # later update, and would never follow a unit change in the app.
-            self._attr_suggested_display_precision = self._sensor_config[scf.SUGGESTED_DISPLAY_PRECISION.value]
+            # Only advertise a precision for sensors that are actually numeric.
+            # A non-None suggested_display_precision is enough on its own for
+            # Home Assistant to require a numeric state, and eight sensors here
+            # (car, data_mode, chargingstatus, selectedchargeprogram and the four
+            # windowstatus ones) report status strings. That mismatch was hidden
+            # while this class overrode `state`; with the override gone,
+            # SensorEntity.state validates the value and raised on data_mode,
+            # which reports "push".
+            if (
+                self._sensor_config[scf.DEVICE_CLASS.value] is not None
+                or self._sensor_config[scf.STATE_CLASS.value] is not None
+            ):
+                self._attr_suggested_display_precision = self._sensor_config[scf.SUGGESTED_DISPLAY_PRECISION.value]
             self._use_chinese_location_data: bool = self._coordinator.config_entry.options.get(
                 CONF_ENABLE_CHINA_GCJ_02, False
             )
