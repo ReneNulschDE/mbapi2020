@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from datetime import datetime
+from math import isfinite
 import time
 from typing import Any
 
@@ -29,6 +30,7 @@ from custom_components.mbapi2020.errors import WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
@@ -375,7 +377,9 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             self._attr_state_class = self._sensor_config[scf.STATE_CLASS.value]
             self._attr_entity_category = self._sensor_config[scf.ENTITY_CATEGORY.value]
             self._attributes = self._sensor_config[scf.EXTENDED_ATTRIBUTE_LIST.value]
-            self._attr_native_unit_of_measurement = self.unit_of_measurement
+            # The native unit is resolved live by the native_unit_of_measurement
+            # property. Freezing it here would miss units that only arrive with a
+            # later update, and would never follow a unit change in the app.
             self._attr_suggested_display_precision = self._sensor_config[scf.SUGGESTED_DISPLAY_PRECISION.value]
             self._use_chinese_location_data: bool = self._coordinator.config_entry.options.get(
                 CONF_ENABLE_CHINA_GCJ_02, False
@@ -445,8 +449,18 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
         )
 
     @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
+    def _reported_unit(self):
+        """Return the unit the backend reported for this entity's attribute.
+
+        This is deliberately a private helper rather than a
+        ``unit_of_measurement`` property. ``SensorEntity`` defines
+        ``unit_of_measurement`` as a @final property that resolves the unit the
+        sensor should be *displayed* in from the user's unit system, and
+        overriding it hides the user preference from Home Assistant, leaving
+        the entity stuck on the unit the car reports. Callers want the
+        *native* unit, so it is exposed through native_unit_of_measurement
+        instead.
+        """
 
         if "unit" in self.extra_state_attributes:
             reported_unit: str = self.extra_state_attributes["unit"]
@@ -462,6 +476,58 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
         if isinstance(self._sensor_config, EntityDescription):
             return None
         return self._sensor_config[scf.UNIT_OF_MEASUREMENT.value]
+
+    @property
+    def native_unit_of_measurement(self):
+        """Return the unit of the native value, resolved on every read.
+
+        The car reports its unit per attribute and it can change at runtime, so
+        this is deliberately a live property rather than a value captured during
+        __init__. Returning it live is what lets Home Assistant apply the unit
+        system conversion.
+        """
+
+        return self._reported_unit
+
+    def _native_value(self):
+        """Return this entity's native value, numeric where one can be parsed.
+
+        The backend sends a preformatted string for these attributes
+        (``display_value``, e.g. "57" with ``unit`` "MILES"). That pair is
+        self-consistent - the string was formatted using that unit - so it is
+        all that is needed to describe the reading. Home Assistant can only
+        apply its unit conversion to a numeric native value, so the string is
+        parsed here and the reported unit stays the native unit.
+
+        Values that do not parse are returned unchanged, which keeps enum and
+        otherwise textual attributes working. No assumption is made about the
+        unit of the separate ``value`` field; it remains available as the
+        ``original_value`` attribute for cross-checking.
+        """
+
+        value = self._state
+
+        # endofchargetime reports the literal "unknown" when the car has no
+        # end-of-charge time. Its device class is TIMESTAMP, and now that
+        # SensorEntity.state is reached, Home Assistant rejects a non-datetime
+        # there. None renders as "unknown" without raising, which is what this
+        # sentinel means.
+        if value == STATE_UNKNOWN:
+            return None
+
+        if not isinstance(value, str):
+            return value
+
+        stripped = value.strip()
+        try:
+            if stripped.lstrip("+-").isdigit():
+                return int(stripped)
+            number = float(stripped)
+        except ValueError:
+            return value
+
+        # Reject nan/inf, which Home Assistant treats as an invalid reading.
+        return number if isfinite(number) else value
 
     def update(self):
         """Get the latest data and updates the states."""

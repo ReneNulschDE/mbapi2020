@@ -131,12 +131,15 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
 
     @property
     def native_value(self) -> str | int | float | datetime | None:
-        """Return the state."""
-        return self.state
+        """Return the value in the unit reported by the car.
 
-    @property
-    def state(self):
-        """Return the state of the sensor."""
+        This is the native value on purpose. Home Assistant's SensorEntity
+        computes the displayed state from native_value plus the native and
+        target units, applying the conversion defined for the device class.
+        That happens in SensorEntity.state, which is declared @final, so this
+        class must not define a state property of its own: doing so would
+        shadow the conversion and pin the entity to the unit the car reports.
+        """
 
         if self.device_retrieval_status() in ("NOT_RECEIVED", "4", 4):
             if self._sensor_config[scf.DEFAULT_VALUE_MODE.value]:
@@ -164,7 +167,7 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
             if self._state and self._state == "error":
                 return STATE_UNKNOWN
 
-        return self._state
+        return self._native_value()
 
     async def async_added_to_hass(self):
         """Add callback after being added to hass."""
@@ -184,12 +187,11 @@ class MercedesMESensorPoll(MercedesMeEntity, RestoreSensor):
 
     @property
     def native_value(self) -> str | int | float | datetime | None:
-        """Return the state."""
-        return self.state
+        """Return the value in the unit reported by the car.
 
-    @property
-    def state(self):
-        """Return the state of the sensor."""
+        As in MercedesMESensor, the unit conversion is left to
+        SensorEntity.state, so no state property is defined here.
+        """
 
         if self.device_retrieval_status() == "NOT_RECEIVED":
             return STATE_UNKNOWN
@@ -197,7 +199,7 @@ class MercedesMESensorPoll(MercedesMeEntity, RestoreSensor):
         if self.device_retrieval_status() == 3:
             return STATE_UNKNOWN
 
-        return self._state
+        return self._native_value()
 
     async def async_added_to_hass(self):
         """Add callback after being added to hass."""
