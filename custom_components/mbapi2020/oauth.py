@@ -144,16 +144,22 @@ class Oauth:
 
             if pre_login_data and pre_login_data.get("result", "") != "RESUME2OIDCP":
                 if pre_login_data.get("result", "") == "GOTO_LOGIN_OTP":
-                    raise MBAuth2FAError("Two-factor authentication (2FA) is not supported.")
+                    raise MBAuth2FAError(  # noqa: TRY301 - inline keeps the login flow readable
+                        "Two-factor authentication (2FA) is not supported."
+                    )
 
                 if pre_login_data.get("result", "") == "GOTO_LOGIN_LEGAL_TEXTS":
                     home_ountry = pre_login_data.get("homeCountry", "")
                     consent_country = pre_login_data.get("consentCountry", "")
                     pre_login_data = await self._submit_legal_consent(home_ountry, consent_country)
                     if pre_login_data.get("result", "") != "RESUME2OIDCP":
-                        raise MBLegalTermsError("Problem accepting legal terms during login. %s", pre_login_data)
+                        raise MBLegalTermsError(  # noqa: TRY301 - inline keeps the login flow readable
+                            f"Problem accepting legal terms during login. {pre_login_data}"
+                        )
                 else:
-                    raise MBAuthError("Unexpected login result: %s", pre_login_data)
+                    raise MBAuthError(  # noqa: TRY301 - inline keeps the login flow readable
+                        f"Unexpected login result: {pre_login_data}"
+                    )
 
             # Step 5: Resume authorization and get code
             auth_code = await self._resume_authorization(resume_url, pre_login_data["token"])
@@ -169,14 +175,14 @@ class Oauth:
             self.code_verifier = None
             self.code_challenge = None
 
-            _LOGGER.info("OAuth2 login successful")
-            return token_info
-
         except (MBAuth2FAError, MBLegalTermsError):
             raise
         except Exception as e:
             _LOGGER.error("OAuth2 login failed: %s", e)
             raise MBAuthError(f"Login failed: {e}") from e
+        else:
+            _LOGGER.info("OAuth2 login successful")
+            return token_info
 
     def _get_mobile_safari_headers(
         self,
