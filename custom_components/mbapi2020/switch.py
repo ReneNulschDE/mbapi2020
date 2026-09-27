@@ -99,7 +99,8 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
                 self.hass, self._state_confirmation_duration, self._reset_expected_state
             )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - also performs the optimistic-state cleanup below; a
+            # narrower catch would let an unexpected error leave the switch stuck
             # Log the error and reset state if needed
             LOGGER.error(
                 "Error changing state to %s for entity '%s': %s",
@@ -124,7 +125,8 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
         """Update Mercedes Me entity."""
         try:
             actual_state = self.entity_description.is_on_fn(self)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - a failure to read state marks the entity unavailable,
+            # which is better than propagating into the update loop
             LOGGER.error("Error getting actual state for %s: %s", self.name, str(e))
             self._attr_available = False
             return
@@ -173,7 +175,8 @@ async def async_setup_entry(
         try:
             entity = MercedesMeSwitch(description, car.finorvin, coordinator)
             LOGGER.debug("Created switch entity for VIN: '%s', feature: '%s'", vin_masked, description.key)
-        except Exception:
+        except Exception:  # noqa: BLE001 - skips this one entity; letting it escape would abort
+            # platform setup for the whole car
             LOGGER.error(
                 "Error creating switch entity for VIN: '%s', feature: '%s'. Exception:",
                 vin_masked,
