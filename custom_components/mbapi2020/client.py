@@ -1123,9 +1123,8 @@ class Client:
         self._build_car(vep_json, update_mode=False)
         if self._dataload_complete_fired:
             current_car = self.cars.get(vin)
-            current_car.data_collection_mode = "pull"
-
             if current_car:
+                current_car.data_collection_mode = "pull"
                 current_car.publish_updates()
 
         if not self._dataload_complete_fired:
@@ -1190,9 +1189,8 @@ class Client:
 
             if self._dataload_complete_fired:
                 current_car = self.cars.get(vin)
-                current_car.data_collection_mode = "push"
-
                 if current_car:
+                    current_car.data_collection_mode = "push"
                     current_car.publish_updates()
 
                     # Check for newly available sensors after vep_update
