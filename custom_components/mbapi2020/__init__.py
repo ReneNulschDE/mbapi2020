@@ -51,6 +51,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def _setup_car(
+    hass: HomeAssistant,
     coordinator: MBAPI2020DataUpdateCoordinator,
     config_entry: ConfigEntry,
     car: dict,
@@ -82,7 +83,7 @@ async def _setup_car(
 
     try:
         car_capabilities = await coordinator.client.webapi.get_car_capabilities(vin)
-        coordinator.client.hass.async_add_executor_job(
+        hass.async_add_executor_job(
             coordinator.client.write_debug_json_output,
             car_capabilities,
             f"cai-{loghelper.Mask_VIN(vin)}-",
@@ -101,7 +102,7 @@ async def _setup_car(
 
     try:
         capabilities = await coordinator.client.webapi.get_car_capabilities_commands(vin)
-        coordinator.client.hass.async_add_executor_job(
+        hass.async_add_executor_job(
             coordinator.client.write_debug_json_output,
             capabilities,
             f"ca-{loghelper.Mask_VIN(vin)}-",
@@ -215,7 +216,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         vehicles.extend(masterdata.get("assignedVehicles", []))
 
         for car in vehicles:
-            await _setup_car(coordinator, config_entry, car, bff_app_config)
+            await _setup_car(hass, coordinator, config_entry, car, bff_app_config)
 
         await coordinator.async_config_entry_first_refresh()
 
