@@ -118,6 +118,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             features: dict[str, bool] = {}
             vehicle_information: dict = {}
+            # Assigned further down regardless of whether the request below
+            # succeeds, so it has to be bound before the try.
+            capabilities = None
 
             try:
                 car_capabilities = await coordinator.client.webapi.get_car_capabilities(vin)
@@ -212,9 +215,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
             current_car = Car(vin)
             current_car.licenseplate = car.get("licensePlate", vin)
-            current_car.baumuster_description = (
-                car.get("salesRelatedInformation", "").get("baumuster", "").get("baumusterDescription", "")
-            )
+            # Both levels are optional in masterdata, so walk the dicts
+            # defensively instead of defaulting to a string and calling
+            # .get() on it.
+            sales_information = car.get("salesRelatedInformation") or {}
+            baumuster = sales_information.get("baumuster") or {}
+            current_car.baumuster_description = baumuster.get("baumusterDescription", "")
             if not current_car.licenseplate.strip():
                 current_car.licenseplate = vin
             current_car.features = features
