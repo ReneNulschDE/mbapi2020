@@ -7,9 +7,9 @@ from dataclasses import dataclass
 import logging
 import re
 import time
+from typing import Any
 from urllib.parse import urlencode
 import uuid
-from typing import Any
 
 from aiohttp import ClientError, ClientSession
 
