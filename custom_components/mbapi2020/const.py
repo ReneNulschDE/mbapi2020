@@ -87,11 +87,14 @@ JSON_EXPORT_IGNORED_KEYS = (
     "licensePlate",
     "vin",
     "dealers",
+    "positionLat",
     "positionLong",
     "positionHeading",
     "id_token",
     "password",
     "title",
+    "device_guid",
+    "deviceGuid",
 )
 
 

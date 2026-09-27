@@ -19,6 +19,7 @@ from google.protobuf.json_format import MessageToJson
 from custom_components.mbapi2020.app_version import AppVersionManager
 from custom_components.mbapi2020.proto import client_pb2
 import custom_components.mbapi2020.proto.vehicle_commands_pb2 as pb2_commands
+from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, callback
@@ -61,6 +62,7 @@ from .const import (
     DEFAULT_CACHE_PATH,
     DEFAULT_DOWNLOAD_PATH,
     DEFAULT_SOCKET_MIN_RETRY,
+    JSON_EXPORT_IGNORED_KEYS,
 )
 from .helper import LogHelper as loghelper
 from .oauth import Oauth
@@ -2347,19 +2349,39 @@ class Client:
             self.write_debug_json_output(MessageToJson(data, preserving_proto_field_name=True), datatype)
 
     def write_debug_json_output(self, data, datatype, use_dumps: bool = False):
-        """Write text to files based on datatype."""
+        """Write text to files based on datatype.
+
+        These files land in the Home Assistant config directory and get shared
+        with maintainers when a user asks for help, so they are redacted with
+        the same key list the diagnostics download uses.
+        """
         # LOGGER.debug(self.config_entry.options)
         if self.config_entry.options.get(CONF_DEBUG_FILE_SAVE, False):
             path = self._debug_save_path
             Path(path).mkdir(parents=True, exist_ok=True)
 
+            redacted = self._redact_debug_data(data, use_dumps)
+
             with Path(f"{path}/{datatype}{int(round(time.time() * 1000))}.json").open(
                 "w", encoding="utf-8"
             ) as current_file:
-                if use_dumps:
-                    current_file.write(f"{json.dumps(data, indent=4)}")
-                else:
-                    current_file.write(f"{data}")
+                current_file.write(redacted)
+
+    @staticmethod
+    def _redact_debug_data(data, use_dumps: bool) -> str:
+        """Return the debug payload as text with sensitive keys removed."""
+        try:
+            if use_dumps:
+                parsed = data
+            else:
+                parsed = json.loads(data)
+        except (TypeError, ValueError):
+            # Not JSON we can parse, so there is nothing safe to redact from
+            # it. Skip the file rather than write a payload we cannot vouch for.
+            LOGGER.debug("Skipping debug output %s: payload is not valid JSON", type(data).__name__)
+            return ""
+
+        return json.dumps(async_redact_data(parsed, JSON_EXPORT_IGNORED_KEYS), indent=4)
 
     async def set_rlock_mode(self):
         """Set thread locking mode on init."""
