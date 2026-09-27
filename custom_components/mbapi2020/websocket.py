@@ -28,10 +28,10 @@ from .const import (
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
 )
-from .proto_diag import diagnose_proto_message
 from .helper import LogHelper as loghelper, UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
+from .proto_diag import diagnose_proto_message
 
 DEFAULT_WATCHDOG_TIMEOUT = 30
 DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 180

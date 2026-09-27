@@ -16,14 +16,7 @@ from custom_components.mbapi2020.app_version import AppVersionManager
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import (
-    REGION_CHINA,
-    RIS_OS_VERSION,
-    SYSTEM_PROXY,
-    VERIFY_SSL,
-    WEBSOCKET_USER_AGENT,
-    WEBSOCKET_USER_AGENT_CN,
-)
+from .const import REGION_CHINA, RIS_OS_VERSION, SYSTEM_PROXY, VERIFY_SSL, WEBSOCKET_USER_AGENT, WEBSOCKET_USER_AGENT_CN
 from .helper import UrlHelper as helper
 from .oauth import Oauth
 from .proto import vehicle_events_pb2

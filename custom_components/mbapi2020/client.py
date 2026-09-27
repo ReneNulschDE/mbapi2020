@@ -741,7 +741,8 @@ class Client:
             elif isinstance(predicted_end_time, str):
                 try:
                     value = datetime.strptime(predicted_end_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-                except Exception:
+                except ValueError:
+                    # Not the expected format; leave the reading unset.
                     value = None
             else:
                 value = None
@@ -844,7 +845,10 @@ class Client:
                 display_value=dt_with_time.isoformat(),
                 unit=None,
             )
-        except Exception as e:
+        except (AttributeError, TypeError, ValueError) as e:
+            # Narrow on purpose: the payload is remote JSON, so a malformed
+            # shape or an unparseable number should not abort the update, but
+            # anything unexpected is better surfaced than swallowed here.
             LOGGER.error(
                 "Error processing endofchargetime for car %s: %s, %s",
                 loghelper.Mask_VIN(vin),
