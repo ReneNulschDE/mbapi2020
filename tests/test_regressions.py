@@ -90,9 +90,12 @@ def test_publish_updates_tolerates_a_listener_that_registers_another() -> None:
     assert called == ["first"], "the late listener must not run in the same pass"
 
     # Iterating a snapshot means a listener added during the pass takes
-    # effect from the next one, not from the remainder of this one.
+    # effect from the next one, not from the remainder of this one. The
+    # listeners are held in a set, so their relative order within a pass
+    # is unspecified - only the counts and the first-pass result are.
     car.publish_updates()
-    assert called == ["first", "first", "late"]
+    assert sorted(called) == ["first", "first", "late"]
+    assert called.count("late") == 1
 
 
 def test_publish_updates_tolerates_a_listener_that_removes_itself() -> None:
