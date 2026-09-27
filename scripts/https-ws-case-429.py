@@ -24,7 +24,7 @@ class MBAPI2020SimulatorServer(BaseHTTPRequestHandler):
             self.send_response(429)
             self.send_header("Content-type", "")
             self.end_headers()
-            self.wfile.write("".encode("utf-8"))
+            self.wfile.write(b"")
             return
 
     def do_POST(self):
