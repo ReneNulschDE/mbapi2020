@@ -26,7 +26,6 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from custom_components.mbapi2020.car import Car  # noqa: E402
 from custom_components.mbapi2020.client import Client  # noqa: E402
 
 from .fixtures.build import SYNTH_FIN, SYNTH_PLATE, SYNTH_VIN  # noqa: E402
@@ -69,8 +68,11 @@ def make_client(
     client = Client.__new__(Client)  # bypass __init__: no hass, no session, no network
 
     # --- plain data attributes, mirroring Client.__init__ ---
+    # No inline annotations: PEP 526 only allows them on attributes of a
+    # class body or self/cls, not on a local object. The types already
+    # come from Client, so they are implied.
     client.long_running_operation_active = False
-    client.ignition_states: dict[str, bool] = {}
+    client.ignition_states = {}
     client.account_blocked = False
     client._ws_reconnect_delay = 0
     client._region = "Europe"
@@ -92,7 +94,7 @@ def make_client(
     client._first_vepupdates_processed = True
     client._vepupdates_timeout_seconds = 25
     client._vepupdates_time_first_message = None
-    client.cars: dict[str, Car] = {}
+    client.cars = {}
 
     # --- I/O that the parsers call but the tests do not exercise ---
     client._write_debug_output = lambda data, datatype: None  # type: ignore[method-assign]
