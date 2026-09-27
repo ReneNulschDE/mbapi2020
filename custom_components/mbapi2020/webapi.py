@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import logging
-import ssl
 import traceback
 import uuid
 
@@ -125,7 +124,10 @@ class WebApi:
                 raise ClientError from err
 
             return []
-        except Exception:
+        except Exception:  # noqa: BLE001 - deliberate catch-all: this parses arbitrary
+            # API responses, so an unexpected TypeError/KeyError from a
+            # malformed payload degrades to a None return rather than tearing
+            # down setup. Kept broad for that reason.
             LOGGER.debug(traceback.format_exc())
 
     async def get_config(self):
