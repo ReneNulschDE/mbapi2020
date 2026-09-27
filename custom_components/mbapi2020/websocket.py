@@ -28,10 +28,10 @@ from .const import (
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
 )
-from .proto_diag import diagnose_proto_message
 from .helper import LogHelper as loghelper, UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
+from .proto_diag import diagnose_proto_message
 
 DEFAULT_WATCHDOG_TIMEOUT = 30
 DEFAULT_WATCHDOG_TIMEOUT_CARCOMMAND = 180
@@ -143,7 +143,8 @@ class Websocket:
         self._LOGGER.debug("Starting reconnect attempt")
         try:
             await self._async_connect_internal()
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001 - any connect failure must fall through to the backoff
+            # below; narrowing risks escaping the retry loop entirely
             self._LOGGER.error("Reconnect attempt failed: %s (%s)", err, type(err).__name__)
         finally:
             # Re-trigger reconnect watchdog if not stopping and not connected
@@ -193,7 +194,7 @@ class Websocket:
         self.is_stopping = False
 
     async def _async_connect_internal(self, on_data=None) -> None:
-        """Internal connect method without cancelling reconnect watchdog."""
+        """Connect internally without cancelling the reconnect watchdog."""
         if self.is_connecting:
             return
 
@@ -230,7 +231,8 @@ class Websocket:
         # Warten, dass Tasks laufen - mit ordnungsgemäßer Exception-Behandlung
         try:
             await asyncio.gather(self._queue_task, self._websocket_task, return_exceptions=True)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - gather(return_exceptions=True) already handles task
+            # errors; this guards the gather call itself during shutdown
             self._LOGGER.debug("async_connect tasks finished with exception: %s", e)
         finally:
             self._connect_internal_active_count -= 1
@@ -269,7 +271,7 @@ class Websocket:
             except asyncio.CancelledError:
                 # Beim Shutdown nicht re-raisen
                 self._LOGGER.error("WebSocket close() was cancelled by outer task; ignoring during shutdown.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - shutdown must complete even if close() misbehaves
                 self._LOGGER.debug("Error closing WebSocket connection: %s", e)
 
         # Zustände zurücksetzen
@@ -306,7 +308,11 @@ class Websocket:
         self._reconnectwatchdog.cancel(graceful=True)
 
         # Graceful shutdown in separatem Task ausführen, um Self-Cancel zu vermeiden
-        loop.create_task(self._graceful_shutdown_and_optionally_reconnect(), name="mbapi2020.shutdown")
+        # Reference is kept so the loop's weak reference cannot collect the task
+        # while it is still running, which would drop the reconnect re-arm.
+        self._shutdown_task = loop.create_task(
+            self._graceful_shutdown_and_optionally_reconnect(), name="mbapi2020.shutdown"
+        )
 
     async def _graceful_shutdown_and_optionally_reconnect(self):
         try:
@@ -405,7 +411,7 @@ class Websocket:
                             await self.call(bytes.fromhex(ack_message))
                         else:
                             await self.call(ack_message.SerializeToString())
-                except Exception as err:
+                except Exception as err:  # noqa: BLE001 - a bad ack must not kill the queue handler
                     self._LOGGER.error("Error processing queue message: %s", err)
 
                 self._queue.task_done()
@@ -416,7 +422,7 @@ class Websocket:
             except asyncio.CancelledError:
                 self._LOGGER.debug("Queue handler cancelled")
                 break
-            except Exception as err:
+            except Exception as err:  # noqa: BLE001 - queue handler loop; a bad message is dropped, not fatal
                 self._LOGGER.error("Unexpected error in queue handler: %s", err)
                 break
 
@@ -471,14 +477,13 @@ class Websocket:
                         if config_entry and "password" in config_entry.data:
                             password = config_entry.data["password"]
                             username = config_entry.data.get("username").strip()
-                            region = config_entry.data.get("region")
                             if username and password and hasattr(self.oauth, "async_login_new"):
                                 self._LOGGER.info("429 detected: Trying relogin with stored password")
                                 try:
-                                    token_info = await self.oauth.async_login_new(username, password)
+                                    await self.oauth.async_login_new(username, password)
                                     self._LOGGER.info("Relogin successful after 429")
                                     self._relogin_429_attempts = MAX_RELOGIN_ATTEMPTS
-                                except Exception as relogin_err:
+                                except Exception as relogin_err:  # noqa: BLE001 - relogin failure is counted and retried, never fatal
                                     self._relogin_429_attempts += 1
                                     self._LOGGER.error(
                                         "Relogin after 429 failed (attempt %d/%d): %s",
@@ -491,7 +496,8 @@ class Websocket:
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)
                 retry_in = 10 * self.ws_connect_retry_counter * self.ws_connect_retry_counter
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001 - the reconnect backoff catch-all; every error type
+                # must reach the sleep and retry, not escape the loop
                 self._LOGGER.error("Other error: %s (%s)", error, type(error).__name__)
                 self.connection_state = STATE_RECONNECTING
                 await asyncio.sleep(retry_in)
@@ -699,13 +705,15 @@ class Websocket:
         cleanup_count = 0
         try:
             while not self._queue.empty():
-                try:
+                try:  # noqa: PERF203 - this is a non-blocking drain; the inner
+                    # try/except per item is what breaks out on QueueEmpty.
+                    # Hoisting it out would fetch a single item, not drain.
                     self._queue.get_nowait()
                     self._queue.task_done()
                     cleanup_count += 1
-                except asyncio.QueueEmpty:
+                except asyncio.QueueEmpty:  # noqa: PERF203 - non-blocking drain
                     break
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001 - queue cleanup at shutdown; logging is enough
             self._LOGGER.error("Error cleaning up queue: %s", err)
 
         if cleanup_count > 0:

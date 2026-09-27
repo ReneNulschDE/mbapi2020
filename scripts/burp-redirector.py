@@ -1,3 +1,10 @@
+"""Burp Suite extension that redirects MB API traffic to a local mock server.
+
+Pairs with scripts/https-bff.py and scripts/https-ws-case-429.py, so the
+integration can be pointed at these instead of the real Mercedes backend
+while developing.
+"""
+
 from burp import IBurpExtender, IHttpListener
 
 HOST_TO = "localhost"
@@ -9,11 +16,14 @@ SERVER_PORT_MAP = {
 
 
 class BurpExtender(IBurpExtender, IHttpListener):
+    """Rewrites MB API hosts to localhost so requests reach the local mocks."""
+
     #
     # implement IBurpExtender
     #
 
     def registerExtenderCallbacks(self, callbacks):
+        """Register this extension and its HTTP listener with Burp."""
         # obtain an extension helpers object
         self._helpers = callbacks.getHelpers()
 
@@ -28,6 +38,7 @@ class BurpExtender(IBurpExtender, IHttpListener):
     #
 
     def processHttpMessage(self, toolFlag, messageIsRequest, messageInfo):
+        """Rewrite a matching request's host to its configured local port."""
         # only process requests
         if not messageIsRequest:
             return

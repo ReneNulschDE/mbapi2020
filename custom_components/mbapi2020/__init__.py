@@ -50,6 +50,119 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
+async def _setup_car(
+    hass: HomeAssistant,
+    coordinator: MBAPI2020DataUpdateCoordinator,
+    config_entry: ConfigEntry,
+    car: dict,
+    bff_app_config: dict,
+) -> None:
+    """Fetch the capabilities of a single car and register it with the client.
+
+    Split out of async_setup_entry to keep that function within the configured
+    complexity limit; the body is otherwise unchanged.
+    """
+    # Check if the car has a separate VIN key, if not, use the FIN.
+    vin = car.get("vin")
+    if vin is None:
+        vin = car.get("fin")
+        LOGGER.debug(
+            "VIN not found in masterdata. Used FIN %s instead.",
+            loghelper.Mask_VIN(vin),
+        )
+
+    # Car is excluded, we do not add this
+    if vin in config_entry.options.get("excluded_cars", ""):
+        return
+
+    features: dict[str, bool] = {}
+    vehicle_information: dict = {}
+    # Initialised up front: the command capabilities call below can fail, and
+    # the value is still assigned to the car further down.
+    capabilities = None
+
+    try:
+        car_capabilities = await coordinator.client.webapi.get_car_capabilities(vin)
+        hass.async_add_executor_job(
+            coordinator.client.write_debug_json_output,
+            car_capabilities,
+            f"cai-{loghelper.Mask_VIN(vin)}-",
+            True,
+        )
+        if car_capabilities and "features" in car_capabilities:
+            features.update(car_capabilities["features"])
+        if car_capabilities and "vehicle" in car_capabilities:
+            vehicle_information = car_capabilities["vehicle"]
+    except aiohttp.ClientError:
+        # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
+        LOGGER.info(
+            "Car Capabilities not available for the car with VIN %s.",
+            loghelper.Mask_VIN(vin),
+        )
+
+    try:
+        capabilities = await coordinator.client.webapi.get_car_capabilities_commands(vin)
+        hass.async_add_executor_job(
+            coordinator.client.write_debug_json_output,
+            capabilities,
+            f"ca-{loghelper.Mask_VIN(vin)}-",
+            True,
+        )
+        if capabilities:
+            for feature in capabilities.get("commands"):
+                features[feature.get("commandName")] = bool(feature.get("isAvailable"))
+                if feature.get("commandName", "") == "ZEV_PRECONDITION_CONFIGURE_SEATS":
+                    capabilityInformation = feature.get("capabilityInformation", None)
+                    if capabilityInformation and len(capabilityInformation) > 0:
+                        features[feature.get("capabilityInformation")[0]] = bool(feature.get("isAvailable"))
+                if feature.get("commandName", "") == "CHARGE_PROGRAM_CONFIGURE":
+                    max_soc_found = False
+                    parameters = feature.get("parameters", [])
+                    if parameters is not None:
+                        for parameter in parameters:
+                            if parameter.get("parameterName", "") == "MAX_SOC":
+                                max_soc_found = True
+                    features["CHARGE_PROGRAM_CONFIGURE"] = max_soc_found
+    except aiohttp.ClientError:
+        # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
+        # We just ignore the capabilities
+        LOGGER.info(
+            "Command Capabilities not available for the car with VIN %s. Make sure you disable the capability check in the option of this component.",
+            loghelper.Mask_VIN(vin),
+        )
+
+    rcp_options = RcpOptions()
+    rcp_supported = False  # await coordinator.client.webapi.is_car_rcp_supported(vin)
+    LOGGER.debug("RCP supported for car %s: %s", loghelper.Mask_VIN(vin), rcp_supported)
+    setattr(rcp_options, "rcp_supported", CarAttribute(rcp_supported, "VALID", 0))
+
+    current_car = Car(vin)
+    current_car.licenseplate = car.get("licensePlate", vin)
+    # Both levels are optional in masterdata, so walk the dicts defensively
+    # instead of defaulting to a string and calling .get on it.
+    sales_information = car.get("salesRelatedInformation") or {}
+    baumuster = sales_information.get("baumuster") or {}
+    current_car.baumuster_description = baumuster.get("baumusterDescription", "")
+    if not current_car.licenseplate.strip():
+        current_car.licenseplate = vin
+    current_car.features = features
+    current_car.vehicle_information = vehicle_information
+    current_car.masterdata = car
+    current_car.app_configuration = bff_app_config
+    current_car.rcp_options = rcp_options
+    current_car.capabilities = capabilities
+    current_car.last_message_received = int(round(time.time() * 1000))
+    current_car.is_owner = car.get("isOwner")
+
+    if config_entry.options.get(CONF_OVERWRITE_PRECONDNOW, False):
+        current_car.features["precondNow"] = True
+
+    coordinator.client.cars[vin] = current_car
+    # await coordinator.client.update_poll_states(vin)
+
+    LOGGER.debug("Init - car added - %s", loghelper.Mask_VIN(current_car.finorvin))
+
+
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up MercedesME 2020 from a config entry."""
     LOGGER.debug("Start async_setup_entry.")
@@ -103,136 +216,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         vehicles.extend(masterdata.get("assignedVehicles", []))
 
         for car in vehicles:
-            # Check if the car has a separate VIN key, if not, use the FIN.
-            vin = car.get("vin")
-            if vin is None:
-                vin = car.get("fin")
-                LOGGER.debug(
-                    "VIN not found in masterdata. Used FIN %s instead.",
-                    loghelper.Mask_VIN(vin),
-                )
-
-            # Car is excluded, we do not add this
-            if vin in config_entry.options.get("excluded_cars", ""):
-                continue
-
-            features: dict[str, bool] = {}
-            vehicle_information: dict = {}
-
-            try:
-                car_capabilities = await coordinator.client.webapi.get_car_capabilities(vin)
-                hass.async_add_executor_job(
-                    coordinator.client.write_debug_json_output,
-                    car_capabilities,
-                    f"cai-{loghelper.Mask_VIN(vin)}-",
-                    True,
-                )
-                if car_capabilities and "features" in car_capabilities:
-                    features.update(car_capabilities["features"])
-                if car_capabilities and "vehicle" in car_capabilities:
-                    vehicle_information = car_capabilities["vehicle"]
-            except aiohttp.ClientError:
-                # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
-                LOGGER.info(
-                    "Car Capabilities not available for the car with VIN %s.",
-                    loghelper.Mask_VIN(vin),
-                )
-
-            try:
-                capabilities = await coordinator.client.webapi.get_car_capabilities_commands(vin)
-                hass.async_add_executor_job(
-                    coordinator.client.write_debug_json_output,
-                    capabilities,
-                    f"ca-{loghelper.Mask_VIN(vin)}-",
-                    True,
-                )
-                if capabilities:
-                    for feature in capabilities.get("commands"):
-                        features[feature.get("commandName")] = bool(feature.get("isAvailable"))
-                        if feature.get("commandName", "") == "ZEV_PRECONDITION_CONFIGURE_SEATS":
-                            capabilityInformation = feature.get("capabilityInformation", None)
-                            if capabilityInformation and len(capabilityInformation) > 0:
-                                features[feature.get("capabilityInformation")[0]] = bool(feature.get("isAvailable"))
-                        if feature.get("commandName", "") == "CHARGE_PROGRAM_CONFIGURE":
-                            max_soc_found = False
-                            parameters = feature.get("parameters", [])
-                            if parameters is not None:
-                                for parameter in parameters:
-                                    if parameter.get("parameterName", "") == "MAX_SOC":
-                                        max_soc_found = True
-                            features["CHARGE_PROGRAM_CONFIGURE"] = max_soc_found
-            except aiohttp.ClientError:
-                # For some cars a HTTP401 is raised when asking for capabilities, see github issue #83
-                # We just ignore the capabilities
-                LOGGER.info(
-                    "Command Capabilities not available for the car with VIN %s. Make sure you disable the capability check in the option of this component.",
-                    loghelper.Mask_VIN(vin),
-                )
-
-            rcp_options = RcpOptions()
-            rcp_supported = False  # await coordinator.client.webapi.is_car_rcp_supported(vin)
-            LOGGER.debug("RCP supported for car %s: %s", loghelper.Mask_VIN(vin), rcp_supported)
-            setattr(rcp_options, "rcp_supported", CarAttribute(rcp_supported, "VALID", 0))
-            # rcp_supported = False
-            # if rcp_supported:
-            #     rcp_supported_settings = await coordinator.client.webapi.get_car_rcp_supported_settings(vin)
-            #     if rcp_supported_settings:
-            #         hass.async_add_executor_job(
-            #             coordinator.client.write_debug_json_output,
-            #             rcp_supported_settings,
-            #             "rcs",
-            #         )
-            #         if rcp_supported_settings.get("data"):
-            #             if rcp_supported_settings.get("data").get("attributes"):
-            #                 if rcp_supported_settings.get("data").get("attributes").get("supportedSettings"):
-            #                     LOGGER.debug(
-            #                         "RCP supported settings: %s",
-            #                         str(rcp_supported_settings.get("data").get("attributes").get("supportedSettings")),
-            #                     )
-            #                     setattr(
-            #                         rcp_options,
-            #                         "rcp_supported_settings",
-            #                         CarAttribute(
-            #                             rcp_supported_settings.get("data").get("attributes").get("supportedSettings"),
-            #                             "VALID",
-            #                             0,
-            #                         ),
-            #                     )
-
-            #                     for setting in (
-            #                         rcp_supported_settings.get("data").get("attributes").get("supportedSettings")
-            #                     ):
-            #                         setting_result = await coordinator.client.webapi.get_car_rcp_settings(vin, setting)
-            #                         if setting_result is not None:
-            #                             hass.async_add_executor_job(
-            #                                 coordinator.client.write_debug_json_output,
-            #                                 setting_result,
-            #                                 f"rcs_{setting}",
-            #                             )
-
-            current_car = Car(vin)
-            current_car.licenseplate = car.get("licensePlate", vin)
-            current_car.baumuster_description = (
-                car.get("salesRelatedInformation", "").get("baumuster", "").get("baumusterDescription", "")
-            )
-            if not current_car.licenseplate.strip():
-                current_car.licenseplate = vin
-            current_car.features = features
-            current_car.vehicle_information = vehicle_information
-            current_car.masterdata = car
-            current_car.app_configuration = bff_app_config
-            current_car.rcp_options = rcp_options
-            current_car.capabilities = capabilities
-            current_car.last_message_received = int(round(time.time() * 1000))
-            current_car.is_owner = car.get("isOwner")
-
-            if config_entry.options.get(CONF_OVERWRITE_PRECONDNOW, False):
-                current_car.features["precondNow"] = True
-
-            coordinator.client.cars[vin] = current_car
-            # await coordinator.client.update_poll_states(vin)
-
-            LOGGER.debug("Init - car added - %s", loghelper.Mask_VIN(current_car.finorvin))
+            await _setup_car(hass, coordinator, config_entry, car, bff_app_config)
 
         await coordinator.async_config_entry_first_refresh()
 
@@ -299,7 +283,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             websocket.ha_stop_handler()
             websocket.ha_stop_handler = None
 
-        result = await websocket.async_stop()
+        await websocket.async_stop()
 
         websocket._reconnectwatchdog.cancel()
         websocket._watchdog.cancel()

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import logging
-import ssl
 import traceback
 import uuid
 
@@ -16,14 +15,7 @@ from custom_components.mbapi2020.app_version import AppVersionManager
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import (
-    REGION_CHINA,
-    RIS_OS_VERSION,
-    SYSTEM_PROXY,
-    VERIFY_SSL,
-    WEBSOCKET_USER_AGENT,
-    WEBSOCKET_USER_AGENT_CN,
-)
+from .const import REGION_CHINA, RIS_OS_VERSION, SYSTEM_PROXY, VERIFY_SSL, WEBSOCKET_USER_AGENT, WEBSOCKET_USER_AGENT_CN
 from .helper import UrlHelper as helper
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
@@ -125,7 +117,10 @@ class WebApi:
                 raise ClientError from err
 
             return []
-        except Exception:
+        except Exception:  # noqa: BLE001 - deliberate catch-all: this parses arbitrary
+            # API responses, so an unexpected TypeError/KeyError from a
+            # malformed payload degrades to a None return rather than tearing
+            # down setup. Kept broad for that reason.
             LOGGER.debug(traceback.format_exc())
 
     async def get_config(self):

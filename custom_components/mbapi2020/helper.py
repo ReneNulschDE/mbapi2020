@@ -43,12 +43,14 @@ class LogHelper:
 
     @staticmethod
     def Mask_VIN(vin: str) -> str:
+        """Return the VIN with its middle characters masked for logging."""
         if len(vin) > 12:
             return vin[:5] + "X" * (12 - 5 + 1) + vin[13:]
         return "X" * len(vin)
 
     @staticmethod
     def Mask_email(email: str) -> str:
+        """Return the email address with its middle characters masked for logging."""
         if len(email) > 7:
             return email[:2] + "X" * (6 - 2 + 1) + email[7:]
         return "x" * len(email)
@@ -59,6 +61,7 @@ class UrlHelper:
 
     @staticmethod
     def Rest_url(region: str) -> str:
+        """Return the base REST API url for the given region."""
         match region:
             case current if current == REGION_APAC:
                 return REST_API_BASE_PA
@@ -71,6 +74,7 @@ class UrlHelper:
 
     @staticmethod
     def Websocket_url(region: str) -> str:
+        """Return the base websocket url for the given region."""
         match region:
             case current if current == REGION_APAC:
                 return WEBSOCKET_API_BASE_NA
@@ -83,6 +87,7 @@ class UrlHelper:
 
     @staticmethod
     def Widget_url(region: str) -> str:
+        """Return the mobile widget url for the given region."""
         env: str = "emea"
 
         match region:
@@ -114,6 +119,7 @@ class UrlHelper:
 
     @staticmethod
     def RCP_url(region: str) -> str:
+        """Return the remote control protocol url for the given region."""
         match region:
             case current if current == REGION_CHINA:
                 return RCP_BASE_URI_CN
@@ -122,6 +128,7 @@ class UrlHelper:
 
     @staticmethod
     def PSAG_url(region: str) -> str:
+        """Return the PSAG (vehicle data) url for the given region."""
         match region:
             case current if current == REGION_CHINA:
                 return PSAG_BASE_URI_CN
@@ -130,6 +137,7 @@ class UrlHelper:
 
     @staticmethod
     def Login_Base_Url(region: str) -> str:
+        """Return the base login url for the given region."""
         match region:
             case current if current == REGION_CHINA:
                 return LOGIN_BASE_URI_CN
@@ -138,6 +146,7 @@ class UrlHelper:
 
     @staticmethod
     def Login_App_Id(region: str) -> str:
+        """Return the login app id for the given region."""
         match region:
             case current if current == REGION_CHINA:
                 return LOGIN_APP_ID_CN
@@ -146,6 +155,8 @@ class UrlHelper:
 
 
 class CoordinatesHelper:
+    """Helper functions for converting coordinates between coordinate systems."""
+
     @staticmethod
     def _transform_lat(lon, lat):
         """Transform latitude for GCJ-02 offset calculation.

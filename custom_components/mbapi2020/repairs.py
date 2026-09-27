@@ -17,6 +17,7 @@ class RestartRequiredFixFlow(RepairsFlow):
     """Handler for an issue fixing flow."""
 
     def __init__(self, issue_id: str) -> None:
+        """Initialise the fix flow for the given issue."""
         self.issue_id = issue_id
 
     async def async_step_init(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:

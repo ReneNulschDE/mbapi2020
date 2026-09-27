@@ -568,6 +568,11 @@ split-on-trailing-comma = false
 "script/*" = ["T20"]
 #"script/burp-*" = ["W410"]
 
+# scripts/ holds standalone developer tools, not an importable package:
+# burp-redirector.py needs Burp's runtime, the others are run directly.
+# Adding __init__.py to make INP001 happy would be the opposite of correct.
+"scripts/*.py" = ["INP001"]
+
 # Allow relative imports within auth and within components
 "custom_components/*/*/*" = ["TID252"]
 

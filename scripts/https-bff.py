@@ -1,3 +1,9 @@
+"""Local HTTPS mock of the MB BFF REST API, serving fixtures from ../local.
+
+Used to develop against recorded API responses without hitting the real
+Mercedes backend.
+"""
+
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import logging
 import os
