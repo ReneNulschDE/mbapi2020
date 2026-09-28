@@ -360,7 +360,16 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             self._attr_entity_category = self._sensor_config[scf.ENTITY_CATEGORY.value]
             self._attributes = self._sensor_config[scf.EXTENDED_ATTRIBUTE_LIST.value]
             self._attr_native_unit_of_measurement = self.unit_of_measurement
-            self._attr_suggested_display_precision = self._sensor_config[scf.SUGGESTED_DISPLAY_PRECISION.value]
+            # Only advertise a precision for sensors that are actually numeric.
+            # A non-None suggested_display_precision is enough on its own for
+            # Home Assistant to require a numeric state, and eight sensors here
+            # (car, data_mode, chargingstatus, selectedchargeprogram and the four
+            # windowstatus ones) report status strings such as "push" and "1".
+            if (
+                self._sensor_config[scf.DEVICE_CLASS.value] is not None
+                or self._sensor_config[scf.STATE_CLASS.value] is not None
+            ):
+                self._attr_suggested_display_precision = self._sensor_config[scf.SUGGESTED_DISPLAY_PRECISION.value]
             self._use_chinese_location_data: bool = self._coordinator.config_entry.options.get(
                 CONF_ENABLE_CHINA_GCJ_02, False
             )
