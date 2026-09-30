@@ -11,7 +11,7 @@ from typing import Any
 from urllib.parse import urlencode
 import uuid
 
-from aiohttp import ClientError, ClientSession
+from aiohttp import ClientError, ClientSession, ClientTimeout
 
 from .const import (
     DEFAULT_LOCALE,
@@ -36,6 +36,7 @@ from .helper import UrlHelper as helper
 LOGGER = logging.getLogger(__name__)
 
 APP_VERSION_CHECK_INTERVAL_SECONDS = 21600
+APP_VERSION_REQUEST_TIMEOUT = ClientTimeout(total=10)
 UPDATE_REQUIRED_STATUSES = {"FORCE", "INFORM_ALWAYS"}
 APP_STORE_COUNTRY_BY_REGION = {
     REGION_APAC: "au",
@@ -212,7 +213,9 @@ class AppVersionManager:
         url = f"{helper.Rest_url(self._region)}/v1/config"
 
         try:
-            async with session.get(url, headers=headers, proxy=SYSTEM_PROXY) as response:
+            async with session.get(
+                url, headers=headers, proxy=SYSTEM_PROXY, timeout=APP_VERSION_REQUEST_TIMEOUT
+            ) as response:
                 if response.status >= 400:
                     LOGGER.debug(
                         "Skipping app-version refresh for %s, config returned HTTP %s",
@@ -221,7 +224,7 @@ class AppVersionManager:
                     )
                     return None
                 return await response.json(content_type=None)
-        except (ClientError, ValueError) as err:
+        except (ClientError, TimeoutError, ValueError) as err:
             LOGGER.debug("Failed to refresh Mercedes app version for %s: %s", self._region, err)
             return None
 
@@ -242,7 +245,7 @@ class AppVersionManager:
         url = f"https://itunes.apple.com/lookup?{urlencode(params)}"
 
         try:
-            async with session.get(url, proxy=SYSTEM_PROXY) as response:
+            async with session.get(url, proxy=SYSTEM_PROXY, timeout=APP_VERSION_REQUEST_TIMEOUT) as response:
                 if response.status >= 400:
                     LOGGER.debug(
                         "App Store lookup for %s returned HTTP %s",
@@ -252,7 +255,7 @@ class AppVersionManager:
                     return None
 
                 payload = await response.json(content_type=None)
-        except (ClientError, ValueError) as err:
+        except (ClientError, TimeoutError, ValueError) as err:
             LOGGER.debug("Failed App Store lookup for %s: %s", self._region, err)
             return None
 
