@@ -43,6 +43,7 @@ _LOGGER = logging.getLogger(__name__)
 GATEWAY_ERROR_CODES = (502, 503, 504)
 LOGIN_MAX_ATTEMPTS = 3
 LOGIN_RETRY_BACKOFF_SECONDS = 5
+CONFIG_PREFLIGHT_TIMEOUT = 20
 
 
 class Oauth:
@@ -465,7 +466,9 @@ class Oauth:
         await self._app_version.async_refresh(self._session, force=True)
         headers = self._get_header()
         url = f"{helper.Rest_url(self._region)}/v1/config"
-        await self._async_request("get", url, headers=headers)
+        await self._async_request(
+            "get", url, headers=headers, timeout=aiohttp.ClientTimeout(total=CONFIG_PREFLIGHT_TIMEOUT)
+        )
 
         _LOGGER.info("PIN request")
         url = f"{helper.Rest_url(self._region)}/v1/login"
@@ -481,7 +484,9 @@ class Oauth:
         await self._app_version.async_refresh(self._session, force=True)
         headers = self._get_header()
         url = f"{helper.Rest_url(self._region)}/v1/config"
-        await self._async_request("get", url, headers=headers)
+        await self._async_request(
+            "get", url, headers=headers, timeout=aiohttp.ClientTimeout(total=CONFIG_PREFLIGHT_TIMEOUT)
+        )
 
         url = f"{helper.Login_Base_Url(self._region)}/as/token.oauth2"
         data = f"grant_type=refresh_token&refresh_token={refresh_token}"
