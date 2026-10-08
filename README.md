@@ -137,6 +137,12 @@ Depends on your own car or purchased Mercedes-Benz licenses.
 ### Buttons
 
 - Flash light
+- Sound horn
+
+  Only created for cars that report an acoustic mode in the SIGPOS_TYPE command capability. The mode is picked
+  from what the car supports, preferring PANIC_ALARM over LIGHT_AND_HORN over HORN_ONLY, which is the order the
+  Mercedes me app uses. Use the `sigpos_start` service to pick a mode yourself.
+
 - Preclimate start
 - Preclimate stop
 

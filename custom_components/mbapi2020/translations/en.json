@@ -909,6 +909,9 @@
       "btn_preheat_stop_now": {
         "name": "Preclimate stop"
       },
+      "btn_sigpos_horn_start_now": {
+        "name": "Sound horn"
+      },
       "btn_sigpos_start_now": {
         "name": "Flash lights"
       }

@@ -61,6 +61,7 @@ from .const import (
     DEFAULT_CACHE_PATH,
     DEFAULT_DOWNLOAD_PATH,
     DEFAULT_SOCKET_MIN_RETRY,
+    SIGPOS_HORN_TYPES,
 )
 from .helper import LogHelper as loghelper
 from .oauth import Oauth
@@ -1936,6 +1937,57 @@ class Client:
 
         await self.execute_car_command(message)
         LOGGER.info("End sigpos_start for vin %s", loghelper.Mask_VIN(vin))
+
+    async def sigpos_start_horn(self, vin: str):
+        """Start acoustic signaling of the car, using the mode the car supports."""
+        sigpos_type = self._preferred_horn_sigpos_type(vin)
+
+        if sigpos_type is None:
+            LOGGER.warning(
+                "Can't start horn signaling for car %s. No acoustic signaling mode available for this car",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        await self.sigpos_start(vin, sigpos_type=sigpos_type)
+
+    def _allowed_sigpos_types(self, vin: str) -> set[str]:
+        """Return the SIGPOS_TYPE values the car reports for the SIGPOS_START command."""
+        current_car = self.cars.get(vin)
+        if not current_car:
+            return set()
+
+        for command in (current_car.capabilities or {}).get("commands") or []:
+            if command.get("commandName") != "SIGPOS_START" or not command.get("isAvailable"):
+                continue
+            for parameter in command.get("parameters") or []:
+                if parameter.get("parameterName") == "SIGPOS_TYPE":
+                    return set(parameter.get("allowedEnums") or [])
+
+        return set()
+
+    def _preferred_horn_sigpos_type(self, vin: str) -> int | None:
+        """Pick the acoustic signaling mode of the car, in the order the app prefers.
+
+        Returns None when the car reports SIGPOS_TYPE values but none of them is
+        acoustic. Falls back to the first preference when no values are reported at
+        all, which is the case while the capability check is switched off.
+        """
+        allowed = self._allowed_sigpos_types(vin)
+
+        if not allowed:
+            LOGGER.debug(
+                "No SIGPOS_TYPE capability for car %s, falling back to %s",
+                loghelper.Mask_VIN(vin),
+                SIGPOS_HORN_TYPES[0],
+            )
+            return pb2_commands.SigPosStart.SigposType.Value(SIGPOS_HORN_TYPES[0])
+
+        for name in SIGPOS_HORN_TYPES:
+            if name in allowed:
+                return pb2_commands.SigPosStart.SigposType.Value(name)
+
+        return None
 
     async def sunroof_open(self, vin: str, pin: str = ""):
         """Send a sunroof open command to the car."""

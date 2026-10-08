@@ -892,6 +892,9 @@
       "btn_preheat_stop_now": {
         "name": "Vorklimatisierung stoppen"
       },
+      "btn_sigpos_horn_start_now": {
+        "name": "Signalhorn"
+      },
       "btn_sigpos_start_now": {
         "name": "Signallicht blinken"
       }

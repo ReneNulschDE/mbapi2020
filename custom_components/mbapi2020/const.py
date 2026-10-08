@@ -226,6 +226,11 @@ SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
         vol.Optional("charge_program"): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),
     }
 )
+# SIGPOS_TYPE values that produce an acoustic signal, in the order the Mercedes me
+# app prefers them. Cars report the ones they accept in the SIGPOS_TYPE parameter of
+# the SIGPOS_START command capability, and most support only a subset.
+SIGPOS_HORN_TYPES = ("PANIC_ALARM", "LIGHT_AND_HORN", "HORN_ONLY")
+
 SERVICE_SIGPOS_START_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
@@ -798,6 +803,22 @@ BUTTONS = {
         "ZEV_PRECONDITIONING_STOP",
         None,
         "mdi:hvac",
+        None,
+        False,
+        None,
+        None,
+        None,
+        None,
+    ],
+    "btn_sigpos_horn_start_now": [
+        "Sound horn",
+        None,  # Deprecated: DO NOT USE
+        None,
+        "sigpos_start_horn",
+        None,
+        "SIGPOS_START_HORN",
+        None,
+        "mdi:bugle",
         None,
         False,
         None,
