@@ -226,6 +226,14 @@ SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
         vol.Optional("charge_program"): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),
     }
 )
+SERVICE_SIGPOS_START_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Optional("sigpos_type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=3)),
+        vol.Optional("sigpos_duration", default=8): vol.All(vol.Coerce(int), vol.Range(min=0, max=30)),
+        vol.Optional("horn_repeat"): vol.All(vol.Coerce(int), vol.Range(min=0, max=30)),
+    }
+)
 SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})
 SERVICE_VIN_PIN_SCHEMA = vol.Schema(
     {

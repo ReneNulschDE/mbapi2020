@@ -351,11 +351,23 @@
     },
     "sigpos_start": {
       "name": "Start signal position",
-      "description": "Start light signaling of a car defined by a vin.",
+      "description": "Start light and/or acoustic signaling of a car defined by a vin. Which signaling modes a car accepts is reported by the SIGPOS_TYPE command capability.",
       "fields": {
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin of the car"
+        },
+        "sigpos_type": {
+          "name": "Signaling mode",
+          "description": "Signaling mode: 0=LIGHT_ONLY, 1=HORN_ONLY, 2=LIGHT_AND_HORN, 3=PANIC_ALARM. Horn modes are not available on all car models."
+        },
+        "sigpos_duration": {
+          "name": "Duration",
+          "description": "Signaling duration in seconds. The Mercedes me app uses 8. Some cars cap this value, check the SIGPOS_DURATION command capability."
+        },
+        "horn_repeat": {
+          "name": "Horn repeat",
+          "description": "(Optional) Number of horn repeats (0-30). Derived from the signaling mode when omitted."
         }
       }
     },

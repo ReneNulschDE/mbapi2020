@@ -313,7 +313,7 @@ preconditioning_configure:
           mode: slider
 
 sigpos_start:
-  description: "Start light signaling of a car defined by a vin."
+  description: "Start light and/or acoustic signaling of a car defined by a vin."
   fields:
     vin:
       description: "vin of the car"
@@ -321,6 +321,43 @@ sigpos_start:
       required: True
       selector:
         text:
+    sigpos_type:
+      description: "0=LIGHT_ONLY, 1=HORN_ONLY, 2=LIGHT_AND_HORN, 3=PANIC_ALARM. See the SIGPOS_TYPE capability."
+      example: "0"
+      default: 0
+      required: False
+      selector:
+        select:
+          options:
+            - label: "Light only"
+              value: "0"
+            - label: "Horn only"
+              value: "1"
+            - label: "Light and horn"
+              value: "2"
+            - label: "Panic alarm"
+              value: "3"
+    sigpos_duration:
+      description: "Duration in seconds. The app uses 8. See the SIGPOS_DURATION capability for the limit."
+      example: "8"
+      default: 8
+      required: False
+      selector:
+        number:
+          min: 0
+          max: 30
+          step: 1
+          mode: slider
+    horn_repeat:
+      description: "(Optional) Number of horn repeats (0-30). Derived from the signaling mode when omitted."
+      example: "1"
+      required: False
+      selector:
+        number:
+          min: 0
+          max: 30
+          step: 1
+          mode: box
 
 sunroof_open:
   description: "Open the sunroof of a car defined by a vin. PIN setup required. See options dialog of the integration."

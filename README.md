@@ -368,7 +368,10 @@ Some services require that the security PIN is created in your mobile Android/IO
   Send a route to a car defined by a vin.
 
 - sigpos_start:
-  Start light signaling of a car defined by a vin.
+  Start light and/or acoustic signaling of a car defined by a vin. The optional `sigpos_type` selects the
+  mode (0=LIGHT_ONLY, 1=HORN_ONLY, 2=LIGHT_AND_HORN, 3=PANIC_ALARM), `sigpos_duration` the duration in
+  seconds. Which modes a car accepts is reported by the SIGPOS_TYPE command capability - most cars support
+  only a subset.
 
 - sunroof_open:
   Open the sunroof of a car defined by a vin. PIN required.

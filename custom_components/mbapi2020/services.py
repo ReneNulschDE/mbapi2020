@@ -39,6 +39,7 @@ from .const import (
     SERVICE_SEND_ROUTE,
     SERVICE_SEND_ROUTE_SCHEMA,
     SERVICE_SIGPOS_START,
+    SERVICE_SIGPOS_START_SCHEMA,
     SERVICE_SUNROOF_CLOSE,
     SERVICE_SUNROOF_OPEN,
     SERVICE_SUNROOF_TILT,
@@ -153,7 +154,12 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
         )
 
     async def sigpos_start(call) -> None:
-        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.sigpos_start(call.data.get(CONF_VIN))
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.sigpos_start(
+            call.data.get(CONF_VIN),
+            sigpos_type=call.data.get("sigpos_type", 0),
+            sigpos_duration=call.data.get("sigpos_duration", 8),
+            horn_repeat=call.data.get("horn_repeat"),
+        )
 
     async def sunroof_open(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.sunroof_open(
@@ -304,7 +310,7 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
             SERVICE_VIN_SCHEMA,
         ),
         (SERVICE_SEND_ROUTE, send_route_to_car, SERVICE_SEND_ROUTE_SCHEMA),
-        (SERVICE_SIGPOS_START, sigpos_start, SERVICE_VIN_SCHEMA),
+        (SERVICE_SIGPOS_START, sigpos_start, SERVICE_SIGPOS_START_SCHEMA),
         (SERVICE_SUNROOF_OPEN, sunroof_open, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_SUNROOF_TILT, sunroof_tilt, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_SUNROOF_CLOSE, sunroof_close, SERVICE_VIN_SCHEMA),

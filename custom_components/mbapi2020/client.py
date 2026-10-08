@@ -76,6 +76,31 @@ GEOFENCING_MAX_RETRIES = 1
 # Fallback delay: create the entities even if not every car reported a full data set
 DATALOAD_COMPLETE_FALLBACK_DELAY = 30
 
+# Horn/light parameters the Mercedes me app sends per signaling mode,
+# as (horn_repeat, horn_type, light_type)
+SIGPOS_TYPE_DEFAULTS: dict[int, tuple[int, int, int]] = {
+    pb2_commands.SigPosStart.LIGHT_ONLY: (
+        0,
+        pb2_commands.SigPosStart.HORN_OFF,
+        pb2_commands.SigPosStart.DIPPED_HEAD_LIGHT,
+    ),
+    pb2_commands.SigPosStart.HORN_ONLY: (
+        1,
+        pb2_commands.SigPosStart.HORN_LOW_VOLUME,
+        pb2_commands.SigPosStart.LIGHT_OFF,
+    ),
+    pb2_commands.SigPosStart.LIGHT_AND_HORN: (
+        1,
+        pb2_commands.SigPosStart.HORN_LOW_VOLUME,
+        pb2_commands.SigPosStart.WARNING_LIGHT,
+    ),
+    pb2_commands.SigPosStart.PANIC_ALARM: (
+        0,
+        pb2_commands.SigPosStart.HORN_OFF,
+        pb2_commands.SigPosStart.LIGHT_OFF,
+    ),
+}
+
 
 class Client:
     """define the client."""
@@ -1855,8 +1880,23 @@ class Client:
 
         LOGGER.info("End send_route_to_car for vin %s", loghelper.Mask_VIN(vin))
 
-    async def sigpos_start(self, vin: str):
-        """Send a sigpos command to the car."""
+    async def sigpos_start(
+        self,
+        vin: str,
+        *,
+        sigpos_type: int = 0,
+        sigpos_duration: int = 8,
+        horn_repeat: int | None = None,
+        horn_type: int | None = None,
+        light_type: int | None = None,
+    ):
+        """Send a sigpos command to the car.
+
+        sigpos_type: 0=LIGHT_ONLY, 1=HORN_ONLY, 2=LIGHT_AND_HORN, 3=PANIC_ALARM
+            Which modes a car accepts is reported by the SIGPOS_TYPE command parameter
+        sigpos_duration: Signaling duration in seconds. Some cars cap this value
+        horn_repeat, horn_type, light_type: Derived from sigpos_type when not given
+        """
         LOGGER.info("Start sigpos_start for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "SIGPOS_START"):
@@ -1866,12 +1906,33 @@ class Client:
             )
             return
 
+        sigpos = pb2_commands.SigPosStart
+        if sigpos_type not in SIGPOS_TYPE_DEFAULTS:
+            LOGGER.warning(
+                "Can't start signaling for car %s. Unknown sigpos_type %s",
+                loghelper.Mask_VIN(vin),
+                sigpos_type,
+            )
+            return
+
+        default_repeat, default_horn_type, default_light_type = SIGPOS_TYPE_DEFAULTS[sigpos_type]
+
         message = client_pb2.ClientMessage()
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.sigpos_start.light_type = 1
-        message.commandRequest.sigpos_start.sigpos_type = 0
+        message.commandRequest.sigpos_start.horn_repeat = default_repeat if horn_repeat is None else horn_repeat
+        message.commandRequest.sigpos_start.horn_type = default_horn_type if horn_type is None else horn_type
+        message.commandRequest.sigpos_start.light_type = default_light_type if light_type is None else light_type
+        message.commandRequest.sigpos_start.sigpos_duration = sigpos_duration
+        message.commandRequest.sigpos_start.sigpos_type = sigpos_type
+
+        LOGGER.debug(
+            "sigpos_start for vin %s - type: %s, duration: %s",
+            loghelper.Mask_VIN(vin),
+            sigpos.SigposType.Name(sigpos_type),
+            sigpos_duration,
+        )
 
         await self.execute_car_command(message)
         LOGGER.info("End sigpos_start for vin %s", loghelper.Mask_VIN(vin))
