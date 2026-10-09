@@ -233,4 +233,4 @@ class WebApi:
             LOGGER.error("could not decode data (%s) from websocket: %s", data, err)
         except google.protobuf.message.DecodeError as err:
             LOGGER.error("could not decode data (%s) from websocket: %s", data, err)
-        return message if message else None
+        return message or None
