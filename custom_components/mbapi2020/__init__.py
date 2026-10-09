@@ -21,6 +21,7 @@ from custom_components.mbapi2020.const import (
     LOGGER,
     LOGIN_BASE_URI,
     MERCEDESME_COMPONENTS,
+    SIGPOS_HORN_TYPES,
     UNITS,
     SensorConfigFields as scf,
 )
@@ -115,6 +116,16 @@ async def _setup_car(
                     capabilityInformation = feature.get("capabilityInformation", None)
                     if capabilityInformation and len(capabilityInformation) > 0:
                         features[feature.get("capabilityInformation")[0]] = bool(feature.get("isAvailable"))
+                if feature.get("commandName", "") == "SIGPOS_START":
+                    allowed_sigpos_types = set()
+                    parameters = feature.get("parameters", [])
+                    if parameters is not None:
+                        for parameter in parameters:
+                            if parameter.get("parameterName", "") == "SIGPOS_TYPE":
+                                allowed_sigpos_types = set(parameter.get("allowedEnums") or [])
+                    features["SIGPOS_START_HORN"] = bool(feature.get("isAvailable")) and bool(
+                        allowed_sigpos_types.intersection(SIGPOS_HORN_TYPES)
+                    )
                 if feature.get("commandName", "") == "CHARGE_PROGRAM_CONFIGURE":
                     max_soc_found = False
                     parameters = feature.get("parameters", [])

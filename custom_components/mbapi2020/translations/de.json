@@ -351,11 +351,23 @@
     },
     "sigpos_start": {
       "name": "Signalposition starten",
-      "description": "Startet Lichtsignal eines Fahrzeugs (VIN).",
+      "description": "Startet Licht- und/oder Signalhorn eines Fahrzeugs (VIN). Welche Signalarten ein Fahrzeug annimmt, meldet die Command-Capability SIGPOS_TYPE.",
       "fields": {
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin des Fahrzeugs"
+        },
+        "sigpos_type": {
+          "name": "Signalart",
+          "description": "Signalart: 0=LIGHT_ONLY, 1=HORN_ONLY, 2=LIGHT_AND_HORN, 3=PANIC_ALARM. Die Hupen-Varianten sind nicht bei allen Fahrzeugen verfügbar."
+        },
+        "sigpos_duration": {
+          "name": "Dauer",
+          "description": "Signaldauer in Sekunden. Die Mercedes me App verwendet 8. Manche Fahrzeuge begrenzen den Wert, siehe Command-Capability SIGPOS_DURATION."
+        },
+        "horn_repeat": {
+          "name": "Hupen-Wiederholungen",
+          "description": "(Optional) Anzahl der Hup-Wiederholungen (0-30). Wird aus der Signalart abgeleitet, wenn nicht angegeben."
         }
       }
     },
@@ -879,6 +891,9 @@
       },
       "btn_preheat_stop_now": {
         "name": "Vorklimatisierung stoppen"
+      },
+      "btn_sigpos_horn_start_now": {
+        "name": "Signalhorn"
       },
       "btn_sigpos_start_now": {
         "name": "Signallicht blinken"

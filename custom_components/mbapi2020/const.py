@@ -226,6 +226,17 @@ SERVICE_BATTERY_MAX_SOC_CONFIGURE_SCHEMA = vol.Schema(
         vol.Optional("charge_program"): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),
     }
 )
+
+SIGPOS_HORN_TYPES = ("PANIC_ALARM", "LIGHT_AND_HORN", "HORN_ONLY")
+
+SERVICE_SIGPOS_START_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Optional("sigpos_type", default=0): vol.All(vol.Coerce(int), vol.Range(min=0, max=3)),
+        vol.Optional("sigpos_duration", default=8): vol.All(vol.Coerce(int), vol.Range(min=0, max=30)),
+        vol.Optional("horn_repeat"): vol.All(vol.Coerce(int), vol.Range(min=0, max=30)),
+    }
+)
 SERVICE_VIN_SCHEMA = vol.Schema({vol.Required(CONF_VIN): cv.string})
 SERVICE_VIN_PIN_SCHEMA = vol.Schema(
     {
@@ -790,6 +801,22 @@ BUTTONS = {
         "ZEV_PRECONDITIONING_STOP",
         None,
         "mdi:hvac",
+        None,
+        False,
+        None,
+        None,
+        None,
+        None,
+    ],
+    "btn_sigpos_horn_start_now": [
+        "Sound horn",
+        None,  # Deprecated: DO NOT USE
+        None,
+        "sigpos_start_horn",
+        None,
+        "SIGPOS_START_HORN",
+        None,
+        "mdi:bugle",
         None,
         False,
         None,
