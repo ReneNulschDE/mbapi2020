@@ -125,6 +125,7 @@ class Websocket:
 
         self._queue_task: asyncio.Task = None
         self._websocket_task: asyncio.Task = None
+        self._shutdown_task: asyncio.Task | None = None
         self._relogin_429_attempts: int = 0
         self._async_stop_call_count: int = 0
         self._connect_internal_active_count: int = 0
@@ -366,8 +367,7 @@ class Websocket:
 
         except client_exceptions.ClientError as err:
             raise HomeAssistantError(
-                "MB-Websocket connection is not active. Can't execute the call. Check the homeassistant.log for more details Error: %s",
-                err,
+                f"MB-Websocket connection is not active. Can't execute the call. Check the homeassistant.log for more details Error: {err}"
             ) from err
 
     async def _start_queue_handler(self):
