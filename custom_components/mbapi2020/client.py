@@ -167,17 +167,15 @@ class Client:
     @property
     def pin(self) -> str:
         """Return the security pin of an account."""
-        if self.config_entry:
-            if self.config_entry.options:
-                return self.config_entry.options.get(CONF_PIN, None)
+        if self.config_entry and self.config_entry.options:
+            return self.config_entry.options.get(CONF_PIN, None)
         return ""
 
     @property
     def excluded_cars(self):
         """Return the list of exluded/ignored VIN/FIN."""
-        if self.config_entry:
-            if self.config_entry.options:
-                return self.config_entry.options.get(CONF_EXCLUDED_CARS, [])
+        if self.config_entry and self.config_entry.options:
+            return self.config_entry.options.get(CONF_EXCLUDED_CARS, [])
         return []
 
     def on_data(self, data):
@@ -335,7 +333,7 @@ class Client:
         car: Car = self.cars.get(received_car_data.get("vin"), Car(received_car_data.get("vin")))
 
         car.messages_received.update("p" if update_mode else "f")
-        car.last_message_received = int(round(time.time() * 1000))
+        car.last_message_received = round(time.time() * 1000)
 
         if not update_mode:
             car.last_full_message = received_car_data
@@ -347,9 +345,8 @@ class Client:
             car.data_collection_mode = "push"
 
         # For REST data, create synthetic windowStatusOverall if missing
-        if is_rest_data and received_car_data.get("attributes"):
-            if "windowStatusOverall" not in received_car_data["attributes"]:
-                self._create_synthetic_window_status_overall(received_car_data, car.finorvin)
+        if is_rest_data and received_car_data.get("attributes") and "windowStatusOverall" not in received_car_data["attributes"]:
+            self._create_synthetic_window_status_overall(received_car_data, car.finorvin)
 
         car.odometer = self._get_car_values(
             received_car_data,
@@ -451,7 +448,7 @@ class Client:
             "chargeflap": self._get_car_values_handle_chargeflap,
             "chargeinletcoupler": self._get_car_values_handle_chargeinletcoupler,
             "chargeinletlock": self._get_car_values_handle_chargeinletlock,
-            "chargePrograms": self._get_car_values_handle_chargePrograms,
+            "chargePrograms": self._get_car_values_handle_charge_programs,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
             "chargingPowerRestriction": self._get_car_values_handle_charging_power_restriction,
             "endofchargetime": self._get_car_values_handle_endofchargetime,
@@ -701,7 +698,7 @@ class Client:
             unit=None,
         )
 
-    def _get_car_values_handle_chargePrograms(self, car_detail, class_instance, option, update, vin: str):
+    def _get_car_values_handle_charge_programs(self, car_detail, class_instance, option, update, vin: str):
         attributes = car_detail.get("attributes", {})
         curr = attributes.get(option)
         if not curr:
