@@ -423,7 +423,7 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
                     if not state[attrib_name]:
                         state[attrib_name] = self._get_car_value(object_name, attrib_name, "value", "error")
 
-                if retrievalstatus in ["NOT_RECEIVED"]:
+                if retrievalstatus == "NOT_RECEIVED":
                     state[attrib_name] = "NOT_RECEIVED"
         return state
 
