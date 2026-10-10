@@ -609,6 +609,38 @@
           "6": "Automatisch heizen"
         }
       },
+      "chargecoupleracstatus": {
+        "state": {
+          "0": "Beidseitig eingesteckt",
+          "1": "Nur fahrzeugseitig eingesteckt",
+          "2": "Nicht eingesteckt",
+          "3": "Unbekannt",
+          "4": "Unbekannt wegen Defekt"
+        }
+      },
+      "chargecouplerdcstatus": {
+        "state": {
+          "0": "Beidseitig eingesteckt",
+          "1": "Nur fahrzeugseitig eingesteckt",
+          "2": "Nicht eingesteckt",
+          "3": "Unbekannt",
+          "4": "Unbekannt wegen Defekt"
+        }
+      },
+      "chargecoupleraclockstatus": {
+        "state": {
+          "0": "Verriegelt",
+          "1": "Entriegelt",
+          "2": "Unbekannt"
+        }
+      },
+      "chargecouplerdclockstatus": {
+        "state": {
+          "0": "Verriegelt",
+          "1": "Entriegelt",
+          "2": "Unbekannt"
+        }
+      },
       "chargeflapacstatus": {
         "state": {
           "0": "Offen",

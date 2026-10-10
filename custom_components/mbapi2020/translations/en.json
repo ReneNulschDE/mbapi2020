@@ -609,6 +609,38 @@
           "6": "Auto heating"
         }
       },
+      "chargecoupleracstatus": {
+        "state": {
+          "0": "Plugged both sides",
+          "1": "Plugged car side only",
+          "2": "Not plugged",
+          "3": "Unknown",
+          "4": "Unknown due to defect"
+        }
+      },
+      "chargecouplerdcstatus": {
+        "state": {
+          "0": "Plugged both sides",
+          "1": "Plugged car side only",
+          "2": "Not plugged",
+          "3": "Unknown",
+          "4": "Unknown due to defect"
+        }
+      },
+      "chargecoupleraclockstatus": {
+        "state": {
+          "0": "Locked",
+          "1": "Unlocked",
+          "2": "Unknown"
+        }
+      },
+      "chargecouplerdclockstatus": {
+        "state": {
+          "0": "Locked",
+          "1": "Unlocked",
+          "2": "Unknown"
+        }
+      },
       "chargeflapacstatus": {
         "state": {
           "0": "Open",
