@@ -132,6 +132,8 @@ ELECTRIC_OPTIONS = [
     "maxSocLowerLimit",
     "maxSoc",
     "max_soc",
+    "nextDepartureTime",
+    "nextDepartureTimeWeekday",
     "soc",
 ]
 

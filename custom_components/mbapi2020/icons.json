@@ -31,6 +31,42 @@
   },
   "entity": {
     "sensor": {
+      "chargecoupleraclockstatus": {
+        "default": "mdi:battery-lock",
+        "state": {
+          "0": "mdi:lock",
+          "1": "mdi:lock-open-variant",
+          "2": "mdi:lock-alert"
+        }
+      },
+      "chargecoupleracstatus": {
+        "default": "mdi:ev-plug-type2",
+        "state": {
+          "0": "mdi:power-plug",
+          "1": "mdi:power-plug-outline",
+          "2": "mdi:power-plug-off",
+          "3": "mdi:help-circle-outline",
+          "4": "mdi:alert-circle-outline"
+        }
+      },
+      "chargecouplerdclockstatus": {
+        "default": "mdi:battery-lock",
+        "state": {
+          "0": "mdi:lock",
+          "1": "mdi:lock-open-variant",
+          "2": "mdi:lock-alert"
+        }
+      },
+      "chargecouplerdcstatus": {
+        "default": "mdi:ev-plug-ccs2",
+        "state": {
+          "0": "mdi:power-plug",
+          "1": "mdi:power-plug-outline",
+          "2": "mdi:power-plug-off",
+          "3": "mdi:help-circle-outline",
+          "4": "mdi:alert-circle-outline"
+        }
+      },
       "selectedchargeprogram": {
         "default": "mdi:ev-station",
         "state": {

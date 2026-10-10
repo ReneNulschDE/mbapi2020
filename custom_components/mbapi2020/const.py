@@ -1719,6 +1719,22 @@ SENSORS = {
         None,
         None,
     ],
+    "nextdeparturetime": [
+        "Next departure time",
+        None,  # Deprecated: DO NOT USE
+        "electric",
+        "nextDepartureTime",
+        "display_value",
+        None,
+        {"nextDepartureTimeWeekday"},
+        "mdi:calendar-clock",
+        SensorDeviceClass.TIMESTAMP,
+        False,
+        None,
+        None,
+        None,
+        None,
+    ],
     "wiperHealthPercent": [
         "Wiper Health",
         None,  # Deprecated: DO NOT USE
@@ -1825,7 +1841,7 @@ SENSORS = {
         "value",
         None,
         {},
-        "mdi:ev-plug-type2",
+        None,  # state-based icon, see icons.json
         None,
         False,
         None,
@@ -1841,7 +1857,7 @@ SENSORS = {
         "value",
         None,
         {},
-        "mdi:ev-plug-ccs2",
+        None,  # state-based icon, see icons.json
         None,
         False,
         None,
@@ -1857,7 +1873,7 @@ SENSORS = {
         "value",
         None,
         {},
-        "mdi:battery-lock",
+        None,  # state-based icon, see icons.json
         None,
         False,
         None,
@@ -1873,7 +1889,7 @@ SENSORS = {
         "value",
         None,
         {},
-        "mdi:battery-lock",
+        None,  # state-based icon, see icons.json
         None,
         False,
         None,

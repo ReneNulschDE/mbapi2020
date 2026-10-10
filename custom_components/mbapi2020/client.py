@@ -77,6 +77,17 @@ GEOFENCING_MAX_RETRIES = 1
 # Fallback delay: create the entities even if not every car reported a full data set
 DATALOAD_COMPLETE_FALLBACK_DELAY = 30
 
+# Repeat interval in days per departureTimeMode, used to roll a departure that has
+# already passed today forward to its next occurrence. 1 is
+# DEPARTURE_TIME_MODE_ADHOC_ACTIVE, 2 is DEPARTURE_TIME_MODE_WEEKLYSET_ACTIVE (the
+# command enum uses 2 for WEEKLY_DEPARTURE as well). Modes that are not listed -
+# inactive, timer, intelligent departure - are left alone, because rolling one
+# forward would invent a departure the car never reported.
+DEPARTURE_TIME_MODE_REPEAT_DAYS: dict[int, int] = {
+    1: 1,
+    2: 7,
+}
+
 # Horn/light parameters the Mercedes me app sends per signaling mode,
 # as (horn_repeat, horn_type, light_type)
 SIGPOS_TYPE_DEFAULTS: dict[int, tuple[int, int, int]] = {
@@ -453,6 +464,7 @@ class Client:
             "chargingPowerRestriction": self._get_car_values_handle_charging_power_restriction,
             "endofchargetime": self._get_car_values_handle_endofchargetime,
             "ignitionstate": self._get_car_values_handle_ignitionstate,
+            "nextDepartureTime": self._get_car_values_handle_next_departure_time,
             "precondStatus": self._get_car_values_handle_precond_status,
             "temperature_points_frontLeft": self._get_car_values_handle_temperature_points,
             "temperature_points_frontRight": self._get_car_values_handle_temperature_points,
@@ -874,6 +886,84 @@ class Client:
             # anything unexpected is better surfaced than swallowed here.
             LOGGER.error(
                 "Error processing endofchargetime for car %s: %s, %s",
+                loghelper.Mask_VIN(vin),
+                e,
+                traceback.format_exc(),
+            )
+            return None
+
+    @staticmethod
+    def _departure_time_mode(attributes: dict[str, Any]) -> int | None:
+        """Return departureTimeMode as an int, or None when absent or unparseable.
+
+        Guarded separately so a malformed mode cannot abort the departure-time
+        reading it only refines.
+        """
+        attr = attributes.get("departureTimeMode") or {}
+        raw = attr.get("int_value", attr.get("value"))
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            return None
+
+    def _get_car_values_handle_next_departure_time(self, car_detail, class_instance, option, update, vin: str):
+        """Combine nextDepartureTime and nextDepartureTimeWeekday into one timestamp.
+
+        The car reports the departure as a clock time (``{"hour": 6, "minute": 45}``)
+        plus a weekday enum where Monday is 0 - the same numbering Python uses. Both
+        are resolved against the local timezone to the next occurrence of that
+        weekday, mirroring what _get_car_values_handle_endofchargetime does.
+        """
+        attributes = car_detail.get("attributes", {})
+        curr = attributes.get(option)
+        if not curr:
+            return None
+
+        value = curr.get("value")
+        if not isinstance(value, dict):
+            return None
+
+        try:
+            hour = int(value.get("hour", 0))
+            minute = int(value.get("minute", 0))
+
+            local_tz = dt.datetime.now().astimezone().tzinfo
+            now = dt.datetime.now(local_tz)
+
+            weekday_attr = attributes.get("nextDepartureTimeWeekday", {})
+            weekday_value = weekday_attr.get("int_value", weekday_attr.get("value"))
+            if weekday_value is None:
+                # No weekday reported: if the time has already passed today, the
+                # next departure is tomorrow, otherwise it is still today.
+                target_dt_today = dt.datetime(now.year, now.month, now.day, hour, minute, tzinfo=local_tz)
+                weekday_value = (now + dt.timedelta(days=1)).weekday() if target_dt_today < now else now.weekday()
+
+            days_ahead = (int(weekday_value) % 7 - now.weekday()) % 7
+            target_date = now + dt.timedelta(days=days_ahead)
+            dt_with_time = dt.datetime(
+                target_date.year, target_date.month, target_date.day, hour, minute, tzinfo=local_tz
+            )
+
+            # A recurring departure whose time has already passed today is the next
+            # cycle's, not today's - a day later for a daily profile, a week for a
+            # weekly one.
+            if dt_with_time < now:
+                repeat_days = DEPARTURE_TIME_MODE_REPEAT_DAYS.get(self._departure_time_mode(attributes))
+                if repeat_days:
+                    dt_with_time += dt.timedelta(days=repeat_days)
+
+            return CarAttribute(
+                value=dt_with_time,
+                retrievalstatus=curr.get("status", "VALID"),
+                timestamp=curr.get("timestamp", 0),
+                display_value=dt_with_time.isoformat(),
+                unit=None,
+            )
+        except (AttributeError, TypeError, ValueError) as e:
+            # Narrow on purpose: the payload is remote JSON, so a malformed shape
+            # or an unparseable number should not abort the update.
+            LOGGER.error(
+                "Error processing nextDepartureTime for car %s: %s, %s",
                 loghelper.Mask_VIN(vin),
                 e,
                 traceback.format_exc(),
