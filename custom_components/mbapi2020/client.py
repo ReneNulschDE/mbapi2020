@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from datetime import datetime, timezone
+from datetime import datetime
 import json
 import logging
 from pathlib import Path
@@ -356,7 +356,11 @@ class Client:
             car.data_collection_mode = "push"
 
         # For REST data, create synthetic windowStatusOverall if missing
-        if is_rest_data and received_car_data.get("attributes") and "windowStatusOverall" not in received_car_data["attributes"]:
+        if (
+            is_rest_data
+            and received_car_data.get("attributes")
+            and "windowStatusOverall" not in received_car_data["attributes"]
+        ):
             self._create_synthetic_window_status_overall(received_car_data, car.finorvin)
 
         car.odometer = self._get_car_values(
@@ -775,7 +779,7 @@ class Client:
                 value = predicted_end_time
             elif isinstance(predicted_end_time, str):
                 try:
-                    value = datetime.strptime(predicted_end_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                    value = datetime.strptime(predicted_end_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=dt.UTC)
                 except ValueError:
                     # Not the expected format; leave the reading unset.
                     value = None
@@ -832,21 +836,25 @@ class Client:
                 )
                 return None
 
-            # endofChargeTimeWeekday is sometimes not present in the update message, we need to get it from the last full message then
-            if "endofChargeTimeWeekday" not in attributes:
+            # endofChargeTimeWeekday is sometimes not present (or not VALID) in the update message. Full messages
+            # are rare, so prefer the VALID weekday already stored on the car and fall back to the last full
+            # message only when no such value exists
+            end_weekday_value = self._valid_endofchargetime_weekday(attributes.get("endofChargeTimeWeekday"))
+            if end_weekday_value is None:
+                end_weekday_value = self._stored_endofchargetime_weekday(class_instance)
+            if end_weekday_value is None:
                 current_car = self.cars.get(vin)
                 if not current_car or not current_car.last_full_message:
                     LOGGER.debug(
-                        "get_car_values_handle_endofchargetime - No last_full_message found for car %s",
+                        "get_car_values_handle_endofchargetime - No weekday and no last_full_message for car %s",
                         loghelper.Mask_VIN(vin),
                     )
                     return None
-                car_detail = current_car.last_full_message
-                attributes = car_detail.get("attributes", {})
+                end_weekday_value = self._valid_endofchargetime_weekday(
+                    current_car.last_full_message.get("attributes", {}).get("endofChargeTimeWeekday")
+                )
 
             local_tz = dt.datetime.now().astimezone().tzinfo
-            end_weekday_attr = attributes.get("endofChargeTimeWeekday", {})
-            end_weekday_value = end_weekday_attr.get("int_value", None)
             if end_weekday_value is None:
                 # Wenn kein Wochentag vorhanden ist (sehr alte elek. modelle), aus end_time_value ableiten:
                 # Ist die Uhrzeit bereits vergangen -> Wochentag von morgen, sonst von heute.
@@ -893,6 +901,27 @@ class Client:
             return None
 
     @staticmethod
+    def _valid_endofchargetime_weekday(weekday_attr: dict[str, Any] | None) -> int | None:
+        """Return the weekday of a raw endofChargeTimeWeekday attribute, or None when absent, not VALID or unusable."""
+        if not weekday_attr or weekday_attr.get("status", "VALID") != "VALID":
+            return None
+        try:
+            return int(weekday_attr.get("int_value"))
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _stored_endofchargetime_weekday(class_instance) -> int | None:
+        """Return the endofChargeTimeWeekday already stored on the car, or None when absent, not VALID or unusable."""
+        stored = getattr(class_instance, "endofChargeTimeWeekday", None)
+        if not isinstance(stored, CarAttribute) or stored.retrievalstatus != "VALID":
+            return None
+        try:
+            return int(stored.value)
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
     def _departure_time_mode(attributes: dict[str, Any]) -> int | None:
         """Return departureTimeMode as an int, or None when absent or unparseable.
 
@@ -926,6 +955,16 @@ class Client:
         try:
             hour = int(value.get("hour", 0))
             minute = int(value.get("minute", 0))
+
+            # The car reports -1 when no departure time is set
+            if not (0 <= hour <= 23 and 0 <= minute <= 59):
+                return CarAttribute(
+                    value=STATE_UNKNOWN,
+                    retrievalstatus=3,
+                    timestamp=curr.get("timestamp", 0),
+                    display_value=STATE_UNKNOWN,
+                    unit=None,
+                )
 
             local_tz = dt.datetime.now().astimezone().tzinfo
             now = dt.datetime.now(local_tz)
