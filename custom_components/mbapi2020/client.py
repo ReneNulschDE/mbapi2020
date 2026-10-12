@@ -25,6 +25,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import system_info
 from homeassistant.helpers.event import async_call_later
+from homeassistant.util import dt as dt_util
 
 from .car import (
     AUX_HEAT_OPTIONS,
@@ -854,7 +855,11 @@ class Client:
                     current_car.last_full_message.get("attributes", {}).get("endofChargeTimeWeekday")
                 )
 
-            local_tz = dt.datetime.now().astimezone().tzinfo
+            # The car reports a wall clock time, so it has to be anchored in Home
+            # Assistant's configured timezone, not in the one the process happens to
+            # run in: HA never touches the process timezone, and container installs
+            # usually run on UTC, which would shift the reading by the whole offset.
+            local_tz = dt_util.DEFAULT_TIME_ZONE
             if end_weekday_value is None:
                 # Wenn kein Wochentag vorhanden ist (sehr alte elek. modelle), aus end_time_value ableiten:
                 # Ist die Uhrzeit bereits vergangen -> Wochentag von morgen, sonst von heute.
@@ -966,7 +971,11 @@ class Client:
                     unit=None,
                 )
 
-            local_tz = dt.datetime.now().astimezone().tzinfo
+            # The car reports a wall clock time, so it has to be anchored in Home
+            # Assistant's configured timezone, not in the one the process happens to
+            # run in: HA never touches the process timezone, and container installs
+            # usually run on UTC, which would shift the reading by the whole offset.
+            local_tz = dt_util.DEFAULT_TIME_ZONE
             now = dt.datetime.now(local_tz)
 
             weekday_attr = attributes.get("nextDepartureTimeWeekday", {})
