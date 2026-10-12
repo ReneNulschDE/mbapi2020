@@ -2032,7 +2032,11 @@ class Client:
                         if value is not None
                     }
                 )
-                changed["action_list"] = [actions]
+                # An entry with no action at all carries no action list, the
+                # way the app sends it. Writing one entry with three false
+                # flags instead makes the car report action_list [{}], which
+                # means the same but is not what it was told.
+                changed["action_list"] = [actions] if any(actions.values()) else []
 
         config = pb2_commands.WeekProfileConfigureV2()
         updated: list[dict[str, Any]] = []

@@ -188,6 +188,20 @@ def test_actions_are_merged_into_one_entry_of_the_action_list() -> None:
     assert changed.action_list[0].battery_precond.value is True
 
 
+def test_an_entry_without_any_action_carries_no_action_list() -> None:
+    """Switching every action off removes the list instead of emptying it.
+
+    One entry with three false flags means the same to the car, which then
+    reports action_list [{}] - an action entry that does nothing, which is
+    not what the app would have sent.
+    """
+    client, sent = _prepared_client()
+
+    _call(client, "update", identifier=1, charging=False, precond=False, battery_precond=False)
+
+    assert len(_entries(sent)[0].action_list) == 0
+
+
 # --- per-car capabilities ---
 
 
