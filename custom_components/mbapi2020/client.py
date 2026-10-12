@@ -779,19 +779,34 @@ class Client:
             if isinstance(predicted_end_time, datetime):
                 value = predicted_end_time
             elif isinstance(predicted_end_time, str):
-                try:
-                    value = datetime.strptime(predicted_end_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=dt.UTC)
-                except ValueError:
-                    # Not the expected format; leave the reading unset.
-                    value = None
+                # predicted_end_time is a google.protobuf.Timestamp, so MessageToJson
+                # renders it as RFC 3339 - and appends 3, 6 or 9 fractional digits
+                # whenever the backend sets nanos. A fixed "%Y-%m-%dT%H:%M:%SZ" only
+                # matched whole seconds and dropped every other reading silently, which
+                # left the sensor on its previous value. parse_datetime takes all of
+                # them, plus an explicit offset instead of the trailing Z.
+                value = dt_util.parse_datetime(predicted_end_time)
+                if value is None:
+                    LOGGER.warning(
+                        "get_car_values_handle_endofchargetime - unparseable predicted_end_time %s for car %s",
+                        predicted_end_time,
+                        loghelper.Mask_VIN(vin),
+                    )
             else:
                 value = None
             if value is not None:
+                if value.tzinfo is None:
+                    # The backend always sends UTC; a timestamp without an offset
+                    # would otherwise be read as local time further downstream.
+                    value = value.replace(tzinfo=dt.UTC)
                 return CarAttribute(
                     value=value,
                     retrievalstatus=status,
                     timestamp=time_stamp,
-                    display_value=value,
+                    # The sensor reads display_value, and a timestamp device class
+                    # needs ISO 8601 - str(datetime) would yield a space instead of
+                    # the "T". The legacy branch below does the same.
+                    display_value=value.isoformat(),
                     unit=None,
                 )
 
