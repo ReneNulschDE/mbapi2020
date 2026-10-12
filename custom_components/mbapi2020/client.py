@@ -2467,7 +2467,9 @@ class Client:
             )
             charging_config = pb2_commands.ChargingConfigure()
             charging_config.max_soc.value = max_soc
-            # charging_config.charge_program = charge_program
+            # The field is charging_program since the 1.72 protos, and an
+            # Int32Value rather than the ChargeProgram enum it used to be.
+            # charging_config.charging_program.value = charge_program
             message.commandRequest.charging_configure.CopyFrom(charging_config)
         else:
             max_soc = max(max_soc, 50)
