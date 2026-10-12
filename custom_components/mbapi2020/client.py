@@ -844,9 +844,26 @@ class Client:
                     unit=None,
                 )
 
-        # if chargingPredictionMaxSoc is not available and update is false (not a full_message), we want to check if the car is >= CLA2025 and create the data structure with value unknown
-        # endofchargetime is not present for these cars
-        if not update and not predicted_end_time:
+        # Two different situations end up here, and only one of them is about a
+        # missing message:
+        #
+        # - chargingPredictionMaxSoc is in this message but carries no
+        #   predicted_end_time. The car is stating that it currently has no
+        #   prediction - the field is a google.protobuf.Timestamp, so unlike a
+        #   scalar its absence is real absence and not an elided proto3 default.
+        #   That statement counts on a partial update just as much as on a full
+        #   one: the car sends the attribute without the timestamp the moment
+        #   charging ends, and full updates can be hours apart, which used to
+        #   leave the sensor stuck on a charge end time that had already passed.
+        # - The attribute is not in this message at all. A partial update then
+        #   says nothing about it and must not reset anything, so only a full
+        #   update may conclude from its absence that the car is a CLA 2025 or
+        #   newer and the entity should exist with value unknown.
+        #
+        # Cars that report endofchargetime are excluded by the guard below: the
+        # older models send an empty chargingPredictionMaxSoc next to a real
+        # endofchargetime, and their value comes from the legacy branch.
+        if (chargingPredictionMaxSoc or not update) and not predicted_end_time:
             current_car = self.cars.get(vin)
             if not attributes.get("endofchargetime") and not (
                 current_car
