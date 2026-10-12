@@ -44,6 +44,10 @@ _EMIT_TIMESTAMP_MS = 1758000000000  # fixed, so messages are byte-stable
 _WEEKDAY_TUESDAY = 1
 _SCHEDULE_TYPE_RECURRING = 1
 
+# 2026-10-13T12:52:24Z, a fixed point in time so the expected sensor state can
+# be written out literally.
+_CHARGE_END_EPOCH_SECONDS = 1791895944
+
 
 def build_vep_updates(
     vin: str = SYNTH_VIN,
@@ -163,3 +167,56 @@ def roundtrip(message: vehicle_events_pb2.PushMessage) -> vehicle_events_pb2.Pus
     decoded = vehicle_events_pb2.PushMessage()
     decoded.ParseFromString(message.SerializeToString())
     return decoded
+
+
+def build_charging_prediction_status_updates(
+    vin: str = SYNTH_VIN,
+    *,
+    sequence_number: int = 4,
+    full_update: bool = False,
+    predicted_end_time_seconds: int | None = _CHARGE_END_EPOCH_SECONDS,
+    predicted_range: int = 425,
+    with_prediction: bool = True,
+    endofchargetime_minutes: int | None = None,
+) -> vehicle_events_pb2.PushMessage:
+    """Build a VSU message carrying the charge end time of a CLA 2025 or newer car.
+
+    Those cars have no endofchargetime attribute; the charge end time is a
+    Timestamp inside charging_prediction_max_soc. Because it is a message
+    field it has explicit presence, so the three states a test needs are all
+    distinguishable on the wire:
+
+    - with_prediction and a predicted_end_time_seconds: the car is charging
+      and names the time it expects to finish.
+    - with_prediction and predicted_end_time_seconds None: the attribute
+      arrives carrying only the range, which is what the car sends the moment
+      charging ends.
+    - with_prediction False: the attribute is not in the message at all, as in
+      the great majority of partial updates.
+
+    endofchargetime_minutes adds the legacy attribute next to it, the way the
+    older models report both. It is a wall clock time in minutes after
+    midnight, which is how the older cars express it.
+    """
+    message = vehicle_events_pb2.PushMessage()
+    message.vehicle_status_updates.sequence_number = sequence_number
+
+    update = message.vehicle_status_updates.vehicle_status_updates[vin]
+    update.fin_or_vin = vin
+    update.full_update = full_update
+
+    # An unrelated attribute, so the message is never attribute-empty: the
+    # parser discards those before any handler runs, and no real update looks
+    # like that.
+    update.rangeelectric.value = 263
+
+    if with_prediction:
+        prediction = update.charging_prediction_max_soc.value
+        prediction.predicted_electrical_energy_range = predicted_range
+        if predicted_end_time_seconds is not None:
+            prediction.predicted_end_time.seconds = predicted_end_time_seconds
+
+    if endofchargetime_minutes is not None:
+        update.endofchargetime.value = endofchargetime_minutes
+
+    return message
