@@ -580,6 +580,52 @@
           "description": "Endzeit des Ladepausefensters (Timer 4)"
         }
       }
+    },
+    "week_profile_configure": {
+      "name": "Wochenprofil konfigurieren",
+      "description": "Ändert einen Eintrag des Wochenprofils. Das Fahrzeug ersetzt bei jedem Aufruf sein komplettes Profil, nicht genannte Einträge werden daher unverändert mitgesendet. Welche Optionen ein Fahrzeug annimmt, hängt vom Modell ab; ein nicht unterstützter Aufruf wird mit Begründung abgewiesen.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin des Fahrzeugs"
+        },
+        "identifier": {
+          "name": "Eintrag",
+          "description": "Nummer des Eintrags, wie der Sensor 'Active weekly profile' sie ausweist. Leer lassen, um einen neuen Eintrag anzulegen."
+        },
+        "delete": {
+          "name": "Löschen",
+          "description": "Den Eintrag mit dieser Nummer löschen statt ändern"
+        },
+        "time": {
+          "name": "Uhrzeit",
+          "description": "Abfahrtszeit des Eintrags. Beim Anlegen erforderlich."
+        },
+        "days": {
+          "name": "Wochentage",
+          "description": "Wochentage, für die der Eintrag gilt. Ein Eintrag ohne Wochentage gilt einmalig."
+        },
+        "active": {
+          "name": "Aktiv",
+          "description": "Ob das Fahrzeug diesem Eintrag folgt"
+        },
+        "charging": {
+          "name": "Laden",
+          "description": "Für diesen Eintrag laden. Nicht von jedem Fahrzeug unterstützt."
+        },
+        "precond": {
+          "name": "Vorklimatisieren",
+          "description": "Für diesen Eintrag vorklimatisieren. Nicht von jedem Fahrzeug unterstützt."
+        },
+        "battery_precond": {
+          "name": "Batterie vorkonditionieren",
+          "description": "Für diesen Eintrag die Hochvoltbatterie vorkonditionieren. Nicht von jedem Fahrzeug unterstützt."
+        },
+        "schedule_type": {
+          "name": "Wiederholung",
+          "description": "Ob der Eintrag sich wiederholt. Wird aus den Wochentagen abgeleitet, wenn leer. Die meisten Fahrzeuge akzeptieren nur 'Keine Auswahl'."
+        }
+      }
     }
   },
   "entity": {
@@ -951,6 +997,25 @@
       "options": {
         "0": "Niedrig",
         "30": "Hoch"
+      }
+    },
+    "week_profile_configure_days": {
+      "options": {
+        "monday": "Montag",
+        "tuesday": "Dienstag",
+        "wednesday": "Mittwoch",
+        "thursday": "Donnerstag",
+        "friday": "Freitag",
+        "saturday": "Samstag",
+        "sunday": "Sonntag"
+      }
+    },
+    "week_profile_configure_schedule_type": {
+      "options": {
+        "no_selection": "Keine Auswahl",
+        "recurring": "Wöchentlich",
+        "non_recurring": "Einmalig",
+        "non_recurring_auto_delete": "Einmalig, danach löschen"
       }
     }
   }

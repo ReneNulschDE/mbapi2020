@@ -580,6 +580,52 @@
           "description": "End time of the charge break window (Timer 4)"
         }
       }
+    },
+    "week_profile_configure": {
+      "name": "Week Profile Configure",
+      "description": "Change one entry of the weekly departure profile. The car replaces its whole profile with every call, so the entries that are not named are re-sent unchanged. Which options a car accepts differs by model; a call the car does not support is rejected with an explanation.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "identifier": {
+          "name": "Entry",
+          "description": "Identifier of the entry to change, as the Active weekly profile sensor lists it. Leave empty to add a new entry."
+        },
+        "delete": {
+          "name": "Delete",
+          "description": "Delete the entry with the given identifier instead of changing it"
+        },
+        "time": {
+          "name": "Time",
+          "description": "Departure time of the entry. Required when adding an entry."
+        },
+        "days": {
+          "name": "Weekdays",
+          "description": "Weekdays the entry applies to. An entry without weekdays runs once."
+        },
+        "active": {
+          "name": "Active",
+          "description": "Whether the car follows this entry"
+        },
+        "charging": {
+          "name": "Charging",
+          "description": "Charge the car for this entry. Not supported by every car."
+        },
+        "precond": {
+          "name": "Preconditioning",
+          "description": "Precondition the car for this entry. Not supported by every car."
+        },
+        "battery_precond": {
+          "name": "Battery preconditioning",
+          "description": "Precondition the high voltage battery for this entry. Not supported by every car."
+        },
+        "schedule_type": {
+          "name": "Repetition",
+          "description": "Whether the entry repeats. Derived from the weekdays when left empty. Most cars accept 'No selection' only."
+        }
+      }
     }
   },
   "entity": {
@@ -968,6 +1014,25 @@
       "options": {
         "0": "Low",
         "30": "High"
+      }
+    },
+    "week_profile_configure_days": {
+      "options": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      }
+    },
+    "week_profile_configure_schedule_type": {
+      "options": {
+        "no_selection": "No selection",
+        "recurring": "Weekly",
+        "non_recurring": "Once",
+        "non_recurring_auto_delete": "Once, then delete"
       }
     }
   }

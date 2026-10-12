@@ -175,6 +175,28 @@ SERVICE_PRECONDITIONING_CONFIGURE_SEATS = "preconditioning_configure_seats"
 SERVICE_TEMPERATURE_CONFIGURE = "temperature_configure"
 SERVICE_HV_BATTERY_START_CONDITIONING = "hv_battery_start_conditioning"
 SERVICE_HV_BATTERY_STOP_CONDITIONING = "hv_battery_stop_conditioning"
+SERVICE_WEEK_PROFILE_CONFIGURE = "week_profile_configure"
+
+# The weekdays of a weekly profile entry, lower case for the service and upper
+# case on the wire. Kept in the order of the proto enum.
+WEEK_PROFILE_DAYS: list[str] = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+]
+
+# The schedule types the command accepts. Which of them a car allows differs
+# per model and is checked against its capabilities when the service is called.
+WEEK_PROFILE_SCHEDULE_TYPES: list[str] = [
+    "no_selection",
+    "recurring",
+    "non_recurring",
+    "non_recurring_auto_delete",
+]
 
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {
@@ -183,6 +205,21 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
         vol.Required("time_1"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_2"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_3"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
+    }
+)
+SERVICE_WEEK_PROFILE_CONFIGURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        # Omitted adds an entry: the car assigns the identifier itself.
+        vol.Optional("identifier"): vol.All(vol.Coerce(int), vol.Range(min=0)),
+        vol.Optional("delete", default=False): cv.boolean,
+        vol.Optional("time"): cv.time_period,
+        vol.Optional("days"): vol.All(cv.ensure_list, [vol.In(WEEK_PROFILE_DAYS)]),
+        vol.Optional("active"): cv.boolean,
+        vol.Optional("charging"): cv.boolean,
+        vol.Optional("precond"): cv.boolean,
+        vol.Optional("battery_precond"): cv.boolean,
+        vol.Optional("schedule_type"): vol.In(WEEK_PROFILE_SCHEDULE_TYPES),
     }
 )
 SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE_SCHEMA = vol.Schema(

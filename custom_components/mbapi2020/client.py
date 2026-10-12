@@ -98,6 +98,11 @@ WEEKLY_PROFILE_SCHEDULE_TYPE_PREFIX = "WEEKLY_PROFILE_SCHEDULE_TYPE_"
 # aliases the command proto defines for the same enum ("the short versions are
 # for json (en)coding purposes only"), which keeps the label on the wording
 # Mercedes uses itself rather than inventing another one.
+# The application identifier the app sends for every entry it changed; entries
+# it passes through unchanged keep the one the vehicle reported. The capability
+# advertises 0-31 for the field, -1 is the marker outside that range.
+WEEK_PROFILE_CHANGED_APPLICATION_IDENTIFIER = -1
+
 WEEKLY_PROFILE_DAY_LABELS: dict[str, str] = {
     "MONDAY": "Mo",
     "TUESDAY": "Tu",
@@ -1752,6 +1757,288 @@ class Client:
         )
         await self.execute_car_command(message)
         LOGGER.debug("End charge_program_configure for vin %s", loghelper.Mask_VIN(vin))
+
+    def _week_profile_state(self, vin: str) -> dict[str, Any] | None:
+        """Return the weekly profile of a car as the vehicle last reported it.
+
+        None means the integration has not seen one. That matters because the
+        command replaces the vehicle's whole profile: without the current list
+        every entry that is not re-sent would be deleted, and the profile only
+        ever arrives in a full update.
+        """
+        current_car = self.cars.get(vin)
+        if not current_car or not current_car.last_full_message:
+            return None
+
+        attribute = current_car.last_full_message.get("attributes", {}).get("weeklyProfile") or {}
+        profile = attribute.get("value")
+        return profile if isinstance(profile, dict) else None
+
+    def _week_profile_parameters(self, vin: str) -> dict[str, dict[str, Any]]:
+        """Return the WEEK_PROFILE_CONFIGURE_V2 parameters the car reports, by name.
+
+        The parameter set differs per model: a car that cannot act on an entry
+        reports no ACTION_LIST_* parameter at all, and one that offers no choice
+        of schedule type lists NO_SELECTION as the only allowed value. An empty
+        mapping means the capabilities are unknown - the capability check may be
+        switched off - and nothing is then rejected on this ground.
+        """
+        current_car = self.cars.get(vin)
+        if not current_car:
+            return {}
+
+        for command in (current_car.capabilities or {}).get("commands") or []:
+            if command.get("commandName") != "WEEK_PROFILE_CONFIGURE_V2" or not command.get("isAvailable"):
+                continue
+            return {
+                parameter["parameterName"]: parameter
+                for parameter in command.get("parameters") or []
+                if parameter.get("parameterName")
+            }
+
+        return {}
+
+    @staticmethod
+    def _week_profile_schedule_type(name: str | None, days, allowed: set[str]) -> int:
+        """Pick the schedule type to send for one entry.
+
+        Derived from the day list when the entry does not carry one, the way the
+        app does it: days make the entry recurring, no days make it a one-off.
+        A value the car does not allow is replaced by the one it does allow,
+        because every entry of the command needs the field set.
+        """
+        picked = name or ("RECURRING" if days else "NON_RECURRING")
+        if allowed and picked not in allowed:
+            picked = "NO_SELECTION" if "NO_SELECTION" in allowed else min(allowed)
+
+        return pb2_commands.TimeProfile.ScheduleType.Value(picked)
+
+    def _week_profile_entry_to_proto(self, target, entry: dict[str, Any], allowed: set[str], changed: bool) -> None:
+        """Write one weekly profile entry into the command message.
+
+        Both the entry that changed and the ones passed through unchanged go
+        through here, so the command carries one consistent shape. Unchanged
+        entries keep every value the vehicle reported, including their own
+        application identifier - that is how the vehicle tells them apart from
+        the one this client touched.
+        """
+        identifier = entry.get("id")
+        if identifier is not None:
+            target.identifier.value = int(identifier)
+
+        target.hour.value = int(entry.get("hour") or 0)
+        target.minute.value = int(entry.get("minute") or 0)
+        target.active.value = bool(entry.get("active"))
+
+        days = entry.get("days") or []
+        try:
+            for day in days:
+                target.days.append(pb2_commands.TimeProfileDay.Value(day))
+        except ValueError as err:
+            # Dropping the day would silently rewrite the user's profile, since
+            # the command replaces the whole list.
+            raise ServiceValidationError(
+                f"The car reports the weekday {days} for entry {identifier}, which this version does not know. "
+                "The weekly profile can't be changed without rewriting that entry."
+            ) from err
+
+        for action in entry.get("action_list") or []:
+            if not isinstance(action, dict):
+                continue
+            action_target = target.action_list.add()
+            action_target.charging.value = bool(action.get("charging"))
+            action_target.precond.value = bool(action.get("precond"))
+            action_target.battery_precond.value = bool(action.get("battery_precond"))
+
+        schedule_type = entry.get("schedule_type")
+        if isinstance(schedule_type, str):
+            schedule_type = schedule_type.removeprefix(WEEKLY_PROFILE_SCHEDULE_TYPE_PREFIX)
+        target.schedule_type = self._week_profile_schedule_type(schedule_type, days, allowed)
+
+        target.application_identifier = (
+            WEEK_PROFILE_CHANGED_APPLICATION_IDENTIFIER if changed else int(entry.get("application_identifier") or 0)
+        )
+
+    async def week_profile_configure(  # noqa: C901
+        self,
+        vin: str,
+        identifier: int | None = None,
+        delete: bool = False,
+        time: datetime.timedelta | None = None,
+        days: list[str] | None = None,
+        active: bool | None = None,
+        charging: bool | None = None,
+        precond: bool | None = None,
+        battery_precond: bool | None = None,
+        schedule_type: str | None = None,
+    ) -> None:
+        """Change one entry of the weekly departure profile.
+
+        The service changes a single entry, the command replaces the whole
+        profile. So every other entry is re-sent as the vehicle last reported
+        it, with its own application identifier, and only the entry that
+        changed is marked with -1 - exactly what the Mercedes me app does.
+
+        Leaving the identifier out adds an entry; the vehicle assigns its id.
+        """
+        if not self._is_car_feature_available(vin, "WEEK_PROFILE_CONFIGURE_V2"):
+            raise ServiceValidationError(
+                "Can't configure the weekly profile. Command WEEK_PROFILE_CONFIGURE_V2 is not available for this car."
+            )
+
+        profile = self._week_profile_state(vin)
+        if profile is None:
+            raise ServiceValidationError(
+                "The weekly profile of this car is not known yet. It only arrives with a full update, and sending "
+                "the command without it would delete every entry the car has. Please retry later."
+            )
+
+        entries = [entry for entry in profile.get("time_profiles") or [] if isinstance(entry, dict)]
+        parameters = self._week_profile_parameters(vin)
+
+        for name, value in (("CHARGING", charging), ("PRECOND", precond), ("BATTERY_PRECOND", battery_precond)):
+            if value is not None and parameters and f"ACTION_LIST_{name}" not in parameters:
+                raise ServiceValidationError(
+                    f"This car does not support {name.lower()} as an action of a weekly profile entry."
+                )
+
+        allowed_schedule_types = set(((parameters.get("SCHEDULE_TYPE") or {}).get("allowedEnums")) or [])
+        if schedule_type:
+            schedule_type = schedule_type.upper()
+            if allowed_schedule_types and schedule_type not in allowed_schedule_types:
+                raise ServiceValidationError(
+                    f"This car only accepts {sorted(allowed_schedule_types)} as the schedule type of a weekly "
+                    f"profile entry, not {schedule_type}."
+                )
+
+        known = {entry.get("id") for entry in entries}
+        if identifier is not None and identifier not in known:
+            raise ServiceValidationError(
+                f"This car has no weekly profile entry with the identifier {identifier}. Reported entries: "
+                f"{sorted(identifier for identifier in known if identifier is not None)}."
+            )
+        if delete and identifier is None:
+            raise ServiceValidationError("Deleting a weekly profile entry needs the identifier of the entry.")
+        if identifier is None and time is None:
+            raise ServiceValidationError("Adding a weekly profile entry needs a time.")
+
+        # max_number_of_time_profiles_user is the limit for the entries a user
+        # may add; vehicles that do not report it leave it at zero, and the
+        # overall limit applies.
+        limit = int(profile.get("max_number_of_time_profiles_user") or 0) or int(
+            profile.get("max_number_of_time_profiles") or 0
+        )
+        if identifier is None and limit and len(entries) >= limit:
+            raise ServiceValidationError(
+                f"This car holds at most {limit} weekly profile entries and already has {len(entries)}. "
+                "Please delete one first."
+            )
+
+        changed: dict[str, Any] = {}
+        if not delete:
+            # Start from the entry as reported, so the fields the caller did not
+            # name keep their value.
+            changed = dict(next((entry for entry in entries if entry.get("id") == identifier), {}))
+            if time is not None:
+                changed["hour"] = time.seconds // 3600
+                changed["minute"] = (time.seconds % 3600) // 60
+            if days is not None:
+                changed["days"] = [day.upper() for day in days]
+            if active is not None:
+                changed["active"] = active
+            if schedule_type:
+                changed["schedule_type"] = schedule_type
+            if charging is not None or precond is not None or battery_precond is not None:
+                # The vehicle may report several action entries, each carrying
+                # one flag. They mean the same as one entry carrying all of
+                # them, so the changed entry is written as a single one.
+                actions = {"charging": False, "precond": False, "battery_precond": False}
+                for action in changed.get("action_list") or []:
+                    if isinstance(action, dict):
+                        actions = {key: value or bool(action.get(key)) for key, value in actions.items()}
+                actions.update(
+                    {
+                        key: value
+                        for key, value in (
+                            ("charging", charging),
+                            ("precond", precond),
+                            ("battery_precond", battery_precond),
+                        )
+                        if value is not None
+                    }
+                )
+                changed["action_list"] = [actions]
+
+        config = pb2_commands.WeekProfileConfigureV2()
+        updated: list[dict[str, Any]] = []
+        for entry in entries:
+            # identifier None means "add", so every reported entry is passed
+            # through - including one whose id the vehicle left at zero and
+            # therefore omitted, which must not be mistaken for the new entry.
+            if identifier is None or entry.get("id") != identifier:
+                self._week_profile_entry_to_proto(config.time_profiles.add(), entry, allowed_schedule_types, False)
+                updated.append(entry)
+                continue
+            if delete:
+                # A deletion is an entry that carries nothing but its
+                # identifier, so the vehicle drops it from the list.
+                removed = config.time_profiles.add()
+                removed.identifier.value = int(identifier)
+                removed.application_identifier = WEEK_PROFILE_CHANGED_APPLICATION_IDENTIFIER
+                continue
+            self._week_profile_entry_to_proto(config.time_profiles.add(), changed, allowed_schedule_types, True)
+            updated.append(changed)
+
+        if identifier is None:
+            # A new entry carries no identifier at all; the vehicle assigns one.
+            self._week_profile_entry_to_proto(config.time_profiles.add(), changed, allowed_schedule_types, True)
+            updated.append(changed)
+
+        message = client_pb2.ClientMessage()
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.week_profile_configure_v2.CopyFrom(config)
+
+        LOGGER.debug(
+            "week_profile_configure - vin: %s - entries: %s - changed: %s - deleted: %s",
+            loghelper.Mask_VIN(vin),
+            len(config.time_profiles),
+            identifier if not delete else None,
+            identifier if delete else None,
+        )
+        await self.execute_car_command(message)
+
+        self._week_profile_store(vin, profile, updated)
+        LOGGER.debug("End week_profile_configure for vin %s", loghelper.Mask_VIN(vin))
+
+    def _week_profile_store(self, vin: str, profile: dict[str, Any], entries: list[dict[str, Any]]) -> None:
+        """Remember the profile that was just sent, and refresh the sensor.
+
+        The vehicle reports its profile only in full updates, which can be a
+        while away. Until then the next call has to build its list from what
+        was sent, or it would re-send the superseded list and undo the change.
+        The stored state is therefore what was asked for, not yet what the
+        vehicle confirmed; the next full update replaces it either way.
+        """
+        current_car = self.cars.get(vin)
+        if not current_car or not current_car.last_full_message or not current_car.electric:
+            # The command has already gone out at this point, so a car without
+            # the parsed state must not turn into an exception on the service
+            # call - it only means the sensor catches up with the next update.
+            LOGGER.debug(
+                "week_profile_configure - no parsed state to update for car %s",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        profile["time_profiles"] = entries
+        for option in ("weeklyProfileActive", "weeklyProfileTimeProfiles", "weeklyProfileLimits"):
+            value = self._get_car_values_handle_weekly_profile(
+                current_car.last_full_message, current_car.electric, option, True, vin
+            )
+            if value is not None:
+                setattr(current_car.electric, option, value)
+        current_car.publish_updates()
 
     async def charging_break_clocktimer_configure(
         self,

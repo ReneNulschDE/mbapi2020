@@ -386,6 +386,15 @@ Some services require that the security PIN is created in your mobile Android/IO
 - temperature_configure:
   Configure the target preconditioning/auxheat temperatures for zones in a car defined by a VIN.
 
+- week_profile_configure:
+  Change one entry of the weekly departure profile of a car defined by a vin. Give the `identifier` of the
+  entry as the `Active weekly profile` sensor lists it, leave it out to add an entry, or combine it with
+  `delete` to remove one. The car replaces its whole profile on every call, so the entries that are not
+  named are re-sent unchanged - which also means the service needs a full update of the profile first and
+  refuses the call until it has one. Which options a car accepts differs by model: only some accept
+  `charging`, `precond` and `battery_precond` per entry or a `schedule_type` other than `no_selection`,
+  and the call is rejected with an explanation when the car does not.
+
 - windows_close:
   Close the windows of a car defined by a vin.
 

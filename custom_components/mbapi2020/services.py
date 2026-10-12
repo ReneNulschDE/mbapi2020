@@ -49,6 +49,8 @@ from .const import (
     SERVICE_VIN_PIN_SCHEMA,
     SERVICE_VIN_SCHEMA,
     SERVICE_VIN_TIME_SCHEMA,
+    SERVICE_WEEK_PROFILE_CONFIGURE,
+    SERVICE_WEEK_PROFILE_CONFIGURE_SCHEMA,
     SERVICE_WINDOWS_CLOSE,
     SERVICE_WINDOWS_MOVE,
     SERVICE_WINDOWS_MOVE_SCHEMA,
@@ -124,6 +126,20 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
             call.data.get("status_timer_4"),
             call.data.get("starttime_timer_4"),
             call.data.get("stoptime_timer_4"),
+        )
+
+    async def week_profile_configure(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.week_profile_configure(
+            call.data.get(CONF_VIN),
+            identifier=call.data.get("identifier"),
+            delete=call.data.get("delete", False),
+            time=call.data.get("time"),
+            days=call.data.get("days"),
+            active=call.data.get("active"),
+            charging=call.data.get("charging"),
+            precond=call.data.get("precond"),
+            battery_precond=call.data.get("battery_precond"),
+            schedule_type=call.data.get("schedule_type"),
         )
 
     async def charge_coupler_stop(call) -> None:
@@ -278,6 +294,11 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
             SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE,
             charging_break_clocktimer_configure,
             SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE_SCHEMA,
+        ),
+        (
+            SERVICE_WEEK_PROFILE_CONFIGURE,
+            week_profile_configure,
+            SERVICE_WEEK_PROFILE_CONFIGURE_SCHEMA,
         ),
         (SERVICE_CHARGE_COUPLER_STOP, charge_coupler_stop, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_DOORS_LOCK_URL, doors_lock, SERVICE_VIN_SCHEMA),
