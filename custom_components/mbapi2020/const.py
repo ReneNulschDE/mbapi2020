@@ -175,6 +175,32 @@ SERVICE_PRECONDITIONING_CONFIGURE_SEATS = "preconditioning_configure_seats"
 SERVICE_TEMPERATURE_CONFIGURE = "temperature_configure"
 SERVICE_HV_BATTERY_START_CONDITIONING = "hv_battery_start_conditioning"
 SERVICE_HV_BATTERY_STOP_CONDITIONING = "hv_battery_stop_conditioning"
+SERVICE_WEEK_PROFILE_CONFIGURE = "week_profile_configure"
+
+# The weekdays of a weekly profile entry, lower case for the service and upper
+# case on the wire. Kept in the order of the proto enum.
+WEEK_PROFILE_DAYS: list[str] = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+]
+
+# What a week_profile_configure call does; mirrored in client.py, which checks
+# it again for callers that do not come through the service schema.
+WEEK_PROFILE_OPERATIONS: list[str] = ["add", "update", "delete"]
+
+# The schedule types the command accepts. Which of them a car allows differs
+# per model and is checked against its capabilities when the service is called.
+WEEK_PROFILE_SCHEDULE_TYPES: list[str] = [
+    "no_selection",
+    "recurring",
+    "non_recurring",
+    "non_recurring_auto_delete",
+]
 
 SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
     {
@@ -183,6 +209,22 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
         vol.Required("time_1"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_2"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
         vol.Required("time_3"): vol.All(vol.Coerce(int), vol.Range(min=0, max=1439)),
+    }
+)
+SERVICE_WEEK_PROFILE_CONFIGURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VIN): cv.string,
+        vol.Required("operation"): vol.In(WEEK_PROFILE_OPERATIONS),
+        # Required for update and delete, rejected for add: the car assigns the
+        # identifier of a new entry itself.
+        vol.Optional("identifier"): vol.All(vol.Coerce(int), vol.Range(min=0)),
+        vol.Optional("time"): cv.time_period,
+        vol.Optional("days"): vol.All(cv.ensure_list, [vol.In(WEEK_PROFILE_DAYS)]),
+        vol.Optional("active"): cv.boolean,
+        vol.Optional("charging"): cv.boolean,
+        vol.Optional("precond"): cv.boolean,
+        vol.Optional("battery_precond"): cv.boolean,
+        vol.Optional("schedule_type"): vol.In(WEEK_PROFILE_SCHEDULE_TYPES),
     }
 )
 SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE_SCHEMA = vol.Schema(
@@ -1896,6 +1938,34 @@ SENSORS = {
         None,
         None,
         0,
+    ],
+    "activeweeklyprofile": [
+        "Active weekly profile",
+        None,  # Deprecated: DO NOT USE
+        "electric",
+        "weeklyProfileActive",
+        # The label, e.g. "Mo-Fr 06:30". The entity adds the entry identifier
+        # behind it as "original_value", as it does for every display_value
+        # sensor.
+        "display_value",
+        None,
+        # The departure entries and the vehicle's capacity limits are attributes
+        # of this sensor, because a single weekly profile is one setting of the
+        # car - a sensor per entry would come and go with every change.
+        {
+            "electric.weeklyProfileTimeProfiles",
+            "electric.weeklyProfileLimits",
+        },
+        "mdi:calendar-clock",
+        None,
+        False,
+        # Vehicle configuration rather than a measurement, so it stays out of
+        # the dashboards. The recorder still stores the state; what it does not
+        # store is a statistic, because state_class is deliberately left unset.
+        EntityCategory.DIAGNOSTIC,
+        None,
+        None,
+        None,
     ],
 }
 

@@ -844,3 +844,83 @@ charge_coupler_stop:
       required: False
       selector:
         text:
+
+week_profile_configure:
+  description: "Add, change or delete one entry of the weekly departure profile. Which options a car accepts differs by model - the call is rejected with an explanation when the car does not support one."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
+    operation:
+      description: "What to do with the entry. Add takes no identifier, the car assigns one; change and delete need one."
+      required: True
+      selector:
+        select:
+          translation_key: "week_profile_configure_operation"
+          options:
+            - "add"
+            - "update"
+            - "delete"
+    identifier:
+      description: "Identifier of the entry, as the Active weekly profile sensor lists it. Required to change or delete an entry, and rejected when adding one."
+      example: "2"
+      required: False
+      selector:
+        number:
+          min: 0
+          max: 31
+          mode: box
+    time:
+      description: "Departure time of the entry. Required when adding an entry, optional when changing one."
+      required: False
+      selector:
+        time:
+    days:
+      description: "(optional) Weekdays the entry applies to. An entry without weekdays runs once."
+      required: False
+      selector:
+        select:
+          multiple: True
+          translation_key: "week_profile_configure_days"
+          options:
+            - "monday"
+            - "tuesday"
+            - "wednesday"
+            - "thursday"
+            - "friday"
+            - "saturday"
+            - "sunday"
+    active:
+      description: "(optional) Whether the car follows this entry."
+      required: False
+      selector:
+        boolean:
+    charging:
+      description: "(optional) Charge the car for this entry. Not supported by every car."
+      required: False
+      selector:
+        boolean:
+    precond:
+      description: "(optional) Precondition the car for this entry. Not supported by every car."
+      required: False
+      selector:
+        boolean:
+    battery_precond:
+      description: "(optional) Precondition the high voltage battery for this entry. Not supported by every car."
+      required: False
+      selector:
+        boolean:
+    schedule_type:
+      description: "(optional) Whether the entry repeats. Derived from the weekdays when left empty. Most cars accept no_selection only."
+      required: False
+      selector:
+        select:
+          translation_key: "week_profile_configure_schedule_type"
+          options:
+            - "no_selection"
+            - "recurring"
+            - "non_recurring"
+            - "non_recurring_auto_delete"

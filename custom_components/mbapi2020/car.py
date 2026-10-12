@@ -135,6 +135,18 @@ ELECTRIC_OPTIONS = [
     "nextDepartureTime",
     "nextDepartureTimeWeekday",
     "soc",
+    # One wire attribute, three car attributes: the vehicle sends the whole
+    # weekly departure profile as a single nested object, which is of no use as
+    # a sensor state. _get_car_values_handle_weekly_profile splits it into the
+    # active entry, the entry list and the vehicle's capacity limits. None of
+    # these is the wire key "weeklyProfile" itself, which the handler reads.
+    "weeklyProfileActive",
+    "weeklyProfileTimeProfiles",
+    "weeklyProfileLimits",
+    # The payload as reported, kept because the configure command replaces the
+    # whole profile and has to re-send the untouched entries exactly as they
+    # came in. No entity reads it.
+    "weeklyProfileRaw",
 ]
 
 BINARY_SENSOR_OPTIONS = [
