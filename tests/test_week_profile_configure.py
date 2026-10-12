@@ -245,6 +245,31 @@ def test_an_unknown_profile_is_refused_instead_of_sent() -> None:
     assert sent == []
 
 
+def test_a_delete_is_not_blocked_by_leftover_entry_fields() -> None:
+    """The service form keeps the entry fields when the operation changes.
+
+    Switching to delete with a value the car does not even support must not
+    refuse the deletion over a field that describes an entry which is about
+    to disappear.
+    """
+    client, sent = _prepared_client(parameters=_PARAMETERS_PLAIN)
+
+    _call(
+        client,
+        "delete",
+        identifier=1,
+        time=datetime.timedelta(hours=7),
+        charging=True,
+        schedule_type="recurring",
+    )
+
+    removed = _entries(sent)[0]
+    assert sorted(field.name for field, _ in removed.ListFields()) == [
+        "application_identifier",
+        "identifier",
+    ]
+
+
 def test_an_unknown_identifier_is_refused() -> None:
     """Changing an entry the car does not have would add one by accident."""
     client, _ = _prepared_client()

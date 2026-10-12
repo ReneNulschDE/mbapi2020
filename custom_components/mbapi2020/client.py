@@ -1917,21 +1917,46 @@ class Client:
 
         entries = [entry for entry in profile.get("time_profiles") or [] if isinstance(entry, dict)]
         parameters = self._week_profile_parameters(vin)
-
-        for name, value in (("CHARGING", charging), ("PRECOND", precond), ("BATTERY_PRECOND", battery_precond)):
-            if value is not None and parameters and f"ACTION_LIST_{name}" not in parameters:
-                raise ServiceValidationError(
-                    f"This car does not support {name.lower()} as an action of a weekly profile entry."
-                )
-
         allowed_schedule_types = set(((parameters.get("SCHEDULE_TYPE") or {}).get("allowedEnums")) or [])
-        if schedule_type:
-            schedule_type = schedule_type.upper()
-            if allowed_schedule_types and schedule_type not in allowed_schedule_types:
-                raise ServiceValidationError(
-                    f"This car only accepts {sorted(allowed_schedule_types)} as the schedule type of a weekly "
-                    f"profile entry, not {schedule_type}."
+
+        if delete:
+            # The entry fields describe an entry that is about to disappear, so
+            # they are ignored rather than rejected: the service form keeps
+            # them filled when the operation is switched to delete, and
+            # refusing over a leftover value would block the deletion.
+            ignored = [
+                name
+                for name, value in (
+                    ("time", time),
+                    ("days", days),
+                    ("active", active),
+                    ("charging", charging),
+                    ("precond", precond),
+                    ("battery_precond", battery_precond),
+                    ("schedule_type", schedule_type),
                 )
+                if value is not None
+            ]
+            if ignored:
+                LOGGER.debug(
+                    "week_profile_configure - ignoring %s on a delete for car %s",
+                    ignored,
+                    loghelper.Mask_VIN(vin),
+                )
+        else:
+            for name, value in (("CHARGING", charging), ("PRECOND", precond), ("BATTERY_PRECOND", battery_precond)):
+                if value is not None and parameters and f"ACTION_LIST_{name}" not in parameters:
+                    raise ServiceValidationError(
+                        f"This car does not support {name.lower()} as an action of a weekly profile entry."
+                    )
+
+            if schedule_type:
+                schedule_type = schedule_type.upper()
+                if allowed_schedule_types and schedule_type not in allowed_schedule_types:
+                    raise ServiceValidationError(
+                        f"This car only accepts {sorted(allowed_schedule_types)} as the schedule type of a weekly "
+                        f"profile entry, not {schedule_type}."
+                    )
 
         if operation == "add":
             if identifier is not None:
