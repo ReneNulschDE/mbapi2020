@@ -1897,11 +1897,11 @@ SENSORS = {
         None,
         0,
     ],
-    "weeklyprofile": [
-        "Weekly profile",
+    "activeweeklyprofile": [
+        "Active weekly profile",
         None,  # Deprecated: DO NOT USE
         "electric",
-        "weeklyProfile",
+        "weeklyProfileActive",
         "value",
         None,
         # The departure entries and the vehicle's capacity limits are attributes
@@ -1914,7 +1914,10 @@ SENSORS = {
         "mdi:calendar-clock",
         None,
         False,
-        None,
+        # Vehicle configuration rather than a measurement, so it stays out of
+        # the dashboards. The recorder still stores the state; what it does not
+        # store is a statistic, because state_class is deliberately left unset.
+        EntityCategory.DIAGNOSTIC,
         None,
         None,
         0,

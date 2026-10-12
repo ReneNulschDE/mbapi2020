@@ -138,8 +138,9 @@ ELECTRIC_OPTIONS = [
     # One wire attribute, three car attributes: the vehicle sends the whole
     # weekly departure profile as a single nested object, which is of no use as
     # a sensor state. _get_car_values_handle_weekly_profile splits it into the
-    # profile count, the profile list and the vehicle's capacity limits.
-    "weeklyProfile",
+    # active entry, the entry list and the vehicle's capacity limits. None of
+    # these is the wire key "weeklyProfile" itself, which the handler reads.
+    "weeklyProfileActive",
     "weeklyProfileTimeProfiles",
     "weeklyProfileLimits",
 ]

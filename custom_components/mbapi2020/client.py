@@ -479,7 +479,7 @@ class Client:
             "temperature_points_frontRight": self._get_car_values_handle_temperature_points,
             "temperature_points_rearLeft": self._get_car_values_handle_temperature_points,
             "temperature_points_rearRight": self._get_car_values_handle_temperature_points,
-            "weeklyProfile": self._get_car_values_handle_weekly_profile,
+            "weeklyProfileActive": self._get_car_values_handle_weekly_profile,
             "weeklyProfileLimits": self._get_car_values_handle_weekly_profile,
             "weeklyProfileTimeProfiles": self._get_car_values_handle_weekly_profile,
         }
@@ -1119,7 +1119,7 @@ class Client:
         object, which is of no use as a sensor state. All three attributes are
         derived from that single payload, so they share this handler - the same
         way endofchargetime and endofChargeTimeWeekday both come out of one
-        value.
+        value. "weeklyProfile" is the key on the wire, not one of them.
 
         Only the VSU shape is read. The flat VEP form (weekly_profile_value)
         nests hour/minute/active in wrapper messages and has not been observed
@@ -1149,9 +1149,18 @@ class Client:
                 "single_entries_activatable": bool(profile.get("single_time_profile_entries_activatable", False)),
             }
         else:
-            # current_number_of_time_profiles is a proto3 int32 as well, so a
-            # vehicle without any configured profile omits it: count the list.
-            value = profile.get("current_number_of_time_profiles", len(time_profiles))
+            # The identifier of the active entry. More than one may be active -
+            # single_time_profile_entries_activatable says the vehicle allows
+            # it - so the lowest identifier wins and the per-entry "active"
+            # flag in weeklyProfileTimeProfiles keeps the full picture. No
+            # active entry leaves the sensor unknown, which is what it is:
+            # the vehicle has entries but follows none of them.
+            active_identifiers = [
+                entry.get("id")
+                for entry in time_profiles
+                if isinstance(entry, dict) and entry.get("active") and entry.get("id") is not None
+            ]
+            value = min(active_identifiers) if active_identifiers else None
 
         return CarAttribute(
             value=value,

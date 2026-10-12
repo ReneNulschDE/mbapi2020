@@ -1,8 +1,8 @@
 """The weekly departure profile reaches the entity layer intact.
 
 The vehicle sends the whole profile as one nested object. The parser splits
-it into three car attributes - the number of entries, the entries themselves
-and the vehicle's capacity limits - so these tests pin that split and the
+it into three car attributes - the active entry, the entries themselves and
+the vehicle's capacity limits - so these tests pin that split and the
 defaulting of the fields proto3 drops when they carry their zero value.
 """
 
@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from custom_components.mbapi2020.car import ELECTRIC_OPTIONS
 from custom_components.mbapi2020.const import SENSORS, SensorConfigFields as scf
+from homeassistant.const import EntityCategory
 
 from .conftest import make_client
 from .fixtures.build import SYNTH_VIN, build_weekly_profile_status_updates, roundtrip
@@ -22,18 +23,31 @@ def _electric(**kwargs):
     return client.cars[SYNTH_VIN].electric
 
 
-def test_profile_count_is_the_sensor_state() -> None:
-    """The weeklyProfile attribute carries the number of configured entries."""
-    assert _electric().weeklyProfile.value == 2
+def test_the_active_entry_identifier_is_the_sensor_state() -> None:
+    """The state names the entry the vehicle currently follows."""
+    assert _electric().weeklyProfileActive.value == 1
 
 
-def test_profile_count_falls_back_to_the_list_length() -> None:
-    """A vehicle that omits the count must not report zero entries.
+def test_the_active_entry_is_found_by_its_flag_not_its_position() -> None:
+    """Activating the second entry must move the state to its identifier.
 
-    current_number_of_time_profiles is a proto3 int32, so a vehicle that
-    leaves it at zero sends no key at all - while still sending the entries.
+    The first entry is the active one in the default fixture, so a handler
+    that simply took time_profiles[0] would pass that case by accident.
     """
-    assert _electric(reported_profile_count=None).weeklyProfile.value == 2
+    assert _electric(active_identifier=2).weeklyProfileActive.value == 2
+
+
+def test_no_active_entry_leaves_the_state_unset() -> None:
+    """Entries without an active one must not fall back to the first.
+
+    Several captured vehicles report their entries with no active flag at
+    all. The sensor then has to read unknown rather than name an entry the
+    vehicle is not following.
+    """
+    electric = _electric(active_identifier=None)
+
+    assert electric.weeklyProfileActive.value is None
+    assert len(electric.weeklyProfileTimeProfiles.value) == 2
 
 
 def test_entries_are_flattened_for_templating() -> None:
@@ -47,6 +61,7 @@ def test_entries_are_flattened_for_templating() -> None:
     assert first["minute"] == 50
     assert first["days"] == ["TUESDAY"]
     assert first["active"] is True
+    assert profiles[1]["active"] is False
     assert first["actions"] == {"charging": True, "precond": True, "battery_precond": False}
     assert first["schedule_type"] == "RECURRING"
 
@@ -97,16 +112,28 @@ def test_a_message_without_the_profile_leaves_the_attributes_untouched() -> None
     update.ClearField("weekly_profile")
     client._process_vehicle_status_updates(roundtrip(partial))
 
-    assert client.cars[SYNTH_VIN].electric.weeklyProfile.value == 2
+    assert client.cars[SYNTH_VIN].electric.weeklyProfileActive.value == 1
 
 
 def test_sensor_definition_matches_the_parsed_attributes() -> None:
     """The sensor reads attributes the parser actually produces."""
-    config = SENSORS["weeklyprofile"]
+    config = SENSORS["activeweeklyprofile"]
 
-    assert config[scf.ATTRIBUTE_NAME.value] == "weeklyProfile"
+    assert config[scf.ATTRIBUTE_NAME.value] == "weeklyProfileActive"
     assert config[scf.OBJECT_NAME.value] == "electric"
-    for option in ("weeklyProfile", "weeklyProfileTimeProfiles", "weeklyProfileLimits"):
+    for option in ("weeklyProfileActive", "weeklyProfileTimeProfiles", "weeklyProfileLimits"):
         assert option in ELECTRIC_OPTIONS
     for attribute in config[scf.EXTENDED_ATTRIBUTE_LIST.value]:
         assert attribute.removeprefix("electric.") in ELECTRIC_OPTIONS
+
+
+def test_the_sensor_is_diagnostic_and_keeps_out_of_the_statistics() -> None:
+    """Vehicle configuration, so no dashboard tile and no long-term statistic.
+
+    A state_class would make the recorder derive statistics from an entry
+    identifier, which is a label and not a measurement.
+    """
+    config = SENSORS["activeweeklyprofile"]
+
+    assert config[scf.ENTITY_CATEGORY.value] is EntityCategory.DIAGNOSTIC
+    assert config[scf.STATE_CLASS.value] is None

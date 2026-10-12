@@ -101,7 +101,7 @@ def build_weekly_profile_status_updates(
     vin: str = SYNTH_VIN,
     *,
     sequence_number: int = 3,
-    reported_profile_count: int | None = 2,
+    active_identifier: int | None = 1,
 ) -> vehicle_events_pb2.PushMessage:
     """Build a VSU message carrying a weekly departure profile.
 
@@ -111,8 +111,9 @@ def build_weekly_profile_status_updates(
     active at their proto3 defaults on purpose, because the backend then drops
     both keys and the parser has to default them itself.
 
-    reported_profile_count set to None leaves current_number_of_time_profiles
-    at zero, which is how a vehicle that reports no count at all arrives.
+    active_identifier picks which entry carries the active flag, so a test can
+    activate the second one - the identifier of the active entry must not be
+    read off the position in the list. None activates neither.
     """
     message = vehicle_events_pb2.PushMessage()
     message.vehicle_status_updates.sequence_number = sequence_number
@@ -127,15 +128,13 @@ def build_weekly_profile_status_updates(
     profile.max_number_of_time_profiles = 16
     profile.max_number_of_time_profiles_user = 10
     profile.current_number_of_time_profile_slots = 2
-    if reported_profile_count is not None:
-        profile.current_number_of_time_profiles = reported_profile_count
+    profile.current_number_of_time_profiles = 2
 
     full = profile.time_profiles.add()
     full.id = 1
     full.hour = 20
     full.minute = 50
     full.days.append(_WEEKDAY_TUESDAY)
-    full.active = True
     full.application_identifier = 1
     full.schedule_type = _SCHEDULE_TYPE_RECURRING
     action = full.action_list.add()
@@ -146,6 +145,12 @@ def build_weekly_profile_status_updates(
     sparse.id = 2
     sparse.minute = 5  # hour stays 0 and is dropped from the JSON
     sparse.application_identifier = 1
+
+    # Set last, so an entry that is not activated keeps the proto3 default and
+    # the backend drops its "active" key entirely - as the vehicles do.
+    for entry in profile.time_profiles:
+        if entry.id == active_identifier:
+            entry.active = True
     return message
 
 
