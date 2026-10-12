@@ -583,23 +583,23 @@
     },
     "week_profile_configure": {
       "name": "Wochenprofil konfigurieren",
-      "description": "Ändert einen Eintrag des Wochenprofils. Das Fahrzeug ersetzt bei jedem Aufruf sein komplettes Profil, nicht genannte Einträge werden daher unverändert mitgesendet. Welche Optionen ein Fahrzeug annimmt, hängt vom Modell ab; ein nicht unterstützter Aufruf wird mit Begründung abgewiesen.",
+      "description": "Legt einen Eintrag des Wochenprofils an, ändert oder löscht ihn. Das Fahrzeug ersetzt bei jedem Aufruf sein komplettes Profil, nicht genannte Einträge werden daher unverändert mitgesendet. Welche Optionen ein Fahrzeug annimmt, hängt vom Modell ab; ein nicht unterstützter Aufruf wird mit Begründung abgewiesen.",
       "fields": {
         "vin": {
           "name": "Vin",
           "description": "Vin/Fin des Fahrzeugs"
         },
+        "operation": {
+          "name": "Aktion",
+          "description": "Was mit dem Eintrag passiert. Anlegen nimmt keine Nummer, die vergibt das Fahrzeug; Ändern und Löschen brauchen eine."
+        },
         "identifier": {
           "name": "Eintrag",
-          "description": "Nummer des Eintrags, wie der Sensor 'Active weekly profile' sie ausweist. Leer lassen, um einen neuen Eintrag anzulegen."
-        },
-        "delete": {
-          "name": "Löschen",
-          "description": "Den Eintrag mit dieser Nummer löschen statt ändern"
+          "description": "Nummer des Eintrags, wie der Sensor 'Active weekly profile' sie ausweist. Zum Ändern und Löschen erforderlich, beim Anlegen nicht erlaubt."
         },
         "time": {
           "name": "Uhrzeit",
-          "description": "Abfahrtszeit des Eintrags. Beim Anlegen erforderlich."
+          "description": "Abfahrtszeit des Eintrags. Beim Anlegen erforderlich, beim Ändern optional."
         },
         "days": {
           "name": "Wochentage",
@@ -1016,6 +1016,13 @@
         "recurring": "Wöchentlich",
         "non_recurring": "Einmalig",
         "non_recurring_auto_delete": "Einmalig, danach löschen"
+      }
+    },
+    "week_profile_configure_operation": {
+      "options": {
+        "add": "Eintrag anlegen",
+        "update": "Eintrag ändern",
+        "delete": "Eintrag löschen"
       }
     }
   }

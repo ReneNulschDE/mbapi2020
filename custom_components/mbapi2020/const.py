@@ -189,6 +189,10 @@ WEEK_PROFILE_DAYS: list[str] = [
     "sunday",
 ]
 
+# What a week_profile_configure call does; mirrored in client.py, which checks
+# it again for callers that do not come through the service schema.
+WEEK_PROFILE_OPERATIONS: list[str] = ["add", "update", "delete"]
+
 # The schedule types the command accepts. Which of them a car allows differs
 # per model and is checked against its capabilities when the service is called.
 WEEK_PROFILE_SCHEDULE_TYPES: list[str] = [
@@ -210,9 +214,10 @@ SERVICE_AUXHEAT_CONFIGURE_SCHEMA = vol.Schema(
 SERVICE_WEEK_PROFILE_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        # Omitted adds an entry: the car assigns the identifier itself.
+        vol.Required("operation"): vol.In(WEEK_PROFILE_OPERATIONS),
+        # Required for update and delete, rejected for add: the car assigns the
+        # identifier of a new entry itself.
         vol.Optional("identifier"): vol.All(vol.Coerce(int), vol.Range(min=0)),
-        vol.Optional("delete", default=False): cv.boolean,
         vol.Optional("time"): cv.time_period,
         vol.Optional("days"): vol.All(cv.ensure_list, [vol.In(WEEK_PROFILE_DAYS)]),
         vol.Optional("active"): cv.boolean,

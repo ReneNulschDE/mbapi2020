@@ -846,7 +846,7 @@ charge_coupler_stop:
         text:
 
 week_profile_configure:
-  description: "Change one entry of the weekly departure profile. Which options a car accepts differs by model - the call is rejected with an explanation when the car does not support one."
+  description: "Add, change or delete one entry of the weekly departure profile. Which options a car accepts differs by model - the call is rejected with an explanation when the car does not support one."
   fields:
     vin:
       description: "vin of the car"
@@ -854,8 +854,18 @@ week_profile_configure:
       required: True
       selector:
         text:
+    operation:
+      description: "What to do with the entry. Add takes no identifier, the car assigns one; change and delete need one."
+      required: True
+      selector:
+        select:
+          translation_key: "week_profile_configure_operation"
+          options:
+            - "add"
+            - "update"
+            - "delete"
     identifier:
-      description: "(optional) Identifier of the entry to change, as the Active weekly profile sensor lists it. Leave empty to add a new entry."
+      description: "Identifier of the entry, as the Active weekly profile sensor lists it. Required to change or delete an entry, and rejected when adding one."
       example: "2"
       required: False
       selector:
@@ -863,14 +873,8 @@ week_profile_configure:
           min: 0
           max: 31
           mode: box
-    delete:
-      description: "(optional) Delete the entry with the given identifier instead of changing it."
-      default: False
-      required: False
-      selector:
-        boolean:
     time:
-      description: "(optional) Departure time of the entry. Required when adding an entry."
+      description: "Departure time of the entry. Required when adding an entry, optional when changing one."
       required: False
       selector:
         time:

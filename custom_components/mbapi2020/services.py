@@ -131,8 +131,8 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
     async def week_profile_configure(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.week_profile_configure(
             call.data.get(CONF_VIN),
+            call.data.get("operation"),
             identifier=call.data.get("identifier"),
-            delete=call.data.get("delete", False),
             time=call.data.get("time"),
             days=call.data.get("days"),
             active=call.data.get("active"),

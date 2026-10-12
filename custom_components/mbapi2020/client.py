@@ -98,6 +98,12 @@ WEEKLY_PROFILE_SCHEDULE_TYPE_PREFIX = "WEEKLY_PROFILE_SCHEDULE_TYPE_"
 # aliases the command proto defines for the same enum ("the short versions are
 # for json (en)coding purposes only"), which keeps the label on the wording
 # Mercedes uses itself rather than inventing another one.
+# What a week_profile_configure call does. Spelled out rather than implied by
+# the presence of an identifier, because "change entry 2" and "add an entry"
+# differ by one destroyed entry when the caller means the second and writes the
+# first.
+WEEK_PROFILE_OPERATIONS = ("add", "update", "delete")
+
 # The application identifier the app sends for every entry it changed; entries
 # it passes through unchanged keep the one the vehicle reported. The capability
 # advertises 0-31 for the field, -1 is the marker outside that range.
@@ -1862,8 +1868,8 @@ class Client:
     async def week_profile_configure(  # noqa: C901
         self,
         vin: str,
+        operation: str,
         identifier: int | None = None,
-        delete: bool = False,
         time: datetime.timedelta | None = None,
         days: list[str] | None = None,
         active: bool | None = None,
@@ -1879,8 +1885,17 @@ class Client:
         it, with its own application identifier, and only the entry that
         changed is marked with -1 - exactly what the Mercedes me app does.
 
-        Leaving the identifier out adds an entry; the vehicle assigns its id.
+        The operation says which of the three it is. "add" takes no identifier
+        at all, because the vehicle assigns one - a caller that names a number
+        for a new entry is in fact asking to overwrite the entry that has it,
+        and that is not something to do by accident.
         """
+        if operation not in WEEK_PROFILE_OPERATIONS:
+            raise ServiceValidationError(
+                f"Unknown weekly profile operation {operation}. Use one of {WEEK_PROFILE_OPERATIONS}."
+            )
+        delete = operation == "delete"
+
         if not self._is_car_feature_available(vin, "WEEK_PROFILE_CONFIGURE_V2"):
             raise ServiceValidationError(
                 "Can't configure the weekly profile. Command WEEK_PROFILE_CONFIGURE_V2 is not available for this car."
@@ -1911,16 +1926,26 @@ class Client:
                     f"profile entry, not {schedule_type}."
                 )
 
+        if operation == "add":
+            if identifier is not None:
+                raise ServiceValidationError(
+                    f"A new weekly profile entry takes no identifier - the car assigns one, and {identifier} is the "
+                    f"number of an entry that would be overwritten. Use the update operation for that."
+                )
+            if time is None:
+                raise ServiceValidationError("Adding a weekly profile entry needs a time.")
+        elif identifier is None:
+            raise ServiceValidationError(
+                f"The {operation} operation needs the identifier of the entry, as the Active weekly profile sensor "
+                f"lists it."
+            )
+
         known = {entry.get("id") for entry in entries}
         if identifier is not None and identifier not in known:
             raise ServiceValidationError(
                 f"This car has no weekly profile entry with the identifier {identifier}. Reported entries: "
                 f"{sorted(identifier for identifier in known if identifier is not None)}."
             )
-        if delete and identifier is None:
-            raise ServiceValidationError("Deleting a weekly profile entry needs the identifier of the entry.")
-        if identifier is None and time is None:
-            raise ServiceValidationError("Adding a weekly profile entry needs a time.")
 
         # max_number_of_time_profiles_user is the limit for the entries a user
         # may add; vehicles that do not report it leave it at zero, and the
@@ -1928,7 +1953,7 @@ class Client:
         limit = int(profile.get("max_number_of_time_profiles_user") or 0) or int(
             profile.get("max_number_of_time_profiles") or 0
         )
-        if identifier is None and limit and len(entries) >= limit:
+        if operation == "add" and limit and len(entries) >= limit:
             raise ServiceValidationError(
                 f"This car holds at most {limit} weekly profile entries and already has {len(entries)}. "
                 "Please delete one first."
@@ -1972,10 +1997,10 @@ class Client:
         config = pb2_commands.WeekProfileConfigureV2()
         updated: list[dict[str, Any]] = []
         for entry in entries:
-            # identifier None means "add", so every reported entry is passed
-            # through - including one whose id the vehicle left at zero and
-            # therefore omitted, which must not be mistaken for the new entry.
-            if identifier is None or entry.get("id") != identifier:
+            # On add every reported entry is passed through - including one
+            # whose id the vehicle left at zero and therefore omitted, which
+            # must not be mistaken for the new entry.
+            if operation == "add" or entry.get("id") != identifier:
                 self._week_profile_entry_to_proto(config.time_profiles.add(), entry, allowed_schedule_types, False)
                 updated.append(entry)
                 continue
@@ -1989,7 +2014,7 @@ class Client:
             self._week_profile_entry_to_proto(config.time_profiles.add(), changed, allowed_schedule_types, True)
             updated.append(changed)
 
-        if identifier is None:
+        if operation == "add":
             # A new entry carries no identifier at all; the vehicle assigns one.
             self._week_profile_entry_to_proto(config.time_profiles.add(), changed, allowed_schedule_types, True)
             updated.append(changed)
@@ -2000,11 +2025,11 @@ class Client:
         message.commandRequest.week_profile_configure_v2.CopyFrom(config)
 
         LOGGER.debug(
-            "week_profile_configure - vin: %s - entries: %s - changed: %s - deleted: %s",
+            "week_profile_configure - vin: %s - operation: %s - identifier: %s - entries sent: %s",
             loghelper.Mask_VIN(vin),
+            operation,
+            identifier,
             len(config.time_profiles),
-            identifier if not delete else None,
-            identifier if delete else None,
         )
         await self.execute_car_command(message)
 
