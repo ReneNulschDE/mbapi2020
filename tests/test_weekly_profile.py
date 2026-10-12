@@ -156,6 +156,21 @@ def test_a_message_without_the_profile_leaves_the_attributes_untouched() -> None
     assert client.cars[SYNTH_VIN].electric.weeklyProfileActive.display_value == "Tu 20:50"
 
 
+def test_the_reported_payload_is_kept_for_the_configure_command() -> None:
+    """The raw payload has to stay available, and stay out of the entities.
+
+    The configure command replaces the whole profile, so it re-sends the
+    untouched entries exactly as they came in - the normalized form merges
+    the action list and would alter them.
+    """
+    electric = _electric()
+
+    assert electric.weeklyProfileRaw.value["time_profiles"][0]["id"] == 1
+    assert "weeklyProfileRaw" in ELECTRIC_OPTIONS
+    for attribute in SENSORS["activeweeklyprofile"][scf.EXTENDED_ATTRIBUTE_LIST.value]:
+        assert attribute != "electric.weeklyProfileRaw"
+
+
 def test_sensor_definition_matches_the_parsed_attributes() -> None:
     """The sensor reads attributes the parser actually produces."""
     config = SENSORS["activeweeklyprofile"]

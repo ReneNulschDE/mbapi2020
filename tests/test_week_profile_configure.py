@@ -69,7 +69,7 @@ def _prepared_client(
         ]
     }
     if not with_profile:
-        car.last_full_message = None
+        car.electric.weeklyProfileRaw = None
 
     sent: list[client_pb2.ClientMessage] = []
 
@@ -296,11 +296,53 @@ def test_an_unknown_operation_is_refused() -> None:
 def test_the_entry_limit_of_the_car_is_respected() -> None:
     """The car reports how many entries it holds; adding past it fails."""
     client, _ = _prepared_client()
-    profile = client.cars[SYNTH_VIN].last_full_message["attributes"]["weeklyProfile"]["value"]
-    profile["max_number_of_time_profiles_user"] = 2
+    client.cars[SYNTH_VIN].electric.weeklyProfileRaw.value["max_number_of_time_profiles_user"] = 2
 
     with pytest.raises(ServiceValidationError, match="at most 2"):
         _call(client, "add", time=datetime.timedelta(hours=7))
+
+
+# --- the state the command builds on ---
+
+
+def test_a_profile_from_a_partial_update_can_be_changed() -> None:
+    """An entry the car reported in a partial update has to be changeable.
+
+    The car reports a profile it has just changed in a partial update, and
+    last_full_message holds full updates only. Reading the list from there
+    made every entry added since the last full update invisible to the
+    command, which then refused to change an entry the sensor was showing.
+    """
+    client, sent = _prepared_client()
+
+    message = build_weekly_profile_status_updates()
+    update = message.vehicle_status_updates.vehicle_status_updates[SYNTH_VIN]
+    update.full_update = False
+    added = update.weekly_profile.value.time_profiles.add()
+    added.id = 3
+    added.hour = 7
+    added.application_identifier = 1
+    client._process_vehicle_status_updates(roundtrip(message))
+
+    _call(client, "update", identifier=3, active=True)
+
+    entries = _entries(sent)
+    assert [entry.identifier.value for entry in entries] == [1, 2, 3]
+    assert entries[2].active.value is True
+    assert entries[2].application_identifier == -1
+
+
+def test_an_entry_still_waiting_for_its_number_is_explained() -> None:
+    """Between add and the car's echo the new entry has no identifier yet.
+
+    Refusing is right - the number is not known - but the reason has to say
+    so, because the caller has just seen the entry appear.
+    """
+    client, _ = _prepared_client()
+    _call(client, "add", time=datetime.timedelta(hours=7))
+
+    with pytest.raises(ServiceValidationError, match="waiting for its number"):
+        _call(client, "update", identifier=3, active=True)
 
 
 # --- what the integration believes afterwards ---

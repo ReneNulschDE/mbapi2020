@@ -143,6 +143,10 @@ ELECTRIC_OPTIONS = [
     "weeklyProfileActive",
     "weeklyProfileTimeProfiles",
     "weeklyProfileLimits",
+    # The payload as reported, kept because the configure command replaces the
+    # whole profile and has to re-send the untouched entries exactly as they
+    # came in. No entity reads it.
+    "weeklyProfileRaw",
 ]
 
 BINARY_SENSOR_OPTIONS = [

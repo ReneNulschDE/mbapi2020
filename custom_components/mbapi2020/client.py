@@ -507,6 +507,7 @@ class Client:
             "temperature_points_rearRight": self._get_car_values_handle_temperature_points,
             "weeklyProfileActive": self._get_car_values_handle_weekly_profile,
             "weeklyProfileLimits": self._get_car_values_handle_weekly_profile,
+            "weeklyProfileRaw": self._get_car_values_handle_weekly_profile,
             "weeklyProfileTimeProfiles": self._get_car_values_handle_weekly_profile,
         }
 
@@ -1201,8 +1202,10 @@ class Client:
         time_stamp = curr.get("timestamp", 0)
         display_value = None
 
-        if option == "weeklyProfileTimeProfiles":
-            value: Any = entries
+        if option == "weeklyProfileRaw":
+            value: Any = profile
+        elif option == "weeklyProfileTimeProfiles":
+            value = entries
         elif option == "weeklyProfileLimits":
             value = {
                 "max_time_profiles": profile.get("max_number_of_time_profiles", 0),
@@ -1767,17 +1770,21 @@ class Client:
     def _week_profile_state(self, vin: str) -> dict[str, Any] | None:
         """Return the weekly profile of a car as the vehicle last reported it.
 
-        None means the integration has not seen one. That matters because the
-        command replaces the vehicle's whole profile: without the current list
-        every entry that is not re-sent would be deleted, and the profile only
-        ever arrives in a full update.
+        Read from the parsed attribute rather than from last_full_message: the
+        vehicle reports a profile it has just changed in a *partial* update,
+        and last_full_message holds full updates only. Reading it there made
+        every entry added since the last full update invisible to the command,
+        while the sensor was already showing it.
+
+        None means the integration has not seen a profile at all. That matters
+        because the command replaces the vehicle's whole profile: without the
+        current list every entry that is not re-sent would be deleted.
         """
         current_car = self.cars.get(vin)
-        if not current_car or not current_car.last_full_message:
+        if not current_car or not current_car.electric:
             return None
 
-        attribute = current_car.last_full_message.get("attributes", {}).get("weeklyProfile") or {}
-        profile = attribute.get("value")
+        profile = getattr(getattr(current_car.electric, "weeklyProfileRaw", None), "value", None)
         return profile if isinstance(profile, dict) else None
 
     def _week_profile_parameters(self, vin: str) -> dict[str, dict[str, Any]]:
@@ -1942,9 +1949,17 @@ class Client:
 
         known = {entry.get("id") for entry in entries}
         if identifier is not None and identifier not in known:
+            # None in the set is an entry this client has just added: it goes
+            # out without an identifier and only gets one when the car reports
+            # the profile back, a few seconds later.
+            pending = (
+                " An entry that was just added is still waiting for its number from the car - retry in a moment."
+                if None in known
+                else ""
+            )
             raise ServiceValidationError(
                 f"This car has no weekly profile entry with the identifier {identifier}. Reported entries: "
-                f"{sorted(identifier for identifier in known if identifier is not None)}."
+                f"{sorted(entry for entry in known if entry is not None)}.{pending}"
             )
 
         # max_number_of_time_profiles_user is the limit for the entries a user
@@ -2025,10 +2040,26 @@ class Client:
         message.commandRequest.week_profile_configure_v2.CopyFrom(config)
 
         LOGGER.debug(
-            "week_profile_configure - vin: %s - operation: %s - identifier: %s - entries sent: %s",
+            "week_profile_configure - vin: %s - operation: %s - identifier: %s - requested: %s - entries sent: %s",
             loghelper.Mask_VIN(vin),
             operation,
             identifier,
+            # What the caller actually asked for. Without it a log only shows
+            # that a call happened, not whether a field the car ignored was
+            # ever sent.
+            {
+                key: value
+                for key, value in (
+                    ("time", str(time) if time is not None else None),
+                    ("days", days),
+                    ("active", active),
+                    ("charging", charging),
+                    ("precond", precond),
+                    ("battery_precond", battery_precond),
+                    ("schedule_type", schedule_type),
+                )
+                if value is not None
+            },
             len(config.time_profiles),
         )
         await self.execute_car_command(message)
@@ -2046,7 +2077,7 @@ class Client:
         vehicle confirmed; the next full update replaces it either way.
         """
         current_car = self.cars.get(vin)
-        if not current_car or not current_car.last_full_message or not current_car.electric:
+        if not current_car or not current_car.electric:
             # The command has already gone out at this point, so a car without
             # the parsed state must not turn into an exception on the service
             # call - it only means the sensor catches up with the next update.
@@ -2056,11 +2087,25 @@ class Client:
             )
             return
 
-        profile["time_profiles"] = entries
-        for option in ("weeklyProfileActive", "weeklyProfileTimeProfiles", "weeklyProfileLimits"):
-            value = self._get_car_values_handle_weekly_profile(
-                current_car.last_full_message, current_car.electric, option, True, vin
-            )
+        reported = getattr(current_car.electric, "weeklyProfileRaw", None)
+        # Shaped like the attribute of a message, so the stored state goes
+        # through the same normalisation as a reported one.
+        detail = {
+            "attributes": {
+                "weeklyProfile": {
+                    "value": {**profile, "time_profiles": entries},
+                    "status": getattr(reported, "retrievalstatus", "VALID"),
+                    "timestamp": getattr(reported, "timestamp", 0),
+                }
+            }
+        }
+        for option in (
+            "weeklyProfileRaw",
+            "weeklyProfileActive",
+            "weeklyProfileTimeProfiles",
+            "weeklyProfileLimits",
+        ):
+            value = self._get_car_values_handle_weekly_profile(detail, current_car.electric, option, True, vin)
             if value is not None:
                 setattr(current_car.electric, option, value)
         current_car.publish_updates()
