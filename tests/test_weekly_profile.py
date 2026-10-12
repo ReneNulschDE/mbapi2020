@@ -8,7 +8,10 @@ defaulting of the fields proto3 drops when they carry their zero value.
 
 from __future__ import annotations
 
+import pytest
+
 from custom_components.mbapi2020.car import ELECTRIC_OPTIONS
+from custom_components.mbapi2020.client import Client
 from custom_components.mbapi2020.const import SENSORS, SensorConfigFields as scf
 from homeassistant.const import EntityCategory
 
@@ -23,18 +26,30 @@ def _electric(**kwargs):
     return client.cars[SYNTH_VIN].electric
 
 
-def test_the_active_entry_identifier_is_the_sensor_state() -> None:
-    """The state names the entry the vehicle currently follows."""
-    assert _electric().weeklyProfileActive.value == 1
+def test_the_active_entry_is_labelled_for_the_sensor_state() -> None:
+    """The state reads as the entry, with its identifier kept behind it.
+
+    The sensor shows display_value, and the entity exposes value as
+    "original_value" for every sensor that does, so both survive.
+    """
+    active = _electric().weeklyProfileActive
+
+    assert active.display_value == "Tu 20:50"
+    assert active.value == 1
 
 
 def test_the_active_entry_is_found_by_its_flag_not_its_position() -> None:
-    """Activating the second entry must move the state to its identifier.
+    """Activating the second entry must move the state to that entry.
 
     The first entry is the active one in the default fixture, so a handler
-    that simply took time_profiles[0] would pass that case by accident.
+    that simply took time_profiles[0] would pass that case by accident. The
+    second entry reports no weekday, which is how three of the four captured
+    vehicles report every entry they have.
     """
-    assert _electric(active_identifier=2).weeklyProfileActive.value == 2
+    active = _electric(active_identifier=2).weeklyProfileActive
+
+    assert active.display_value == "00:05"
+    assert active.value == 2
 
 
 def test_no_active_entry_leaves_the_state_unset() -> None:
@@ -46,8 +61,34 @@ def test_no_active_entry_leaves_the_state_unset() -> None:
     """
     electric = _electric(active_identifier=None)
 
+    assert electric.weeklyProfileActive.display_value is None
     assert electric.weeklyProfileActive.value is None
     assert len(electric.weeklyProfileTimeProfiles.value) == 2
+
+
+@pytest.mark.parametrize(
+    ("days", "expected"),
+    [
+        (["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"], "Mo-Fr 06:30"),
+        (["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"], "Mo-Su 06:30"),
+        (["TUESDAY"], "Tu 06:30"),
+        # Two days in a row are not written as a range: "Mo, Tu" reads better
+        # than "Mo-Tu" and is not longer.
+        (["MONDAY", "TUESDAY"], "Mo, Tu 06:30"),
+        (["MONDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SUNDAY"], "Mo, We-Fr, Su 06:30"),
+        # The list arrives in whatever order the vehicle sends it.
+        (["FRIDAY", "MONDAY"], "Mo, Fr 06:30"),
+        # A vehicle that reports no weekday leaves the time on its own.
+        ([], "06:30"),
+        # An enum value this version does not know must stay visible.
+        (["MONDAY", "SOME_NEW_DAY"], "Mo, SOME_NEW_DAY 06:30"),
+    ],
+)
+def test_consecutive_days_are_collapsed_into_a_range(days: list[str], expected: str) -> None:
+    """The label is built from the day list, not from a fixed weekday set."""
+    entry = Client._normalize_weekly_time_profile({"id": 1, "hour": 6, "minute": 30, "days": days})
+
+    assert Client._format_weekly_time_profile(entry) == expected
 
 
 def test_entries_are_flattened_for_templating() -> None:
@@ -112,7 +153,7 @@ def test_a_message_without_the_profile_leaves_the_attributes_untouched() -> None
     update.ClearField("weekly_profile")
     client._process_vehicle_status_updates(roundtrip(partial))
 
-    assert client.cars[SYNTH_VIN].electric.weeklyProfileActive.value == 1
+    assert client.cars[SYNTH_VIN].electric.weeklyProfileActive.display_value == "Tu 20:50"
 
 
 def test_sensor_definition_matches_the_parsed_attributes() -> None:
@@ -121,6 +162,7 @@ def test_sensor_definition_matches_the_parsed_attributes() -> None:
 
     assert config[scf.ATTRIBUTE_NAME.value] == "weeklyProfileActive"
     assert config[scf.OBJECT_NAME.value] == "electric"
+    assert config[scf.VALUE_FIELD_NAME.value] == "display_value"
     for option in ("weeklyProfileActive", "weeklyProfileTimeProfiles", "weeklyProfileLimits"):
         assert option in ELECTRIC_OPTIONS
     for attribute in config[scf.EXTENDED_ATTRIBUTE_LIST.value]:

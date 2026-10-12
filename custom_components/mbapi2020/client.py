@@ -93,6 +93,21 @@ DEPARTURE_TIME_MODE_REPEAT_DAYS: dict[int, int] = {
 # proto enum name. Only the tail is of interest in an entity attribute.
 WEEKLY_PROFILE_SCHEDULE_TYPE_PREFIX = "WEEKLY_PROFILE_SCHEDULE_TYPE_"
 
+# Weekday labels for the active weekly profile, in the order of the proto enum
+# so consecutive days can be collapsed into a range. The abbreviations are the
+# aliases the command proto defines for the same enum ("the short versions are
+# for json (en)coding purposes only"), which keeps the label on the wording
+# Mercedes uses itself rather than inventing another one.
+WEEKLY_PROFILE_DAY_LABELS: dict[str, str] = {
+    "MONDAY": "Mo",
+    "TUESDAY": "Tu",
+    "WEDNESDAY": "We",
+    "THURSDAY": "Th",
+    "FRIDAY": "Fr",
+    "SATURDAY": "Sa",
+    "SUNDAY": "Su",
+}
+
 # Horn/light parameters the Mercedes me app sends per signaling mode,
 # as (horn_repeat, horn_type, light_type)
 SIGPOS_TYPE_DEFAULTS: dict[int, tuple[int, int, int]] = {
@@ -1064,6 +1079,42 @@ class Client:
         )
 
     @staticmethod
+    def _format_weekly_time_profile(entry: dict[str, Any]) -> str:
+        """Render one normalized entry as a label, e.g. "Mo-Fr 06:30".
+
+        Consecutive days are collapsed into a range, but only from three days
+        on: "Mo, Tu" reads better than "Mo-Tu" and is no longer. The time stays
+        the 24-hour reading the vehicle reports; it carries no clock unit for
+        this attribute, so there is nothing to switch on.
+
+        A day the vehicle reports that this version does not know is appended
+        verbatim instead of being dropped, so a new enum value shows up in the
+        state rather than silently shrinking the label.
+        """
+        days = entry.get("days") or []
+        order = list(WEEKLY_PROFILE_DAY_LABELS)
+        indices = sorted({order.index(day) for day in days if day in WEEKLY_PROFILE_DAY_LABELS})
+
+        runs: list[list[int]] = []
+        for index in indices:
+            if runs and index == runs[-1][1] + 1:
+                runs[-1][1] = index
+            else:
+                runs.append([index, index])
+
+        labels = []
+        for start, end in runs:
+            first = WEEKLY_PROFILE_DAY_LABELS[order[start]]
+            if start == end:
+                labels.append(first)
+                continue
+            last = WEEKLY_PROFILE_DAY_LABELS[order[end]]
+            labels.append(f"{first}-{last}" if end - start > 1 else f"{first}, {last}")
+        labels.extend(str(day) for day in days if day not in WEEKLY_PROFILE_DAY_LABELS)
+
+        return f"{', '.join(labels)} {entry.get('time', '')}".strip()
+
+    @staticmethod
     def _normalize_weekly_time_profile(entry: dict[str, Any]) -> dict[str, Any]:
         """Flatten one time profile entry of the weekly departure profile.
 
@@ -1134,12 +1185,13 @@ class Client:
         if not isinstance(profile, dict):
             return None
 
-        time_profiles = profile.get("time_profiles") or []
+        entries = [self._normalize_weekly_time_profile(entry) for entry in profile.get("time_profiles") or []]
         status = curr.get("status", "VALID")
         time_stamp = curr.get("timestamp", 0)
+        display_value = None
 
         if option == "weeklyProfileTimeProfiles":
-            value: Any = [self._normalize_weekly_time_profile(entry) for entry in time_profiles]
+            value: Any = entries
         elif option == "weeklyProfileLimits":
             value = {
                 "max_time_profiles": profile.get("max_number_of_time_profiles", 0),
@@ -1149,27 +1201,32 @@ class Client:
                 "single_entries_activatable": bool(profile.get("single_time_profile_entries_activatable", False)),
             }
         else:
-            # The identifier of the active entry. More than one may be active -
-            # single_time_profile_entries_activatable says the vehicle allows
-            # it - so the lowest identifier wins and the per-entry "active"
-            # flag in weeklyProfileTimeProfiles keeps the full picture. No
-            # active entry leaves the sensor unknown, which is what it is:
-            # the vehicle has entries but follows none of them.
-            active_identifiers = [
-                entry.get("id")
-                for entry in time_profiles
-                if isinstance(entry, dict) and entry.get("active") and entry.get("id") is not None
-            ]
-            value = min(active_identifiers) if active_identifiers else None
+            # The entry the vehicle currently follows. More than one may be
+            # active - single_time_profile_entries_activatable says the vehicle
+            # allows it - so the lowest identifier wins and the per-entry
+            # "active" flag in weeklyProfileTimeProfiles keeps the full
+            # picture. No active entry leaves the sensor unknown, which is what
+            # it is: the vehicle has entries but follows none of them.
+            active = [entry for entry in entries if entry.get("active")]
+            value = None
+            if active:
+                # The identifier is a proto3 int32, so a hypothetical id 0
+                # arrives as None: sort it first rather than raising.
+                entry = min(active, key=lambda candidate: candidate.get("identifier") or 0)
+                # The state shows the label; the identifier stays reachable as
+                # the "original_value" attribute the entity adds for every
+                # sensor that reads display_value.
+                value = entry.get("identifier")
+                display_value = self._format_weekly_time_profile(entry)
 
         return CarAttribute(
             value=value,
             retrievalstatus=status,
             timestamp=time_stamp,
-            # Left unset on purpose: the entity surfaces the list and the
-            # limits through extra_state_attributes, which prefers
+            # Only the active entry has a display value. It stays unset for the
+            # list and the limits, because extra_state_attributes prefers
             # display_value and would otherwise show it instead of the data.
-            display_value=None,
+            display_value=display_value,
             unit=None,
         )
 

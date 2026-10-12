@@ -1902,7 +1902,10 @@ SENSORS = {
         None,  # Deprecated: DO NOT USE
         "electric",
         "weeklyProfileActive",
-        "value",
+        # The label, e.g. "Mo-Fr 06:30". The entity adds the entry identifier
+        # behind it as "original_value", as it does for every display_value
+        # sensor.
+        "display_value",
         None,
         # The departure entries and the vehicle's capacity limits are attributes
         # of this sensor, because a single weekly profile is one setting of the
@@ -1920,7 +1923,7 @@ SENSORS = {
         EntityCategory.DIAGNOSTIC,
         None,
         None,
-        0,
+        None,
     ],
 }
 
