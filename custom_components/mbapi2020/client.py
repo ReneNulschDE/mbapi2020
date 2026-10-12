@@ -89,6 +89,10 @@ DEPARTURE_TIME_MODE_REPEAT_DAYS: dict[int, int] = {
     2: 7,
 }
 
+# The vehicle reports the schedule type of a weekly departure entry as the full
+# proto enum name. Only the tail is of interest in an entity attribute.
+WEEKLY_PROFILE_SCHEDULE_TYPE_PREFIX = "WEEKLY_PROFILE_SCHEDULE_TYPE_"
+
 # Horn/light parameters the Mercedes me app sends per signaling mode,
 # as (horn_repeat, horn_type, light_type)
 SIGPOS_TYPE_DEFAULTS: dict[int, tuple[int, int, int]] = {
@@ -475,6 +479,9 @@ class Client:
             "temperature_points_frontRight": self._get_car_values_handle_temperature_points,
             "temperature_points_rearLeft": self._get_car_values_handle_temperature_points,
             "temperature_points_rearRight": self._get_car_values_handle_temperature_points,
+            "weeklyProfile": self._get_car_values_handle_weekly_profile,
+            "weeklyProfileLimits": self._get_car_values_handle_weekly_profile,
+            "weeklyProfileTimeProfiles": self._get_car_values_handle_weekly_profile,
         }
 
         if car_detail is None or not car_detail.get("attributes"):
@@ -1053,6 +1060,107 @@ class Client:
             retrievalstatus=status,
             timestamp=time_stamp,
             display_value=curr_display_value,
+            unit=None,
+        )
+
+    @staticmethod
+    def _normalize_weekly_time_profile(entry: dict[str, Any]) -> dict[str, Any]:
+        """Flatten one time profile entry of the weekly departure profile.
+
+        Every field of the entry is a plain proto3 scalar, so the vehicle omits
+        each one that carries its default: a profile at 00:30 arrives without
+        "hour", an inactive one without "active", and a vehicle that does not
+        support individual weekdays sends no "days" at all. Defaulting them
+        here keeps a template from having to special-case a missing key per
+        vehicle.
+        """
+        if not isinstance(entry, dict):
+            return {}
+
+        hour = int(entry.get("hour") or 0)
+        minute = int(entry.get("minute") or 0)
+
+        # action_list is a repeated message, so several entries may each carry
+        # one flag. Fold them into a single mapping.
+        actions = {"charging": False, "precond": False, "battery_precond": False}
+        for action in entry.get("action_list") or []:
+            if not isinstance(action, dict):
+                continue
+            for key in actions:
+                if action.get(key):
+                    actions[key] = True
+
+        # NON_RECURRING is the zero value of the enum, so an omitted
+        # schedule_type is indistinguishable from a one-off entry. The
+        # vehicles that never report it also only allow NO_SELECTION for the
+        # configure command, so calling the entry one-off would be wrong -
+        # leave it empty instead of guessing.
+        schedule_type = entry.get("schedule_type")
+        if isinstance(schedule_type, str):
+            schedule_type = schedule_type.removeprefix(WEEKLY_PROFILE_SCHEDULE_TYPE_PREFIX)
+
+        return {
+            "identifier": entry.get("id"),
+            "time": f"{hour:02d}:{minute:02d}",
+            "hour": hour,
+            "minute": minute,
+            "days": list(entry.get("days") or []),
+            "active": bool(entry.get("active", False)),
+            "application_identifier": entry.get("application_identifier", 0),
+            "actions": actions,
+            "schedule_type": schedule_type,
+            "is_learned_time": bool(entry.get("is_learned_time", False)),
+        }
+
+    def _get_car_values_handle_weekly_profile(self, car_detail, class_instance, option, update, vin: str):
+        """Split the weeklyProfile object into the three attributes it feeds.
+
+        The vehicle sends the whole weekly departure profile as one nested
+        object, which is of no use as a sensor state. All three attributes are
+        derived from that single payload, so they share this handler - the same
+        way endofchargetime and endofChargeTimeWeekday both come out of one
+        value.
+
+        Only the VSU shape is read. The flat VEP form (weekly_profile_value)
+        nests hour/minute/active in wrapper messages and has not been observed
+        on any vehicle, so a sensor is simply not created for it rather than
+        parsing a shape that cannot be verified.
+        """
+        curr = car_detail.get("attributes", {}).get("weeklyProfile")
+        if not curr:
+            return None
+
+        profile = curr.get("value")
+        if not isinstance(profile, dict):
+            return None
+
+        time_profiles = profile.get("time_profiles") or []
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+
+        if option == "weeklyProfileTimeProfiles":
+            value: Any = [self._normalize_weekly_time_profile(entry) for entry in time_profiles]
+        elif option == "weeklyProfileLimits":
+            value = {
+                "max_time_profiles": profile.get("max_number_of_time_profiles", 0),
+                "max_time_profiles_user": profile.get("max_number_of_time_profiles_user", 0),
+                "max_weekly_time_profile_slots": profile.get("max_number_of_weekly_time_profile_slots", 0),
+                "current_time_profile_slots": profile.get("current_number_of_time_profile_slots", 0),
+                "single_entries_activatable": bool(profile.get("single_time_profile_entries_activatable", False)),
+            }
+        else:
+            # current_number_of_time_profiles is a proto3 int32 as well, so a
+            # vehicle without any configured profile omits it: count the list.
+            value = profile.get("current_number_of_time_profiles", len(time_profiles))
+
+        return CarAttribute(
+            value=value,
+            retrievalstatus=status,
+            timestamp=time_stamp,
+            # Left unset on purpose: the entity surfaces the list and the
+            # limits through extra_state_attributes, which prefers
+            # display_value and would otherwise show it instead of the data.
+            display_value=None,
             unit=None,
         )
 

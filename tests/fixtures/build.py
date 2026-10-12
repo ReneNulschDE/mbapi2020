@@ -38,6 +38,12 @@ _DISTANCE_MILES = 2
 
 _EMIT_TIMESTAMP_MS = 1758000000000  # fixed, so messages are byte-stable
 
+# WeeklyProfile.TimeProfile.Weekday and .ScheduleType, spelled numerically for
+# the same reason as the distance units above: both are nested enums, and
+# addressing them by name depends on the nesting path surviving regeneration.
+_WEEKDAY_TUESDAY = 1
+_SCHEDULE_TYPE_RECURRING = 1
+
 
 def build_vep_updates(
     vin: str = SYNTH_VIN,
@@ -88,6 +94,58 @@ def build_vehicle_status_updates(
 
     update.rangeelectric.value = electric_range
     update.tirepressure_front_left.value = tire_pressure_front_left
+    return message
+
+
+def build_weekly_profile_status_updates(
+    vin: str = SYNTH_VIN,
+    *,
+    sequence_number: int = 3,
+    reported_profile_count: int | None = 2,
+) -> vehicle_events_pb2.PushMessage:
+    """Build a VSU message carrying a weekly departure profile.
+
+    The two entries mirror the two vehicle generations that appear in
+    practice: one reports weekdays, an action list and a schedule type, the
+    other only an identifier and a time. The second entry leaves hour and
+    active at their proto3 defaults on purpose, because the backend then drops
+    both keys and the parser has to default them itself.
+
+    reported_profile_count set to None leaves current_number_of_time_profiles
+    at zero, which is how a vehicle that reports no count at all arrives.
+    """
+    message = vehicle_events_pb2.PushMessage()
+    message.vehicle_status_updates.sequence_number = sequence_number
+
+    update = message.vehicle_status_updates.vehicle_status_updates[vin]
+    update.fin_or_vin = vin
+    update.full_update = True
+
+    profile = update.weekly_profile.value
+    profile.single_time_profile_entries_activatable = True
+    profile.max_number_of_weekly_time_profile_slots = 112
+    profile.max_number_of_time_profiles = 16
+    profile.max_number_of_time_profiles_user = 10
+    profile.current_number_of_time_profile_slots = 2
+    if reported_profile_count is not None:
+        profile.current_number_of_time_profiles = reported_profile_count
+
+    full = profile.time_profiles.add()
+    full.id = 1
+    full.hour = 20
+    full.minute = 50
+    full.days.append(_WEEKDAY_TUESDAY)
+    full.active = True
+    full.application_identifier = 1
+    full.schedule_type = _SCHEDULE_TYPE_RECURRING
+    action = full.action_list.add()
+    action.charging = True
+    action.precond = True
+
+    sparse = profile.time_profiles.add()
+    sparse.id = 2
+    sparse.minute = 5  # hour stays 0 and is dropped from the JSON
+    sparse.application_identifier = 1
     return message
 
 

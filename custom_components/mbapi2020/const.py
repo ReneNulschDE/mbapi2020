@@ -1897,6 +1897,28 @@ SENSORS = {
         None,
         0,
     ],
+    "weeklyprofile": [
+        "Weekly profile",
+        None,  # Deprecated: DO NOT USE
+        "electric",
+        "weeklyProfile",
+        "value",
+        None,
+        # The departure entries and the vehicle's capacity limits are attributes
+        # of this sensor, because a single weekly profile is one setting of the
+        # car - a sensor per entry would come and go with every change.
+        {
+            "electric.weeklyProfileTimeProfiles",
+            "electric.weeklyProfileLimits",
+        },
+        "mdi:calendar-clock",
+        None,
+        False,
+        None,
+        None,
+        None,
+        0,
+    ],
 }
 
 LOCKS = {

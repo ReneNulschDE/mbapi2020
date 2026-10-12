@@ -135,6 +135,13 @@ ELECTRIC_OPTIONS = [
     "nextDepartureTime",
     "nextDepartureTimeWeekday",
     "soc",
+    # One wire attribute, three car attributes: the vehicle sends the whole
+    # weekly departure profile as a single nested object, which is of no use as
+    # a sensor state. _get_car_values_handle_weekly_profile splits it into the
+    # profile count, the profile list and the vehicle's capacity limits.
+    "weeklyProfile",
+    "weeklyProfileTimeProfiles",
+    "weeklyProfileLimits",
 ]
 
 BINARY_SENSOR_OPTIONS = [
