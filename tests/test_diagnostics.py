@@ -12,8 +12,7 @@ from types import SimpleNamespace
 
 from custom_components.mbapi2020.car import Car, CarAttribute, Location
 from custom_components.mbapi2020.const import DOMAIN
-from custom_components.mbapi2020.diagnostics import async_get_config_entry_diagnostics
-from custom_components.mbapi2020.helper import LogHelper as loghelper
+from custom_components.mbapi2020.diagnostics import _mask_vin_serial, async_get_config_entry_diagnostics
 
 from .conftest import SYNTH_FIN, SYNTH_VIN
 
@@ -31,12 +30,11 @@ def test_sensor_entity_ids_keep_their_key_with_the_vin_masked() -> None:
     car.sensors = {f"sensor.{SYNTH_VIN.lower()}_soc", f"binary_sensor.{SYNTH_VIN.lower()}_chargingactive"}
 
     report = _diagnostics_for(car)
-    masked_vin = loghelper.Mask_VIN(SYNTH_VIN)
-    sensors = report["cars"][0][masked_vin]["sensors"]
+    sensors = report["cars"][0]["W1NKM5BB6VUXXXXXX"]["sensors"]
 
     assert sensors == [
-        f"binary_sensor.{loghelper.Mask_VIN(SYNTH_VIN.lower())}_chargingactive",
-        f"sensor.{loghelper.Mask_VIN(SYNTH_VIN.lower())}_soc",
+        "binary_sensor.w1nkm5bb6vuXXXXXX_chargingactive",
+        "sensor.w1nkm5bb6vuXXXXXX_soc",
     ]
     assert SYNTH_VIN.lower() not in str(report).lower()
 
@@ -73,7 +71,7 @@ def test_latitude_is_rounded_to_whole_degrees() -> None:
         },
     }
 
-    car_report = _diagnostics_for(car)["cars"][0][loghelper.Mask_VIN(SYNTH_VIN)]
+    car_report = _diagnostics_for(car)["cars"][0]["W1NKM5BB6VUXXXXXX"]
 
     location = car_report["location"]["positionLat"]
     assert (location["value"], location["display_value"], location["timestamp"]) == (49, "49", 1791296971)
@@ -87,6 +85,14 @@ def test_keys_that_only_contain_lat_are_left_alone() -> None:
     car = Car(SYNTH_VIN)
     car.last_full_message = {"attributes": {"precondClimate": {"double_value": 21.5}, "translation": "1.5"}}
 
-    car_report = _diagnostics_for(car)["cars"][0][loghelper.Mask_VIN(SYNTH_VIN)]
+    car_report = _diagnostics_for(car)["cars"][0]["W1NKM5BB6VUXXXXXX"]
 
     assert car_report["last_full_message"] == car.last_full_message
+
+
+def test_only_the_serial_number_of_a_vin_is_masked() -> None:
+    """Positions 1-11 identify the vehicle type, 12-17 are the serial number."""
+    assert _mask_vin_serial("W1NKM5BB6VU123456") == "W1NKM5BB6VUXXXXXX"
+    assert _mask_vin_serial("w1nkm5bb6vu123456") == "w1nkm5bb6vuXXXXXX"
+    # not a VIN: the log masking keeps less, never more
+    assert _mask_vin_serial("ABC123") == "XXXXXX"

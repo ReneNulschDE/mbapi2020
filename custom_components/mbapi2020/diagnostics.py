@@ -13,6 +13,21 @@ from homeassistant.core import HomeAssistant
 from .const import DOMAIN, JSON_EXPORT_IGNORED_KEYS
 from .helper import LogHelper as loghelper, MBJSONEncoder
 
+VIN_LENGTH = 17
+VIN_SERIAL_LENGTH = 6
+
+
+def _mask_vin_serial(vin: str) -> str:
+    """Mask the serial number (positions 12-17) of a VIN or FIN.
+
+    Positions 1-11 (manufacturer, model series, variant, model year, plant)
+    stay readable so the vehicle type can still be told from the report.
+    Anything that is not a 17-character VIN falls back to Mask_VIN.
+    """
+    if len(vin) == VIN_LENGTH:
+        return vin[:-VIN_SERIAL_LENGTH] + "X" * VIN_SERIAL_LENGTH
+    return loghelper.Mask_VIN(vin)
+
 
 def _is_latitude_key(key: str) -> bool:
     key = key.lower()
@@ -57,14 +72,14 @@ async def async_get_config_entry_diagnostics(
     data = {"entry": config_entry.as_dict(), "cars": []}
 
     for car in domain.client.cars.values():
-        masked_vin = loghelper.Mask_VIN(car.finorvin)
+        masked_vin = _mask_vin_serial(car.finorvin)
         car_json = json.dumps(car, cls=MBJSONEncoder)
         # Entity IDs and other values embed the VIN, which key-based redaction does not catch
         identifiers = {car.finorvin, car.masterdata.get("fin"), car.masterdata.get("vin")}
         for identifier in identifiers:
             if isinstance(identifier, str) and identifier:
                 car_json = re.sub(
-                    re.escape(identifier), lambda m: loghelper.Mask_VIN(m.group(0)), car_json, flags=re.IGNORECASE
+                    re.escape(identifier), lambda m: _mask_vin_serial(m.group(0)), car_json, flags=re.IGNORECASE
                 )
         data["cars"].append({masked_vin: _round_latitudes(json.loads(car_json))})
 
