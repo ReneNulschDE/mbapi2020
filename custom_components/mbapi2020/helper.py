@@ -240,11 +240,13 @@ def get_class_property_names(obj: object):
 class MBJSONEncoder(json.JSONEncoder):
     """JSON Encoder that handles data classes, properties and additional data types."""
 
-    def default(self, o) -> str | dict:  # noqa: D102
+    def default(self, o) -> str | dict | list:  # noqa: D102
         if isinstance(o, (datetime.datetime, datetime.date, datetime.time)):
             return o.isoformat()
+        if isinstance(o, set):
+            return sorted(o, key=str)
         if not isinstance(o, Enum) and hasattr(o, "__dict__") and isinstance(o.__dict__, dict):
-            retval: dict = o.__dict__
+            retval: dict = dict(o.__dict__)
             retval.update({p: getattr(o, p) for p in get_class_property_names(o)})
             return {k: v for k, v in retval.items() if k not in JSON_EXPORT_IGNORED_KEYS}
         return str(o)

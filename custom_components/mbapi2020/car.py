@@ -488,11 +488,10 @@ class GeofenceEvents:
 class CarAttribute:
     """Stores the CarAttribute values at runtime."""
 
-    def __init__(self, value, retrievalstatus, timestamp, display_value=None, unit=None, sensor_created=False):
+    def __init__(self, value, retrievalstatus, timestamp, display_value=None, unit=None):
         """Initialize the instance."""
         self.value = value
         self.retrievalstatus = retrievalstatus
         self.timestamp = timestamp
         self.display_value = display_value
         self.unit = unit
-        self.sensor_created = sensor_created
