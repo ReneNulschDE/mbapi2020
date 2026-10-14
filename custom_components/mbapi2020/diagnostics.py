@@ -14,6 +14,39 @@ from .const import DOMAIN, JSON_EXPORT_IGNORED_KEYS
 from .helper import LogHelper as loghelper, MBJSONEncoder
 
 
+def _is_latitude_key(key: str) -> bool:
+    key = key.lower()
+    return key in ("lat", "positionlat") or key.endswith("latitude")
+
+
+def _round_coordinate(value: Any) -> Any:
+    """Round a coordinate to whole degrees, recursing into attribute dicts and lists."""
+    if isinstance(value, dict):
+        return {k: _round_coordinate(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_round_coordinate(v) for v in value]
+    if isinstance(value, float):
+        return round(value)
+    if isinstance(value, str) and "." in value:
+        try:
+            return str(round(float(value)))
+        except ValueError:
+            return value
+    return value
+
+
+def _round_latitudes(value: Any) -> Any:
+    """Round every value stored under a latitude key so the report does not pinpoint the car."""
+    if isinstance(value, dict):
+        return {
+            k: _round_coordinate(v) if isinstance(k, str) and _is_latitude_key(k) else _round_latitudes(v)
+            for k, v in value.items()
+        }
+    if isinstance(value, list):
+        return [_round_latitudes(v) for v in value]
+    return value
+
+
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -33,6 +66,6 @@ async def async_get_config_entry_diagnostics(
                 car_json = re.sub(
                     re.escape(identifier), lambda m: loghelper.Mask_VIN(m.group(0)), car_json, flags=re.IGNORECASE
                 )
-        data["cars"].append({masked_vin: json.loads(car_json)})
+        data["cars"].append({masked_vin: _round_latitudes(json.loads(car_json))})
 
     return async_redact_data(data, JSON_EXPORT_IGNORED_KEYS)

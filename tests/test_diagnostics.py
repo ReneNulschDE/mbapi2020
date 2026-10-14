@@ -1,7 +1,8 @@
-"""The diagnostics report must not leak the VIN through values.
+"""The diagnostics report must not leak the VIN or the car's position.
 
 async_redact_data only redacts by key, so a VIN embedded in a value - an
-entity ID in car.sensors, for example - passed through unmasked.
+entity ID in car.sensors, for example - passed through unmasked. The
+latitude is kept but rounded to whole degrees.
 """
 
 from __future__ import annotations
@@ -9,7 +10,7 @@ from __future__ import annotations
 import asyncio
 from types import SimpleNamespace
 
-from custom_components.mbapi2020.car import Car
+from custom_components.mbapi2020.car import Car, CarAttribute, Location
 from custom_components.mbapi2020.const import DOMAIN
 from custom_components.mbapi2020.diagnostics import async_get_config_entry_diagnostics
 from custom_components.mbapi2020.helper import LogHelper as loghelper
@@ -59,3 +60,33 @@ def test_serializing_does_not_write_properties_into_the_car() -> None:
     _diagnostics_for(car)
 
     assert set(vars(car)) == attributes_before
+
+
+def test_latitude_is_rounded_to_whole_degrees() -> None:
+    """Covers positionLat in the parsed location and in the raw last full message."""
+    car = Car(SYNTH_VIN)
+    car.location = Location()
+    car.location.positionLat = CarAttribute(48.737154, "VALID", 1791296971, display_value="48.737154")
+    car.last_full_message = {
+        "attributes": {
+            "positionLat": {"double_value": 48.737154, "display_value": "48.737154", "timestamp": "1791296971"},
+        },
+    }
+
+    car_report = _diagnostics_for(car)["cars"][0][loghelper.Mask_VIN(SYNTH_VIN)]
+
+    location = car_report["location"]["positionLat"]
+    assert (location["value"], location["display_value"], location["timestamp"]) == (49, "49", 1791296971)
+    raw = car_report["last_full_message"]["attributes"]["positionLat"]
+    assert raw == {"double_value": 49, "display_value": "49", "timestamp": "1791296971"}
+    assert "737154" not in str(car_report)
+
+
+def test_keys_that_only_contain_lat_are_left_alone() -> None:
+    """Matching is on latitude keys, not on any key with lat in it."""
+    car = Car(SYNTH_VIN)
+    car.last_full_message = {"attributes": {"precondClimate": {"double_value": 21.5}, "translation": "1.5"}}
+
+    car_report = _diagnostics_for(car)["cars"][0][loghelper.Mask_VIN(SYNTH_VIN)]
+
+    assert car_report["last_full_message"] == car.last_full_message
