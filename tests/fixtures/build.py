@@ -220,3 +220,42 @@ def build_charging_prediction_status_updates(
         update.endofchargetime.value = endofchargetime_minutes
 
     return message
+
+
+def build_rest_vehicleattributes(
+    vin: str = SYNTH_VIN,
+    *,
+    full_update: bool = True,
+    soc: int = 69,
+    electric_range: int = 418,
+    position_lat: float = 48.1,
+    with_window_status: bool = False,
+) -> vehicle_events_pb2.VehicleStatusUpdate:
+    """Build what /v1/vehicle/{vin}/vehicleattributes answers with.
+
+    A bare VehicleStatusUpdate, not wrapped in a PushMessage and not a
+    VEPUpdate: one car, the typed VSU attribute shape, and a narrow set of
+    attributes - position, ranges, soc, tank levels. The endpoint sets
+    full_update even though it reports nothing about doors, windows, locks or
+    charging, which is why the caller has to treat it as a partial update.
+
+    with_window_status adds the individual window attributes, so a test can
+    tell the two branches of the synthetic windowStatusOverall apart.
+    """
+    update = vehicle_events_pb2.VehicleStatusUpdate()
+    update.fin_or_vin = vin
+    update.full_update = full_update
+
+    update.soc.value = soc
+    update.soc.display_value = str(soc)
+    update.rangeelectric.value = electric_range
+    update.position_lat.value = position_lat
+    update.tanklevelpercent.value = 73
+
+    if with_window_status:
+        update.windowstatusfrontleft.value = 2
+        update.windowstatusfrontright.value = 2
+        update.windowstatusrearleft.value = 2
+        update.windowstatusrearright.value = 2
+
+    return update
