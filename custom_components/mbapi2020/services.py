@@ -58,6 +58,32 @@ from .const import (
 )
 
 
+def resolve_config_entry_id(domain, vin: str):
+    """Return the config entry id of the coordinator that manages vin.
+
+    Lives at module scope rather than inside setup_services() so it can be
+    tested without standing up a HomeAssistant instance.
+    """
+    for key in iter(domain):
+        if isinstance(domain[key], DataUpdateCoordinator):
+            coordinator = domain[key]
+            if coordinator.client and coordinator.client.cars:
+                if vin in coordinator.client.cars:
+                    # data_collection_mode is a property building a
+                    # CarAttribute, so it has to be compared on .value - the
+                    # attribute itself never equals a plain string.
+                    if coordinator.client.cars[vin].data_collection_mode.value == "pull":
+                        raise ServiceValidationError(
+                            "The connection to the MB-server is in pull mode currently. "
+                            "Actions can't be executed in this mode."
+                        )
+                    return key
+
+    raise ServiceValidationError(
+        "Given VIN/FIN is not managed by any coordinator or excluded in the integration options."
+    )
+
+
 # The 30 nested service handlers below each count as a decision point in this
 # function, which pushes it past the complexity limit even though the logic here
 # is a flat list of registrations. Verified: the same handlers at module scope
@@ -68,21 +94,7 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
     domain = hass.data[DOMAIN]
 
     def _get_config_entryid(vin: str):
-        for key in iter(domain):
-            if isinstance(domain[key], DataUpdateCoordinator):
-                coordinator = domain[key]
-                if coordinator.client and coordinator.client.cars:
-                    if vin in coordinator.client.cars:
-                        if coordinator.client.cars[vin].data_collection_mode == "pull":
-                            raise ServiceValidationError(
-                                "The connection to the MB-server is in pull mode currently. Actions can't be executed in this mode."
-                            )
-                            continue
-                        return key
-
-        raise ServiceValidationError(
-            "Given VIN/FIN is not managed by any coordinator or excluded in the integration options."
-        )
+        return resolve_config_entry_id(domain, vin)
 
     async def auxheat_configure(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.auxheat_configure(
