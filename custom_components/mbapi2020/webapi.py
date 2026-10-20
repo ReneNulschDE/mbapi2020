@@ -222,15 +222,25 @@ class WebApi:
         return await self._request("get", url, rcp_headers=False, ignore_errors=False, return_as_json=False)
 
     async def get_car_p2b_data_via_rest(self, vin: str):
-        """Get vehicleattributes via rest."""
+        """Get vehicleattributes via rest.
+
+        The widget endpoint answers with a VehicleStatusUpdate - one car, the
+        typed VSU attribute shape - not the legacy VEPUpdate. Parsing it as
+        VEPUpdate still succeeds, because protobuf tolerates fields it does not
+        know, but every single attribute ends up in unknown-field storage and
+        MessageToJson() then returns "{}".
+        """
         url = f"{helper.Widget_url(self._region)}/v1/vehicle/{vin}/vehicleattributes"
 
+        message = None
         try:
             data = await self._request("get", "", url=url, return_as_json=False)
-            message = vehicle_events_pb2.VEPUpdate()
+            message = vehicle_events_pb2.VehicleStatusUpdate()
             message.ParseFromString(data)
         except TypeError as err:
-            LOGGER.error("could not decode data (%s) from websocket: %s", data, err)
+            LOGGER.error("could not decode the vehicleattributes response: %s", err)
+            return None
         except google.protobuf.message.DecodeError as err:
-            LOGGER.error("could not decode data (%s) from websocket: %s", data, err)
+            LOGGER.error("could not decode the vehicleattributes response: %s", err)
+            return None
         return message or None

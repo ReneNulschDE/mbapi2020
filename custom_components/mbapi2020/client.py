@@ -1409,6 +1409,18 @@ class Client:
             "windowstatusrearright",
         ]
 
+        # Without a single real window reading there is nothing to derive an
+        # overall status from, and the fallback below would answer "closed" at
+        # timestamp 0 - a fabricated value that overwrites what the websocket
+        # delivered. The REST endpoints that carry no window data at all must
+        # leave the attribute alone.
+        if not any(attr_name in car_data["attributes"] for attr_name in main_window_attrs):
+            LOGGER.debug(
+                "No individual window status in the REST data for %s - leaving windowStatusOverall unset",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
         # Check individual window statuses
         window_statuses = []
         latest_timestamp = 0
@@ -1476,37 +1488,39 @@ class Client:
 
         self._write_debug_output(data, "rfu")
         # Don't understand the protobuf dict errors --> convert to json
-        vep_json = json.loads(MessageToJson(data, preserving_proto_field_name=True))
+        rest_json = json.loads(MessageToJson(data, preserving_proto_field_name=True))
 
-        # Check if this is a nested vepUpdates structure or a direct VIN structure
-        if "vepUpdates" in vep_json and "updates" in vep_json["vepUpdates"]:
-            # This is a multi-car update structure
-            cars = vep_json["vepUpdates"]["updates"]
-            for vin in cars:
-                if vin in self.excluded_cars:
-                    continue
-                current_car = cars.get(vin)
-                if current_car:
-                    self._build_car(current_car, update_mode=False, is_rest_data=True)
-        else:
-            # This is a single car structure
-            vin = vep_json.get("vin", None)
-            if not vin:
-                LOGGER.debug("No VIN found in VEPUpdate data: %s", vep_json)
-                return
-            self._build_car(vep_json, update_mode=False, is_rest_data=True)
+        # One car per response, in the typed VSU attribute shape - the same
+        # conversion the websocket VSU path uses gets it into the form
+        # _build_car consumes.
+        vin = rest_json.get("fin_or_vin")
+        if not vin:
+            LOGGER.debug("No VIN in the vehicleattributes response")
+            return
+        if vin in self.excluded_cars:
+            LOGGER.debug("CAR excluded: %s", loghelper.Mask_VIN(vin))
+            return
+
+        current_car = normalize_vsu_car(rest_json)
 
         if not self._first_vepupdates_processed:
             self._vepupdates_time_first_message = datetime.now()
             self._first_vepupdates_processed = True
             self._arm_dataload_complete_fallback()
 
-        self._build_car(vep_json, update_mode=False)
+        # Deliberately a partial update, although the message says
+        # full_update: true. That flag refers to the handful of attributes this
+        # endpoint serves (position, ranges, soc, tank levels), not to the
+        # vehicle. Passing it on as a full update would let the attribute
+        # handlers draw conclusions from everything that is absent and reset
+        # the state the websocket had already delivered.
+        self._build_car(current_car, update_mode=True, is_rest_data=True)
+
         if self._dataload_complete_fired:
-            current_car = self.cars.get(vin)
-            if current_car:
-                current_car.data_collection_mode = "pull"
-                current_car.publish_updates()
+            current_car_obj = self.cars.get(vin)
+            if current_car_obj:
+                current_car_obj.data_collection_mode = "pull"
+                current_car_obj.publish_updates()
 
         if not self._dataload_complete_fired:
             fire_complete_event: bool = True
