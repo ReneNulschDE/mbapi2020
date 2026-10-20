@@ -12,6 +12,13 @@ LOGGER = logging.getLogger(__name__)
 
 _WIRE_TYPES = {0: "varint", 1: "fixed64", 2: "length-delimited", 5: "fixed32"}
 
+# A server-side field we do not know yet usually arrives on every message of
+# its kind - field 28 of PushMessage showed up once per pending-command cycle,
+# roughly every 35 seconds. Report each distinct finding once at WARNING and
+# keep the repeats at DEBUG, so the log stays readable without losing the
+# frequency information for anyone running the integration in debug mode.
+_SEEN_UNKNOWN_FIELDS: set[tuple[str, str, int, str]] = set()
+
 
 def _probe_unknown_fields_api() -> bool:
     """Verify that UnknownFields() is actually callable on a real message.
@@ -201,6 +208,62 @@ def _iter_unknown_fields_wire(raw: bytes, descriptor, path: str) -> Iterator[tup
             yield from _iter_unknown_fields_wire(payload, field.message_type, sub_path)
 
 
+def _describe_nested(payload: bytes) -> str:
+    """Best-effort: read an unknown length-delimited payload as a submessage.
+
+    Returns a compact tag listing, or "" when the bytes do not parse cleanly as
+    protobuf. Strings and opaque bytes normally fail that check, which is the
+    point — only a real nested message gets annotated. Saves decoding the hex
+    by hand to find out what a new field actually carries.
+    """
+    if not payload:
+        return ""
+
+    parts: list[str] = []
+    pos = 0
+    end = len(payload)
+    while pos < end:
+        try:
+            tag, pos = _decode_varint(payload, pos)
+        except ValueError:
+            return ""
+        field_number = tag >> 3
+        wire_type = tag & 0x7
+        if field_number == 0:
+            return ""
+
+        if wire_type == 0:
+            try:
+                value, pos = _decode_varint(payload, pos)
+            except ValueError:
+                return ""
+            parts.append(f"{field_number}:varint={value}")
+        elif wire_type == 1:
+            pos += 8
+            parts.append(f"{field_number}:fixed64")
+        elif wire_type == 2:
+            try:
+                length, pos = _decode_varint(payload, pos)
+            except ValueError:
+                return ""
+            pos += length
+            parts.append(f"{field_number}:bytes[{length}]")
+        elif wire_type == 5:
+            pos += 4
+            parts.append(f"{field_number}:fixed32")
+        else:
+            # groups (3/4) are obsolete in proto3 — do not guess
+            return ""
+
+        if pos > end:
+            # truncated: the payload is not a self-contained message
+            return ""
+
+    if not parts:
+        return ""
+    return " nested={" + ", ".join(parts) + "}"
+
+
 def _format_sample(sample: bytes | int | None) -> str:
     if sample is None:
         return ""
@@ -209,7 +272,12 @@ def _format_sample(sample: bytes | int | None) -> str:
     # length-delimited — show hex (limited to a reasonable length so logs stay readable)
     truncated = sample[:64]
     suffix = "…" if len(sample) > 64 else ""
-    return f" payload[{len(sample)}]={truncated.hex()}{suffix}"
+    return f" payload[{len(sample)}]={truncated.hex()}{suffix}{_describe_nested(sample)}"
+
+
+def reset_seen_unknown_fields() -> None:
+    """Forget which unknown fields were already reported (for tests)."""
+    _SEEN_UNKNOWN_FIELDS.clear()
 
 
 def warn_on_unknown_fields_from_bytes(raw: bytes, descriptor, *, label: str) -> int:
@@ -217,7 +285,12 @@ def warn_on_unknown_fields_from_bytes(raw: bytes, descriptor, *, label: str) -> 
     found = 0
     try:
         for path, num, wire, sample in _iter_unknown_fields_wire(raw, descriptor, ""):
-            LOGGER.warning(
+            found += 1
+            key = (label, path, num, wire)
+            first_sighting = key not in _SEEN_UNKNOWN_FIELDS
+            _SEEN_UNKNOWN_FIELDS.add(key)
+            LOGGER.log(
+                logging.WARNING if first_sighting else logging.DEBUG,
                 "Unknown proto field in %s: %s field=%d wire=%s%s — .proto definition incomplete",
                 label,
                 path,
@@ -225,7 +298,6 @@ def warn_on_unknown_fields_from_bytes(raw: bytes, descriptor, *, label: str) -> 
                 wire,
                 _format_sample(sample),
             )
-            found += 1
     except Exception as err:  # noqa: BLE001 - diagnostic must not crash the pipeline
         LOGGER.debug("Wire-format scan failed for %s: %s", label, err)
     return found

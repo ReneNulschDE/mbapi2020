@@ -403,6 +403,14 @@ class Websocket:
 
                 if msg_type == "vehicle_status_updates":
                     diagnose_proto_message(message, data, message.DESCRIPTOR, label=msg_type)
+                elif msg_type is None:
+                    # WhichOneof() returns None when the server filled a oneof
+                    # field our PushMessage does not define: the bytes parse,
+                    # but nothing in them is addressable, so MessageToJson()
+                    # yields "{}" and the message type cannot be named. Reading
+                    # the field number straight off the wire is the only way to
+                    # see what arrived.
+                    diagnose_proto_message(message, data, message.DESCRIPTOR, label="unhandled push message")
 
                 try:
                     ack_message = self._on_data_received(message)
