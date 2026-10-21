@@ -164,7 +164,7 @@ def build_smart_charging_status_updates(
     sequence_number: int = 5,
     location_name: str | None = "Home",
     charging_station_name: str | None = "Garage Wallbox",
-    charging_strategy: str | None = "PRICE_OPTIMIZED_CHARGING",
+    charging_strategy: str | None = "immediate",
     errors: tuple[tuple[str, str], ...] | None = (("UNAVAILABLE_DIRECT_CHARGING_MODE", "MINOR_ERROR"),),
 ) -> vehicle_events_pb2.PushMessage:
     """Build a VSU message carrying the two smart charging objects.

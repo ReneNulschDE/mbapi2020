@@ -307,8 +307,8 @@ positionHeading
 
   - Smart Charging Location - the charging location the car reports, e.g. `Home`
   - Smart Charging Station - the charging station at that location
-  - Smart Charging Strategy - the strategy the provider applies, e.g. `PRICE_OPTIMIZED_CHARGING`.
-    Free text set by the backend, so new values can appear at any time.
+  - Smart Charging Strategy - the charging strategy in use, e.g. `immediate`.
+    Free text set by the backend, so other values can appear at any time.
   - Smart Charging Error - the most severe error the car currently reports, `unknown` when there is none
 
   ```

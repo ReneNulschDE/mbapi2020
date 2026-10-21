@@ -35,7 +35,7 @@ def test_the_information_object_feeds_three_separate_attributes() -> None:
 
     assert electric.smartChargingLocation.value == "Home"
     assert electric.smartChargingStation.value == "Garage Wallbox"
-    assert electric.smartChargingStrategy.value == "PRICE_OPTIMIZED_CHARGING"
+    assert electric.smartChargingStrategy.value == "immediate"
 
 
 def test_a_field_the_vehicle_omits_only_affects_its_own_sensor() -> None:
@@ -49,7 +49,7 @@ def test_a_field_the_vehicle_omits_only_affects_its_own_sensor() -> None:
 
     assert electric.smartChargingStation.value is None
     assert electric.smartChargingLocation.value == "Home"
-    assert electric.smartChargingStrategy.value == "PRICE_OPTIMIZED_CHARGING"
+    assert electric.smartChargingStrategy.value == "immediate"
 
 
 def test_the_error_state_names_the_most_severe_entry_not_the_first() -> None:
