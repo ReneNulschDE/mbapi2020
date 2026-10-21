@@ -1939,6 +1939,77 @@ SENSORS = {
         None,
         0,
     ],
+    "smartcharginglocation": [
+        "Smart Charging Location",
+        None,  # Deprecated: DO NOT USE
+        "electric",
+        "smartChargingLocation",
+        "value",
+        None,
+        {},
+        "mdi:map-marker",
+        None,
+        False,
+        # A normal sensor, not a diagnostic one: the recorder keeps the
+        # history either way, but a diagnostic entity is kept off the
+        # dashboards. state_class stays unset all the same, because the
+        # state is text and long-term statistics need a number.
+        None,
+        None,
+        None,
+        None,
+    ],
+    "smartchargingstation": [
+        "Smart Charging Station",
+        None,  # Deprecated: DO NOT USE
+        "electric",
+        "smartChargingStation",
+        "value",
+        None,
+        {},
+        "mdi:ev-station",
+        None,
+        False,
+        None,
+        None,
+        None,
+        None,
+    ],
+    "smartchargingstrategy": [
+        "Smart Charging Strategy",
+        None,  # Deprecated: DO NOT USE
+        "electric",
+        "smartChargingStrategy",
+        "value",
+        None,
+        {},
+        "mdi:lightning-bolt",
+        None,
+        False,
+        None,
+        None,
+        None,
+        None,
+    ],
+    "smartchargingerror": [
+        "Smart Charging Error",
+        None,  # Deprecated: DO NOT USE
+        "electric",
+        "smartChargingError",
+        "value",
+        None,
+        # The state names the most severe error; every error the vehicle
+        # reports, with its severity, hangs off this sensor. A sensor per error
+        # would come and go with the error itself.
+        {"electric.smartChargingErrorList"},
+        "mdi:alert-circle-outline",
+        None,
+        False,
+        None,
+        None,
+        None,
+        None,
+    ],
     "activeweeklyprofile": [
         "Active weekly profile",
         None,  # Deprecated: DO NOT USE

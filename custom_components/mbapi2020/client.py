@@ -501,6 +501,11 @@ class Client:
             "ignitionstate": self._get_car_values_handle_ignitionstate,
             "nextDepartureTime": self._get_car_values_handle_next_departure_time,
             "precondStatus": self._get_car_values_handle_precond_status,
+            "smartChargingError": self._get_car_values_handle_smart_charging,
+            "smartChargingErrorList": self._get_car_values_handle_smart_charging,
+            "smartChargingLocation": self._get_car_values_handle_smart_charging,
+            "smartChargingStation": self._get_car_values_handle_smart_charging,
+            "smartChargingStrategy": self._get_car_values_handle_smart_charging,
             "temperature_points_frontLeft": self._get_car_values_handle_temperature_points,
             "temperature_points_frontRight": self._get_car_values_handle_temperature_points,
             "temperature_points_rearLeft": self._get_car_values_handle_temperature_points,
@@ -1258,6 +1263,89 @@ class Client:
             # list and the limits, because extra_state_attributes prefers
             # display_value and would otherwise show it instead of the data.
             display_value=display_value,
+            unit=None,
+        )
+
+    # The order the vehicle means, not the order the numbers suggest: the
+    # proto gives MAJOR_ERROR 1, MINOR_ERROR 2 and WARNING 3, so sorting on
+    # the number or the name would put the warning first. A severity this
+    # version does not know sorts last but stays visible in the list.
+    _SMART_CHARGING_SEVERITIES = ("MAJOR_ERROR", "MINOR_ERROR", "WARNING")
+
+    @staticmethod
+    def _smart_charging_severity_rank(error: dict[str, Any]) -> int:
+        """Return the sort rank of one error, most severe first."""
+        severity = error.get("severity")
+        if severity in Client._SMART_CHARGING_SEVERITIES:
+            return Client._SMART_CHARGING_SEVERITIES.index(severity)
+        return len(Client._SMART_CHARGING_SEVERITIES)
+
+    def _get_car_values_handle_smart_charging(self, car_detail, class_instance, option, update, vin: str):
+        """Split the two smart charging objects into the attributes they feed.
+
+        smart_charging_information arrives as one object holding the location,
+        the charging station and the strategy, and smart_charging_error as a
+        list of errors. Neither is usable as a sensor state in that form, so
+        the five attributes are derived here - the same way the weekly profile
+        is split. The keys on the wire are "smartChargingInformation" and
+        "smartChargingError"; only the latter is also an attribute name.
+
+        Both only appear on vehicles whose charging is managed by a provider.
+        A vehicle without it never sends the objects, the handler returns None
+        and no entity is created for them.
+        """
+        is_error = option.startswith("smartChargingError")
+        wire_key = "smartChargingError" if is_error else "smartChargingInformation"
+        curr = car_detail.get("attributes", {}).get(wire_key)
+        if not curr:
+            return None
+
+        # The object can arrive carrying metadata only, because proto3 drops a
+        # value whose fields are all empty - that is how the vehicle reports
+        # it has nothing to say any more. The attributes have to follow it
+        # down, otherwise the sensor keeps naming an error the vehicle has
+        # cleared. A message that omits the object entirely is different: it
+        # reaches the handler as no payload at all and leaves the values
+        # alone.
+        payload = curr.get("value")
+        if not isinstance(payload, dict):
+            payload = {}
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+
+        if not is_error:
+            value = payload.get(
+                {
+                    "smartChargingLocation": "location_name",
+                    "smartChargingStation": "charging_station_name",
+                    "smartChargingStrategy": "charging_strategy",
+                }[option]
+            )
+        else:
+            # Both enums have their unknown value at 0, so the backend drops
+            # the key for it. Defaulting them here keeps every entry the same
+            # shape, otherwise a template would need one expression per
+            # vehicle.
+            errors = [
+                {
+                    "code": entry.get("code") or "UNKNOWN_CODE",
+                    "severity": entry.get("severity") or "UNKNOWN_SEVERITY",
+                }
+                for entry in payload.get("errors") or []
+            ]
+            if option == "smartChargingErrorList":
+                value = errors
+            else:
+                # No entries is not an error: the sensor stays unknown rather
+                # than reporting a state the vehicle did not send.
+                value = min(errors, key=self._smart_charging_severity_rank)["code"] if errors else None
+
+        return CarAttribute(
+            value=value,
+            retrievalstatus=status,
+            timestamp=time_stamp,
+            display_value=None,
             unit=None,
         )
 

@@ -135,6 +135,19 @@ ELECTRIC_OPTIONS = [
     "nextDepartureTime",
     "nextDepartureTimeWeekday",
     "soc",
+    # One wire attribute, three car attributes: smart_charging_information
+    # carries the location, the charging station and the strategy in a single
+    # object, and each of them is a sensor of its own.
+    # _get_car_values_handle_smart_charging splits it. The wire key
+    # "smartChargingInformation" is none of these.
+    "smartChargingLocation",
+    "smartChargingStation",
+    "smartChargingStrategy",
+    # smart_charging_error, a list of errors. The sensor state names the most
+    # severe one; the complete list is an attribute of that sensor, which is
+    # why it is an attribute of its own and has no entity.
+    "smartChargingError",
+    "smartChargingErrorList",
     # One wire attribute, three car attributes: the vehicle sends the whole
     # weekly departure profile as a single nested object, which is of no use as
     # a sensor state. _get_car_values_handle_weekly_profile splits it into the
