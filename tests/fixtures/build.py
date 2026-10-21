@@ -158,6 +158,52 @@ def build_weekly_profile_status_updates(
     return message
 
 
+def build_smart_charging_status_updates(
+    vin: str = SYNTH_VIN,
+    *,
+    sequence_number: int = 5,
+    location_name: str | None = "Home",
+    charging_station_name: str | None = "Garage Wallbox",
+    charging_strategy: str | None = "PRICE_OPTIMIZED_CHARGING",
+    errors: tuple[tuple[str, str], ...] | None = (("UNAVAILABLE_DIRECT_CHARGING_MODE", "MINOR_ERROR"),),
+) -> vehicle_events_pb2.PushMessage:
+    """Build a VSU message carrying the two smart charging objects.
+
+    Fields 276 and 277 only reach vehicles whose charging a provider manages,
+    so none of the test vehicles can produce them.
+
+    A None for one of the three strings leaves it at its proto3 default, which
+    the backend then drops from the payload - a vehicle that names no station
+    looks exactly like this. errors=() keeps the object but reports nothing,
+    errors=None leaves the object out altogether.
+    """
+    message = vehicle_events_pb2.PushMessage()
+    message.vehicle_status_updates.sequence_number = sequence_number
+
+    update = message.vehicle_status_updates.vehicle_status_updates[vin]
+    update.fin_or_vin = vin
+    update.full_update = True
+
+    info = update.smart_charging_information
+    if location_name is not None:
+        info.value.location_name = location_name
+    if charging_station_name is not None:
+        info.value.charging_station_name = charging_station_name
+    if charging_strategy is not None:
+        info.value.charging_strategy = charging_strategy
+    info.metadata.timestamp.FromJsonString("2026-10-21T08:30:00Z")
+
+    if errors is not None:
+        wrapper = update.smart_charging_error
+        wrapper.metadata.timestamp.FromJsonString("2026-10-21T08:30:00Z")
+        for code, severity in errors:
+            entry = wrapper.value.errors.add()
+            entry.code = entry.Code.Value(code)
+            entry.severity = entry.Severity.Value(severity)
+
+    return message
+
+
 def roundtrip(message: vehicle_events_pb2.PushMessage) -> vehicle_events_pb2.PushMessage:
     """Serialise and re-parse, the way websocket.py does on a live frame.
 

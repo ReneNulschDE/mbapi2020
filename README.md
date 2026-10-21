@@ -296,6 +296,44 @@ positionHeading
 
   ```
 
+- Smart Charging
+
+  Four sensors for cars whose charging is managed by a provider. A car without that
+  setup never sends the data, and the sensors are then not created at all.
+
+  ```
+  Internal Names: smartcharginglocation, smartchargingstation, smartchargingstrategy, smartchargingerror
+  ```
+
+  - Smart Charging Location - the charging location the car reports, e.g. `Home`
+  - Smart Charging Station - the charging station at that location
+  - Smart Charging Strategy - the strategy the provider applies, e.g. `PRICE_OPTIMIZED_CHARGING`.
+    Free text set by the backend, so new values can appear at any time.
+  - Smart Charging Error - the most severe error the car currently reports, `unknown` when there is none
+
+  ```
+  Values of Smart Charging Error:
+  UNKNOWN_CODE
+  UNAVAILABLE_WITHOUT_OPTIMIZATION
+  UNAVAILABLE_DIRECT_CHARGING_MODE
+  UNAVAILABLE_MISSING_VEHICLE_CONNECTION
+
+  attributes:
+  smartChargingErrorList
+  ```
+
+  The car can report more than one error at once. The state names the most severe of them -
+  `MAJOR_ERROR` before `MINOR_ERROR` before `WARNING` - while `smartChargingErrorList` keeps all
+  of them with their severity:
+
+  ```yaml
+  smartChargingErrorList:
+    - code: UNAVAILABLE_MISSING_VEHICLE_CONNECTION
+      severity: MAJOR_ERROR
+    - code: UNAVAILABLE_WITHOUT_OPTIMIZATION
+      severity: WARNING
+  ```
+
 ### Diagnostic Sensors
 
 [Diagnostic sensors](https://www.home-assistant.io/blog/2021/11/03/release-202111/#entity-categorization) are hidden by default, check the devices page to see the current values
