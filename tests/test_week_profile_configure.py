@@ -341,6 +341,41 @@ def test_the_entry_limit_of_the_car_is_respected() -> None:
         _call(client, "add", time=datetime.timedelta(hours=7))
 
 
+@pytest.mark.parametrize(
+    ("user_limit", "overall_limit", "rejected"),
+    [
+        (None, None, False),
+        (None, -1, False),
+        (0, -1, False),
+        (-1, -1, False),
+        (0, 0, False),
+        (-1, 0, False),
+        (-1, 2, True),
+        (0, 2, True),
+        (None, 2, True),
+        (3, 2, False),
+        (2, -1, True),
+    ],
+)
+def test_only_positive_entry_limits_are_enforced(
+    user_limit: int | None, overall_limit: int | None, rejected: bool
+) -> None:
+    """Ignore unavailable limits while retaining positive capacity checks."""
+    client, sent = _prepared_client()
+    profile = client.cars[SYNTH_VIN].electric.weeklyProfileRaw.value
+    profile["max_number_of_time_profiles_user"] = user_limit
+    profile["max_number_of_time_profiles"] = overall_limit
+
+    if rejected:
+        with pytest.raises(ServiceValidationError, match="at most 2 weekly profile entries"):
+            _call(client, "add", time=datetime.timedelta(hours=7))
+        assert sent == []
+        assert client.cars[SYNTH_VIN].electric.weeklyProfileRaw.value is profile
+    else:
+        _call(client, "add", time=datetime.timedelta(hours=7))
+        assert len(_entries(sent)) == 3
+
+
 # --- the state the command builds on ---
 
 

@@ -2106,11 +2106,16 @@ class Client:
                 f"{sorted(entry for entry in known if entry is not None)}.{pending}"
             )
 
-        # max_number_of_time_profiles_user is the limit for the entries a user
-        # may add; vehicles that do not report it leave it at zero, and the
-        # overall limit applies.
-        limit = int(profile.get("max_number_of_time_profiles_user") or 0) or int(
-            profile.get("max_number_of_time_profiles") or 0
+        # Only positive values specify a capacity. Some vehicles report -1
+        # for the entry limits. Prefer a positive user limit, falling back
+        # to a positive overall entry limit.
+        limit = next(
+            (
+                value
+                for key in ("max_number_of_time_profiles_user", "max_number_of_time_profiles")
+                if (value := int(profile.get(key) or 0)) > 0
+            ),
+            0,
         )
         if operation == "add" and limit and len(entries) >= limit:
             raise ServiceValidationError(
