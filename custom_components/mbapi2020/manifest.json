@@ -1,6 +1,7 @@
 {
   "domain": "mbapi2020",
   "name": "MercedesME 2020",
+  "categories": ["vehicles_transport.cars_evs", "energy.solar_batteries"],
   "codeowners": ["@ReneNulschDE"],
   "config_flow": true,
   "dependencies": [],
@@ -10,5 +11,5 @@
   "issue_tracker": "https://github.com/ReneNulschDE/mbapi2020/issues",
   "loggers": ["custom_components.mbapi2020"],
   "requirements": ["protobuf>=3.19.5"],
-  "version": "0.43.0"
+  "version": "0.43.1"
 }
