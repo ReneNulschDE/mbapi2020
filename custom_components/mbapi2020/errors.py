@@ -21,6 +21,10 @@ class MBAuthError(ConfigEntryAuthFailed):
     """Define an error related to authentication."""
 
 
+class MBAuthTemporaryError(MbapiError):
+    """Define an auth server failure that says nothing about the credentials."""
+
+
 class MBAuth2FAError(ConfigEntryAuthFailed):
     """Define an error related to two-factor authentication (2FA)."""
 
