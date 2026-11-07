@@ -18,7 +18,7 @@ import aiohttp
 from aiohttp import ClientSession
 
 from custom_components.mbapi2020.app_version import AppVersionManager
-from custom_components.mbapi2020.errors import MBAuth2FAError, MBAuthError, MBLegalTermsError
+from custom_components.mbapi2020.errors import MBAuth2FAError, MBAuthError, MBAuthTemporaryError, MBLegalTermsError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
@@ -40,6 +40,7 @@ from .helper import LogHelper, UrlHelper as helper
 
 _LOGGER = logging.getLogger(__name__)
 
+AUTH_REJECTED_CODES = (400, 401, 403)
 GATEWAY_ERROR_CODES = (502, 503, 504)
 LOGIN_MAX_ATTEMPTS = 3
 LOGIN_RETRY_BACKOFF_SECONDS = 5
@@ -611,7 +612,7 @@ class Oauth:
             self._session = async_create_clientsession(self._hass, verify_ssl=VERIFY_SSL, cookie_jar=cookie_jar)
 
         async with self._session.request(method, url, data=data, **kwargs) as resp:
-            if 400 <= resp.status <= 500:
+            if resp.status >= 400:
                 try:
                     error = await resp.text()
                     error_json = json.loads(error)
@@ -621,6 +622,12 @@ class Oauth:
                         error_message = f"Error requesting: {url} - 0 - {error}"
                 except (json.JSONDecodeError, KeyError):
                     error_message = f"Error requesting: {url} - 0 - {error}"
+
+                if resp.status not in AUTH_REJECTED_CODES:
+                    # Keep the stored token: a 404 or 5xx does not mean it was rejected, and the
+                    # response can be a whole HTML error page.
+                    _LOGGER.debug(error_message)
+                    raise MBAuthTemporaryError(f"Temporary error requesting: {url} - HTTP {resp.status}")
 
                 _LOGGER.error(error_message)
                 raise MBAuthError(error_message)

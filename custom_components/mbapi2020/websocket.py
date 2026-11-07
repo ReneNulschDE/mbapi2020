@@ -28,6 +28,7 @@ from .const import (
     VERIFY_SSL,
     WEBSOCKET_USER_AGENT,
 )
+from .errors import MBAuthError
 from .helper import LogHelper as loghelper, UrlHelper as helper, Watchdog
 from .oauth import Oauth
 from .proto import vehicle_events_pb2
@@ -559,6 +560,9 @@ class Websocket:
         session = async_get_clientsession(self._hass, VERIFY_SSL)
         await self._app_version.async_refresh(session)
         token = await self.oauth.async_get_cached_token()
+        if token is None:
+            raise MBAuthError("No valid token available - reauth required")
+
         header = {
             "Authorization": token["access_token"],
             "APP-SESSION-ID": self.session_id,

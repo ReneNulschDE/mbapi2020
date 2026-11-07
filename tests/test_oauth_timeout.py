@@ -14,7 +14,8 @@ from custom_components.mbapi2020.app_version import AppVersionManager
 from custom_components.mbapi2020.const import REGION_EUROPE
 from custom_components.mbapi2020.errors import MBAuthError
 from custom_components.mbapi2020.oauth import Oauth
-from homeassistant.exceptions import ConfigEntryNotReady
+from custom_components.mbapi2020.websocket import Websocket
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
 EXPIRED_TOKEN = {"access_token": "expired-test-token", "refresh_token": "test-refresh-token", "expires_at": 0}
 TOKEN_RESPONSE = {"access_token": "new-test-token", "expires_in": 3600}
@@ -105,6 +106,77 @@ def test_setup_timeout_preserves_credentials_and_allows_retry(stage: str) -> Non
         hass.config_entries.async_update_entry.assert_called_once()
 
     asyncio.run(run())
+
+
+def make_error_context(status: int, body: str) -> MagicMock:
+    """Return a failed response without network I/O."""
+    context = make_context({})
+    response = context.__aenter__.return_value
+    response.status = status
+    response.text = AsyncMock(return_value=body)
+    return context
+
+
+@pytest.mark.parametrize("status", [404, 429, 500, 503])
+def test_temporary_refresh_failure_keeps_token_and_retries_setup(status: int) -> None:
+    """A token endpoint outage must not read as a rejected token."""
+    session = make_session()
+    session.request.side_effect = [
+        make_context({}),
+        make_error_context(status, "<html>error page</html>"),
+        make_context({}),
+        make_context(TOKEN_RESPONSE),
+    ]
+    oauth, hass, entry = make_oauth(session)
+    coordinator = SimpleNamespace(client=SimpleNamespace(oauth=oauth, set_rlock_mode=AsyncMock()))
+
+    async def run() -> None:
+        """Exercise the failed refresh and the following retry in one event loop."""
+        with (
+            patch("custom_components.mbapi2020.MBAPI2020DataUpdateCoordinator", return_value=coordinator),
+            pytest.raises(ConfigEntryNotReady),
+        ):
+            await async_setup_entry(hass, entry)
+
+        assert entry.data["token"] == EXPIRED_TOKEN
+        hass.config_entries.async_update_entry.assert_not_called()
+        result = await asyncio.wait_for(oauth.async_get_cached_token(), timeout=1)
+        assert result["access_token"] == "new-test-token"
+
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize("status", [400, 401, 403])
+def test_rejected_refresh_still_requires_reauth(status: int) -> None:
+    """A refresh token the server really rejects still ends in a reauth."""
+    session = make_session()
+    session.request.side_effect = [
+        make_context({}),
+        make_error_context(status, '{"code":"invalid_grant","errors":[]}'),
+    ]
+    oauth, hass, entry = make_oauth(session)
+    coordinator = SimpleNamespace(client=SimpleNamespace(oauth=oauth, set_rlock_mode=AsyncMock()))
+
+    with (
+        patch("custom_components.mbapi2020.MBAPI2020DataUpdateCoordinator", return_value=coordinator),
+        pytest.raises(ConfigEntryAuthFailed),
+    ):
+        asyncio.run(async_setup_entry(hass, entry))
+
+
+def test_websocket_headers_raise_auth_error_without_token() -> None:
+    """A missing token is reported as such, not as a TypeError on None."""
+    oauth = SimpleNamespace(async_get_cached_token=AsyncMock(return_value=None))
+    socket = Websocket.__new__(Websocket)
+    socket.oauth = oauth
+    socket._hass = MagicMock()  # noqa: SLF001
+    socket._app_version = SimpleNamespace(async_refresh=AsyncMock())  # noqa: SLF001
+
+    with (
+        patch("custom_components.mbapi2020.websocket.async_get_clientsession"),
+        pytest.raises(MBAuthError),
+    ):
+        asyncio.run(socket._websocket_connection_headers())  # noqa: SLF001
 
 
 def test_setup_cancellation_is_not_converted_to_retry() -> None:

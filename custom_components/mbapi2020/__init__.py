@@ -26,7 +26,7 @@ from custom_components.mbapi2020.const import (
     SensorConfigFields as scf,
 )
 from custom_components.mbapi2020.coordinator import MBAPI2020DataUpdateCoordinator
-from custom_components.mbapi2020.errors import WebsocketError
+from custom_components.mbapi2020.errors import MBAuthTemporaryError, WebsocketError
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
 from homeassistant.config_entries import ConfigEntry
@@ -186,7 +186,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         try:
             token_info = await coordinator.client.oauth.async_get_cached_token()
-        except (aiohttp.ClientError, TimeoutError) as err:
+        except (aiohttp.ClientError, TimeoutError, MBAuthTemporaryError) as err:
             LOGGER.warning("Can not connect to MB OAuth API %s. Will try again.", LOGIN_BASE_URI)
             LOGGER.debug("Can not connect to MB OAuth API %s. Will try again. %s", LOGIN_BASE_URI, err)
             raise ConfigEntryNotReady from err
