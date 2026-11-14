@@ -227,7 +227,9 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
         )
 
     async def preheat_stop(call) -> None:
-        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.preheat_stop(call.data.get(CONF_VIN))
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.preheat_stop_universal(
+            call.data.get(CONF_VIN)
+        )
 
     async def preheat_stop_departure_time(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.preheat_stop_departure_time(

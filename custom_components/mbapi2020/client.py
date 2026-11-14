@@ -75,6 +75,13 @@ LOGGER = logging.getLogger(__name__)
 DEBUG_SIMULATE_PARTIAL_UPDATES_ONLY = False
 GEOFENCING_MAX_RETRIES = 1
 
+# Head units for which the vendor app always starts and stops the climate
+# control with the "now" type, whatever the car reports.
+PRECOND_ALWAYS_NOW_HEAD_UNITS = frozenset({"NTG7", "GEN20XI2", "GEN20XI3", "GEN20XMAXI2"})
+# On the other head units the app starts a car without a precondNow state by
+# setting a departure time this far ahead.
+PRECOND_DEPARTURE_LEAD_MINUTES = 15
+
 # Fallback delay: create the entities even if not every car reported a full data set
 DATALOAD_COMPLETE_FALLBACK_DELAY = 30
 
@@ -2983,11 +2990,59 @@ class Client:
         LOGGER.info("End preheat_start_immediate for vin %s", loghelper.Mask_VIN(vin))
 
     async def preheat_start_universal(self, vin: str) -> None:
-        """Turn on preheat universally for any car model."""
-        if self._is_car_feature_available(vin, "precondNow"):
+        """Turn on preheat with the start type the vendor app would pick.
+
+        Cars with a current head unit, and cars that report a precondNow
+        state, take the "now" start. The others do not react to it: for them
+        the app sets a departure time a quarter of an hour ahead.
+        """
+        if self._precond_always_now(vin) or self._precond_attribute_active(vin, "precondNow") is not None:
             await self.preheat_start(vin)
         else:
-            await self.preheat_start_immediate(vin)
+            await self.preheat_start_departure_time(vin, self._precond_departure_time_from_now())
+
+    async def preheat_stop_universal(self, vin: str) -> None:
+        """Turn off preheat with the stop type the vendor app would pick.
+
+        On the older head units a running departure preconditioning has to be
+        stopped as such, and it takes precedence over a running "now" one.
+        """
+        if self._precond_always_now(vin):
+            precond_type = pb2_commands.ZEVPreconditioningType.now
+        elif self._precond_attribute_active(vin, "precondActive"):
+            precond_type = pb2_commands.ZEVPreconditioningType.departure
+        elif self._precond_attribute_active(vin, "precondNow"):
+            precond_type = pb2_commands.ZEVPreconditioningType.now
+        else:
+            precond_type = pb2_commands.ZEVPreconditioningType.unknown_zev_preconditioning_command_type
+        await self.preheat_stop(vin, precond_type)
+
+    def _precond_always_now(self, vin: str) -> bool:
+        """Return whether the car starts and stops preconditioning as "now" regardless of its state."""
+        if self._is_car_feature_available(vin, "precondNow"):
+            return True
+        car = self.cars.get(vin)
+        head_unit = (getattr(car, "vehicle_information", None) or {}).get("headUnitType")
+        return head_unit in PRECOND_ALWAYS_NOW_HEAD_UNITS
+
+    def _precond_attribute_active(self, vin: str, attribute_name: str) -> bool | None:
+        """Return whether a preconditioning attribute is active, or None if the car reports no valid state."""
+        attribute = getattr(getattr(self.cars.get(vin), "precond", None), attribute_name, None)
+        if not isinstance(attribute, CarAttribute) or attribute.retrievalstatus != "VALID":
+            return None
+        value = attribute.value
+        if isinstance(value, str):
+            return value.lower() in ("true", "1", "active")
+        try:
+            return int(value) > 0
+        except (TypeError, ValueError):
+            return False
+
+    @staticmethod
+    def _precond_departure_time_from_now() -> int:
+        """Return the local time in minutes after midnight, a quarter of an hour ahead."""
+        now = dt_util.now()
+        return (now.hour * 60 + now.minute + PRECOND_DEPARTURE_LEAD_MINUTES) % 1440
 
     async def preheat_start_departure_time(self, vin: str, departure_time: int):
         """Send a preconditioning start by time command to the car."""
@@ -3010,7 +3065,7 @@ class Client:
         await self.execute_car_command(message)
         LOGGER.info("End preheat_start_departure_time for vin %s", loghelper.Mask_VIN(vin))
 
-    async def preheat_stop(self, vin: str):
+    async def preheat_stop(self, vin: str, precond_type: int = pb2_commands.ZEVPreconditioningType.now):
         """Send a preconditioning stop command to the car."""
         LOGGER.info("Start preheat_stop for vin %s", loghelper.Mask_VIN(vin))
 
@@ -3024,7 +3079,7 @@ class Client:
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.zev_preconditioning_stop.type = pb2_commands.ZEVPreconditioningType.now
+        message.commandRequest.zev_preconditioning_stop.type = precond_type
 
         await self.execute_car_command(message)
         LOGGER.info("End preheat_stop for vin %s", loghelper.Mask_VIN(vin))

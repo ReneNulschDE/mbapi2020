@@ -40,7 +40,7 @@ SWITCH_DESCRIPTIONS: list[MercedesMeSwitchEntityDescription] = [
         icon="mdi:hvac",
         is_on_fn=lambda self: self._get_car_value("precond", "precondStatus", "value", default_value=False),
         turn_on_fn=lambda self, **kwargs: self._coordinator.client.preheat_start_universal(self._vin),
-        turn_off_fn=lambda self, **kwargs: self._coordinator.client.preheat_stop(self._vin),
+        turn_off_fn=lambda self, **kwargs: self._coordinator.client.preheat_stop_universal(self._vin),
         check_capability_fn=lambda car: car.check_capabilities(
             ["ZEV_PRECONDITIONING_START", "ZEV_PRECONDITIONING_STOP"]
         ),
