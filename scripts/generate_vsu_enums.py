@@ -64,7 +64,6 @@ _ENUM_TYPES = (
     "proto.ChargingPowerRestriction",
     "proto.ChargingScheduleActive.ChargingScheduleActiveOfflineMode",
     "proto.ChargingScheduleActive.ChargingScheduleActiveUseCaseId",
-    "proto.ChargingScheduleRequested.ChargingScheduleUseCaseId",
     "proto.ChargingScheduleUseCaseId",
     "proto.ChargingStopErrorDetails",
     "proto.ChargingTimerEntry.ChargingTimerAction",
