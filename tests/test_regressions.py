@@ -12,9 +12,11 @@ synthetic fixtures are sound; these assume that.
 from __future__ import annotations
 
 import ast
+from types import SimpleNamespace
 
 import pytest
 
+from custom_components.mbapi2020 import MercedesMeEntity
 from custom_components.mbapi2020.car import Car
 
 from .conftest import REPO_ROOT, SYNTH_VIN, make_client
@@ -234,3 +236,44 @@ def test_shutdown_task_is_held_in_a_reference() -> None:
     assert "loop.create_task(self._graceful_shutdown" not in source, (
         "the shutdown task is still created without being stored"
     )
+
+
+# --- 6. MB.OS head units report their software version in the Raw field ---
+
+
+@pytest.mark.parametrize(
+    ("vehicle_information", "expected"),
+    [
+        # MB.OS: the plain field is null, the version is only in the Raw field
+        (
+            {"headUnitType": "GEN20XI3", "headUnitSoftwareVersion": None, "headUnitSoftwareVersionRaw": "2.1.0"},
+            "2.1.0 - GEN20XI3",
+        ),
+        # A car that fills the plain field keeps it, even when Raw is sent too
+        (
+            {"headUnitType": "NTG7", "headUnitSoftwareVersion": "1.2.3", "headUnitSoftwareVersionRaw": "9.9.9"},
+            "1.2.3 - NTG7",
+        ),
+        # Neither field filled: no literal "None" in the device registry
+        (
+            {"headUnitType": "GEN20XI3", "headUnitSoftwareVersion": None, "headUnitSoftwareVersionRaw": None},
+            " - GEN20XI3",
+        ),
+        # Capabilities request failed, vehicle_information stays empty
+        ({}, " - "),
+    ],
+    ids=["mbos-raw-only", "plain-wins", "both-null", "no-capabilities"],
+)
+def test_device_sw_version_falls_back_to_the_raw_head_unit_version(vehicle_information: dict, expected: str) -> None:
+    """MB.OS cars send headUnitSoftwareVersion as null.
+
+    The version is only in headUnitSoftwareVersionRaw, so the device page
+    showed "None - GEN20XI3" instead of the software version.
+    """
+    car = Car(SYNTH_VIN)
+    car.vehicle_information = vehicle_information
+    entity = SimpleNamespace(_vin=SYNTH_VIN, _car=car)
+
+    device_info = MercedesMeEntity.device_info.fget(entity)
+
+    assert device_info["sw_version"] == expected

@@ -430,12 +430,19 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
     @property
     def device_info(self) -> DeviceInfo:
         """Device information."""
+        # MB.OS head units (e.g. GEN20XI3) report headUnitSoftwareVersion as null
+        # and put the version into headUnitSoftwareVersionRaw only.
+        head_unit_version = (
+            self._car.vehicle_information.get("headUnitSoftwareVersion")
+            or self._car.vehicle_information.get("headUnitSoftwareVersionRaw")
+            or ""
+        )
         return DeviceInfo(
             identifiers={(DOMAIN, self._vin)},
             manufacturer=ATTR_MB_MANUFACTURER,
             model=self._car.baumuster_description,
             name=self._car.licenseplate,
-            sw_version=f"{self._car.vehicle_information.get('headUnitSoftwareVersion', '')} - {self._car.vehicle_information.get('headUnitType', '')}",
+            sw_version=f"{head_unit_version} - {self._car.vehicle_information.get('headUnitType', '')}",
             hw_version=f"{self._car.vehicle_information.get('starArchitecture', '')} - {self._car.vehicle_information.get('tcuType', '')}",
         )
 
