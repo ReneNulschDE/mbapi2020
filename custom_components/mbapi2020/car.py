@@ -110,6 +110,7 @@ ELECTRIC_OPTIONS = [
     "chargePrograms",
     "chargingactive",
     "chargingBreakClockTimer",
+    "chargingTimer",
     "chargingstatus",
     "chargingPower",
     "chargingPowerEcoLimit",
@@ -127,6 +128,7 @@ ELECTRIC_OPTIONS = [
     "electricRatioOverall",
     "endofchargetime",
     "endofChargeTimeWeekday",
+    "chargingPredictionMaxSocRange",
     "selectedChargeProgram",
     "maxrange",
     "maxSocLowerLimit",
@@ -209,10 +211,14 @@ PRE_COND_OPTIONS = [
     "precondSeatRearLeft",
     "precondSeatRearRight",
     "temperature_points_frontLeft",
+    "temperature_points_frontLeftActive",
     "temperature_points_frontCenter",
     "temperature_points_frontRight",
+    "temperature_points_frontRightActive",
     "temperature_points_rearLeft",
+    "temperature_points_rearLeftActive",
     "temperature_points_rearRight",
+    "temperature_points_rearRightActive",
 ]
 
 RemoteStart_OPTIONS = ["remoteEngine", "remoteStartEndtime", "remoteStartTemperature"]
@@ -391,6 +397,17 @@ class Car:
     def check_capabilities(self, required_capabilities: list[str]) -> bool:
         """Check if the car has the required capabilities."""
         return any(self.features.get(capability) is True for capability in required_capabilities)
+
+    def can_move_windows(self) -> bool:
+        """Return whether variable window positioning is supported.
+
+        Respect an explicit WINDOWS_MOVE command capability when present, even if
+        variableOpenableWindow is true; only fall back to variableOpenableWindow
+        when WINDOWS_MOVE is missing (for example when /commands returned 401).
+        """
+        if "WINDOWS_MOVE" in self.features:
+            return self.features["WINDOWS_MOVE"] is True
+        return self.features.get("variableOpenableWindow") is True
 
 
 @dataclass(init=False)
