@@ -79,6 +79,18 @@ _VSU_DEFAULT_OMITTED_VALUES: dict[str, bool | int] = {
     "precondOperatingMode": 0,
 }
 
+# Attributes whose ``value`` is a google.protobuf.Timestamp. MessageToJson
+# renders it as an ISO-8601 string; the legacy consumers (sensor.py does
+# ``datetime.fromtimestamp(int(value))``) expect epoch seconds.
+_VSU_TIMESTAMP_VALUE_KEYS: frozenset[str] = frozenset(
+    {
+        "exteriorMonitoringLastEvent",
+        "interiorMonitoringLastEvent",
+        "lastParkEvent",
+        "lastTheftWarning",
+    }
+)
+
 
 def _snake_to_camel(name: str) -> str:
     """Convert snake_case to camelCase.
@@ -121,6 +133,12 @@ def _normalize_value(legacy_key: str, value: Any, legacy: dict[str, Any]) -> Non
     """
     if value is None:
         return
+
+    if legacy_key in _VSU_TIMESTAMP_VALUE_KEYS and isinstance(value, str):
+        epoch_seconds = _iso_to_epoch_seconds(value)
+        if epoch_seconds is None:
+            return
+        value = epoch_seconds
 
     if legacy_key == "chargeFlaps" and isinstance(value, list):
         legacy["charge_flaps"] = {"entries": value}
