@@ -513,7 +513,7 @@
     },
     "charging_break_clocktimer_configure": {
       "name": "Configurar temporizador de pausa de carga",
-      "description": "Configurar pausas de carga (solo AC). Esto sobrescribirá la configuración completa para todos los slots en tu coche.",
+      "description": "Configurar pausas de carga (solo AC) o temporizadores horarios de carga. En las pausas de carga clásicas esto sobrescribe todos los slots.",
       "fields": {
         "vin": {
           "name": "Vin",
@@ -568,6 +568,52 @@
           "description": "Hora de fin de la ventana de pausa de carga (Temporizador 4)"
         }
       }
+    },
+    "week_profile_configure": {
+      "name": "Configurar perfil semanal",
+      "description": "Añadir, modificar o eliminar una entrada del perfil semanal de salida. El vehículo reemplaza todo su perfil en cada llamada; las entradas no indicadas se reenvían sin cambios.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin del coche"
+        },
+        "operation": {
+          "name": "Operación",
+          "description": "Acción a realizar sobre la entrada. Añadir no requiere identificador; modificar y eliminar sí."
+        },
+        "identifier": {
+          "name": "Entrada",
+          "description": "Identificador de la entrada según el sensor de perfil semanal activo."
+        },
+        "time": {
+          "name": "Hora",
+          "description": "Hora de salida de la entrada. Obligatoria al añadir una entrada, opcional al modificarla."
+        },
+        "days": {
+          "name": "Días de la semana",
+          "description": "Días de la semana a los que aplica la entrada."
+        },
+        "active": {
+          "name": "Activo",
+          "description": "Indica si el vehículo aplica esta entrada"
+        },
+        "charging": {
+          "name": "Carga",
+          "description": "Cargar el vehículo para esta entrada."
+        },
+        "precond": {
+          "name": "Preclimatización",
+          "description": "Preclimatizar el habitáculo para esta entrada."
+        },
+        "battery_precond": {
+          "name": "Acondicionamiento de batería",
+          "description": "Acondicionar la batería de alto voltaje para esta entrada."
+        },
+        "schedule_type": {
+          "name": "Repetición",
+          "description": "Indica si la entrada se repite. Se deriva de los días de la semana si se deja vacío."
+        }
+      }
     }
   },
   "entity": {
@@ -580,6 +626,54 @@
       },
       "doorlockstatusdecklid": {
         "name": "Bloqueo de la tapa del maletero"
+      },
+      "precondavailable": {
+        "name": "Preclimatización disponible",
+        "state_attributes": {
+          "precondoperabilitystate": {
+            "name": "Estado de operatividad de preclimatización",
+            "state": {
+              "0": "Sin errores",
+              "1": "Protección contra uso repetido",
+              "2": "Sin presupuesto de energía disponible",
+              "3": "Presupuesto de energía bajo",
+              "4": "Sistema no disponible",
+              "5": "Preclimatización cancelada",
+              "6": "Climatización normal activa"
+            }
+          }
+        }
+      },
+      "sohcalibrationrequired": {
+        "name": "Calibración SoH requerida"
+      },
+      "tcuthermoshutdown": {
+        "name": "Apagado térmico TCU"
+      },
+      "tirewarninglamp": {
+        "state_attributes": {
+          "tirewarninglevelprw": {
+            "name": "Nivel de aviso de neumáticos PRW",
+            "state": {
+              "0": "Sin advertencia",
+              "1": "Advertencia",
+              "2": "Acudir al taller"
+            }
+          },
+          "tiresensoravailable": {
+            "name": "Sensores de neumáticos disponibles",
+            "state": {
+              "0": "Todos los sensores localizados",
+              "1": "Faltan de uno a tres sensores",
+              "2": "Faltan todos los sensores",
+              "3": "Error del sistema",
+              "4": "Error de autolocalización"
+            }
+          }
+        }
+      },
+      "trackingstatehu": {
+        "name": "Estado de localización"
       }
     },
     "sensor": {
@@ -817,11 +911,13 @@
         }
       },
       "selectedchargeprogram": {
+        "name": "Programa de carga seleccionado",
         "state": {
           "0": "Estándar",
+          "1": "Instantáneo",
           "2": "Casa",
           "3": "Trabajo",
-          "4": "No compatible"
+          "4": "Estándar AC/DC"
         }
       },
       "windowstatusrearleft": {
@@ -863,6 +959,376 @@
           "4": "Posición intermedia de ventilación",
           "5": "En movimiento"
         }
+      },
+      "chargingcompatibilityerror": {
+        "name": "Compatibilidad de carga",
+        "state": {
+          "0": "Estándar",
+          "1": "Compatibilidad total",
+          "2": "Compatibilidad total con hardware adicional",
+          "3": "Compatibilidad parcial",
+          "4": "Compatibilidad parcial con dispositivo adicional",
+          "5": "No compatible",
+          "6": "Descarga bidireccional no compatible",
+          "7": "Corriente mínima EVSE"
+        }
+      },
+      "chargingerrordetails": {
+        "name": "Detalles de error de carga",
+        "state": {
+          "0": "Sin errores",
+          "1": "Error al desbloquear toma de carga",
+          "2": "Fallo en EVSE, cambie de estación de carga",
+          "3": "Fallo en EVSE, avería en estación de carga",
+          "4": "Tipo de carga no disponible",
+          "5": "Error al desbloquear toma CHAdeMO",
+          "6": "Fallo de componente interno DC",
+          "7": "Fallo de componente interno AC",
+          "8": "Autenticación fallida",
+          "9": "Reservado (9)",
+          "10": "Reservado (10)",
+          "11": "Reservado (11)",
+          "12": "Reservado (12)",
+          "13": "Reservado (13)",
+          "14": "Sin información o mensaje de error",
+          "15": "Fallo en el sistema de carga",
+          "16": "Fallo de carga DC",
+          "17": "Fallo de carga AC",
+          "18": "Reconecte el cable de carga",
+          "19": "EVSE no responde, reconecte",
+          "20": "EVSE no responde, use otra autenticación",
+          "21": "EVSE no responde, fallo en EVSE",
+          "22": "EVSE no responde, pruebe otra estación",
+          "23": "Apagado iniciado por el vehículo, límite de uso alcanzado",
+          "24": "Certificado Plug & Charge no válido",
+          "25": "Error de carga desconocido",
+          "26": "Error NACS, estación de carga no compatible",
+          "27": "Protección contra uso repetido activa"
+        },
+        "state_attributes": {
+          "chargingcompatibilityerror": {
+            "name": "Compatibilidad de carga",
+            "state": {
+              "0": "Estándar",
+              "1": "Compatibilidad total",
+              "2": "Compatibilidad total con hardware adicional",
+              "3": "Compatibilidad parcial",
+              "4": "Compatibilidad parcial con dispositivo adicional",
+              "5": "No compatible",
+              "6": "Descarga bidireccional no compatible",
+              "7": "Corriente mínima EVSE"
+            }
+          },
+          "chargingcouplererrordetails": {
+            "name": "Detalles de error del conector de carga",
+            "state": {
+              "0": "Sin información o mensaje de error",
+              "1": "Alivie la tensión del conector y reintente",
+              "2": "Contacte con asistencia para desbloqueo de emergencia",
+              "3": "Desconecte y vuelva a conectar el cable",
+              "4": "Fallo en el bloqueo del conector de carga"
+            }
+          },
+          "chargingerrorimpossiblechangeto400v": {
+            "name": "Imposible cambiar a 400V",
+            "state": {
+              "0": "Sin información",
+              "1": "400V imposible, bloqueado en 800V"
+            }
+          },
+          "chargingerrorimpossiblechangeto800v": {
+            "name": "Imposible cambiar a 800V",
+            "state": {
+              "0": "Sin información",
+              "1": "800V imposible, bloqueado en 400V"
+            }
+          },
+          "chargingerrorvehiclenosupport400v": {
+            "name": "Error de soporte de 400V del vehículo",
+            "state": {
+              "0": "Sin información",
+              "1": "Carga a 400V no disponible"
+            }
+          },
+          "chargingflaperrordetails": {
+            "name": "Detalles de error de la tapa de carga",
+            "state": {
+              "0": "Sin información o mensaje de error",
+              "1": "Fallo de apertura, acuda al taller",
+              "2": "Bloqueada",
+              "3": "Protección contra uso repetido activa",
+              "4": "Posición de marcha distinta de estacionamiento (P)",
+              "5": "Estado desconocido",
+              "6": "Fallo en detección de pulsación",
+              "7": "Fallo de cierre automático de la tapa"
+            }
+          },
+          "chargingstoperrordetails": {
+            "name": "Detalles de error de parada de carga",
+            "state": {
+              "0": "Sin información o mensaje de error",
+              "1": "Fallo en el botón de parada de carga"
+            }
+          }
+        }
+      },
+      "filterparticleloading": {
+        "name": "Carga del filtro de partículas",
+        "state": {
+          "0": "Alta",
+          "1": "Media",
+          "2": "Baja"
+        }
+      },
+      "hvbatterythermalpropagationevent": {
+        "name": "Propagación térmica de batería HV",
+        "state": {
+          "0": "Sin advertencia",
+          "1": "Advertencia 1",
+          "2": "Advertencia 2"
+        }
+      },
+      "hybridwarnings": {
+        "name": "Advertencias del sistema híbrido",
+        "state": {
+          "0": "Ninguna",
+          "1": "Acudir al taller",
+          "2": "Fallo de alto voltaje",
+          "3": "Fallo en el tren motriz",
+          "4": "Batería de arranque",
+          "5": "Detener el vehículo",
+          "6": "Solo modo enchufable",
+          "7": "Modo enchufable aún activo",
+          "8": "Potencia reducida",
+          "9": "Detener y apagar el motor"
+        }
+      },
+      "oilwarninglevel": {
+        "name": "Nivel de aviso de aceite",
+        "state": {
+          "0": "Exceso de nivel",
+          "1": "Correcto",
+          "2": "Nivel bajo",
+          "3": "No disponible"
+        }
+      },
+      "sohcalibrationstate": {
+        "name": "Estado de calibración SoH",
+        "state": {
+          "0": "Inactiva",
+          "1": "Activa",
+          "2": "Completada con éxito",
+          "3": "Error indefinido del BMS",
+          "4": "Error de temperatura del BMS",
+          "5": "Sin permiso del usuario",
+          "6": "Tiempo insuficiente hasta la salida",
+          "7": "Cancelada por el usuario",
+          "8": "Proceso de carga cancelado",
+          "9": "Error de protocolo en infraestructura de carga",
+          "10": "Reducción de potencia en infraestructura de carga",
+          "11": "Error indefinido"
+        },
+        "state_attributes": {
+          "soccalibrationrequest": {
+            "name": "Solicitud de calibración SoC",
+            "state": {
+              "0": "Sin solicitud",
+              "1": "Prioridad baja",
+              "2": "Prioridad alta"
+            }
+          },
+          "sohcalibrationnotifications": {
+            "name": "Notificaciones de calibración SoH",
+            "state": {
+              "0": "No requiere calibración",
+              "1": "Nivel de aviso 1",
+              "2": "Nivel de aviso 2",
+              "3": "Nivel de aviso 3",
+              "4": "Nivel de aviso 4"
+            }
+          },
+          "sohcalibrationplanned": {
+            "name": "Calibración SoH planificada",
+            "state": {
+              "0": "No planificada",
+              "1": "Planificada"
+            }
+          },
+          "sohcalibrationrequest": {
+            "name": "Solicitud de calibración SoH",
+            "state": {
+              "0": "Sin solicitud",
+              "1": "Prioridad baja",
+              "2": "Prioridad alta"
+            }
+          },
+          "sohcalibrationrequired": {
+            "name": "Calibración SoH requerida",
+            "state": {
+              "0": "No requerida",
+              "1": "Requerida"
+            }
+          },
+          "sohfavorableconditions": {
+            "name": "Condiciones favorables de SoH",
+            "state": {
+              "0": "No favorables",
+              "1": "Nivel favorable 1",
+              "2": "Nivel favorable 2"
+            }
+          }
+        }
+      },
+      "sunroofevent": {
+        "name": "Evento del techo solar",
+        "state": {
+          "0": "Ninguno",
+          "1": "Posición elevada por lluvia",
+          "2": "Posición elevada automática",
+          "3": "Posición de ventilación"
+        }
+      },
+      "tcuconnectionstatelowchannel": {
+        "name": "Estado de conexión TCU",
+        "state": {
+          "0": "Desconocido",
+          "1": "Conectado inicialmente",
+          "2": "Reconectado",
+          "3": "Desconectado",
+          "4": "Desconexión no planificada"
+        }
+      },
+      "temperatureunithu": {
+        "name": "Unidad de temperatura",
+        "state": {
+          "0": "Celsius",
+          "1": "Fahrenheit"
+        }
+      },
+      "tiresensoravailable": {
+        "name": "Sensores de neumáticos disponibles",
+        "state": {
+          "0": "Todos los sensores localizados",
+          "1": "Faltan de uno a tres sensores",
+          "2": "Faltan todos los sensores",
+          "3": "Error del sistema",
+          "4": "Error de autolocalización"
+        }
+      },
+      "tirewarninglevelprw": {
+        "name": "Nivel de aviso de neumáticos PRW",
+        "state": {
+          "0": "Sin advertencia",
+          "1": "Advertencia",
+          "2": "Acudir al taller"
+        }
+      },
+      "turnoffengineprewarning": {
+        "name": "Preaviso de apagado del motor",
+        "state": {
+          "0": "Sin mensaje activo",
+          "1": "Apagado automático al bloquear",
+          "2": "Apagado automático por tiempo",
+          "6": "Modo espera cancelado"
+        }
+      },
+      "vehiclepositionerrorcode": {
+        "name": "Estado de posición del vehículo",
+        "state": {
+          "0": "Desconocido",
+          "1": "Servicio inactivo",
+          "2": "Localización inactiva",
+          "3": "Estacionado",
+          "4": "Contacto encendido",
+          "5": "Correcto"
+        }
+      },
+      "activeweeklyprofile": {
+        "name": "Perfil semanal activo",
+        "state": {
+          "inactive": "Inactivo",
+          "none": "Sin perfiles configurados"
+        }
+      },
+      "chargingtimers": {
+        "name": "Temporizadores de carga"
+      },
+      "hvbatteryprecondstate": {
+        "name": "Estado de acondicionamiento de batería HV",
+        "state": {
+          "inactive": "Inactivo",
+          "charging_heating_active": "Calentamiento para carga activo",
+          "charging_heating_successful": "Calentamiento para carga completado",
+          "charging_heating_not_sufficient": "Calentamiento para carga insuficiente",
+          "charging_heating_recommendation": "Calentamiento para carga recomendado",
+          "charging_cooling_active": "Refrigeración para carga activa",
+          "charging_cooling_successful": "Refrigeración para carga completada",
+          "charging_cooling_not_sufficient": "Refrigeración para carga insuficiente",
+          "charging_cooling_recommendation": "Refrigeración para carga recomendada",
+          "discharging_heating_active": "Calentamiento para conducción activo",
+          "discharging_heating_successful": "Calentamiento para conducción completado",
+          "discharging_heating_not_sufficient": "Calentamiento para conducción insuficiente",
+          "discharging_heating_recommendation": "Calentamiento para conducción recomendado",
+          "discharging_cooling_active": "Refrigeración para conducción activa",
+          "discharging_cooling_successful": "Refrigeración para conducción completada",
+          "discharging_cooling_not_sufficient": "Refrigeración para conducción insuficiente",
+          "discharging_cooling_recommendation": "Refrigeración para conducción recomendada"
+        }
+      },
+      "evrangeassistdriveontime": {
+        "name": "Tiempo de conducción asistida EV"
+      },
+      "chargingscheduleactive": {
+        "name": "Programación de carga activa"
+      },
+      "chargingpredictiondeparturerange": {
+        "name": "Autonomía prevista al salir"
+      },
+      "chargingpredictiondeparturesoc": {
+        "name": "SoC previsto al salir"
+      },
+      "lasttirepressuretimestamp": {
+        "name": "Última medición de presión de neumáticos"
+      },
+      "batteryconditioningsocgain": {
+        "name": "Ganancia de SoC por acondicionamiento de batería"
+      },
+      "batteryconditioningspeedgain": {
+        "name": "Ganancia de autonomía por acondicionamiento de batería"
+      },
+      "batteryconditioningduration": {
+        "name": "Duración de acondicionamiento de batería"
+      }
+    },
+    "climate": {
+      "preclimate": {
+        "name": "Climatización previa"
+      }
+    },
+    "number": {
+      "max_soc": {
+        "name": "Estado de carga objetivo"
+      }
+    },
+    "select": {
+      "charge_program": {
+        "name": "Programa de carga",
+        "state": {
+          "default": "Estándar",
+          "instant": "Instantáneo",
+          "home": "Casa",
+          "work": "Trabajo",
+          "ac_dc_standard": "Estándar AC/DC",
+          "ac_dc_standard_range_assist": "Asistente de autonomía AC/DC",
+          "dc_cp_v2x_chademo": "DC/V2X CHAdeMO",
+          "dc_cp_v2x_iso_dynamic": "DC/V2X dinámico",
+          "dc_cp_v2x_iso_scheduled": "DC/V2X programado",
+          "ac_dc_opportunity": "Oportunidad AC/DC",
+          "ac_ev_timer": "Temporizador AC EV",
+          "ac_dc_din_iso_scheduled": "ISO programado AC/DC",
+          "ac_api_remote_schedule": "Programación remota",
+          "ac_dc_battery_calibration": "Calibración de batería"
+        }
       }
     },
     "switch": {
@@ -871,39 +1337,100 @@
       },
       "precond": {
         "name": "Control climático previo a la entrada"
+      },
+      "hv_battery_conditioning": {
+        "name": "Acondicionamiento de batería HV"
+      }
+    },
+    "cover": {
+      "windows": {
+        "name": "Ventanillas"
+      },
+      "window_front_left": {
+        "name": "Ventanilla delantera izquierda"
+      },
+      "window_front_right": {
+        "name": "Ventanilla delantera derecha"
+      },
+      "window_rear_left": {
+        "name": "Ventanilla trasera izquierda"
+      },
+      "window_rear_right": {
+        "name": "Ventanilla trasera derecha"
       }
     },
     "button": {
+      "btn_hv_battery_start_conditioning": {
+        "name": "Iniciar acondicionamiento de batería HV"
+      },
+      "btn_hv_battery_stop_conditioning": {
+        "name": "Detener acondicionamiento de batería HV"
+      },
       "btn_preheat_start_now": {
         "name": "Iniciar preclimatización"
       },
       "btn_preheat_stop_now": {
         "name": "Detener preclimatización"
       },
+      "btn_sigpos_horn_start_now": {
+        "name": "Tocar claxon"
+      },
       "btn_sigpos_start_now": {
         "name": "Destellar luces"
+      },
+      "btn_windows_ventilate": {
+        "name": "Ventilar ventanillas"
       }
     }
   },
   "selector": {
     "charge_program": {
       "options": {
-        "0": "Predeterminado",
+        "0": "Estándar",
+        "1": "Instantáneo",
         "2": "Casa",
-        "3": "Trabajo"
+        "3": "Trabajo",
+        "4": "Estándar AC/DC"
       }
     },
     "charging_break_clocktimer_configure_action": {
       "options": {
         "notset": "No establecido",
         "active": "Activo",
-        "inactive": "Inactivo"
+        "inactive": "Inactivo",
+        "delete": "Eliminar"
       }
     },
     "temperature_configure": {
       "options": {
         "0": "Bajo",
         "30": "Alto"
+      }
+    },
+    "week_profile_configure_days": {
+      "options": {
+        "monday": "Lunes",
+        "tuesday": "Martes",
+        "wednesday": "Miércoles",
+        "thursday": "Jueves",
+        "friday": "Viernes",
+        "saturday": "Sábado",
+        "sunday": "Domingo"
+      }
+    },
+    "week_profile_configure_schedule_type": {
+      "options": {
+        "no_selection": "Sin selección",
+        "recurring": "Semanal",
+        "non_recurring": "Una vez",
+        "non_recurring_auto_delete": "Una vez y eliminar"
+      }
+    },
+    "week_profile_configure_operation": {
+      "options": {
+        "add": "Añadir entrada",
+        "update": "Modificar entrada",
+        "delete": "Eliminar entrada"
       }
     }
   }
