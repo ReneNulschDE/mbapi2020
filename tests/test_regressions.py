@@ -259,10 +259,20 @@ def test_shutdown_task_is_held_in_a_reference() -> None:
             {"headUnitType": "GEN20XI3", "headUnitSoftwareVersion": None, "headUnitSoftwareVersionRaw": None},
             " - GEN20XI3",
         ),
+        # MB.OS with mbOsVersion populated appends it in parentheses
+        (
+            {
+                "headUnitType": "GEN20XI3",
+                "headUnitSoftwareVersion": None,
+                "headUnitSoftwareVersionRaw": "2.5.0",
+                "mbOsVersion": "MBOS_VERSION_1_0",
+            },
+            "2.5.0 - GEN20XI3 (MBOS_VERSION_1_0)",
+        ),
         # Capabilities request failed, vehicle_information stays empty
         ({}, " - "),
     ],
-    ids=["mbos-raw-only", "plain-wins", "both-null", "no-capabilities"],
+    ids=["mbos-raw-only", "plain-wins", "both-null", "mbos-version-appended", "no-capabilities"],
 )
 def test_device_sw_version_falls_back_to_the_raw_head_unit_version(vehicle_information: dict, expected: str) -> None:
     """MB.OS cars send headUnitSoftwareVersion as null.
@@ -277,3 +287,33 @@ def test_device_sw_version_falls_back_to_the_raw_head_unit_version(vehicle_infor
     device_info = MercedesMeEntity.device_info.fget(entity)
 
     assert device_info["sw_version"] == expected
+
+
+def test_car_entity_exposes_mb_os_version_in_extra_state_attributes() -> None:
+    """The primary 'car' sensor exposes mb_os_version and hardware/software metadata."""
+    car = Car(SYNTH_VIN)
+    car.licenseplate = "6953NND"
+    car.vehicle_information = {
+        "mbOsVersion": "MBOS_VERSION_1_0",
+        "headUnitType": "GEN20XI3",
+        "headUnitSoftwareVersionRaw": "2.5.0",
+        "starArchitecture": "STAR3",
+        "tcuType": "RAMSES3",
+    }
+    entity = SimpleNamespace(
+        _vin=SYNTH_VIN,
+        _car=car,
+        _internal_name="car",
+        _attrib_name="value",
+        _feature_name="binarysensors",
+        _object_name="car",
+        _attributes=None,
+        _get_car_value=lambda *args: None,
+    )
+
+    attrs = MercedesMeEntity.extra_state_attributes.fget(entity)
+    assert attrs["mb_os_version"] == "MBOS_VERSION_1_0"
+    assert attrs["head_unit_type"] == "GEN20XI3"
+    assert attrs["head_unit_software_version_raw"] == "2.5.0"
+    assert attrs["star_architecture"] == "STAR3"
+    assert attrs["tcu_type"] == "RAMSES3"
