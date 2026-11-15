@@ -55,6 +55,7 @@ _VSU_UNIT_TO_LEGACY_KEY: dict[str, str] = {
 # Only put entries here that the algorithmic conversion would get wrong.
 _VSU_KEY_OVERRIDES: dict[str, str] = {
     "tire_press_meas_timestamp": "lastTirepressureTimestamp",
+    "warningbrakeliningwear": "warningBrakeLiningWear",
 }
 
 # Translate the VSU AttributeStatus enum to the legacy values that
@@ -77,6 +78,33 @@ _VSU_DEFAULT_OMITTED_VALUES: dict[str, bool | int] = {
     "precondNow": 0,
     "precondActive": False,
     "precondOperatingMode": 0,
+    "sunroofEventActive": False,
+    "proximityCalculationForVehiclePositionRequired": False,
+    "trackingStateHU": 0,
+    "temperatureUnitHU": 0,
+    "sohCalibrationRequired": 0,
+    "sohCalibrationPlanned": 0,
+    "sohCalibrationState": 0,
+    "sohCalibrationRequest": 0,
+    "socCalibrationRequest": 0,
+    "sohCalibrationNotifications": 0,
+    "sohFavorableConditions": 0,
+    "chargingErrorDetails": 0,
+    "chargingStopErrorDetails": 0,
+    "chargingCouplerErrorDetails": 0,
+    "chargingFlapErrorDetails": 0,
+    "chargingCompatibilityError": 0,
+    "chargingErrorImpossibleChangeTo400V": 0,
+    "chargingErrorImpossibleChangeTo800V": 0,
+    "chargingErrorVehicleNoSupport400V": 0,
+    "tireWarningLevelPrw": 0,
+    "tireSensorAvailable": 0,
+    "sunroofEvent": 0,
+    "turnOffEnginePreWarning": 0,
+    "hvBatteryThermalPropagationEvent": 0,
+    "hvBatteryPrecondAvailability": 0,
+    "hvBatteryPrecondDuration": 0,
+    "hybridWarnings": 0,
 }
 
 # Attributes whose ``value`` is a google.protobuf.Timestamp. MessageToJson
@@ -156,7 +184,9 @@ def _normalize_value(legacy_key: str, value: Any, legacy: dict[str, Any]) -> Non
         legacy["charge_programs_value"] = {"charge_program_parameters": value}
         return
     if legacy_key == "temperaturePoints" and isinstance(value, list):
-        legacy["temperature_points_value"] = {"temperature_points": value}
+        legacy["temperature_points_value"] = {
+            "temperature_points": [{"active": False, **point} if isinstance(point, dict) else point for point in value]
+        }
         return
     if legacy_key == "chargingBreakClockTimer" and isinstance(value, dict):
         legacy["chargingbreak_clocktimer_value"] = value

@@ -110,7 +110,11 @@ class MercedesMEBinarySensor(MercedesMeEntity, BinarySensorEntity, RestoreEntity
         """Return the state of the binary sensor."""
 
         if self._state is None:
-            self.update()
+            # Read directly instead of calling self.update(), because update() calls
+            # async_write_ha_state() and recurses infinitely when CarAttribute.value is None.
+            self._state = self._get_car_value(self._feature_name, self._object_name, self._attrib_name, "error")
+            if self._state is None:
+                return None
 
         if self._state == "INACTIVE":
             return self.flip(False)

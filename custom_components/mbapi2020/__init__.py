@@ -425,6 +425,18 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
 
                 if retrievalstatus == "NOT_RECEIVED":
                     state[attrib_name] = "NOT_RECEIVED"
+
+        if self._internal_name == "car" and isinstance(self._car.vehicle_information, dict):
+            for attr_key, info_key in (
+                ("mb_os_version", "mbOsVersion"),
+                ("head_unit_type", "headUnitType"),
+                ("head_unit_software_version_raw", "headUnitSoftwareVersionRaw"),
+                ("star_architecture", "starArchitecture"),
+                ("tcu_type", "tcuType"),
+            ):
+                if (info_val := self._car.vehicle_information.get(info_key)) is not None:
+                    state[attr_key] = info_val
+
         return state
 
     @property
@@ -437,12 +449,15 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
             or self._car.vehicle_information.get("headUnitSoftwareVersionRaw")
             or ""
         )
+        sw_version = f"{head_unit_version} - {self._car.vehicle_information.get('headUnitType', '')}"
+        if mb_os_version := self._car.vehicle_information.get("mbOsVersion"):
+            sw_version = f"{sw_version} ({mb_os_version})"
         return DeviceInfo(
             identifiers={(DOMAIN, self._vin)},
             manufacturer=ATTR_MB_MANUFACTURER,
             model=self._car.baumuster_description,
             name=self._car.licenseplate,
-            sw_version=f"{head_unit_version} - {self._car.vehicle_information.get('headUnitType', '')}",
+            sw_version=sw_version,
             hw_version=f"{self._car.vehicle_information.get('starArchitecture', '')} - {self._car.vehicle_information.get('tcuType', '')}",
         )
 
