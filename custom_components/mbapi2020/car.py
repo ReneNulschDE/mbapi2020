@@ -212,6 +212,12 @@ PRE_COND_OPTIONS = [
     "temperature_points_frontRight",
     "temperature_points_rearLeft",
     "temperature_points_rearRight",
+    "temperature_points_frontLeftActive",
+    "temperature_points_frontRightActive",
+    "temperature_points_rearLeftActive",
+    "temperature_points_rearRightActive",
+    "precondOperabilityState",
+    "precondOperabilityAvailable",
 ]
 
 RemoteStart_OPTIONS = ["remoteEngine", "remoteStartEndtime", "remoteStartTemperature"]
@@ -390,6 +396,18 @@ class Car:
     def check_capabilities(self, required_capabilities: list[str]) -> bool:
         """Check if the car has the required capabilities."""
         return any(self.features.get(capability) is True for capability in required_capabilities)
+
+    def get_command_parameters(self, command_name: str) -> dict[str, dict[str, Any]]:
+        """Return parameters declared for an available command, keyed by parameterName."""
+        for command in (self.capabilities or {}).get("commands") or []:
+            if command.get("commandName") != command_name or not command.get("isAvailable"):
+                continue
+            return {
+                parameter["parameterName"]: parameter
+                for parameter in command.get("parameters") or []
+                if parameter.get("parameterName")
+            }
+        return {}
 
 
 @dataclass(init=False)

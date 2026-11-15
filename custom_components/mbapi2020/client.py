@@ -3123,12 +3123,12 @@ class Client:
     async def temperature_configure(
         self,
         vin: str,
-        front_left: int | None = None,
-        front_right: int | None = None,
-        rear_left: int | None = None,
-        rear_right: int | None = None,
+        front_left: float | None = None,
+        front_right: float | None = None,
+        rear_left: float | None = None,
+        rear_right: float | None = None,
     ):
-        """Send a temperature_configure  command to the car."""
+        """Send a temperature_configure command to the car."""
         LOGGER.info("Start temperature_configure for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "TEMPERATURE_CONFIGURE"):
@@ -3148,50 +3148,38 @@ class Client:
 
         car = self.cars.get(vin)
 
-        if front_left or front_right or rear_left or rear_right:
-            zone_front_left = config.temperature_points.add()
-            zone_front_left.zone = 1
-            if front_left:
-                zone_front_left.temperature_in_celsius = front_left
-            elif getattr(car.precond, "temperature_points_frontLeft", None):
-                zone_front_left.temperature_in_celsius = car.precond.temperature_points_frontLeft.value
-            entry_set = True
-
-        if front_right or rear_left or rear_right:
-            zone_front_right = config.temperature_points.add()
-            zone_front_right.zone = 2
-            if front_right:
-                zone_front_right.temperature_in_celsius = front_right
-            elif getattr(car.precond, "temperature_points_frontRight", None):
-                zone_front_right.temperature_in_celsius = car.precond.temperature_points_frontRight.value
-            entry_set = True
-
-        if rear_left or rear_right:
-            zone_rear_left = config.temperature_points.add()
-            zone_rear_left.zone = 4
-            if rear_left:
-                zone_rear_left.temperature_in_celsius = rear_left
-            elif getattr(car.precond, "temperature_points_rearLeft", None):
-                zone_rear_left.temperature_in_celsius = car.precond.temperature_points_rearLeft.value
-            entry_set = True
-
-        if rear_right or rear_left:
-            zone_rear_right = config.temperature_points.add()
-            zone_rear_right.zone = 5
-            if rear_right:
-                zone_rear_right.temperature_in_celsius = rear_right
-            elif getattr(car.precond, "temperature_points_rearRight", None):
-                zone_rear_right.temperature_in_celsius = car.precond.temperature_points_rearRight.value
-            entry_set = True
+        if any(temp is not None for temp in (front_left, front_right, rear_left, rear_right)):
+            zones = [
+                (1, front_left, "temperature_points_frontLeft"),
+                (2, front_right, "temperature_points_frontRight"),
+            ]
+            if rear_left is not None or rear_right is not None:
+                zones.extend(
+                    [
+                        (4, rear_left, "temperature_points_rearLeft"),
+                        (5, rear_right, "temperature_points_rearRight"),
+                    ]
+                )
+            for zone_id, requested_temp, attr_name in zones:
+                zone_point = config.temperature_points.add()
+                zone_point.zone = zone_id
+                if requested_temp is not None:
+                    zone_point.temperature_in_celsius = float(requested_temp)
+                else:
+                    existing = getattr(car.precond, attr_name, None) if car and car.precond else None
+                    if existing and existing.value is not None:
+                        zone_point.temperature_in_celsius = float(existing.value)
+                entry_set = True
 
         if entry_set:
             message.commandRequest.temperature_configure.CopyFrom(config)
-            self._hass.async_add_executor_job(
-                self.write_debug_json_output,
-                MessageToJson(message, preserving_proto_field_name=True),
-                "out_temperature_",
-                False,
-            )
+            if getattr(self, "_hass", None):
+                self._hass.async_add_executor_job(
+                    self.write_debug_json_output,
+                    MessageToJson(message, preserving_proto_field_name=True),
+                    "out_temperature_",
+                    False,
+                )
             await self.execute_car_command(message)
             LOGGER.info("End temperature_configure for vin %s", loghelper.Mask_VIN(vin))
         else:

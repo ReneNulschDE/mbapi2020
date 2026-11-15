@@ -955,6 +955,11 @@
         }
       }
     },
+    "climate": {
+      "preclimate": {
+        "name": "Pre-entry climate"
+      }
+    },
     "switch": {
       "auxheat": {
         "name": "Auxiliary Heating"
