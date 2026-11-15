@@ -160,6 +160,7 @@ ELECTRIC_OPTIONS = [
     # whole profile and has to re-send the untouched entries exactly as they
     # came in. No entity reads it.
     "weeklyProfileRaw",
+    "maxSocUpperLimit",
 ]
 
 BINARY_SENSOR_OPTIONS = [
@@ -390,6 +391,18 @@ class Car:
     def check_capabilities(self, required_capabilities: list[str]) -> bool:
         """Check if the car has the required capabilities."""
         return any(self.features.get(capability) is True for capability in required_capabilities)
+
+    def get_command_parameters(self, command_name: str) -> dict[str, dict[str, Any]]:
+        """Return parameters declared for an available command, keyed by parameterName."""
+        for command in (self.capabilities or {}).get("commands") or []:
+            if command.get("commandName") != command_name or not command.get("isAvailable"):
+                continue
+            return {
+                parameter["parameterName"]: parameter
+                for parameter in command.get("parameters") or []
+                if parameter.get("parameterName")
+            }
+        return {}
 
 
 @dataclass(init=False)

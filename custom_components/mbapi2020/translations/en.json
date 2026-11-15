@@ -909,9 +909,10 @@
       "selectedchargeprogram": {
         "state": {
           "0": "Standard",
+          "1": "Instant",
           "2": "Home",
           "3": "Work",
-          "4": "Not supported"
+          "4": "AC/DC standard"
         }
       },
       "windowstatusrearleft": {
@@ -952,6 +953,32 @@
           "3": "Ventilating",
           "4": "Intermediate ventilating",
           "5": "Running"
+        }
+      }
+    },
+    "number": {
+      "max_soc": {
+        "name": "Target state of charge"
+      }
+    },
+    "select": {
+      "charge_program": {
+        "name": "Charge program",
+        "state": {
+          "default": "Default",
+          "instant": "Instant",
+          "home": "Home",
+          "work": "Work",
+          "ac_dc_standard": "AC/DC standard",
+          "ac_dc_standard_range_assist": "AC/DC range assist",
+          "dc_cp_v2x_chademo": "DC/V2X CHAdeMO",
+          "dc_cp_v2x_iso_dynamic": "DC/V2X dynamic",
+          "dc_cp_v2x_iso_scheduled": "DC/V2X scheduled",
+          "ac_dc_opportunity": "AC/DC opportunity",
+          "ac_ev_timer": "AC EV timer",
+          "ac_dc_din_iso_scheduled": "AC/DC ISO scheduled",
+          "ac_api_remote_schedule": "Remote schedule",
+          "ac_dc_battery_calibration": "Battery calibration"
         }
       }
     },
@@ -999,8 +1026,10 @@
     "charge_program": {
       "options": {
         "0": "Default",
+        "1": "Instant",
         "2": "Home",
-        "3": "Work"
+        "3": "Work",
+        "4": "AC/DC standard"
       }
     },
     "charging_break_clocktimer_configure_action": {

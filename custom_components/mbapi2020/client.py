@@ -1856,40 +1856,64 @@ class Client:
 
                                 current_car.publish_updates()
 
+    def _has_explicit_feature(self, vin: str, feature: str) -> bool:
+        """Return True only when the car explicitly marks the feature True in car.features."""
+        car = self.cars.get(vin)
+        return bool(car and car.features.get(feature) is True)
+
     async def charge_program_configure(self, vin: str, program: int, max_soc: None | int = None) -> None:
         """Send the selected charge program to the car."""
-        if not self._is_car_feature_available(vin, "CHARGE_PROGRAM_CONFIGURE"):
+        if (
+            not self._is_car_feature_available(vin, "CHARGE_PROGRAM_CONFIGURE")
+            and not self._is_car_feature_available(vin, "CHARGING_CONFIGURE")
+            and not self._is_car_feature_available(vin, "BATTERY_CHARGE_PROGRAM_CONFIGURE")
+        ):
             raise ServiceValidationError(
-                "Can't set the charge program. Feature CHARGE_PROGRAM_CONFIGURE not availabe for this car."
+                "Can't set the charge program. Features CHARGE_PROGRAM_CONFIGURE, "
+                "CHARGING_CONFIGURE or BATTERY_CHARGE_PROGRAM_CONFIGURE not availabe for this car."
             )
 
         LOGGER.debug("Start charge_program_configure")
         message = client_pb2.ClientMessage()
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        charge_programm = pb2_commands.ChargeProgramConfigure()
-        charge_programm.charge_program = program
-        if max_soc is not None:
-            charge_programm.max_soc.value = max_soc
-        else:
-            try:
-                current_charge_programs = getattr(self.cars.get(vin).electric, "chargePrograms", None)
-                if current_charge_programs:
-                    charge_programm.max_soc.value = current_charge_programs.value[program].get("max_soc")
-            except (KeyError, IndexError, TypeError, AttributeError) as err:
-                LOGGER.warning(
-                    "charge_program_configure - Error: %s - %s",
-                    err,
-                    getattr(self.cars.get(vin).electric, "chargePrograms", None),
-                )
 
-        message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
-        LOGGER.debug(
-            "charge_program_configure - vin: %s - program: %s - max_soc: %s",
-            loghelper.Mask_VIN(vin),
-            charge_programm.charge_program,
-            charge_programm.max_soc.value,
-        )
+        if self._has_explicit_feature(vin, "CHARGING_CONFIGURE") and not self._has_explicit_feature(
+            vin, "CHARGE_PROGRAM_CONFIGURE"
+        ):
+            charging_config = pb2_commands.ChargingConfigure()
+            charging_config.charging_program.value = program
+            if max_soc is not None:
+                charging_config.max_soc.value = max_soc
+            message.commandRequest.charging_configure.CopyFrom(charging_config)
+        elif self._has_explicit_feature(vin, "BATTERY_CHARGE_PROGRAM_CONFIGURE") and not self._has_explicit_feature(
+            vin, "CHARGE_PROGRAM_CONFIGURE"
+        ):
+            if program not in (0, 1):
+                raise ServiceValidationError(
+                    "BATTERY_CHARGE_PROGRAM_CONFIGURE only supports programs 0 (Default) and 1 (Instant)."
+                )
+            battery_program = pb2_commands.BatteryChargeProgramConfigure()
+            battery_program.charge_program = program
+            message.commandRequest.battery_charge_program.CopyFrom(battery_program)
+        else:
+            charge_programm = pb2_commands.ChargeProgramConfigure()
+            charge_programm.charge_program = program
+            if max_soc is not None:
+                charge_programm.max_soc.value = max_soc
+            else:
+                try:
+                    current_charge_programs = getattr(self.cars.get(vin).electric, "chargePrograms", None)
+                    if current_charge_programs:
+                        charge_programm.max_soc.value = current_charge_programs.value[program].get("max_soc")
+                except (KeyError, IndexError, TypeError, AttributeError) as err:
+                    LOGGER.warning(
+                        "charge_program_configure - Error: %s - %s",
+                        err,
+                        getattr(self.cars.get(vin).electric, "chargePrograms", None),
+                    )
+            message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
+
         await self.execute_car_command(message)
         LOGGER.debug("End charge_program_configure for vin %s", loghelper.Mask_VIN(vin))
 
