@@ -9,6 +9,7 @@ from __future__ import annotations
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import MercedesMeEntity
@@ -54,7 +55,11 @@ class MercedesMEButton(MercedesMeEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Send out a persistent notification."""
-        service = getattr(self._coordinator.client, self._sensor_config[3])
+        self._assert_push_mode()
+        method_name = self._sensor_config[3]
+        if method_name == "windows_ventilate" and not self._coordinator.client.pin:
+            raise ServiceValidationError("Security PIN is required to ventilate windows")
+        service = getattr(self._coordinator.client, method_name)
         await service(self._vin)
         self._state = None
 

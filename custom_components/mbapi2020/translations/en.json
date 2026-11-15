@@ -953,6 +953,31 @@
           "4": "Intermediate ventilating",
           "5": "Running"
         }
+      },
+      "chargingtimers": {
+        "name": "Charging timers"
+      },
+      "hvbatteryprecondstate": {
+        "name": "HV battery conditioning state",
+        "state": {
+          "inactive": "Inactive",
+          "charging_heating_active": "Charging heating active",
+          "charging_heating_successful": "Charging heating successful",
+          "charging_heating_not_sufficient": "Charging heating not sufficient",
+          "charging_heating_recommendation": "Charging heating recommended",
+          "charging_cooling_active": "Charging cooling active",
+          "charging_cooling_successful": "Charging cooling successful",
+          "charging_cooling_not_sufficient": "Charging cooling not sufficient",
+          "charging_cooling_recommendation": "Charging cooling recommended",
+          "discharging_heating_active": "Discharging heating active",
+          "discharging_heating_successful": "Discharging heating successful",
+          "discharging_heating_not_sufficient": "Discharging heating not sufficient",
+          "discharging_heating_recommendation": "Discharging heating recommended",
+          "discharging_cooling_active": "Discharging cooling active",
+          "discharging_cooling_successful": "Discharging cooling successful",
+          "discharging_cooling_not_sufficient": "Discharging cooling not sufficient",
+          "discharging_cooling_recommendation": "Discharging cooling recommended"
+        }
       }
     },
     "switch": {
@@ -961,6 +986,9 @@
       },
       "precond": {
         "name": "Pre-entry climate control"
+      },
+      "hv_battery_conditioning": {
+        "name": "HV battery conditioning"
       }
     },
     "cover": {
@@ -981,6 +1009,12 @@
       }
     },
     "button": {
+      "btn_hv_battery_start_conditioning": {
+        "name": "HV battery conditioning start"
+      },
+      "btn_hv_battery_stop_conditioning": {
+        "name": "HV battery conditioning stop"
+      },
       "btn_preheat_start_now": {
         "name": "Preclimate start"
       },
@@ -992,6 +1026,9 @@
       },
       "btn_sigpos_start_now": {
         "name": "Flash lights"
+      },
+      "btn_windows_ventilate": {
+        "name": "Ventilate windows"
       }
     }
   },

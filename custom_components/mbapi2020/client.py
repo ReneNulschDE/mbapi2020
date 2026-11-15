@@ -502,9 +502,14 @@ class Client:
             "chargeinletcoupler": self._get_car_values_handle_chargeinletcoupler,
             "chargeinletlock": self._get_car_values_handle_chargeinletlock,
             "chargePrograms": self._get_car_values_handle_charge_programs,
-            "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
+            "chargingBreakClockTimer": self._get_car_values_handle_charging_timers,
             "chargingPowerRestriction": self._get_car_values_handle_charging_power_restriction,
+            "chargingTimer": self._get_car_values_handle_charging_timers,
+            "chargingTimerSlots": self._get_car_values_handle_charging_timers,
+            "chargingTimers": self._get_car_values_handle_charging_timers,
             "endofchargetime": self._get_car_values_handle_endofchargetime,
+            "hvBatteryPrecondActive": self._get_car_values_handle_hv_battery_precond,
+            "hvBatteryPrecondState": self._get_car_values_handle_hv_battery_precond,
             "ignitionstate": self._get_car_values_handle_ignitionstate,
             "nextDepartureTime": self._get_car_values_handle_next_departure_time,
             "precondStatus": self._get_car_values_handle_precond_status,
@@ -520,6 +525,7 @@ class Client:
             "weeklyProfileActive": self._get_car_values_handle_weekly_profile,
             "weeklyProfileLimits": self._get_car_values_handle_weekly_profile,
             "weeklyProfileRaw": self._get_car_values_handle_weekly_profile,
+            "weeklyProfileSlots": self._get_car_values_handle_weekly_profile,
             "weeklyProfileTimeProfiles": self._get_car_values_handle_weekly_profile,
         }
 
@@ -1096,45 +1102,85 @@ class Client:
             )
             return None
 
-    def _get_car_values_handle_charging_break_clock_timer(self, car_detail, class_instance, option, update, vin: str):
-        attributes = car_detail.get("attributes", {})
-        curr = attributes.get(option)
-        if not curr:
-            return None
+    _TIME_DAY_ALIASES: dict[Any, str] = {
+        0: "MONDAY",
+        1: "TUESDAY",
+        2: "WEDNESDAY",
+        3: "THURSDAY",
+        4: "FRIDAY",
+        5: "SATURDAY",
+        6: "SUNDAY",
+        "Mo": "MONDAY",
+        "Tu": "TUESDAY",
+        "We": "WEDNESDAY",
+        "Th": "THURSDAY",
+        "Fr": "FRIDAY",
+        "Sa": "SATURDAY",
+        "Su": "SUNDAY",
+    }
 
-        charging_timer_value = curr.get("chargingbreak_clocktimer_value", {})
-        value = charging_timer_value.get("chargingbreak_clocktimer_entry")
-        if value is None:
-            return None
+    _CHARGING_TIMER_ACTION_MAP: dict[Any, str] = {
+        0: "unknown",
+        1: "deactivated",
+        2: "active",
+        3: "deleted",
+        "CHARGING_TIMER_ACTION_UNKNOWN": "unknown",
+        "CHARGING_TIMER_ACTION_DEACTIVATED": "deactivated",
+        "CHARGING_TIMER_ACTION_ACTIVE": "active",
+        "CHARGING_TIMER_ACTION_DELETED": "deleted",
+    }
 
-        status = curr.get("status", "VALID")
-        time_stamp = curr.get("timestamp", 0)
-        curr_display_value = curr.get("display_value")
+    _BREAK_TIMER_STATUS_MAP: dict[Any, str] = {
+        0: "deleted",
+        1: "inactive",
+        2: "active",
+        "DELETE": "deleted",
+        "INACTIVE": "inactive",
+        "ACTIVE": "active",
+    }
 
-        return CarAttribute(
-            value=value,
-            retrievalstatus=status,
-            timestamp=time_stamp,
-            display_value=curr_display_value,
-            unit=None,
-        )
+    _HV_PRECOND_CHARGING_STATES: dict[Any, str] = {
+        0: "CHARGING_HEATING_INACTIVE",
+        1: "CHARGING_HEATING_ACTIVE",
+        2: "CHARGING_HEATING_SUCCESSFUL",
+        3: "CHARGING_HEATING_NOT_SUFFICIENT",
+        4: "CHARGING_HEATING_RECOMMENDATION",
+        5: "CHARGING_COOLING_ACTIVE",
+        6: "CHARGING_COOLING_SUCCESSFUL",
+        7: "CHARGING_COOLING_NOT_SUFFICIENT",
+        8: "CHARGING_COOLING_RECOMMENDATION",
+    }
 
-    @staticmethod
-    def _format_weekly_time_profile(entry: dict[str, Any]) -> str:
-        """Render one normalized entry as a label, e.g. "Mo-Fr 06:30".
+    _HV_PRECOND_DISCHARGING_STATES: dict[Any, str] = {
+        0: "DISCHARGING_INACTIVE",
+        1: "DISCHARGING_HEATING_ACTIVE",
+        2: "DISCHARGING_HEATING_SUCCESSFUL",
+        3: "DISCHARGING_HEATING_NOT_SUFFICIENT",
+        4: "DISCHARGING_HEATING_RECOMMENDATION",
+        5: "DISCHARGING_COOLING_ACTIVE",
+        6: "DISCHARGING_COOLING_SUCCESSFUL",
+        7: "DISCHARGING_COOLING_NOT_SUFFICIENT",
+        8: "DISCHARGING_COOLING_RECOMMENDATION",
+    }
 
-        Consecutive days are collapsed into a range, but only from three days
-        on: "Mo, Tu" reads better than "Mo-Tu" and is no longer. The time stays
-        the 24-hour reading the vehicle reports; it carries no clock unit for
-        this attribute, so there is nothing to switch on.
+    @classmethod
+    def _normalize_timer_days(cls, raw_days: Any) -> list[str]:
+        """Normalize proto TimeProfileDay values (short, full, or int) to canonical day names."""
+        if raw_days is None:
+            return []
+        items = raw_days if isinstance(raw_days, list) else [raw_days]
+        normalized: list[str] = []
+        for day in items:
+            canonical = cls._TIME_DAY_ALIASES.get(day, day)
+            normalized.append(str(canonical))
+        return normalized
 
-        A day the vehicle reports that this version does not know is appended
-        verbatim instead of being dropped, so a new enum value shows up in the
-        state rather than silently shrinking the label.
-        """
-        days = entry.get("days") or []
+    @classmethod
+    def _format_day_list(cls, days: list[Any]) -> str:
+        """Collapse a list of day names into compact ranges like 'Mo-Fr' or 'Mo, Tu'."""
+        canonical_days = cls._normalize_timer_days(days)
         order = list(WEEKLY_PROFILE_DAY_LABELS)
-        indices = sorted({order.index(day) for day in days if day in WEEKLY_PROFILE_DAY_LABELS})
+        indices = sorted({order.index(day) for day in canonical_days if day in WEEKLY_PROFILE_DAY_LABELS})
 
         runs: list[list[int]] = []
         for index in indices:
@@ -1151,9 +1197,207 @@ class Client:
                 continue
             last = WEEKLY_PROFILE_DAY_LABELS[order[end]]
             labels.append(f"{first}-{last}" if end - start > 1 else f"{first}, {last}")
-        labels.extend(str(day) for day in days if day not in WEEKLY_PROFILE_DAY_LABELS)
+        labels.extend(day for day in canonical_days if day not in WEEKLY_PROFILE_DAY_LABELS)
+        return ", ".join(labels)
 
-        return f"{', '.join(labels)} {entry.get('time', '')}".strip()
+    @staticmethod
+    def _unwrap_wrapper_value(val: Any) -> Any:
+        """Unwrap a protobuf wrapper dict {'value': X} or return val directly."""
+        if isinstance(val, dict):
+            return val.get("value")
+        return val
+
+    @classmethod
+    def _normalize_modern_timer_entry(cls, entry: dict[str, Any]) -> dict[str, Any]:
+        """Normalize one proto ChargingTimerEntry into a uniform slot dict."""
+        timer_id_raw = cls._unwrap_wrapper_value(entry.get("timerId", entry.get("timer_id")))
+        timer_id = int(timer_id_raw) if timer_id_raw is not None else None
+        raw_action = entry.get("action", 0)
+        status = cls._CHARGING_TIMER_ACTION_MAP.get(raw_action, str(raw_action).lower())
+        start_hour = int(cls._unwrap_wrapper_value(entry.get("start_time_hour")) or 0)
+        start_min = int(cls._unwrap_wrapper_value(entry.get("start_time_min")) or 0)
+        end_hour = int(cls._unwrap_wrapper_value(entry.get("end_time_hour")) or 0)
+        end_min = int(cls._unwrap_wrapper_value(entry.get("end_time_min")) or 0)
+        days = cls._normalize_timer_days(entry.get("day"))
+        start_time = f"{start_hour:02d}:{start_min:02d}"
+        end_time = f"{end_hour:02d}:{end_min:02d}"
+        day_label = cls._format_day_list(days)
+        label = f"{day_label} {start_time}-{end_time}".strip()
+        return {
+            "timer_id": timer_id,
+            "status": status,
+            "active": status == "active",
+            "start_time": start_time,
+            "end_time": end_time,
+            "days": days,
+            "label": label,
+        }
+
+    @classmethod
+    def _normalize_break_timer_entry(cls, entry: dict[str, Any]) -> dict[str, Any]:
+        """Normalize one legacy ChargingBreakClockTimerEntry into a uniform slot dict."""
+        timer_id_raw = cls._unwrap_wrapper_value(entry.get("timerId", entry.get("timer_id")))
+        timer_id = int(timer_id_raw) if timer_id_raw is not None else None
+        raw_status = entry.get("status", 0)
+        status = cls._BREAK_TIMER_STATUS_MAP.get(raw_status, str(raw_status).lower())
+        start_hour = int(cls._unwrap_wrapper_value(entry.get("startTimeHour")) or 0)
+        start_min = int(cls._unwrap_wrapper_value(entry.get("startTimeMinute")) or 0)
+        end_hour = int(cls._unwrap_wrapper_value(entry.get("endTimeHour")) or 0)
+        end_min = int(cls._unwrap_wrapper_value(entry.get("endTimeMinute")) or 0)
+        start_time = f"{start_hour:02d}:{start_min:02d}"
+        end_time = f"{end_hour:02d}:{end_min:02d}"
+        return {
+            "timer_id": timer_id,
+            "status": status,
+            "active": status == "active",
+            "start_time": start_time,
+            "end_time": end_time,
+            "days": [],
+            "label": f"{start_time}-{end_time}",
+        }
+
+    def _get_car_values_handle_charging_timers(self, car_detail, class_instance, option, update, vin: str):
+        """Parse both modern chargingTimer and legacy chargingBreakClockTimer attributes."""
+        attributes = car_detail.get("attributes", {})
+        raw_break_timer = attributes.get("chargingBreakClockTimer")
+        if option == "chargingBreakClockTimer":
+            if not raw_break_timer:
+                return None
+            charging_timer_value = raw_break_timer.get("chargingbreak_clocktimer_value", {})
+            value = charging_timer_value.get("chargingbreak_clocktimer_entry")
+            if value is None:
+                return None
+            return CarAttribute(
+                value=value,
+                retrievalstatus=raw_break_timer.get("status", "VALID"),
+                timestamp=raw_break_timer.get("timestamp", 0),
+                display_value=raw_break_timer.get("display_value"),
+                unit=None,
+            )
+
+        raw_timer = attributes.get("chargingTimer") or attributes.get("charging_timer")
+        if option == "chargingTimer" and not raw_timer:
+            return None
+        if not raw_timer and not raw_break_timer:
+            return None
+
+        source_curr = raw_timer if raw_timer else raw_break_timer
+        status = source_curr.get("status", "VALID")
+        time_stamp = source_curr.get("timestamp", 0)
+        if source_curr.get("nil_value") or status in (3, "3", "NOT_RECEIVED", 4, "4"):
+            return CarAttribute(
+                None,
+                status if status in (3, "3", "NOT_RECEIVED", 4, "4") else 3,
+                time_stamp,
+                STATE_UNKNOWN if option == "chargingTimers" else None,
+                None,
+            )
+
+        raw_entries: list[dict[str, Any]] = []
+        slots: list[dict[str, Any]] = []
+        if raw_timer:
+            payload = raw_timer.get("value")
+            if not isinstance(payload, dict):
+                payload = raw_timer.get("charging_timer")
+            if isinstance(payload, dict):
+                raw_entries = [entry for entry in payload.get("entries") or [] if isinstance(entry, dict)]
+            elif isinstance(payload, list):
+                raw_entries = [entry for entry in payload if isinstance(entry, dict)]
+            slots = [
+                slot
+                for entry in raw_entries
+                if (slot := self._normalize_modern_timer_entry(entry))["status"] != "deleted"
+            ]
+        elif raw_break_timer:
+            break_payload = raw_break_timer.get("chargingbreak_clocktimer_value")
+            if not isinstance(break_payload, dict):
+                break_payload = raw_break_timer.get("value")
+            if isinstance(break_payload, dict):
+                raw_entries = [
+                    entry
+                    for entry in break_payload.get("chargingbreak_clocktimer_entry") or []
+                    if isinstance(entry, dict)
+                ]
+            elif isinstance(break_payload, list):
+                raw_entries = [entry for entry in break_payload if isinstance(entry, dict)]
+            slots = [
+                slot
+                for entry in raw_entries
+                if (slot := self._normalize_break_timer_entry(entry))["status"] != "deleted"
+            ]
+
+        if option == "chargingTimer":
+            return CarAttribute(raw_entries, status, time_stamp, None, None)
+        if option == "chargingTimerSlots":
+            return CarAttribute(slots, status, time_stamp, None, None)
+
+        active_labels = [slot["label"] for slot in slots if slot["active"] and slot["label"]]
+        if active_labels:
+            summary = ", ".join(active_labels)
+            if len(summary) > 250:
+                summary = f"{len(active_labels)} active timers"
+        elif slots:
+            summary = "Inactive"
+        else:
+            summary = "No timers"
+        return CarAttribute(summary, status, time_stamp, summary, None)
+
+    def _get_car_values_handle_hv_battery_precond(self, car_detail, class_instance, option, update, vin: str):
+        """Parse hvBatteryPrecondState into bool active flag and normalized state slug."""
+        curr = car_detail.get("attributes", {}).get("hvBatteryPrecondState")
+        if not curr:
+            return None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+        if curr.get("nil_value") or status in (3, "3", "NOT_RECEIVED", 4, "4"):
+            return CarAttribute(
+                None,
+                status if status in (3, "3", "NOT_RECEIVED", 4, "4") else 3,
+                time_stamp,
+                STATE_UNKNOWN if option == "hvBatteryPrecondState" else None,
+                None,
+            )
+
+        payload = curr.get("value")
+        if not isinstance(payload, dict):
+            payload = curr.get("hv_battery_precond_state")
+        if not isinstance(payload, dict):
+            payload = {}
+
+        charging_raw = payload.get("charging", 0)
+        discharging_raw = payload.get("discharging", 0)
+        charging_name = self._HV_PRECOND_CHARGING_STATES.get(charging_raw, str(charging_raw))
+        discharging_name = self._HV_PRECOND_DISCHARGING_STATES.get(discharging_raw, str(discharging_raw))
+        is_active = charging_name.endswith("_ACTIVE") or discharging_name.endswith("_ACTIVE")
+
+        if option == "hvBatteryPrecondActive":
+            return CarAttribute(is_active, status, time_stamp, str(is_active), None)
+
+        if not charging_name.endswith("_INACTIVE") and charging_name not in ("", "0", "None"):
+            state_slug = charging_name.lower()
+        elif not discharging_name.endswith("_INACTIVE") and discharging_name not in ("", "0", "None"):
+            state_slug = discharging_name.lower()
+        else:
+            state_slug = "inactive"
+        return CarAttribute(state_slug, status, time_stamp, state_slug, None)
+
+    @classmethod
+    def _format_weekly_time_profile(cls, entry: dict[str, Any]) -> str:
+        """Render one normalized entry as a label, e.g. 'Mo-Fr 06:30'."""
+        day_label = cls._format_day_list(entry.get("days") or [])
+        return f"{day_label} {entry.get('time', '')}".strip()
+
+    @classmethod
+    def _format_weekly_slot(cls, entry: dict[str, Any]) -> str:
+        """Render a human-readable slot summary including active status and enabled actions."""
+        base = cls._format_weekly_time_profile(entry) or str(entry.get("time", ""))
+        identifier = entry.get("identifier")
+        prefix = f"#{identifier} " if identifier is not None else ""
+        status = "active" if entry.get("active") else "inactive"
+        actions = [name for name, enabled in (entry.get("actions") or {}).items() if enabled]
+        action_suffix = f": {', '.join(actions)}" if actions else ""
+        return f"{prefix}{base} [{status}{action_suffix}]".strip()
 
     @staticmethod
     def _normalize_weekly_time_profile(entry: dict[str, Any]) -> dict[str, Any]:
@@ -1169,8 +1413,8 @@ class Client:
         if not isinstance(entry, dict):
             return {}
 
-        hour = int(entry.get("hour") or 0)
-        minute = int(entry.get("minute") or 0)
+        hour = int(Client._unwrap_wrapper_value(entry.get("hour")) or 0)
+        minute = int(Client._unwrap_wrapper_value(entry.get("minute")) or 0)
 
         # action_list is a repeated message, so several entries may each carry
         # one flag. Fold them into a single mapping.
@@ -1192,12 +1436,12 @@ class Client:
             schedule_type = schedule_type.removeprefix(WEEKLY_PROFILE_SCHEDULE_TYPE_PREFIX)
 
         return {
-            "identifier": entry.get("id"),
+            "identifier": entry.get("id", entry.get("identifier")),
             "time": f"{hour:02d}:{minute:02d}",
             "hour": hour,
             "minute": minute,
             "days": list(entry.get("days") or []),
-            "active": bool(entry.get("active", False)),
+            "active": bool(Client._unwrap_wrapper_value(entry.get("active")) or False),
             "application_identifier": entry.get("application_identifier", 0),
             "actions": actions,
             "schedule_type": schedule_type,
@@ -1213,16 +1457,16 @@ class Client:
         way endofchargetime and endofChargeTimeWeekday both come out of one
         value. "weeklyProfile" is the key on the wire, not one of them.
 
-        Only the VSU shape is read. The flat VEP form (weekly_profile_value)
-        nests hour/minute/active in wrapper messages and has not been observed
-        on any vehicle, so a sensor is simply not created for it rather than
-        parsing a shape that cannot be verified.
+        Supports both the VSU shape (``value`` with ``id``) and the VEP/REST
+        ``weekly_profile_value`` shape (with ``identifier`` / wrapper scalars).
         """
         curr = car_detail.get("attributes", {}).get("weeklyProfile")
         if not curr:
             return None
 
         profile = curr.get("value")
+        if not isinstance(profile, dict):
+            profile = curr.get("weekly_profile_value")
         if not isinstance(profile, dict):
             return None
 
@@ -1235,6 +1479,8 @@ class Client:
             value: Any = profile
         elif option == "weeklyProfileTimeProfiles":
             value = entries
+        elif option == "weeklyProfileSlots":
+            value = [self._format_weekly_slot(entry) for entry in entries]
         elif option == "weeklyProfileLimits":
             value = {
                 "max_time_profiles": profile.get("max_number_of_time_profiles", 0),
@@ -1923,19 +2169,7 @@ class Client:
         switched off - and nothing is then rejected on this ground.
         """
         current_car = self.cars.get(vin)
-        if not current_car:
-            return {}
-
-        for command in (current_car.capabilities or {}).get("commands") or []:
-            if command.get("commandName") != "WEEK_PROFILE_CONFIGURE_V2" or not command.get("isAvailable"):
-                continue
-            return {
-                parameter["parameterName"]: parameter
-                for parameter in command.get("parameters") or []
-                if parameter.get("parameterName")
-            }
-
-        return {}
+        return current_car.get_command_parameters("WEEK_PROFILE_CONFIGURE_V2") if current_car else {}
 
     @staticmethod
     def _week_profile_schedule_type(name: str | None, days, allowed: set[str]) -> int:
@@ -3123,12 +3357,12 @@ class Client:
     async def temperature_configure(
         self,
         vin: str,
-        front_left: int | None = None,
-        front_right: int | None = None,
-        rear_left: int | None = None,
-        rear_right: int | None = None,
+        front_left: float | None = None,
+        front_right: float | None = None,
+        rear_left: float | None = None,
+        rear_right: float | None = None,
     ):
-        """Send a temperature_configure  command to the car."""
+        """Send a temperature_configure command to the car."""
         LOGGER.info("Start temperature_configure for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "TEMPERATURE_CONFIGURE"):
@@ -3148,50 +3382,38 @@ class Client:
 
         car = self.cars.get(vin)
 
-        if front_left or front_right or rear_left or rear_right:
-            zone_front_left = config.temperature_points.add()
-            zone_front_left.zone = 1
-            if front_left:
-                zone_front_left.temperature_in_celsius = front_left
-            elif getattr(car.precond, "temperature_points_frontLeft", None):
-                zone_front_left.temperature_in_celsius = car.precond.temperature_points_frontLeft.value
-            entry_set = True
-
-        if front_right or rear_left or rear_right:
-            zone_front_right = config.temperature_points.add()
-            zone_front_right.zone = 2
-            if front_right:
-                zone_front_right.temperature_in_celsius = front_right
-            elif getattr(car.precond, "temperature_points_frontRight", None):
-                zone_front_right.temperature_in_celsius = car.precond.temperature_points_frontRight.value
-            entry_set = True
-
-        if rear_left or rear_right:
-            zone_rear_left = config.temperature_points.add()
-            zone_rear_left.zone = 4
-            if rear_left:
-                zone_rear_left.temperature_in_celsius = rear_left
-            elif getattr(car.precond, "temperature_points_rearLeft", None):
-                zone_rear_left.temperature_in_celsius = car.precond.temperature_points_rearLeft.value
-            entry_set = True
-
-        if rear_right or rear_left:
-            zone_rear_right = config.temperature_points.add()
-            zone_rear_right.zone = 5
-            if rear_right:
-                zone_rear_right.temperature_in_celsius = rear_right
-            elif getattr(car.precond, "temperature_points_rearRight", None):
-                zone_rear_right.temperature_in_celsius = car.precond.temperature_points_rearRight.value
-            entry_set = True
+        if any(temp is not None for temp in (front_left, front_right, rear_left, rear_right)):
+            zones = [
+                (1, front_left, "temperature_points_frontLeft"),
+                (2, front_right, "temperature_points_frontRight"),
+            ]
+            if rear_left is not None or rear_right is not None:
+                zones.extend(
+                    [
+                        (4, rear_left, "temperature_points_rearLeft"),
+                        (5, rear_right, "temperature_points_rearRight"),
+                    ]
+                )
+            for zone_id, requested_temp, attr_name in zones:
+                zone_point = config.temperature_points.add()
+                zone_point.zone = zone_id
+                if requested_temp is not None:
+                    zone_point.temperature_in_celsius = float(requested_temp)
+                else:
+                    existing = getattr(car.precond, attr_name, None) if car and car.precond else None
+                    if existing and existing.value is not None:
+                        zone_point.temperature_in_celsius = float(existing.value)
+                entry_set = True
 
         if entry_set:
             message.commandRequest.temperature_configure.CopyFrom(config)
-            self._hass.async_add_executor_job(
-                self.write_debug_json_output,
-                MessageToJson(message, preserving_proto_field_name=True),
-                "out_temperature_",
-                False,
-            )
+            if getattr(self, "_hass", None):
+                self._hass.async_add_executor_job(
+                    self.write_debug_json_output,
+                    MessageToJson(message, preserving_proto_field_name=True),
+                    "out_temperature_",
+                    False,
+                )
             await self.execute_car_command(message)
             LOGGER.info("End temperature_configure for vin %s", loghelper.Mask_VIN(vin))
         else:
@@ -3254,6 +3476,33 @@ class Client:
 
         await self.execute_car_command(message)
         LOGGER.info("End windows_close for vin %s", loghelper.Mask_VIN(vin))
+
+    async def windows_ventilate(self, vin: str, pin: str = ""):
+        """Send a window ventilate command to the car."""
+        LOGGER.info("Start windows_ventilate for vin %s", loghelper.Mask_VIN(vin))
+
+        if not self._is_car_feature_available(vin, "WINDOWS_VENTILATE"):
+            LOGGER.warning(
+                "Can't ventilate the windows for car %s. Feature not marked as available for this car.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        _pin = pin.strip() if pin and pin.strip() else self.pin
+        if not _pin:
+            LOGGER.warning(
+                "Can't ventilate the windows - car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        message = client_pb2.ClientMessage()
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.windows_ventilate.pin = _pin
+
+        await self.execute_car_command(message)
+        LOGGER.info("End windows_ventilate for vin %s", loghelper.Mask_VIN(vin))
 
     async def windows_move(
         self, vin: str, front_left: int, front_right: int, rear_left: int, rear_right: int, pin: str = ""

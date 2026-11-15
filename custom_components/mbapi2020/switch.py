@@ -14,14 +14,10 @@ from homeassistant.components.switch import SwitchEntity, SwitchEntityDescriptio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from . import MercedesMeEntity, MercedesMeEntityDescription
-from .car import Car
-from .const import CONF_FT_DISABLE_CAPABILITY_CHECK, DOMAIN, LOGGER, STATE_CONFIRMATION_DURATION
-from .coordinator import MBAPI2020DataUpdateCoordinator
-from .helper import LogHelper as loghelper
+from . import MercedesMeEntity, MercedesMeEntityDescription, async_setup_described_platform
+from .const import LOGGER
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -31,6 +27,8 @@ class MercedesMeSwitchEntityDescription(MercedesMeEntityDescription, SwitchEntit
     is_on_fn: Callable[[MercedesMeSwitch], Callable[[], Coroutine[Any, Any, bool]]]
     turn_on_fn: Callable[[MercedesMeSwitch], Callable[[], Coroutine[Any, Any, None]]]
     turn_off_fn: Callable[[MercedesMeSwitch], Callable[[], Coroutine[Any, Any, None]]]
+    has_state_fn: Callable[[MercedesMeSwitch], bool] | None = None
+    attributes_fn: Callable[[MercedesMeSwitch], dict[str, Any]] | None = None
 
 
 SWITCH_DESCRIPTIONS: list[MercedesMeSwitchEntityDescription] = [
@@ -54,7 +52,39 @@ SWITCH_DESCRIPTIONS: list[MercedesMeSwitchEntityDescription] = [
         turn_off_fn=lambda self, **kwargs: self._coordinator.client.auxheat_stop(self._vin),
         check_capability_fn=lambda car: car.check_capabilities(["AUXHEAT_START", "AUXHEAT_STOP", "auxHeat"]),
     ),
+    MercedesMeSwitchEntityDescription(
+        key="hv_battery_conditioning",
+        translation_key="hv_battery_conditioning",
+        icon="mdi:battery-heart-variant",
+        is_on_fn=lambda self: bool(
+            self._get_car_value("electric", "hvBatteryPrecondActive", "value", default_value=False)
+        ),
+        has_state_fn=lambda self: self._is_car_attribute_valid("electric", "hvBatteryPrecondActive"),
+        attributes_fn=lambda self: _hv_battery_attributes(self),
+        turn_on_fn=lambda self, **kwargs: self._coordinator.client.hv_battery_start_conditioning(self._vin),
+        turn_off_fn=lambda self, **kwargs: self._coordinator.client.hv_battery_stop_conditioning(self._vin),
+        check_capability_fn=lambda car: car.check_capabilities(
+            ["HVBATTERY_START_CONDITIONING", "HVBATTERY_STOP_CONDITIONING"]
+        ),
+    ),
 ]
+
+
+def _hv_battery_attributes(entity: MercedesMeSwitch) -> dict[str, Any]:
+    """Return telemetry attributes for HV battery conditioning when available."""
+    attrs: dict[str, Any] = {}
+    for attr_name, output_key in (
+        ("hvBatteryPrecondState", "state"),
+        ("hvBatteryPrecondAvailability", "availability"),
+        ("hvBatteryPrecondDuration", "duration"),
+    ):
+        if entity._is_car_attribute_valid("electric", attr_name):
+            val = entity._get_car_value("electric", attr_name, "display_value", None)
+            if val is None or val == "":
+                val = entity._get_car_value("electric", attr_name, "value", None)
+            if val is not None:
+                attrs[output_key] = val
+    return attrs
 
 
 class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
@@ -65,10 +95,15 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
 
         # Initialize command tracking variables
         self._expected_state = None  # True for on, False for off, or None
-        self._state_confirmation_duration = STATE_CONFIRMATION_DURATION
-        self._confirmation_handle = None
-
         super().__init__(description.key, description, vin, coordinator)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return base attributes merged with switch-specific telemetry attributes."""
+        attrs = dict(super().extra_state_attributes)
+        if self.entity_description.attributes_fn is not None:
+            attrs.update(self.entity_description.attributes_fn(self))
+        return attrs
 
     async def async_turn_on(self, **kwargs: dict) -> None:
         """Turn the device component on."""
@@ -80,7 +115,7 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
 
     async def _async_handle_state_change(self, state: bool, **kwargs) -> None:
         """Handle changing the device state and manage confirmation duration."""
-        # Set the expected state based on the desired state
+        self._assert_push_mode()
         self._expected_state = state
 
         try:
@@ -90,14 +125,7 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
             else:
                 await self.entity_description.turn_off_fn(self, **kwargs)
 
-            # Cancel any existing confirmation handle
-            if self._confirmation_handle:
-                self._confirmation_handle()
-
-            # Schedule state reset after confirmation duration
-            self._confirmation_handle = async_call_later(
-                self.hass, self._state_confirmation_duration, self._reset_expected_state
-            )
+            self._schedule_confirmation(self._reset_expected_state)
 
         except Exception as e:  # noqa: BLE001 - also performs the optimistic-state cleanup below; a
             # narrower catch would let an unexpected error leave the switch stuck
@@ -109,17 +137,15 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
                 str(e),
             )
             self._expected_state = None
-            if self._confirmation_handle:
-                self._confirmation_handle()
-                self._confirmation_handle = None
-            self.async_write_ha_state()
+            self._cancel_confirmation()
+            self._safe_write_ha_state()
 
     async def _reset_expected_state(self, _):
         """Reset the expected state after confirmation duration and update the state."""
         self._attr_is_on = not self._expected_state
         self._expected_state = None
         self._confirmation_handle = None
-        self.async_write_ha_state()
+        self._safe_write_ha_state()
 
     def _mercedes_me_update(self) -> None:
         """Update Mercedes Me entity."""
@@ -133,66 +159,29 @@ class MercedesMeSwitch(MercedesMeEntity, SwitchEntity, RestoreEntity):
 
         if self._expected_state is not None:
             if actual_state == self._expected_state:
-                # Expected state reached, cancel confirmation duration
-                if self._confirmation_handle:
-                    self._confirmation_handle()
-                    self._confirmation_handle = None
+                self._cancel_confirmation()
                 self._expected_state = None
             else:
                 # Return expected state during the confirmation duration
                 self._attr_is_on = self._expected_state
         else:
             self._attr_is_on = actual_state
-        self.async_write_ha_state()
+        self._safe_write_ha_state()
 
     @property
     def assumed_state(self) -> bool:
-        """Return True if the state is assumed."""
-        return self._expected_state is not None
+        """Return True if the state is assumed or telemetry is unavailable."""
+        if self._expected_state is not None:
+            return True
+        if self.entity_description.has_state_fn is not None:
+            return not self.entity_description.has_state_fn(self)
+        return False
 
 
 async def async_setup_entry(
     hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Set up the switch platform for Mercedes Me."""
-
-    coordinator: MBAPI2020DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
-    skip_capability_check: bool = config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
-
-    def check_capability(car: Car, description: MercedesMeSwitchEntityDescription) -> bool:
-        """Check if the car supports the necessary capability for the given feature description."""
-        if not skip_capability_check and not description.check_capability_fn(car):
-            vin_masked = loghelper.Mask_VIN(car.finorvin)
-            LOGGER.debug(
-                "Skipping feature '%s' for VIN '%s' due to lack of required capability", description.key, vin_masked
-            )
-            return False
-        return True
-
-    def create_entity(description: MercedesMeSwitchEntityDescription, car: Car) -> MercedesMeSwitch | None:
-        """Create a MercedesMeSwitch entity for the car based on the given description."""
-        vin_masked = loghelper.Mask_VIN(car.finorvin)
-        try:
-            entity = MercedesMeSwitch(description, car.finorvin, coordinator)
-            LOGGER.debug("Created switch entity for VIN: '%s', feature: '%s'", vin_masked, description.key)
-        except Exception:  # noqa: BLE001 - skips this one entity; letting it escape would abort
-            # platform setup for the whole car
-            LOGGER.error(
-                "Error creating switch entity for VIN: '%s', feature: '%s'. Exception:",
-                vin_masked,
-                description.key,
-                exc_info=True,
-            )
-            return None
-        else:
-            return entity
-
-    entities: list[MercedesMeSwitch] = [
-        entity
-        for car in coordinator.client.cars.values()  # Iterate over all cars
-        for description in SWITCH_DESCRIPTIONS  # Iterate over all feature descriptions
-        if check_capability(car, description)  # Check if the car supports the feature
-        and (entity := create_entity(description, car))  # Create the entity if possible
-    ]
-
-    async_add_entities(entities)
+    await async_setup_described_platform(
+        hass, config_entry, async_add_entities, SWITCH_DESCRIPTIONS, MercedesMeSwitch, "switch"
+    )
