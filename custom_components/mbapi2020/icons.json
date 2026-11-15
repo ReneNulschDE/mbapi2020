@@ -26,6 +26,7 @@
     "windows_open": "mdi:car-door",
     "windows_close": "mdi:car-door",
     "windows_move": "mdi:car-door",
+    "windows_ventilate": "mdi:window-open",
     "send_route": "mdi:routes",
     "temperature_configure": "mdi:temperature-check"
   },
@@ -74,6 +75,28 @@
           "2": "mdi:home-battery",
           "3": "mdi:office-building"
         }
+      },
+      "chargingtimers": {
+        "default": "mdi:timer-outline"
+      },
+      "hvbatteryprecondstate": {
+        "default": "mdi:battery-heart-variant"
+      }
+    },
+    "switch": {
+      "hv_battery_conditioning": {
+        "default": "mdi:battery-heart-variant"
+      }
+    },
+    "button": {
+      "btn_hv_battery_start_conditioning": {
+        "default": "mdi:battery-charging-high"
+      },
+      "btn_hv_battery_stop_conditioning": {
+        "default": "mdi:battery-off"
+      },
+      "btn_windows_ventilate": {
+        "default": "mdi:window-open"
       }
     }
   }
