@@ -140,6 +140,17 @@ Depends on your own car or purchased Mercedes-Benz licenses.
 - Sound horn
 - Preclimate start
 - Preclimate stop
+- HV battery conditioning start (capability `HVBATTERY_START_CONDITIONING`)
+- HV battery conditioning stop (capability `HVBATTERY_STOP_CONDITIONING`)
+- Ventilate windows (capability `WINDOWS_VENTILATE`; PIN required in integration options)
+
+### Climate
+
+- `Pre-entry climate` (`climate.preclimate`): unified cabin climate control when `ZEV_PRECONDITIONING_START`/`STOP`, `AUXHEAT_START`/`STOP`, or `auxHeat` is supported. Exposes `HEAT_COOL` (ZEV preconditioning), `HEAT` (auxiliary heater), target temperature control when `TEMPERATURE_CONFIGURE` is available (using dynamic limits/steps and active zones `temperature_points_*Active`), and diagnostic attributes (`operability_available`, `operability_state`, `operating_mode`, `precond_error`, `precond_now_error`, plus per-zone readings).
+
+### Covers
+
+- `Windows` (`cover.windows`) and per-window covers (`window_front_left`, `window_front_right`, `window_rear_left`, `window_rear_right`). Position slider (`SET_POSITION`) is enabled only when `WINDOWS_MOVE` is supported by the vehicle.
 
 ### Device Tracker
 
@@ -147,6 +158,14 @@ Depends on your own car or purchased Mercedes-Benz licenses.
 attributes:
 positionHeading
 ```
+
+### Numbers
+
+- `Target state of charge` (`number.max_soc`): slider entity backed by `CHARGING_CONFIGURE`, `BATTERY_MAX_SOC_CONFIGURE`, or `CHARGE_PROGRAM_CONFIGURE`. Automatically applies command capability bounds (`minValue`/`maxValue`/`steps`) intersected with vehicle `maxSocLowerLimit` / `maxSocUpperLimit`.
+
+### Selects
+
+- `Charge program` (`select.charge_program`): active charging program selector (`selectedChargeProgram`) exposing options valid for the vehicle (`default`, `home`, `work`, plus `instant` and `ac_dc_standard` when supported by `BATTERY_CHARGE_PROGRAM_CONFIGURE` or `CHARGING_CONFIGURE`).
 
 ### Locks
 
@@ -354,6 +373,11 @@ positionHeading
   rcp_supported_settings (List of all remote configuration options, I'll implement them step by step as services or buttons)
   ```
 
+- `Active weekly profile` (`activeweeklyprofile`): current departure schedule label with `weeklyProfileTimeProfiles`, `weeklyProfileLimits`, and readable `weeklyProfileSlots` attributes.
+- `Charging timers` (`chargingtimers`): unified summary of active/inactive charging timers combining modern `chargingTimer` (`CHARGING_CLOCK_TIMER_CONFIGURE`) and legacy `chargingBreakClockTimer` into normalized `chargingTimerSlots`.
+- `HV battery conditioning state` (`hvbatteryprecondstate`): HV battery thermal conditioning state (`hvBatteryPrecondState`) with `hvBatteryPrecondActive`, `hvBatteryPrecondAvailability`, and `hvBatteryPrecondDuration` attributes when reported by the vehicle.
+- Additional capability/signal-gated diagnostic & telemetry sensors (created only when the vehicle reports non-missing values): `rangeelectricwltp`, `overallrange`, `gainedrangesincestartofcharging`, `maxsocupperlimit`, `evrangeassistdriveonsoc`, `evrangeassistdriveontime`, `sohcalibrationstate`, `chargingerrordetails`, `chargingcompatibilityerror`, `chargingscheduleactive`, `chargingpredictiondeparturerange`, `chargingpredictiondeparturesoc`, `lasttirepressuretimestamp`, `tiresensoravailable`, `tirewarninglevelprw`, `oilwarninglevel`, `filterparticleloading`, `turnoffengineprewarning`, `hvbatterythermalpropagationevent`, `hybridwarnings`, `tcuconnectionstatelowchannel`, `sunroofevent`, `temperatureunithu`.
+
 ### Services
 
 Some services require that the security PIN is created in your mobile Android/IOS app. Please store the pin to the options-dialog of the integration
@@ -368,7 +392,10 @@ Some services require that the security PIN is created in your mobile Android/IO
   Stop the auxiliary heating of a car defined by a vin.
 
 - battery_max_soc_configure:
-  Configure the maximum value for the state of charge of the HV battery of a car defined by a vin. If no charge program is given, the program the car is currently running is configured.
+  Configure the maximum value for the state of charge of the HV battery of a car defined by a vin. Dispatches `ChargingConfigure`, `BatteryMaxSocConfigure`, or `ChargeProgramConfigure` depending on vehicle capabilities. If no charge program is given on `CHARGE_PROGRAM_CONFIGURE` cars, the program the car is currently running is configured.
+
+- charge_program_configure:
+  Select the active charging program (`program`: 0=Default, 1=Instant, 2=Home, 3=Work, 4=AC/DC standard) and optional `max_soc`. Supports `CHARGE_PROGRAM_CONFIGURE`, `BATTERY_CHARGE_PROGRAM_CONFIGURE`, and `CHARGING_CONFIGURE`.
 
 - charge_coupler_stop:
   Stop the running charging session and release the charge coupler of a car defined by a vin. PIN required.
@@ -384,6 +411,12 @@ Some services require that the security PIN is created in your mobile Android/IO
 
 - engine_stop:
   Stop the engine of a car defined by a vin.
+
+- hv_battery_start_conditioning:
+  Start high-voltage battery thermal preconditioning on supported EVs (`HVBATTERY_START_CONDITIONING`).
+
+- hv_battery_stop_conditioning:
+  Stop high-voltage battery thermal preconditioning on supported EVs (`HVBATTERY_STOP_CONDITIONING`).
 
 - preconditioning_configure_seats:
   Configure which seats should be preconditioned of a car defined by a vin.
@@ -443,10 +476,26 @@ Some services require that the security PIN is created in your mobile Android/IO
 - windows_open:
   Open the windows of a car defined by a vin. PIN required.
 
+- windows_ventilate:
+  Set the windows into ventilation position on a car defined by a vin (`WINDOWS_VENTILATE`). PIN required.
+
 ### Switches
 
-- AuxHeat - Start/Stop the auxiliary heating of the car
-- Preclimate - Start/Stop the preclimate function of the car
+- `AuxHeat` (`switch.auxheat`) - Start/Stop the auxiliary heating of the car
+- `Preclimate` (`switch.precond`) - Start/Stop the preclimate function of the car
+- `HV battery conditioning` (`switch.hv_battery_conditioning`) - Start/Stop HV battery thermal conditioning (`HVBATTERY_START_CONDITIONING`/`HVBATTERY_STOP_CONDITIONING`); uses `assumed_state` when `hvBatteryPrecondState` telemetry is not reported
+
+### Vehicle Generation Compatibility Matrix
+
+| Feature / Area | NTG5.5 / Legacy | MBUX (NTG6 / NTG7) | MB.OS (GEN20x / e.g. X244) |
+| --- | --- | --- | --- |
+| Charge target (`number.max_soc` / `battery_max_soc_configure`) | `CHARGE_PROGRAM_CONFIGURE` (when EV/PHEV) or `BATTERY_MAX_SOC_CONFIGURE` | `CHARGE_PROGRAM_CONFIGURE` (`50-100`, `chargePrograms` per program) | `CHARGING_CONFIGURE` + `BATTERY_MAX_SOC_CONFIGURE` (uses `electric.maxSoc`, `maxSocLowerLimit`/`UpperLimit`) |
+| Charge program (`select.charge_program` / `charge_program_configure`) | `CHARGE_PROGRAM_CONFIGURE` (`0, 2, 3`) or `BATTERY_CHARGE_PROGRAM_CONFIGURE` (`0, 1`) | `CHARGE_PROGRAM_CONFIGURE` (`default`, `home`, `work`) | `CHARGING_CONFIGURE` + `BATTERY_CHARGE_PROGRAM_CONFIGURE` (supports `default`, `instant`, `home`, `work`, `ac_dc_standard` (`4`)) |
+| Charging timers (`sensor.chargingtimers` / `charging_break_clocktimer_configure`) | `chargingBreakClockTimer` (break clock timer list) | `chargingBreakClockTimer` (`ChargingBreakClockTimerConfigure`) | `chargingTimer` (`CHARGING_CLOCK_TIMER_CONFIGURE` / `ClockTimerConfigure`) normalized into `chargingTimerSlots` |
+| HV battery conditioning | Usually unavailable | On select EQ models (`HVBATTERY_START/STOP_CONDITIONING`) | `HVBATTERY_START/STOP_CONDITIONING` (`button`, `switch.hv_battery_conditioning`, `sensor.hvbatteryprecondstate`) |
+| Windows control | `WINDOWS_OPEN` / `WINDOWS_CLOSE` (some models `WINDOWS_MOVE`) | `WINDOWS_MOVE` slider cover + `WINDOWS_VENTILATE` | `WINDOWS_OPEN` / `WINDOWS_CLOSE` + `WINDOWS_VENTILATE` button (`WINDOWS_MOVE=false` hides position slider) |
+| Cabin preconditioning (`climate.preclimate`) | `auxHeat` / `AUXHEAT_*` (`HEAT`) and/or `ZEV_*` (`HEAT_COOL`) | `ZEV_*` (`HEAT_COOL`) + `TEMPERATURE_CONFIGURE` | `ZEV_*` (`HEAT_COOL`) + `TEMPERATURE_CONFIGURE` (`0.5 C` steps) + `precondOperabilityState` |
+| Battery SoH & smart charging | Usually unavailable | Partial prediction / charge flap status on EQ | Extended SoH calibration, charging predictions/schedules, `hvBatterySoH`, inlet coupler locks |
 
 ### Logging
 

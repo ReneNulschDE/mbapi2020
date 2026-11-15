@@ -75,6 +75,11 @@
           "3": "mdi:office-building"
         }
       }
+    },
+    "climate": {
+      "preclimate": {
+        "default": "mdi:thermostat"
+      }
     }
   }
 }
