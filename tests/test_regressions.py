@@ -20,7 +20,7 @@ from custom_components.mbapi2020 import MercedesMeEntity
 from custom_components.mbapi2020.car import Car
 
 from .conftest import REPO_ROOT, SYNTH_VIN, make_client
-from .fixtures.build import build_vep_updates
+from .fixtures.build import SYNTH_PLATE, build_vep_updates
 
 COMPONENT = REPO_ROOT / "custom_components" / "mbapi2020"
 
@@ -292,7 +292,7 @@ def test_device_sw_version_falls_back_to_the_raw_head_unit_version(vehicle_infor
 def test_car_entity_exposes_mb_os_version_in_extra_state_attributes() -> None:
     """The primary 'car' sensor exposes mb_os_version and hardware/software metadata."""
     car = Car(SYNTH_VIN)
-    car.licenseplate = "6953NND"
+    car.licenseplate = SYNTH_PLATE
     car.vehicle_information = {
         "mbOsVersion": "MBOS_VERSION_1_0",
         "headUnitType": "GEN20XI3",

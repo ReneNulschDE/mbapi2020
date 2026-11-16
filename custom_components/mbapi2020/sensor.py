@@ -26,6 +26,35 @@ from .const import (
 )
 from .coordinator import MBAPI2020DataUpdateCoordinator
 
+_BEV_EXCLUDED_SENSORS = frozenset(
+    {
+        "filterparticleloading",
+        "hybridwarnings",
+        "turnoffengineprewarning",
+        "oilwarninglevel",
+    }
+)
+_SUNROOF_SENSORS = frozenset({"sunroofevent"})
+_CATEGORICAL_STATE_SENSORS = frozenset(
+    {
+        "selectedchargeprogram",
+        "sohcalibrationstate",
+        "chargingerrordetails",
+        "chargingcompatibilityerror",
+        "tiresensoravailable",
+        "tirewarninglevelprw",
+        "oilwarninglevel",
+        "filterparticleloading",
+        "turnoffengineprewarning",
+        "hvbatterythermalpropagationevent",
+        "hybridwarnings",
+        "tcuconnectionstatelowchannel",
+        "sunroofevent",
+        "temperatureunithu",
+        "vehiclepositionerrorcode",
+    }
+)
+
 
 def _create_sensor_if_eligible(key, config, car, coordinator, should_poll=False, initial_setup=False):
     """Check if sensor should be created and return device if eligible."""
@@ -33,9 +62,34 @@ def _create_sensor_if_eligible(key, config, car, coordinator, should_poll=False,
     if key in ["car", "data_mode"] and not initial_setup:
         return None
 
+    disable_capability_check = coordinator.config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
+    if not disable_capability_check:
+        vehicle_info = getattr(car, "vehicle_information", None)
+        if isinstance(vehicle_info, dict) and vehicle_info:
+            if key in _BEV_EXCLUDED_SENSORS and (
+                vehicle_info.get("electricVehicleType") == "BATTERY" or vehicle_info.get("fuelTypes") == ["ELECTRIC"]
+            ):
+                return None
+            if (
+                key in _SUNROOF_SENSORS
+                and "sunroofType" in vehicle_info
+                and not vehicle_info.get("sunroofType")
+                and not any(
+                    (car.features or {}).get(feat)
+                    for feat in (
+                        "controllableSunroof",
+                        "variableOpenableSunroof",
+                        "SUNROOF_OPEN",
+                        "SUNROOF_LIFT",
+                        "SUNROOF_CLOSE",
+                    )
+                )
+            ):
+                return None
+
     if (
         config[scf.CAPABILITIES_LIST.value] is None
-        or coordinator.config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
+        or disable_capability_check
         or car.features.get(config[scf.CAPABILITIES_LIST.value], False)
     ):
         device_class = MercedesMESensorPoll if should_poll else MercedesMESensor
@@ -163,6 +217,13 @@ class MercedesMESensor(MercedesMeEntity, RestoreSensor):
                 return round(float(self._state), 1)
             if self._state and self._state == "error":
                 return STATE_UNKNOWN
+        elif self._internal_name == "activeweeklyprofile":
+            if self._state is None:
+                slots = self._get_car_value("electric", "weeklyProfileSlots", "value", None)
+                return "inactive" if slots else "none"
+            return self._state
+        elif self._internal_name in _CATEGORICAL_STATE_SENSORS and self._state is not None:
+            return str(self._state)
 
         return self._state
 

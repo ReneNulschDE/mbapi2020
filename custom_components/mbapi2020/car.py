@@ -41,11 +41,22 @@ ODOMETER_OPTIONS = [
     "vehicleDataConnectionState",
     "ignitionstate",
     "oilLevel",
+    "oilWarningLevel",
+    "filterParticleLoading",
+    "turnOffEnginePreWarning",
+    "turnOffEnginePreWarningTime",
     "departuretime",
     "departureTimeWeekday",
 ]
 
-LOCATION_OPTIONS = ["positionLat", "positionLong", "positionHeading"]
+LOCATION_OPTIONS = [
+    "positionLat",
+    "positionLong",
+    "positionHeading",
+    "trackingStateHU",
+    "proximityCalculationForVehiclePositionRequired",
+    "vehiclePositionErrorCode",
+]
 
 TIRE_OPTIONS = [
     "tirepressureRearLeft",
@@ -61,6 +72,9 @@ TIRE_OPTIONS = [
     "tireMarkerRearRight",
     "tireWarningRollup",
     "lastTirepressureTimestamp",
+    "tireWarningLevelPrw",
+    "tireSensorAvailable",
+    "tiremarker",
     "tireTemperatureRearLeft",
     "tireTemperatureFrontRight",
     "tireTemperatureRearRight",
@@ -93,6 +107,8 @@ DOOR_OPTIONS = [
     "doorstatusfrontleft",
     "rooftopstatus",
     "sunroofstatus",
+    "sunroofEvent",
+    "sunroofEventActive",
     "engineHoodStatus",
     "chargeFlapDCStatus",
     "chargeFlapACStatus",
@@ -160,6 +176,36 @@ ELECTRIC_OPTIONS = [
     # whole profile and has to re-send the untouched entries exactly as they
     # came in. No entity reads it.
     "weeklyProfileRaw",
+    "rangeElectricWltp",
+    "overallRange",
+    "gainedRangeSinceStartOfCharging",
+    "maxSocUpperLimit",
+    "evRangeAssistDriveOnSOC",
+    "evRangeAssistDriveOnTime",
+    "sohCalibrationRequired",
+    "sohCalibrationState",
+    "sohCalibrationRequest",
+    "sohCalibrationPlanned",
+    "sohCalibrationNotifications",
+    "sohFavorableConditions",
+    "sohChargeTimeExtension",
+    "socCalibrationRequest",
+    "chargingErrorDetails",
+    "chargingStopErrorDetails",
+    "chargingCouplerErrorDetails",
+    "chargingFlapErrorDetails",
+    "chargingCompatibilityError",
+    "chargingErrorImpossibleChangeTo400V",
+    "chargingErrorImpossibleChangeTo800V",
+    "chargingErrorVehicleNoSupport400V",
+    "chargingScheduleActive",
+    "chargingScheduleActiveDetails",
+    "chargingScheduleRequested",
+    "chargingPredictionDepartureTime",
+    "chargingPredictionDepartureTimeRange",
+    "chargingPredictionDepartureTimeSoc",
+    "hvBatteryThermalPropagationEvent",
+    "hybridWarnings",
 ]
 
 BINARY_SENSOR_OPTIONS = [
@@ -177,6 +223,8 @@ BINARY_SENSOR_OPTIONS = [
     "tankCapOpenLamp",
     "remoteStartActive",
     "engineState",
+    "tcuConnectionStateLowChannel",
+    "tcuThermoShutDown",
 ]
 
 AUX_HEAT_OPTIONS = [
@@ -213,6 +261,9 @@ PRE_COND_OPTIONS = [
     "temperature_points_frontRight",
     "temperature_points_rearLeft",
     "temperature_points_rearRight",
+    "precondOperabilityAvailable",
+    "precondOperabilityState",
+    "temperatureUnitHU",
 ]
 
 RemoteStart_OPTIONS = ["remoteEngine", "remoteStartEndtime", "remoteStartTemperature"]

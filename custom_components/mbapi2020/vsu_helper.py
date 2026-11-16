@@ -79,6 +79,7 @@ _VSU_DEFAULT_OMITTED_VALUES: dict[str, bool | int] = {
     "precondActive": False,
     "precondOperatingMode": 0,
     "sunroofEventActive": False,
+    "tcuThermoShutDown": 0,
     "proximityCalculationForVehiclePositionRequired": False,
     "trackingStateHU": 0,
     "temperatureUnitHU": 0,
