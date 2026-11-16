@@ -2920,13 +2920,26 @@ class Client:
     async def preconditioning_configure_seats(
         self,
         vin: str,
-        front_left: bool,
-        front_right: bool,
-        rear_left: bool,
-        rear_right: bool,
+        front_left: bool | None = None,
+        front_right: bool | None = None,
+        rear_left: bool | None = None,
+        rear_right: bool | None = None,
     ):
-        """Send a preconditioning seat configuration command to the car."""
+        """Send a preconditioning seat configuration command to the car.
+
+        Only the seats given are sent. A seat left out keeps its current setting.
+        """
         LOGGER.info("Start preconditioning_configure_seats for vin %s", loghelper.Mask_VIN(vin))
+
+        seats = {
+            "front_left": front_left,
+            "front_right": front_right,
+            "rear_left": rear_left,
+            "rear_right": rear_right,
+        }
+        seats = {seat: value for seat, value in seats.items() if value is not None}
+        if not seats:
+            raise ServiceValidationError("Can't configure the seats for PreCond: no seat given.")
 
         if not self._is_car_feature_available(vin, "ZEV_PRECONDITION_CONFIGURE_SEATS"):
             LOGGER.warning(
@@ -2939,10 +2952,10 @@ class Client:
 
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        message.commandRequest.zev_precondition_configure_seats.front_left = front_left
-        message.commandRequest.zev_precondition_configure_seats.front_right = front_right
-        message.commandRequest.zev_precondition_configure_seats.rear_left = rear_left
-        message.commandRequest.zev_precondition_configure_seats.rear_right = rear_right
+        config = message.commandRequest.zev_precondition_configure_seats
+        for seat, value in seats.items():
+            # BoolValue: a seat set to False is still sent, as an empty wrapper.
+            getattr(config, seat).value = bool(value)
 
         await self.execute_car_command(message)
         LOGGER.info("End preconditioning_configure_seats for vin %s", loghelper.Mask_VIN(vin))

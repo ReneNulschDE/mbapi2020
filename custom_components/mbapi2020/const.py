@@ -477,14 +477,17 @@ SERVICE_TEMPERATURE_CONFIGURE_SCHEMA = vol.Schema(
         ),
     }
 )
-SERVICE_PRECONDITIONING_CONFIGURE_SEATS_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_VIN): cv.string,
-        vol.Required("front_left"): cv.boolean,
-        vol.Required("front_right"): cv.boolean,
-        vol.Required("rear_left"): cv.boolean,
-        vol.Required("rear_right"): cv.boolean,
-    }
+SERVICE_PRECONDITIONING_CONFIGURE_SEATS_SCHEMA = vol.All(
+    vol.Schema(
+        {
+            vol.Required(CONF_VIN): cv.string,
+            vol.Optional("front_left"): cv.boolean,
+            vol.Optional("front_right"): cv.boolean,
+            vol.Optional("rear_left"): cv.boolean,
+            vol.Optional("rear_right"): cv.boolean,
+        }
+    ),
+    cv.has_at_least_one_key("front_left", "front_right", "rear_left", "rear_right"),
 )
 SERVICE_PRECONDITIONING_CONFIGURE_SCHEMA = vol.Schema(
     {

@@ -259,7 +259,7 @@
     },
     "preconditioning_configure_seats": {
       "name": "Preconditioning configure seats",
-      "description": "Send a preconditioning seat configuration command to a car defined by a VIN.",
+      "description": "Send a preconditioning seat configuration command to a car defined by a VIN. Seats left empty keep their current setting.",
       "fields": {
         "vin": {
           "name": "Vin",
@@ -267,19 +267,19 @@
         },
         "front_left": {
           "name": "Front left",
-          "description": "Activate if the front left seat should be preconditioned."
+          "description": "Activate if the front left seat should be preconditioned. Leave empty to keep the current setting."
         },
         "front_right": {
           "name": "Front right",
-          "description": "Activate if the front right seat should be preconditioned."
+          "description": "Activate if the front right seat should be preconditioned. Leave empty to keep the current setting."
         },
         "rear_left": {
           "name": "Rear left",
-          "description": "Activate if the rear left seat should be preconditioned."
+          "description": "Activate if the rear left seat should be preconditioned. Leave empty to keep the current setting."
         },
         "rear_right": {
           "name": "Rear right",
-          "description": "Activate if the rear right seat should be preconditioned."
+          "description": "Activate if the rear right seat should be preconditioned. Leave empty to keep the current setting."
         }
       }
     },

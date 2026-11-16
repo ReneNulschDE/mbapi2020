@@ -654,7 +654,7 @@ charging_break_clocktimer_configure:
         time:
 
 preconditioning_configure_seats:
-  description: "Configure which seats should be preconditioned of a car defined by a vin."
+  description: "Configure which seats should be preconditioned of a car defined by a vin. Seats left empty keep their current setting."
   fields:
     vin:
       description: "vin of the car"
@@ -663,23 +663,23 @@ preconditioning_configure_seats:
       selector:
         text:
     front_left:
-      description: "Activate if the front left seat should be preconditioned."
-      required: True
+      description: "Activate if the front left seat should be preconditioned. Leave empty to keep the current setting."
+      required: False
       selector:
         boolean:
     front_right:
-      description: "Activate if the front right seat should be preconditioned."
-      required: True
+      description: "Activate if the front right seat should be preconditioned. Leave empty to keep the current setting."
+      required: False
       selector:
         boolean:
     rear_left:
-      description: "Activate if the rear left seat should be preconditioned."
-      required: True
+      description: "Activate if the rear left seat should be preconditioned. Leave empty to keep the current setting."
+      required: False
       selector:
         boolean:
     rear_right:
-      description: "Activate if the rear right seat should be preconditioned."
-      required: True
+      description: "Activate if the rear right seat should be preconditioned. Leave empty to keep the current setting."
+      required: False
       selector:
         boolean:
 
