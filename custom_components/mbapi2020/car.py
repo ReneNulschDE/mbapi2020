@@ -209,6 +209,7 @@ PRE_COND_OPTIONS = [
     "precondSeatRearLeft",
     "precondSeatRearRight",
     "temperature_points_frontLeft",
+    "temperature_points_frontCenter",
     "temperature_points_frontRight",
     "temperature_points_rearLeft",
     "temperature_points_rearRight",
