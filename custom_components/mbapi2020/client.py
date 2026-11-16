@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import logging
 from pathlib import Path
@@ -66,6 +66,7 @@ from .const import (
 )
 from .helper import LogHelper as loghelper
 from .oauth import Oauth
+from .vsu_enums import VSU_ENUM_VALUE_TO_INT
 from .vsu_helper import normalize_vsu_car
 from .webapi import WebApi
 from .websocket import Websocket
@@ -105,6 +106,51 @@ DEPARTURE_TIME_MODE_REPEAT_DAYS: dict[int, int] = {
     1: 1,
     2: 7,
 }
+
+# Alternative attribute keys used by VEP/REST payloads vs canonical CarAttribute names.
+_ATTRIBUTE_KEY_ALIASES: dict[str, tuple[str, ...]] = {
+    "lastTirepressureTimestamp": ("tirePressMeasTimestamp",),
+}
+
+# Typed enum fields carried directly on VehicleAttributeStatus in VEP/REST payloads.
+_VAS_ENUM_FIELDS: tuple[str, ...] = (
+    "soc_calibration_request",
+    "charging_compatibility_error",
+    "charging_coupler_error_details",
+    "charging_flap_error_details",
+    "charging_stop_error_details",
+    "charging_error_impossible_change_to_400v",
+    "charging_error_impossible_change_to_800v",
+    "charging_error_vehicle_no_support_400v",
+    "soh_calibration_notifications",
+    "soh_calibration_planned",
+    "soh_calibration_request",
+    "soh_calibration_required",
+    "soh_calibration_state",
+    "soh_favorable_conditions",
+    "tcu_connection_state_low_channel",
+    "turn_off_engine_pre_warning",
+)
+
+# Bare enum names omitted from VSU_ENUM_VALUE_TO_INT because they have no underscore.
+_VAS_ENUM_EXTRA_TO_INT: dict[str, int] = {
+    "DISCONNECTED": 3,
+    "RECONNECTED": 2,
+}
+
+# TcuThermoShutDown proto enum: 0=NOT_ACTIVE (False), 1=ACTIVE (True).
+_TCU_THERMO_SHUTDOWN_BOOL: dict[int, bool] = {
+    0: False,
+    1: True,
+}
+
+_CHARGING_SCHEDULE_OFFLINE_PREFIX = "CHARGING_SCHEDULE_ACTIVE_OFFLINE_MODE_"
+_CHARGING_SCHEDULE_USE_CASE_PREFIXES = (
+    "CHARGING_SCHEDULE_ACTIVE_USE_CASE_ID_",
+    "CHARGING_SCHEDULE_USE_CASE_ID_",
+)
+_SCHEDULE_ID_STATUS_PREFIX = "SCHEDULE_ID_STATUS_"
+_EPOCH_ZERO_ISO = "1970-01-01T00:00:00Z"
 
 # The vehicle reports the schedule type of a weekly departure entry as the full
 # proto enum name. Only the tail is of interest in an entity attribute.
@@ -514,15 +560,26 @@ class Client:
             "chargePrograms": self._get_car_values_handle_charge_programs,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
             "chargingPowerRestriction": self._get_car_values_handle_charging_power_restriction,
+            "chargingPredictionDepartureTime": self._get_car_values_handle_charging_prediction_departure_time,
+            "chargingPredictionDepartureTimeRange": self._get_car_values_handle_charging_prediction_departure_time,
+            "chargingPredictionDepartureTimeSoc": self._get_car_values_handle_charging_prediction_departure_time,
+            "chargingScheduleActive": self._get_car_values_handle_charging_schedule,
+            "chargingScheduleActiveDetails": self._get_car_values_handle_charging_schedule,
+            "chargingScheduleRequested": self._get_car_values_handle_charging_schedule,
             "endofchargetime": self._get_car_values_handle_endofchargetime,
             "ignitionstate": self._get_car_values_handle_ignitionstate,
+            "lastTirepressureTimestamp": self._get_car_values_handle_last_tirepressure_timestamp,
             "nextDepartureTime": self._get_car_values_handle_next_departure_time,
+            "precondOperabilityAvailable": self._get_car_values_handle_precond_operability_state,
+            "precondOperabilityState": self._get_car_values_handle_precond_operability_state,
             "precondStatus": self._get_car_values_handle_precond_status,
             "smartChargingError": self._get_car_values_handle_smart_charging,
             "smartChargingErrorList": self._get_car_values_handle_smart_charging,
             "smartChargingLocation": self._get_car_values_handle_smart_charging,
             "smartChargingStation": self._get_car_values_handle_smart_charging,
             "smartChargingStrategy": self._get_car_values_handle_smart_charging,
+            "tcuThermoShutDown": self._get_car_values_handle_tcu_thermo_shutdown,
+            "temperatureUnitHU": self._get_car_values_handle_temperature_unit_hu,
             "temperature_points_frontCenter": self._get_car_values_handle_temperature_points,
             "temperature_points_frontLeft": self._get_car_values_handle_temperature_points,
             "temperature_points_frontRight": self._get_car_values_handle_temperature_points,
@@ -563,14 +620,64 @@ class Client:
             setattr(class_instance, option, curr_status)
         return class_instance
 
+    @staticmethod
+    def _lookup_attribute(attributes: dict[str, Any], option: str) -> dict[str, Any] | None:
+        """Look up an attribute dict by canonical name or VEP/REST alias."""
+        curr = attributes.get(option)
+        if curr is not None:
+            return curr
+        for alias in _ATTRIBUTE_KEY_ALIASES.get(option, ()):
+            curr = attributes.get(alias)
+            if curr is not None:
+                return curr
+        return None
+
+    @staticmethod
+    def _resolve_enum_value(raw: Any) -> Any:
+        """Convert a proto enum name to its integer code when known."""
+        if isinstance(raw, str):
+            mapped = VSU_ENUM_VALUE_TO_INT.get(raw)
+            if mapped is not None:
+                return mapped
+            if raw in _VAS_ENUM_EXTRA_TO_INT:
+                return _VAS_ENUM_EXTRA_TO_INT[raw]
+        return raw
+
+    @staticmethod
+    def _unwrap_wrapper_value(raw: Any) -> Any:
+        """Unwrap protobuf wrapper dicts (e.g. Int32Value/BoolValue) when present."""
+        if isinstance(raw, dict) and "value" in raw:
+            return raw["value"]
+        return raw
+
+    @staticmethod
+    def _strip_enum_label(raw: Any, *prefixes: str) -> str | None:
+        """Strip proto enum prefixes into lowercase state labels."""
+        if raw is None:
+            return None
+        text = str(raw)
+        for prefix in prefixes:
+            if text.startswith(prefix):
+                return text[len(prefix) :].lower()
+        return text.lower()
+
+    @classmethod
+    def _extract_raw_attribute_value(cls, curr: dict[str, Any]) -> Any:
+        """Extract scalar or typed VEP enum value from a raw attribute dict."""
+        for key in ("value", "int_value", "double_value", "bool_value"):
+            if key in curr:
+                return curr[key]
+        for enum_key in _VAS_ENUM_FIELDS:
+            if enum_key in curr:
+                return cls._resolve_enum_value(curr[enum_key])
+        return 0
+
     def _get_car_values_handle_generic(self, car_detail, class_instance, option, update, vin: str):
-        curr = car_detail.get("attributes", {}).get(option)
+        attributes = car_detail.get("attributes", {})
+        curr = self._lookup_attribute(attributes, option)
         if curr:
-            # Simplify value extraction by checking for existing keys
-            value = next(
-                (curr[key] for key in ("value", "int_value", "double_value", "bool_value") if key in curr),
-                0,
-            )
+            # Simplify value extraction by checking for existing keys and typed VAS enums
+            value = self._extract_raw_attribute_value(curr)
             status = curr.get("status", "VALID")
             time_stamp = curr.get("timestamp", 0)
             curr_display_value = curr.get("display_value")
@@ -600,6 +707,264 @@ class Client:
             return CarAttribute(0, 4, 0)
 
         return None
+
+    def _get_car_values_handle_last_tirepressure_timestamp(self, car_detail, class_instance, option, update, vin: str):
+        """Convert VSU tire_press_meas_timestamp / REST tirePressMeasTimestamp into UTC datetime."""
+        attributes = car_detail.get("attributes", {})
+        curr = self._lookup_attribute(attributes, option)
+        if not curr:
+            return CarAttribute(0, 4, 0) if not update else None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+        if curr.get("nil_value") or status in (3, "3", "NOT_RECEIVED", 4, "4"):
+            return CarAttribute(
+                value=STATE_UNKNOWN,
+                retrievalstatus=status if status in (3, "3", "NOT_RECEIVED", 4, "4") else 3,
+                timestamp=time_stamp,
+                display_value=STATE_UNKNOWN,
+                unit=None,
+            )
+
+        raw_ts = curr.get("value", curr.get("int_value"))
+        try:
+            epoch = int(raw_ts)
+        except (TypeError, ValueError):
+            epoch = 0
+
+        if epoch <= 0:
+            return CarAttribute(STATE_UNKNOWN, 3, time_stamp, STATE_UNKNOWN, None)
+
+        dt_val = datetime.fromtimestamp(epoch, tz=timezone.utc)
+        return CarAttribute(
+            value=dt_val,
+            retrievalstatus=status,
+            timestamp=time_stamp,
+            display_value=dt_val.isoformat(),
+            unit=None,
+        )
+
+    def _get_car_values_handle_temperature_unit_hu(self, car_detail, class_instance, option, update, vin: str):
+        """Normalize temperatureUnitHU across VSU enum (0/1) and VEP bool_value (False/True)."""
+        attr = self._get_car_values_handle_generic(car_detail, class_instance, option, update, vin)
+        if attr is None or attr.retrievalstatus == 4:
+            return attr
+        if isinstance(attr.value, bool) or (isinstance(attr.value, str) and attr.value.isdigit()):
+            attr.value = int(attr.value)
+        return attr
+
+    def _get_car_values_handle_tcu_thermo_shutdown(self, car_detail, class_instance, option, update, vin: str):
+        """Normalize tcuThermoShutDown across VEP bool_value and VSU enum (0=off, 1=on)."""
+        attributes = car_detail.get("attributes", {})
+        curr = attributes.get(option)
+        if not curr:
+            return CarAttribute(False, 4, 0) if not update else None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+        if curr.get("nil_value") or status in (3, "3", "NOT_RECEIVED", 4, "4"):
+            return CarAttribute(None, status if status in (3, "3", "NOT_RECEIVED", 4, "4") else 3, time_stamp)
+
+        if "bool_value" in curr or isinstance(curr.get("value"), bool):
+            raw_bool = curr["bool_value"] if "bool_value" in curr else curr["value"]
+            return CarAttribute(bool(raw_bool), status, time_stamp, str(bool(raw_bool)), None)
+
+        raw_code = curr.get("value", curr.get("int_value"))
+        raw_code = self._resolve_enum_value(raw_code)
+        try:
+            code = int(raw_code)
+        except (TypeError, ValueError):
+            return CarAttribute(None, 3, time_stamp, STATE_UNKNOWN, None)
+
+        mapped = _TCU_THERMO_SHUTDOWN_BOOL.get(code)
+        if mapped is None:
+            return CarAttribute(None, 3, time_stamp, STATE_UNKNOWN, None)
+
+        return CarAttribute(mapped, status, time_stamp, str(mapped), None)
+
+    def _get_car_values_handle_precond_operability_state(self, car_detail, class_instance, option, update, vin: str):
+        """Split precondOperabilityState into availability bool and error-state enum."""
+        curr = car_detail.get("attributes", {}).get("precondOperabilityState")
+        if not curr:
+            return None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+        if curr.get("nil_value") or status in (3, "3", "NOT_RECEIVED", 4, "4"):
+            return CarAttribute(
+                None,
+                status if status in (3, "3", "NOT_RECEIVED", 4, "4") else 3,
+                time_stamp,
+                STATE_UNKNOWN,
+                None,
+            )
+
+        payload = curr.get("value")
+        if not isinstance(payload, dict):
+            payload = curr.get("precond_operability_state")
+        if not isinstance(payload, dict):
+            payload = {}
+
+        if option == "precondOperabilityAvailable":
+            value: Any = bool(payload.get("precond_available", False))
+            return CarAttribute(value, status, time_stamp, str(value), None)
+
+        raw_err = payload.get("precond_error_state", 0)
+        resolved_err = self._resolve_enum_value(raw_err)
+        if not isinstance(resolved_err, int):
+            try:
+                resolved_err = int(resolved_err)
+            except (TypeError, ValueError):
+                resolved_err = 0
+        return CarAttribute(resolved_err, status, time_stamp, None, None)
+
+    def _get_car_values_handle_charging_prediction_departure_time(
+        self, car_detail, class_instance, option, update, vin: str
+    ):
+        """Extract predicted departure range/SoC without spawning empty entities when unset."""
+        curr = car_detail.get("attributes", {}).get("chargingPredictionDepartureTime")
+        if not curr:
+            return None
+
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+        if status in (4, "4"):
+            return CarAttribute(None, 4, time_stamp)
+
+        payload = curr.get("value")
+        if not isinstance(payload, dict):
+            payload = curr.get("charging_prediction_departure_time")
+        if not isinstance(payload, dict):
+            payload = {}
+
+        raw_range = payload.get("predicted_electrical_energy_range")
+        raw_soc = self._unwrap_wrapper_value(payload.get("predicted_soc"))
+
+        try:
+            range_val = int(raw_range) if raw_range is not None else None
+        except (TypeError, ValueError):
+            range_val = None
+        try:
+            soc_val = int(raw_soc) if raw_soc is not None else None
+        except (TypeError, ValueError):
+            soc_val = None
+
+        if option == "chargingPredictionDepartureTimeRange":
+            if range_val is not None:
+                return CarAttribute(
+                    range_val,
+                    status,
+                    time_stamp,
+                    str(range_val),
+                    curr.get("distance_unit", "KILOMETERS"),
+                )
+            if hasattr(class_instance, option):
+                return CarAttribute(None, 3, time_stamp, STATE_UNKNOWN, None)
+            return None
+
+        if option == "chargingPredictionDepartureTimeSoc":
+            if soc_val is not None:
+                return CarAttribute(soc_val, status, time_stamp, str(soc_val), "PERCENT")
+            if hasattr(class_instance, option):
+                return CarAttribute(None, 3, time_stamp, STATE_UNKNOWN, None)
+            return None
+
+        # Raw normalized object attribute
+        if range_val is None and soc_val is None:
+            if hasattr(class_instance, option):
+                return CarAttribute({}, status, time_stamp, None, None)
+            return None
+        return CarAttribute(
+            {
+                "predicted_electrical_energy_range": range_val,
+                "predicted_soc": soc_val,
+            },
+            status,
+            time_stamp,
+            None,
+            None,
+        )
+
+    def _get_car_values_handle_charging_schedule(self, car_detail, class_instance, option, update, vin: str):
+        """Normalize chargingScheduleActive and chargingScheduleRequested across VSU and VEP/REST."""
+        if option == "chargingScheduleRequested":
+            curr = car_detail.get("attributes", {}).get("chargingScheduleRequested")
+            if not curr:
+                return None
+            status = curr.get("status", "VALID")
+            time_stamp = curr.get("timestamp", 0)
+            if status in (4, "4"):
+                return CarAttribute(None, 4, time_stamp)
+            if curr.get("nil_value") or status in (3, "3", "NOT_RECEIVED"):
+                return CarAttribute(None, 3, time_stamp, STATE_UNKNOWN, None)
+            payload = curr.get("value")
+            if not isinstance(payload, dict):
+                payload = curr.get("charging_schedule_requested")
+            if not isinstance(payload, dict):
+                payload = {}
+            raw_sid = payload.get("schedule_id_status")
+            raw_uc = payload.get("use_case_id")
+            # Shared enums ScheduleIdStatus (0=INITIAL) and ChargingScheduleUseCaseId
+            # (0=SMART_CHARGING) omit value 0 on the wire when present.
+            schedule_id_status = (
+                "initial" if raw_sid in (None, 0, "0") else self._strip_enum_label(raw_sid, _SCHEDULE_ID_STATUS_PREFIX)
+            )
+            use_case_id = (
+                "smart_charging"
+                if raw_uc in (None, 0, "0")
+                else self._strip_enum_label(raw_uc, *_CHARGING_SCHEDULE_USE_CASE_PREFIXES)
+            )
+            normalized_req = {
+                "schedule_id_status": schedule_id_status,
+                "use_case_id": use_case_id,
+            }
+            return CarAttribute(normalized_req, status, time_stamp, None, None)
+
+        curr = car_detail.get("attributes", {}).get("chargingScheduleActive")
+        if not curr:
+            return None
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+        if status in (4, "4"):
+            return CarAttribute(None, 4, time_stamp)
+
+        payload = curr.get("value")
+        if not isinstance(payload, dict):
+            payload = curr.get("charging_schedule_active")
+        if not isinstance(payload, dict):
+            payload = {}
+
+        raw_start = payload.get("start_time")
+        start_time: str | None = None
+        if isinstance(raw_start, str) and raw_start and raw_start != _EPOCH_ZERO_ISO:
+            start_time = raw_start
+        elif isinstance(raw_start, dict):
+            seconds = int(raw_start.get("seconds") or 0)
+            if seconds > 0:
+                start_time = datetime.fromtimestamp(seconds, tz=timezone.utc).isoformat()
+
+        slots = [slot for slot in (payload.get("schedule") or []) if isinstance(slot, dict) and slot]
+        offline_mode = self._strip_enum_label(payload.get("offline_mode"), _CHARGING_SCHEDULE_OFFLINE_PREFIX)
+        schedule_id_status = self._strip_enum_label(payload.get("schedule_id_status"), _SCHEDULE_ID_STATUS_PREFIX)
+        raw_use_case = payload["use_case_id"] if "use_case_id" in payload else payload.get("use_case_id_deprecated")
+        use_case_id = self._strip_enum_label(raw_use_case, *_CHARGING_SCHEDULE_USE_CASE_PREFIXES)
+
+        details = {
+            "start_time": start_time,
+            "offline_mode": offline_mode,
+            "use_case_id": use_case_id,
+            "schedule_id_status": schedule_id_status,
+            "schedule": slots,
+        }
+        if option == "chargingScheduleActiveDetails":
+            return CarAttribute(details, status, time_stamp, None, None)
+
+        has_active_signal = bool(start_time or slots or raw_use_case)
+        if schedule_id_status == "deleted" or not has_active_signal:
+            state = "inactive"
+        else:
+            state = use_case_id or "active"
+        return CarAttribute(state, status, time_stamp, None, None)
 
     def _get_car_values_handle_max_soc(
         self, car_detail, class_instance, option, update, vin: str, use_last_full_message: bool = False
@@ -1042,7 +1407,22 @@ class Client:
         if not curr:
             return None
 
+        status = curr.get("status", "VALID")
+        time_stamp = curr.get("timestamp", 0)
+        if status in (4, "4"):
+            return CarAttribute(None, 4, time_stamp)
+        if curr.get("nil_value") or status in (3, "3", "NOT_RECEIVED"):
+            return CarAttribute(
+                value=STATE_UNKNOWN,
+                retrievalstatus=3,
+                timestamp=time_stamp,
+                display_value=STATE_UNKNOWN,
+                unit=None,
+            )
+
         value = curr.get("value")
+        if not isinstance(value, dict):
+            value = curr.get("next_departure_time_value")
         if not isinstance(value, dict):
             return None
 
@@ -1180,8 +1560,8 @@ class Client:
         if not isinstance(entry, dict):
             return {}
 
-        hour = int(entry.get("hour") or 0)
-        minute = int(entry.get("minute") or 0)
+        hour = int(Client._unwrap_wrapper_value(entry.get("hour")) or 0)
+        minute = int(Client._unwrap_wrapper_value(entry.get("minute")) or 0)
 
         # action_list is a repeated message, so several entries may each carry
         # one flag. Fold them into a single mapping.
@@ -1203,12 +1583,12 @@ class Client:
             schedule_type = schedule_type.removeprefix(WEEKLY_PROFILE_SCHEDULE_TYPE_PREFIX)
 
         return {
-            "identifier": entry.get("id"),
+            "identifier": entry.get("id", entry.get("identifier")),
             "time": f"{hour:02d}:{minute:02d}",
             "hour": hour,
             "minute": minute,
             "days": list(entry.get("days") or []),
-            "active": bool(entry.get("active", False)),
+            "active": bool(Client._unwrap_wrapper_value(entry.get("active")) or False),
             "application_identifier": entry.get("application_identifier", 0),
             "actions": actions,
             "schedule_type": schedule_type,
@@ -1224,16 +1604,16 @@ class Client:
         way endofchargetime and endofChargeTimeWeekday both come out of one
         value. "weeklyProfile" is the key on the wire, not one of them.
 
-        Only the VSU shape is read. The flat VEP form (weekly_profile_value)
-        nests hour/minute/active in wrapper messages and has not been observed
-        on any vehicle, so a sensor is simply not created for it rather than
-        parsing a shape that cannot be verified.
+        Supports both the VSU shape (``value`` with ``id``) and the VEP/REST
+        ``weekly_profile_value`` shape (with ``identifier`` / wrapper scalars).
         """
         curr = car_detail.get("attributes", {}).get("weeklyProfile")
         if not curr:
             return None
 
         profile = curr.get("value")
+        if not isinstance(profile, dict):
+            profile = curr.get("weekly_profile_value")
         if not isinstance(profile, dict):
             return None
 

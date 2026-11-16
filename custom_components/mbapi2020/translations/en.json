@@ -642,6 +642,54 @@
       },
       "doorlockstatusdecklid": {
         "name": "Deck lid lock"
+      },
+      "precondavailable": {
+        "name": "Preconditioning available",
+        "state_attributes": {
+          "precondoperabilitystate": {
+            "name": "Preconditioning operability state",
+            "state": {
+              "0": "No error",
+              "1": "Play protection",
+              "2": "No energy budget available",
+              "3": "Low budget",
+              "4": "System not available",
+              "5": "Preconditioning aborted",
+              "6": "Regular climatization active"
+            }
+          }
+        }
+      },
+      "sohcalibrationrequired": {
+        "name": "SoH calibration required"
+      },
+      "tcuthermoshutdown": {
+        "name": "TCU thermal shutdown"
+      },
+      "tirewarninglamp": {
+        "state_attributes": {
+          "tirewarninglevelprw": {
+            "name": "Tire warning level PRW",
+            "state": {
+              "0": "No warning",
+              "1": "Warning",
+              "2": "Go to workshop"
+            }
+          },
+          "tiresensoravailable": {
+            "name": "Tire sensors available",
+            "state": {
+              "0": "All sensors located",
+              "1": "One to three sensors missing",
+              "2": "All sensors missing",
+              "3": "System error",
+              "4": "Auto-locate error"
+            }
+          }
+        }
+      },
+      "trackingstatehu": {
+        "name": "Tracking state"
       }
     },
     "sensor": {
@@ -956,6 +1004,275 @@
           "3": "Ventilating",
           "4": "Intermediate ventilating",
           "5": "Running"
+        }
+      },
+      "chargingcompatibilityerror": {
+        "state": {
+          "0": "Default",
+          "1": "Full compatibility",
+          "2": "Full compatibility with additional hardware",
+          "3": "Partial compatibility",
+          "4": "Partial compatibility with additional device",
+          "5": "No compatibility",
+          "6": "Bidirectional discharging not compatible",
+          "7": "EVSE minimum current"
+        }
+      },
+      "chargingerrordetails": {
+        "state": {
+          "0": "No error",
+          "1": "Inlet unlock error",
+          "2": "EVSE defect, change charging station",
+          "3": "EVSE defect, malfunction of charging station",
+          "4": "Charge type not available",
+          "5": "CHAdeMO inlet unlock error",
+          "6": "DC internal component defect",
+          "7": "AC internal component defect",
+          "8": "Authorization failed",
+          "9": "Reserved (9)",
+          "10": "Reserved (10)",
+          "11": "Reserved (11)",
+          "12": "Reserved (12)",
+          "13": "Reserved (13)",
+          "14": "No info or error message",
+          "15": "Charging system defect",
+          "16": "DC charging defect",
+          "17": "AC charging defect",
+          "18": "Replug charging cable",
+          "19": "EVSE not responding, reconnect",
+          "20": "EVSE not responding, use other authentication",
+          "21": "EVSE not responding, EVSE defect",
+          "22": "EVSE not responding, try other EVSE",
+          "23": "EV initiated shutdown, usage limit reached",
+          "24": "No valid Plug & Charge certificate available",
+          "25": "Unknown charging error occurred",
+          "26": "NACS error, charging station not compatible",
+          "27": "Play protection active"
+        },
+        "state_attributes": {
+          "chargingcompatibilityerror": {
+            "name": "Charging compatibility",
+            "state": {
+              "0": "Default",
+              "1": "Full compatibility",
+              "2": "Full compatibility with additional hardware",
+              "3": "Partial compatibility",
+              "4": "Partial compatibility with additional device",
+              "5": "No compatibility",
+              "6": "Bidirectional discharging not compatible",
+              "7": "EVSE minimum current"
+            }
+          },
+          "chargingcouplererrordetails": {
+            "name": "Charging coupler error details",
+            "state": {
+              "0": "No info or error message",
+              "1": "Relieve charge coupler and retry",
+              "2": "Contact service hotline for emergency unlock",
+              "3": "Unplug and replug charge coupler",
+              "4": "Charge coupler lock defect"
+            }
+          },
+          "chargingerrorimpossiblechangeto400v": {
+            "name": "Impossible change to 400V",
+            "state": {
+              "0": "No info",
+              "1": "400V impossible, stuck to 800V"
+            }
+          },
+          "chargingerrorimpossiblechangeto800v": {
+            "name": "Impossible change to 800V",
+            "state": {
+              "0": "No info",
+              "1": "800V impossible, stuck to 400V"
+            }
+          },
+          "chargingerrorvehiclenosupport400v": {
+            "name": "Vehicle 400V support error",
+            "state": {
+              "0": "No info",
+              "1": "400V charging not possible"
+            }
+          },
+          "chargingflaperrordetails": {
+            "name": "Charging flap error details",
+            "state": {
+              "0": "No info or error message",
+              "1": "Opening defect, search workshop",
+              "2": "Blocked",
+              "3": "Play protection active",
+              "4": "Driving position not parking",
+              "5": "State unknown",
+              "6": "Pressed detection defect",
+              "7": "Closing of automated flap defect"
+            }
+          },
+          "chargingstoperrordetails": {
+            "name": "Charging stop error details",
+            "state": {
+              "0": "No info or error message",
+              "1": "Charge stop button defect"
+            }
+          }
+        }
+      },
+      "filterparticleloading": {
+        "state": {
+          "0": "High",
+          "1": "Medium",
+          "2": "Low"
+        }
+      },
+      "hvbatterythermalpropagationevent": {
+        "state": {
+          "0": "No warning",
+          "1": "Warning 1",
+          "2": "Warning 2"
+        }
+      },
+      "hybridwarnings": {
+        "state": {
+          "0": "None",
+          "1": "Seek service",
+          "2": "High voltage fault",
+          "3": "Powertrain fault",
+          "4": "Starter battery",
+          "5": "Stop vehicle",
+          "6": "Plug-in only",
+          "7": "Plug-in still active",
+          "8": "Power reduced",
+          "9": "Stop engine off"
+        }
+      },
+      "oilwarninglevel": {
+        "state": {
+          "0": "Overfill",
+          "1": "OK",
+          "2": "Underfill",
+          "3": "Not available"
+        }
+      },
+      "sohcalibrationstate": {
+        "state": {
+          "0": "Not active",
+          "1": "Active",
+          "2": "Successful",
+          "3": "BMS undefined error",
+          "4": "BMS temperature error",
+          "5": "No customer permission error",
+          "6": "Not enough time until departure error",
+          "7": "User cancelled error",
+          "8": "Charging process cancelled error",
+          "9": "Charging infrastructure protocol error",
+          "10": "Charging infrastructure power reduction error",
+          "11": "Undefined error"
+        },
+        "state_attributes": {
+          "soccalibrationrequest": {
+            "name": "SoC calibration request",
+            "state": {
+              "0": "No request",
+              "1": "Low request",
+              "2": "High request"
+            }
+          },
+          "sohcalibrationnotifications": {
+            "name": "SoH calibration notifications",
+            "state": {
+              "0": "No calibration necessary",
+              "1": "Notification level 1",
+              "2": "Notification level 2",
+              "3": "Notification level 3",
+              "4": "Notification level 4"
+            }
+          },
+          "sohcalibrationplanned": {
+            "name": "SoH calibration planned",
+            "state": {
+              "0": "Not planned",
+              "1": "Planned"
+            }
+          },
+          "sohcalibrationrequest": {
+            "name": "SoH calibration request",
+            "state": {
+              "0": "No request",
+              "1": "Low request",
+              "2": "High request"
+            }
+          },
+          "sohcalibrationrequired": {
+            "name": "SoH calibration required",
+            "state": {
+              "0": "Not required",
+              "1": "Required"
+            }
+          },
+          "sohfavorableconditions": {
+            "name": "SoH favorable conditions",
+            "state": {
+              "0": "Not favorable",
+              "1": "Favorable level 1",
+              "2": "Favorable level 2"
+            }
+          }
+        }
+      },
+      "sunroofevent": {
+        "state": {
+          "0": "No event",
+          "1": "Rain detected",
+          "2": "Rain monitoring aborted",
+          "3": "Rain monitoring ended (timer expired)"
+        }
+      },
+      "tcuconnectionstatelowchannel": {
+        "state": {
+          "0": "Unknown",
+          "1": "Initially connected",
+          "2": "Reconnected",
+          "3": "Disconnected",
+          "4": "Unplanned disconnect"
+        }
+      },
+      "temperatureunithu": {
+        "state": {
+          "0": "Celsius",
+          "1": "Fahrenheit"
+        }
+      },
+      "tiresensoravailable": {
+        "state": {
+          "0": "All sensors located",
+          "1": "One to three sensors missing",
+          "2": "All sensors missing",
+          "3": "System error",
+          "4": "Auto-locate error"
+        }
+      },
+      "tirewarninglevelprw": {
+        "state": {
+          "0": "No warning",
+          "1": "Warning",
+          "2": "Go to workshop"
+        }
+      },
+      "turnoffengineprewarning": {
+        "state": {
+          "0": "No message active",
+          "1": "Automatic shutdown on lock",
+          "2": "Automatic shutdown on timeout",
+          "6": "Standby aborted"
+        }
+      },
+      "vehiclepositionerrorcode": {
+        "state": {
+          "0": "Unknown",
+          "1": "Service inactive",
+          "2": "Tracking inactive",
+          "3": "Parked",
+          "4": "Ignition on",
+          "5": "OK"
         }
       }
     },
