@@ -78,6 +78,16 @@ GEOFENCING_MAX_RETRIES = 1
 # Head units for which the vendor app always starts and stops the climate
 # control with the "now" type, whatever the car reports.
 PRECOND_ALWAYS_NOW_HEAD_UNITS = frozenset({"NTG7", "GEN20XI2", "GEN20XI3", "GEN20XMAXI2"})
+
+# Temperature zones the service supports, in the order the command needs them
+# (front before rear, left before right), with the suffix of their precond attribute.
+_TEMPERATURE_ZONES = {
+    "FRONT_LEFT": "frontLeft",
+    "FRONT_CENTER": "frontCenter",
+    "FRONT_RIGHT": "frontRight",
+    "REAR_LEFT": "rearLeft",
+    "REAR_RIGHT": "rearRight",
+}
 # On the other head units the app starts a car without a precondNow state by
 # setting a departure time this far ahead.
 PRECOND_DEPARTURE_LEAD_MINUTES = 15
@@ -513,6 +523,7 @@ class Client:
             "smartChargingLocation": self._get_car_values_handle_smart_charging,
             "smartChargingStation": self._get_car_values_handle_smart_charging,
             "smartChargingStrategy": self._get_car_values_handle_smart_charging,
+            "temperature_points_frontCenter": self._get_car_values_handle_temperature_points,
             "temperature_points_frontLeft": self._get_car_values_handle_temperature_points,
             "temperature_points_frontRight": self._get_car_values_handle_temperature_points,
             "temperature_points_rearLeft": self._get_car_values_handle_temperature_points,
@@ -3133,15 +3144,38 @@ class Client:
         await self.execute_car_command(message)
         LOGGER.info("End preconditioning_configure for vin %s", loghelper.Mask_VIN(vin))
 
+    def _temperature_zones(self, vin: str) -> list[str]:
+        """Return the zones the car accepts in TEMPERATURE_CONFIGURE, in command order.
+
+        The car lists them as TEMPERATURE_POINTS_ZONE. Without that list - the
+        capability check may be switched off - the four corner zones are assumed.
+        """
+        current_car = self.cars.get(vin)
+        for command in ((current_car.capabilities or {}) if current_car else {}).get("commands") or []:
+            if command.get("commandName") != "TEMPERATURE_CONFIGURE":
+                continue
+            for parameter in command.get("parameters") or []:
+                if parameter.get("parameterName") == "TEMPERATURE_POINTS_ZONE" and parameter.get("allowedEnums"):
+                    allowed = set(parameter["allowedEnums"])
+                    return [zone for zone in _TEMPERATURE_ZONES if zone in allowed]
+        return ["FRONT_LEFT", "FRONT_RIGHT", "REAR_LEFT", "REAR_RIGHT"]
+
     async def temperature_configure(
         self,
         vin: str,
-        front_left: int | None = None,
-        front_right: int | None = None,
-        rear_left: int | None = None,
-        rear_right: int | None = None,
+        front_left: float | None = None,
+        front_right: float | None = None,
+        rear_left: float | None = None,
+        rear_right: float | None = None,
+        front_center: float | None = None,
     ):
-        """Send a temperature_configure  command to the car."""
+        """Send a temperature_configure command to the car.
+
+        The front zones the car accepts are always sent, the rear zones only when
+        one of them is given. A zone without a new value is sent with its current
+        temperature; a zone whose temperature is unknown is left out, so it is not
+        set to Low by accident. 0 means Low and 30 High.
+        """
         LOGGER.info("Start temperature_configure for vin %s", loghelper.Mask_VIN(vin))
 
         if not self._is_car_feature_available(vin, "TEMPERATURE_CONFIGURE"):
@@ -3151,53 +3185,49 @@ class Client:
                 "TEMPERATURE_CONFIGURE",
             )
             return
-        message = client_pb2.ClientMessage()
 
+        requested = {
+            "FRONT_LEFT": front_left,
+            "FRONT_CENTER": front_center,
+            "FRONT_RIGHT": front_right,
+            "REAR_LEFT": rear_left,
+            "REAR_RIGHT": rear_right,
+        }
+        requested = {zone: value for zone, value in requested.items() if value is not None}
+        if not requested:
+            LOGGER.info("End temperature_configure for vin %s - No actions", loghelper.Mask_VIN(vin))
+            return
+
+        allowed = self._temperature_zones(vin)
+        not_allowed = sorted(set(requested) - set(allowed))
+        if not_allowed:
+            raise ServiceValidationError(
+                f"Can't configure the temperature for {', '.join(z.lower() for z in not_allowed)}. "
+                f"This car accepts: {', '.join(z.lower() for z in allowed)}."
+            )
+
+        message = client_pb2.ClientMessage()
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
 
         config = pb2_commands.TemperatureConfigure()
-        entry_set: bool = False
+        precond = getattr(self.cars.get(vin), "precond", None)
+        rear_requested = any(zone.startswith("REAR") for zone in requested)
 
-        car = self.cars.get(vin)
+        for zone in allowed:
+            if zone.startswith("REAR") and not rear_requested:
+                continue
+            value = requested.get(zone)
+            if value is None:
+                current = getattr(precond, f"temperature_points_{_TEMPERATURE_ZONES[zone]}", None)
+                value = getattr(current, "value", None)
+            if value is None:
+                continue
+            point = config.temperature_points.add()
+            point.zone = pb2_commands.TemperatureConfigure.TemperaturePoint.Zone.Value(zone)
+            point.temperature_in_celsius = float(value)
 
-        if front_left or front_right or rear_left or rear_right:
-            zone_front_left = config.temperature_points.add()
-            zone_front_left.zone = 1
-            if front_left:
-                zone_front_left.temperature_in_celsius = front_left
-            elif getattr(car.precond, "temperature_points_frontLeft", None):
-                zone_front_left.temperature_in_celsius = car.precond.temperature_points_frontLeft.value
-            entry_set = True
-
-        if front_right or rear_left or rear_right:
-            zone_front_right = config.temperature_points.add()
-            zone_front_right.zone = 2
-            if front_right:
-                zone_front_right.temperature_in_celsius = front_right
-            elif getattr(car.precond, "temperature_points_frontRight", None):
-                zone_front_right.temperature_in_celsius = car.precond.temperature_points_frontRight.value
-            entry_set = True
-
-        if rear_left or rear_right:
-            zone_rear_left = config.temperature_points.add()
-            zone_rear_left.zone = 4
-            if rear_left:
-                zone_rear_left.temperature_in_celsius = rear_left
-            elif getattr(car.precond, "temperature_points_rearLeft", None):
-                zone_rear_left.temperature_in_celsius = car.precond.temperature_points_rearLeft.value
-            entry_set = True
-
-        if rear_right or rear_left:
-            zone_rear_right = config.temperature_points.add()
-            zone_rear_right.zone = 5
-            if rear_right:
-                zone_rear_right.temperature_in_celsius = rear_right
-            elif getattr(car.precond, "temperature_points_rearRight", None):
-                zone_rear_right.temperature_in_celsius = car.precond.temperature_points_rearRight.value
-            entry_set = True
-
-        if entry_set:
+        if config.temperature_points:
             message.commandRequest.temperature_configure.CopyFrom(config)
             self._hass.async_add_executor_job(
                 self.write_debug_json_output,

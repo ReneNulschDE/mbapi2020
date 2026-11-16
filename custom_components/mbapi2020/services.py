@@ -255,6 +255,7 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
             call.data.get("front_right"),
             call.data.get("rear_left"),
             call.data.get("rear_right"),
+            front_center=call.data.get("front_center"),
         )
 
     async def windows_close(call) -> None:

@@ -411,7 +411,7 @@
     },
     "temperature_configure": {
       "name": "Target temperature configure (precond/auxheat)",
-      "description": "Configure the target preconditioning/auxheat temperatures for zones in a car defined by a VIN.",
+      "description": "Configure the target preconditioning/auxheat temperatures for zones in a car defined by a VIN. Only the zones the car supports can be set.",
       "fields": {
         "vin": {
           "name": "Vin",
@@ -420,6 +420,10 @@
         "front_left": {
           "name": "Front left",
           "description": "Target temperature for the zone front_left in CELSIUS."
+        },
+        "front_center": {
+          "name": "Front center",
+          "description": "Target temperature for the zone front_center in CELSIUS. (cars with a single front zone)"
         },
         "front_right": {
           "name": "Front right",
