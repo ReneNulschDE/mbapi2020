@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 import time
@@ -16,12 +16,14 @@ from custom_components.mbapi2020.car import Car, CarAttribute, RcpOptions
 from custom_components.mbapi2020.const import (
     ATTR_MB_MANUFACTURER,
     CONF_ENABLE_CHINA_GCJ_02,
+    CONF_FT_DISABLE_CAPABILITY_CHECK,
     CONF_OVERWRITE_PRECONDNOW,
     DOMAIN,
     LOGGER,
     LOGIN_BASE_URI,
     MERCEDESME_COMPONENTS,
     SIGPOS_HORN_TYPES,
+    STATE_CONFIRMATION_DURATION,
     UNITS,
     SensorConfigFields as scf,
 )
@@ -30,11 +32,18 @@ from custom_components.mbapi2020.errors import MBAuthTemporaryError, WebsocketEr
 from custom_components.mbapi2020.helper import LogHelper as loghelper
 from custom_components.mbapi2020.services import setup_services
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.exceptions import (
+    ConfigEntryAuthFailed,
+    ConfigEntryError,
+    ConfigEntryNotReady,
+    ServiceValidationError,
+)
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity, EntityDescription
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
@@ -355,6 +364,8 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
 
         self._flip_result = False
         self._state = None
+        self._state_confirmation_duration = STATE_CONFIRMATION_DURATION
+        self._confirmation_handle: CALLBACK_TYPE | None = None
 
         # Temporary workaround: If PR get's approved, all entity types should be migrated to the new config classes
         if isinstance(config, EntityDescription):
@@ -534,6 +545,34 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
 
         return None
 
+    def _assert_push_mode(self) -> None:
+        """Raise ServiceValidationError when the vehicle connection is in pull mode."""
+        if getattr(self._car.data_collection_mode, "value", None) == "pull":
+            raise ServiceValidationError(
+                "The connection to the MB-server is in pull mode currently. Actions can't be executed in this mode."
+            )
+
+    def _safe_write_ha_state(self) -> None:
+        """Write Home Assistant state when attached to a hass instance."""
+        if self.hass is not None:
+            self.async_write_ha_state()
+
+    def _cancel_confirmation(self) -> None:
+        """Cancel any pending optimistic-state confirmation timer."""
+        if self._confirmation_handle:
+            self._confirmation_handle()
+            self._confirmation_handle = None
+
+    def _schedule_confirmation(self, reset_callback: Callable[[Any], Coroutine[Any, Any, None]]) -> None:
+        """Schedule optimistic-state fallback reset when running inside Home Assistant."""
+        self._cancel_confirmation()
+        if self.hass is not None:
+            self._confirmation_handle = async_call_later(self.hass, self._state_confirmation_duration, reset_callback)
+
+    def _is_car_attribute_valid(self, feature: str, object_name: str) -> bool:
+        """Return True when the given car attribute has VALID retrieval status."""
+        return self._get_car_value(feature, object_name, "retrievalstatus", "error") == "VALID"
+
     def pushdata_update_callback(self):
         """Schedule a state update."""
         self.update()
@@ -558,4 +597,50 @@ class MercedesMeEntity(CoordinatorEntity[MBAPI2020DataUpdateCoordinator], Entity
     async def async_will_remove_from_hass(self):
         """Entity being removed from hass."""
         await super().async_will_remove_from_hass()
+        self._cancel_confirmation()
         self._car.remove_update_callback(self.pushdata_update_callback)
+
+
+async def async_setup_described_platform(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+    descriptions: Sequence[MercedesMeEntityDescription],
+    entity_cls: type[MercedesMeEntity],
+    platform_name: str,
+) -> None:
+    """Set up a capability-gated EntityDescription platform."""
+    coordinator: MBAPI2020DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    skip_capability_check: bool = config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False)
+    entities: list[MercedesMeEntity] = []
+
+    for car in coordinator.client.cars.values():
+        vin_masked = loghelper.Mask_VIN(car.finorvin)
+        for description in descriptions:
+            if not skip_capability_check and not description.check_capability_fn(car):
+                LOGGER.debug(
+                    "Skipping feature '%s' for VIN '%s' due to lack of required capability",
+                    description.key,
+                    vin_masked,
+                )
+                continue
+            try:
+                entity = entity_cls(description, car.finorvin, coordinator)
+                LOGGER.debug(
+                    "Created %s entity for VIN: '%s', feature: '%s'",
+                    platform_name,
+                    vin_masked,
+                    description.key,
+                )
+            except Exception:  # noqa: BLE001 - skips this one entity; letting it escape would abort platform setup for the whole car
+                LOGGER.error(
+                    "Error creating %s entity for VIN: '%s', feature: '%s'. Exception:",
+                    platform_name,
+                    vin_masked,
+                    description.key,
+                    exc_info=True,
+                )
+            else:
+                entities.append(entity)
+
+    async_add_entities(entities)

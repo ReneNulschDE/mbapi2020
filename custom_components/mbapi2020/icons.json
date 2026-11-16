@@ -71,8 +71,27 @@
         "default": "mdi:ev-station",
         "state": {
           "0": "mdi:ev-station",
+          "1": "mdi:flash",
           "2": "mdi:home-battery",
-          "3": "mdi:office-building"
+          "3": "mdi:office-building",
+          "4": "mdi:ev-station"
+        }
+      }
+    },
+    "number": {
+      "max_soc": {
+        "default": "mdi:battery-charging-high"
+      }
+    },
+    "select": {
+      "charge_program": {
+        "default": "mdi:ev-station",
+        "state": {
+          "default": "mdi:ev-station",
+          "instant": "mdi:flash",
+          "home": "mdi:home-battery",
+          "work": "mdi:office-building",
+          "ac_dc_standard": "mdi:ev-station"
         }
       }
     }

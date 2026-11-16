@@ -27,12 +27,14 @@ from homeassistant.const import (
 from homeassistant.helpers import config_validation as cv
 
 MERCEDESME_COMPONENTS = [
-    Platform.SENSOR,
-    Platform.LOCK,
     Platform.BINARY_SENSOR,
     Platform.BUTTON,
     Platform.COVER,
     Platform.DEVICE_TRACKER,
+    Platform.LOCK,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.SENSOR,
     Platform.SWITCH,
 ]
 
