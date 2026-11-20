@@ -67,8 +67,8 @@ WINDOW_COVER_DESCRIPTIONS: list[MercedesMeCoverEntityDescription] = [
         device_class=CoverDeviceClass.WINDOW,
         status_attribute="windowStatusOverall",
         position_args_fn=_all_windows_position_args,
-        check_capability_fn=lambda car: car.check_capabilities(
-            ["WINDOWS_OPEN", "WINDOWS_CLOSE", "variableOpenableWindow"]
+        check_capability_fn=lambda car: (
+            car.check_capabilities(["WINDOWS_OPEN", "WINDOWS_CLOSE"]) or car.can_move_windows()
         ),
     ),
     MercedesMeCoverEntityDescription(
@@ -82,7 +82,7 @@ WINDOW_COVER_DESCRIPTIONS: list[MercedesMeCoverEntityDescription] = [
             "rear_left": None,
             "rear_right": None,
         },
-        check_capability_fn=lambda car: car.check_capabilities(["variableOpenableWindow"]),
+        check_capability_fn=lambda car: car.can_move_windows(),
     ),
     MercedesMeCoverEntityDescription(
         key="window_front_right",
@@ -95,7 +95,7 @@ WINDOW_COVER_DESCRIPTIONS: list[MercedesMeCoverEntityDescription] = [
             "rear_left": None,
             "rear_right": None,
         },
-        check_capability_fn=lambda car: car.check_capabilities(["variableOpenableWindow"]),
+        check_capability_fn=lambda car: car.can_move_windows(),
     ),
     MercedesMeCoverEntityDescription(
         key="window_rear_left",
@@ -108,7 +108,7 @@ WINDOW_COVER_DESCRIPTIONS: list[MercedesMeCoverEntityDescription] = [
             "rear_left": position,
             "rear_right": None,
         },
-        check_capability_fn=lambda car: car.check_capabilities(["variableOpenableWindow"]),
+        check_capability_fn=lambda car: car.can_move_windows(),
     ),
     MercedesMeCoverEntityDescription(
         key="window_rear_right",
@@ -121,7 +121,7 @@ WINDOW_COVER_DESCRIPTIONS: list[MercedesMeCoverEntityDescription] = [
             "rear_left": None,
             "rear_right": position,
         },
-        check_capability_fn=lambda car: car.check_capabilities(["variableOpenableWindow"]),
+        check_capability_fn=lambda car: car.can_move_windows(),
     ),
 ]
 
@@ -167,9 +167,7 @@ class MercedesMeCover(MercedesMeEntity, CoverEntity):
     def supported_features(self) -> CoverEntityFeature:
         """Return the supported features."""
         features = CoverEntityFeature(0)
-        supports_variable_window = (
-            self._skip_capability_check or self._car.features.get("variableOpenableWindow") is True
-        )
+        supports_variable_window = self._skip_capability_check or self._car.can_move_windows()
 
         if self.entity_description.key == "windows":
             if (
@@ -278,7 +276,7 @@ class MercedesMeCover(MercedesMeEntity, CoverEntity):
         """Move the configured window or windows to a specific position."""
         self._raise_if_pin_required()
 
-        if not self._skip_capability_check and self._car.features.get("variableOpenableWindow") is not True:
+        if not self._skip_capability_check and not self._car.can_move_windows():
             LOGGER.warning(
                 "Can't move windows for car %s. Feature not available for this car.",
                 loghelper.Mask_VIN(self._vin),

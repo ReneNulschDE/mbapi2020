@@ -27,6 +27,8 @@ from .const import (
     SERVICE_DOWNLOAD_IMAGES,
     SERVICE_ENGINE_START,
     SERVICE_ENGINE_STOP,
+    SERVICE_HV_BATTERY_START_CONDITIONING,
+    SERVICE_HV_BATTERY_STOP_CONDITIONING,
     SERVICE_PRECONDITIONING_CONFIGURE,
     SERVICE_PRECONDITIONING_CONFIGURE_SCHEMA,
     SERVICE_PRECONDITIONING_CONFIGURE_SEATS,
@@ -55,6 +57,7 @@ from .const import (
     SERVICE_WINDOWS_MOVE,
     SERVICE_WINDOWS_MOVE_SCHEMA,
     SERVICE_WINDOWS_OPEN,
+    SERVICE_WINDOWS_VENTILATE,
 )
 
 
@@ -124,6 +127,23 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
         )
 
     async def charging_break_clocktimer_configure(call) -> None:
+        optional_kwargs = {
+            arg: call.data.get(field)
+            for idx in range(1, 8)
+            for arg, field in (
+                (f"days_t{idx}", f"days_timer_{idx}"),
+                *(
+                    (
+                        (f"status_t{idx}", f"status_timer_{idx}"),
+                        (f"start_t{idx}", f"starttime_timer_{idx}"),
+                        (f"stop_t{idx}", f"stoptime_timer_{idx}"),
+                    )
+                    if idx >= 5
+                    else ()
+                ),
+            )
+            if call.data.get(field) is not None
+        }
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.charging_break_clocktimer_configure(
             call.data.get(CONF_VIN),
             call.data.get("status_timer_1"),
@@ -138,6 +158,7 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
             call.data.get("status_timer_4"),
             call.data.get("starttime_timer_4"),
             call.data.get("stoptime_timer_4"),
+            **optional_kwargs,
         )
 
     async def week_profile_configure(call) -> None:
@@ -261,6 +282,12 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
     async def windows_close(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.windows_close(call.data.get(CONF_VIN))
 
+    async def windows_ventilate(call) -> None:
+        await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.windows_ventilate(
+            call.data.get(CONF_VIN),
+            call.data.get(CONF_PIN, ""),
+        )
+
     async def windows_move(call) -> None:
         await domain[_get_config_entryid(call.data.get(CONF_VIN))].client.windows_move(
             call.data.get(CONF_VIN),
@@ -321,8 +348,8 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
         (SERVICE_DOWNLOAD_IMAGES, download_images, SERVICE_VIN_SCHEMA),
         (SERVICE_ENGINE_START, engine_start, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_ENGINE_STOP, engine_stop, SERVICE_VIN_SCHEMA),
-        #        (SERVICE_HV_BATTERY_START_CONDITIONING, hv_battery_start_conditioning, SERVICE_VIN_SCHEMA),
-        #        (SERVICE_HV_BATTERY_STOP_CONDITIONING, hv_battery_stop_conditioning, SERVICE_VIN_SCHEMA),
+        (SERVICE_HV_BATTERY_START_CONDITIONING, hv_battery_start_conditioning, SERVICE_VIN_SCHEMA),
+        (SERVICE_HV_BATTERY_STOP_CONDITIONING, hv_battery_stop_conditioning, SERVICE_VIN_SCHEMA),
         (
             SERVICE_PRECONDITIONING_CONFIGURE,
             preconditioning_configure,
@@ -353,6 +380,7 @@ def setup_services(hass: HomeAssistant) -> None:  # noqa: C901
         (SERVICE_TEMPERATURE_CONFIGURE, temperature_configure, SERVICE_TEMPERATURE_CONFIGURE_SCHEMA),
         (SERVICE_WINDOWS_OPEN, windows_open, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_WINDOWS_CLOSE, windows_close, SERVICE_VIN_SCHEMA),
+        (SERVICE_WINDOWS_VENTILATE, windows_ventilate, SERVICE_VIN_PIN_SCHEMA),
         (SERVICE_WINDOWS_MOVE, windows_move, SERVICE_WINDOWS_MOVE_SCHEMA),
     ]
 
@@ -376,8 +404,8 @@ def remove_services(hass: HomeAssistant) -> None:
     hass.services.async_remove(DOMAIN, SERVICE_DOWNLOAD_IMAGES)
     hass.services.async_remove(DOMAIN, SERVICE_ENGINE_START)
     hass.services.async_remove(DOMAIN, SERVICE_ENGINE_STOP)
-    #    hass.services.async_remove(DOMAIN, SERVICE_HV_BATTERY_START_CONDITIONING)
-    #    hass.services.async_remove(DOMAIN, SERVICE_HV_BATTERY_STOP_CONDITIONING)
+    hass.services.async_remove(DOMAIN, SERVICE_HV_BATTERY_START_CONDITIONING)
+    hass.services.async_remove(DOMAIN, SERVICE_HV_BATTERY_STOP_CONDITIONING)
     hass.services.async_remove(DOMAIN, SERVICE_PRECONDITIONING_CONFIGURE)
     hass.services.async_remove(DOMAIN, SERVICE_PRECONDITIONING_CONFIGURE_SEATS)
     hass.services.async_remove(DOMAIN, SERVICE_PREHEAT_START)
@@ -392,4 +420,5 @@ def remove_services(hass: HomeAssistant) -> None:
     hass.services.async_remove(DOMAIN, SERVICE_TEMPERATURE_CONFIGURE)
     hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_OPEN)
     hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_CLOSE)
+    hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_VENTILATE)
     hass.services.async_remove(DOMAIN, SERVICE_WINDOWS_MOVE)

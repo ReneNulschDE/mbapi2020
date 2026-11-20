@@ -514,6 +514,7 @@ class Client:
             "chargePrograms": self._get_car_values_handle_charge_programs,
             "chargingBreakClockTimer": self._get_car_values_handle_charging_break_clock_timer,
             "chargingPowerRestriction": self._get_car_values_handle_charging_power_restriction,
+            "chargingPredictionMaxSocRange": self._get_car_values_handle_charging_prediction_range,
             "endofchargetime": self._get_car_values_handle_endofchargetime,
             "ignitionstate": self._get_car_values_handle_ignitionstate,
             "nextDepartureTime": self._get_car_values_handle_next_departure_time,
@@ -525,9 +526,13 @@ class Client:
             "smartChargingStrategy": self._get_car_values_handle_smart_charging,
             "temperature_points_frontCenter": self._get_car_values_handle_temperature_points,
             "temperature_points_frontLeft": self._get_car_values_handle_temperature_points,
+            "temperature_points_frontLeftActive": self._get_car_values_handle_temperature_points,
             "temperature_points_frontRight": self._get_car_values_handle_temperature_points,
+            "temperature_points_frontRightActive": self._get_car_values_handle_temperature_points,
             "temperature_points_rearLeft": self._get_car_values_handle_temperature_points,
+            "temperature_points_rearLeftActive": self._get_car_values_handle_temperature_points,
             "temperature_points_rearRight": self._get_car_values_handle_temperature_points,
+            "temperature_points_rearRightActive": self._get_car_values_handle_temperature_points,
             "weeklyProfileActive": self._get_car_values_handle_weekly_profile,
             "weeklyProfileLimits": self._get_car_values_handle_weekly_profile,
             "weeklyProfileRaw": self._get_car_values_handle_weekly_profile,
@@ -564,7 +569,10 @@ class Client:
         return class_instance
 
     def _get_car_values_handle_generic(self, car_detail, class_instance, option, update, vin: str):
-        curr = car_detail.get("attributes", {}).get(option)
+        attributes = car_detail.get("attributes", {})
+        curr = attributes.get(option)
+        if curr is None and option == "warningBrakeLiningWear":
+            curr = attributes.get("warningbrakeliningwear")
         if curr:
             # Simplify value extraction by checking for existing keys
             value = next(
@@ -819,6 +827,32 @@ class Client:
             timestamp=time_stamp,
             display_value=None,
             unit=None,
+        )
+
+    def _get_car_values_handle_charging_prediction_range(self, car_detail, class_instance, option, update, vin: str):
+        attributes = car_detail.get("attributes", {})
+        prediction = attributes.get("chargingPredictionMaxSoc", {})
+        prediction_soc = prediction.get("charging_prediction_soc", {})
+        raw_range = prediction_soc.get("predicted_electrical_energy_range")
+        if raw_range is None:
+            return None
+
+        try:
+            range_value = int(float(raw_range)) if isinstance(raw_range, str) else int(raw_range)
+        except (TypeError, ValueError):
+            LOGGER.warning(
+                "get_car_values_handle_charging_prediction_range - unparseable range %s for car %s",
+                raw_range,
+                loghelper.Mask_VIN(vin),
+            )
+            return None
+
+        return CarAttribute(
+            value=range_value,
+            retrievalstatus=prediction.get("status", "VALID"),
+            timestamp=prediction.get("timestamp", 0),
+            display_value=str(range_value),
+            unit="KILOMETERS",
         )
 
     def _get_car_values_handle_endofchargetime(self, car_detail, class_instance, option, update, vin: str):
@@ -1455,13 +1489,16 @@ class Client:
         return None
 
     def _get_car_values_handle_temperature_points(self, car_detail, class_instance, option: str, update, vin: str):
-        curr_zone = option.replace("temperature_points_", "")
+        raw_zone = option.removeprefix("temperature_points_")
+        is_active_option = raw_zone.endswith("Active")
+        curr_zone = raw_zone.removesuffix("Active") if is_active_option else raw_zone
         attributes = car_detail.get("attributes", {})
         temperaturePoints = attributes.get("temperaturePoints")
         if not temperaturePoints:
             return None
 
         time_stamp = temperaturePoints.get("timestamp", 0)
+        status = temperaturePoints.get("status", "VALID")
         temperature_points_value = temperaturePoints.get("temperature_points_value", {})
         temperature_points = temperature_points_value.get("temperature_points", [])
 
@@ -1472,6 +1509,20 @@ class Client:
             point_zone = point.get("zone") or "FRONT_LEFT"
             if point_zone.replace("_", "").lower() != curr_zone.lower():
                 continue
+
+            if is_active_option:
+                active = point.get("active")
+                if isinstance(active, dict):
+                    active = active.get("value", active.get("bool_value"))
+                if active is None:
+                    return None
+                return CarAttribute(
+                    value=bool(active),
+                    retrievalstatus=status,
+                    timestamp=time_stamp,
+                    display_value=None,
+                    unit=None,
+                )
 
             temperature = point.get("temperature")
             if isinstance(temperature, dict):
@@ -1869,37 +1920,73 @@ class Client:
 
     async def charge_program_configure(self, vin: str, program: int, max_soc: None | int = None) -> None:
         """Send the selected charge program to the car."""
-        if not self._is_car_feature_available(vin, "CHARGE_PROGRAM_CONFIGURE"):
+        if (
+            not self._is_car_feature_available(vin, "CHARGE_PROGRAM_CONFIGURE")
+            and not self._is_car_feature_available(vin, "CHARGING_CONFIGURE")
+            and not self._is_car_feature_available(vin, "BATTERY_CHARGE_PROGRAM_CONFIGURE")
+        ):
             raise ServiceValidationError(
-                "Can't set the charge program. Feature CHARGE_PROGRAM_CONFIGURE not availabe for this car."
+                "Can't set the charge program. Features CHARGE_PROGRAM_CONFIGURE, "
+                "CHARGING_CONFIGURE or BATTERY_CHARGE_PROGRAM_CONFIGURE not availabe for this car."
             )
 
         LOGGER.debug("Start charge_program_configure")
         message = client_pb2.ClientMessage()
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        charge_programm = pb2_commands.ChargeProgramConfigure()
-        charge_programm.charge_program = program
-        if max_soc is not None:
-            charge_programm.max_soc.value = max_soc
-        else:
-            try:
-                current_charge_programs = getattr(self.cars.get(vin).electric, "chargePrograms", None)
-                if current_charge_programs:
-                    charge_programm.max_soc.value = current_charge_programs.value[program].get("max_soc")
-            except (KeyError, IndexError, TypeError, AttributeError) as err:
-                LOGGER.warning(
-                    "charge_program_configure - Error: %s - %s",
-                    err,
-                    getattr(self.cars.get(vin).electric, "chargePrograms", None),
-                )
 
-        message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
+        if self._has_explicit_feature(vin, "CHARGING_CONFIGURE") and not self._has_explicit_feature(
+            vin, "CHARGE_PROGRAM_CONFIGURE"
+        ):
+            charging_config = pb2_commands.ChargingConfigure()
+            charging_config.charging_program.value = program
+            if max_soc is not None:
+                charging_config.max_soc.value = max_soc
+            message.commandRequest.charging_configure.CopyFrom(charging_config)
+        elif self._has_explicit_feature(vin, "BATTERY_CHARGE_PROGRAM_CONFIGURE") and not self._has_explicit_feature(
+            vin, "CHARGE_PROGRAM_CONFIGURE"
+        ):
+            if program not in (0, 1):
+                raise ServiceValidationError(
+                    "BATTERY_CHARGE_PROGRAM_CONFIGURE only supports programs 0 (Default) and 1 (Instant)."
+                )
+            battery_program = pb2_commands.BatteryChargeProgramConfigure()
+            battery_program.charge_program = program
+            if max_soc is not None:
+                LOGGER.debug(
+                    "charge_program_configure - ignoring max_soc=%s for BATTERY_CHARGE_PROGRAM_CONFIGURE on %s",
+                    max_soc,
+                    loghelper.Mask_VIN(vin),
+                )
+            message.commandRequest.battery_charge_program.CopyFrom(battery_program)
+        else:
+            if program not in (0, 2, 3):
+                raise ServiceValidationError(
+                    "CHARGE_PROGRAM_CONFIGURE only supports programs 0 (Default), 2 (Home) and 3 (Work)."
+                )
+            charge_programm = pb2_commands.ChargeProgramConfigure()
+            charge_programm.charge_program = program
+            if max_soc is not None:
+                max_soc = max(max_soc, 50)
+                charge_programm.max_soc.value = max_soc
+            else:
+                try:
+                    current_charge_programs = getattr(self.cars.get(vin).electric, "chargePrograms", None)
+                    if current_charge_programs:
+                        charge_programm.max_soc.value = current_charge_programs.value[program].get("max_soc")
+                except (KeyError, IndexError, TypeError, AttributeError) as err:
+                    LOGGER.warning(
+                        "charge_program_configure - Error: %s - %s",
+                        err,
+                        getattr(self.cars.get(vin).electric, "chargePrograms", None),
+                    )
+            message.commandRequest.charge_program_configure.CopyFrom(charge_programm)
+
         LOGGER.debug(
             "charge_program_configure - vin: %s - program: %s - max_soc: %s",
             loghelper.Mask_VIN(vin),
-            charge_programm.charge_program,
-            charge_programm.max_soc.value,
+            program,
+            max_soc,
         )
         await self.execute_car_command(message)
         LOGGER.debug("End charge_program_configure for vin %s", loghelper.Mask_VIN(vin))
@@ -2281,24 +2368,110 @@ class Client:
                 setattr(current_car.electric, option, value)
         current_car.publish_updates()
 
+    _CLOCK_TIMER_DAY_MAP: dict[str | int, int] = {
+        0: pb2_commands.ClockTimerConfigureEntry.Day.MONDAY,
+        1: pb2_commands.ClockTimerConfigureEntry.Day.TUESDAY,
+        2: pb2_commands.ClockTimerConfigureEntry.Day.WEDNESDAY,
+        3: pb2_commands.ClockTimerConfigureEntry.Day.THURSDAY,
+        4: pb2_commands.ClockTimerConfigureEntry.Day.FRIDAY,
+        5: pb2_commands.ClockTimerConfigureEntry.Day.SATURDAY,
+        6: pb2_commands.ClockTimerConfigureEntry.Day.SUNDAY,
+        "MO": pb2_commands.ClockTimerConfigureEntry.Day.MONDAY,
+        "TU": pb2_commands.ClockTimerConfigureEntry.Day.TUESDAY,
+        "WE": pb2_commands.ClockTimerConfigureEntry.Day.WEDNESDAY,
+        "TH": pb2_commands.ClockTimerConfigureEntry.Day.THURSDAY,
+        "FR": pb2_commands.ClockTimerConfigureEntry.Day.FRIDAY,
+        "SA": pb2_commands.ClockTimerConfigureEntry.Day.SATURDAY,
+        "SU": pb2_commands.ClockTimerConfigureEntry.Day.SUNDAY,
+        "MONDAY": pb2_commands.ClockTimerConfigureEntry.Day.MONDAY,
+        "TUESDAY": pb2_commands.ClockTimerConfigureEntry.Day.TUESDAY,
+        "WEDNESDAY": pb2_commands.ClockTimerConfigureEntry.Day.WEDNESDAY,
+        "THURSDAY": pb2_commands.ClockTimerConfigureEntry.Day.THURSDAY,
+        "FRIDAY": pb2_commands.ClockTimerConfigureEntry.Day.FRIDAY,
+        "SATURDAY": pb2_commands.ClockTimerConfigureEntry.Day.SATURDAY,
+        "SUNDAY": pb2_commands.ClockTimerConfigureEntry.Day.SUNDAY,
+    }
+
+    def _get_current_clock_timer_days(self, vin: str, timer_id: int) -> list[int]:
+        """Return the vehicle's current ClockTimerConfigureEntry.Day values for timer_id."""
+        current_car = self.cars.get(vin)
+        if not current_car or not getattr(current_car, "electric", None):
+            return []
+
+        for attr_name in ("chargingTimer", "chargingBreakClockTimer"):
+            timer_attr = getattr(current_car.electric, attr_name, None)
+            raw_value = getattr(timer_attr, "value", None)
+            if isinstance(raw_value, dict):
+                entries = raw_value.get("entries") or raw_value.get("chargingbreak_clocktimer_entry") or []
+            elif isinstance(raw_value, list):
+                entries = raw_value
+            else:
+                continue
+
+            for item in entries:
+                if not isinstance(item, dict):
+                    continue
+                raw_id = item.get("timerId", item.get("timer_id"))
+                if isinstance(raw_id, dict):
+                    raw_id = raw_id.get("value")
+                try:
+                    item_id = int(raw_id) if raw_id is not None else None
+                except (TypeError, ValueError):
+                    continue
+                if item_id != timer_id:
+                    continue
+
+                raw_days = item.get("day") if item.get("day") is not None else item.get("days")
+                if not raw_days:
+                    return []
+                day_list = raw_days if isinstance(raw_days, list) else [raw_days]
+                parsed_days: list[int] = []
+                for day in day_list:
+                    key = day if isinstance(day, int) and not isinstance(day, bool) else str(day).upper()
+                    mapped = self._CLOCK_TIMER_DAY_MAP.get(key)
+                    if mapped is not None:
+                        parsed_days.append(mapped)
+                return parsed_days
+
+        return []
+
     async def charging_break_clocktimer_configure(
         self,
         vin: str,
-        status_t1: str,
-        start_t1: datetime.timedelta,
-        stop_t1: datetime.timedelta,
-        status_t2: str,
-        start_t2: datetime.timedelta,
-        stop_t2: datetime.timedelta,
-        status_t3: str,
-        start_t3: datetime.timedelta,
-        stop_t3: datetime.timedelta,
-        status_t4: str,
-        start_t4: datetime.timedelta,
-        stop_t4: datetime.timedelta,
+        status_t1: str | None = None,
+        start_t1: datetime.timedelta | None = None,
+        stop_t1: datetime.timedelta | None = None,
+        status_t2: str | None = None,
+        start_t2: datetime.timedelta | None = None,
+        stop_t2: datetime.timedelta | None = None,
+        status_t3: str | None = None,
+        start_t3: datetime.timedelta | None = None,
+        stop_t3: datetime.timedelta | None = None,
+        status_t4: str | None = None,
+        start_t4: datetime.timedelta | None = None,
+        stop_t4: datetime.timedelta | None = None,
+        *,
+        days_t1: list[str] | None = None,
+        days_t2: list[str] | None = None,
+        days_t3: list[str] | None = None,
+        days_t4: list[str] | None = None,
+        status_t5: str | None = None,
+        start_t5: datetime.timedelta | None = None,
+        stop_t5: datetime.timedelta | None = None,
+        days_t5: list[str] | None = None,
+        status_t6: str | None = None,
+        start_t6: datetime.timedelta | None = None,
+        stop_t6: datetime.timedelta | None = None,
+        days_t6: list[str] | None = None,
+        status_t7: str | None = None,
+        start_t7: datetime.timedelta | None = None,
+        stop_t7: datetime.timedelta | None = None,
+        days_t7: list[str] | None = None,
     ) -> None:
         """Send the charging_break_clocktimer_configure command to the car."""
-        if not self._is_car_feature_available(vin, "chargingClockTimer"):
+        if not self._is_car_feature_available(vin, "chargingClockTimer") and not self._is_car_feature_available(
+            vin, "CHARGING_CLOCK_TIMER_CONFIGURE"
+        ):
             LOGGER.warning(
                 "Can't send charging_break_clocktimer_configure for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -2306,70 +2479,77 @@ class Client:
             return
 
         message = client_pb2.ClientMessage()
-
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
-        config = pb2_commands.ChargingBreakClocktimerConfigure()
-        entry_set: bool = False
+        timers = (
+            (1, status_t1, start_t1, stop_t1, days_t1),
+            (2, status_t2, start_t2, stop_t2, days_t2),
+            (3, status_t3, start_t3, stop_t3, days_t3),
+            (4, status_t4, start_t4, stop_t4, days_t4),
+            (5, status_t5, start_t5, stop_t5, days_t5),
+            (6, status_t6, start_t6, stop_t6, days_t6),
+            (7, status_t7, start_t7, stop_t7, days_t7),
+        )
+        entry_set = False
+        use_modern_clock_timer = not self._has_explicit_feature(
+            vin, "chargingClockTimer"
+        ) and self._has_explicit_feature(vin, "CHARGING_CLOCK_TIMER_CONFIGURE")
 
-        if status_t1 and start_t1 is not None and stop_t1 is not None and status_t1 in ("active", "inactive"):
-            t1 = config.chargingbreak_clocktimer_configure_entry.add()
-            t1.timerId = 1
-            if status_t1 == "active":
-                t1.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
-            else:
-                t1.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
+        if use_modern_clock_timer:
+            action_map = {
+                "delete": pb2_commands.ClockTimerConfigureEntry.Action.DELETE,
+                "inactive": pb2_commands.ClockTimerConfigureEntry.Action.DEACTIVATE,
+                "active": pb2_commands.ClockTimerConfigureEntry.Action.ACTIVATE,
+            }
+            config = pb2_commands.ClockTimerConfigure()
+            for timer_id, status, start_t, stop_t, days in timers:
+                if not status or status not in action_map:
+                    continue
+                if status != "delete" and (start_t is None or stop_t is None):
+                    continue
+                entry = config.clock_timer_configure_entry.add()
+                entry.timer_id = timer_id
+                entry.action = action_map[status]
+                if start_t is not None:
+                    entry.start_time_hour = start_t.seconds // 3600
+                    entry.start_time_min = (start_t.seconds % 3600) // 60
+                if stop_t is not None:
+                    entry.end_time_hour = stop_t.seconds // 3600
+                    entry.end_time_min = (stop_t.seconds % 3600) // 60
+                if days is not None:
+                    try:
+                        entry.days.extend(
+                            pb2_commands.ClockTimerConfigureEntry.Day.Value(str(day).upper()) for day in days
+                        )
+                    except ValueError as err:
+                        raise ServiceValidationError(f"Unknown weekday in {days} for timer {timer_id}.") from err
+                elif status != "delete":
+                    entry.days.extend(self._get_current_clock_timer_days(vin, timer_id))
+                entry_set = True
 
-            t1.startTimeHour = start_t1.seconds // 3600
-            t1.startTimeMinute = (start_t1.seconds % 3600) // 60
-            t1.endTimeHour = stop_t1.seconds // 3600
-            t1.endTimeMinute = (stop_t1.seconds % 3600) // 60
-            entry_set = True
+            if entry_set:
+                message.commandRequest.clock_timer_configure.CopyFrom(config)
+        else:
+            config = pb2_commands.ChargingBreakClocktimerConfigure()
+            for timer_id, status, start_t, stop_t, _days in timers[:4]:
+                if status in ("active", "inactive") and start_t is not None and stop_t is not None:
+                    entry = config.chargingbreak_clocktimer_configure_entry.add()
+                    entry.timerId = timer_id
+                    entry.action = (
+                        pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
+                        if status == "active"
+                        else pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
+                    )
+                    entry.startTimeHour = start_t.seconds // 3600
+                    entry.startTimeMinute = (start_t.seconds % 3600) // 60
+                    entry.endTimeHour = stop_t.seconds // 3600
+                    entry.endTimeMinute = (stop_t.seconds % 3600) // 60
+                    entry_set = True
 
-        if status_t2 and start_t2 is not None and stop_t2 is not None and status_t2 in ("active", "inactive"):
-            t2 = config.chargingbreak_clocktimer_configure_entry.add()
-            t2.timerId = 2
-            if status_t2 == "active":
-                t2.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
-            else:
-                t2.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
-
-            t2.startTimeHour = start_t2.seconds // 3600
-            t2.startTimeMinute = (start_t2.seconds % 3600) // 60
-            t2.endTimeHour = stop_t2.seconds // 3600
-            t2.endTimeMinute = (stop_t2.seconds % 3600) // 60
-            entry_set = True
-
-        if status_t3 and start_t3 is not None and stop_t3 is not None and status_t3 in ("active", "inactive"):
-            t3 = config.chargingbreak_clocktimer_configure_entry.add()
-            t3.timerId = 3
-            if status_t3 == "active":
-                t3.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
-            else:
-                t3.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
-
-            t3.startTimeHour = start_t3.seconds // 3600
-            t3.startTimeMinute = (start_t3.seconds % 3600) // 60
-            t3.endTimeHour = stop_t3.seconds // 3600
-            t3.endTimeMinute = (stop_t3.seconds % 3600) // 60
-            entry_set = True
-
-        if status_t4 and start_t4 is not None and stop_t4 is not None and status_t4 in ("active", "inactive"):
-            t4 = config.chargingbreak_clocktimer_configure_entry.add()
-            t4.timerId = 4
-            if status_t4 == "active":
-                t4.action = pb2_commands.ChargingBreakClockTimerEntryStatus.ACTIVE
-            else:
-                t4.action = pb2_commands.ChargingBreakClockTimerEntryStatus.INACTIVE
-
-            t4.startTimeHour = start_t4.seconds // 3600
-            t4.startTimeMinute = (start_t4.seconds % 3600) // 60
-            t4.endTimeHour = stop_t4.seconds // 3600
-            t4.endTimeMinute = (stop_t4.seconds % 3600) // 60
-            entry_set = True
+            if entry_set:
+                message.commandRequest.chargingbreak_clocktimer_configure.CopyFrom(config)
 
         if entry_set:
-            message.commandRequest.chargingbreak_clocktimer_configure.CopyFrom(config)
             await self.execute_car_command(message)
             LOGGER.info(
                 "End charging_break_clocktimer_configure for vin %s",
@@ -2570,21 +2750,7 @@ class Client:
 
     async def battery_max_soc_configure(self, vin: str, max_soc: int, charge_program: int | None = None):
         """Send the maxsoc configure command to the car."""
-        if charge_program is None:
-            # No program given: configure the program the car is currently running,
-            # so that setting the target does not switch the car to another program.
-            current_car = self.cars.get(vin)
-            selected_program = (
-                self._get_car_value(current_car.electric, "selectedChargeProgram", "value", 0) if current_car else 0
-            )
-            charge_program = int(selected_program) if selected_program is not None else 0
-
-        LOGGER.info(
-            "Start battery_max_soc_configure to %s for vin %s and program %s",
-            max_soc,
-            loghelper.Mask_VIN(vin),
-            charge_program,
-        )
+        explicit_program = charge_program is not None
 
         if (
             not self._is_car_feature_available(vin, "BATTERY_MAX_SOC_CONFIGURE")
@@ -2598,28 +2764,55 @@ class Client:
             return
 
         message = client_pb2.ClientMessage()
-
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
 
-        if self._is_car_feature_available(vin, "CHARGING_CONFIGURE"):
+        if self._has_explicit_feature(vin, "CHARGING_CONFIGURE"):
             LOGGER.debug(
                 "CHARGING_CONFIGURE=true for car %s. Will use ChargingConfigure.",
                 loghelper.Mask_VIN(vin),
             )
             charging_config = pb2_commands.ChargingConfigure()
             charging_config.max_soc.value = max_soc
-            # The field is charging_program since the 1.72 protos, and an
-            # Int32Value rather than the ChargeProgram enum it used to be.
-            # charging_config.charging_program.value = charge_program
+            if explicit_program:
+                charging_config.charging_program.value = charge_program
             message.commandRequest.charging_configure.CopyFrom(charging_config)
+        elif self._has_explicit_feature(vin, "BATTERY_MAX_SOC_CONFIGURE") and not self._has_explicit_feature(
+            vin, "CHARGE_PROGRAM_CONFIGURE"
+        ):
+            LOGGER.debug(
+                "BATTERY_MAX_SOC_CONFIGURE=true for car %s. Will use BatteryMaxSocConfigure.",
+                loghelper.Mask_VIN(vin),
+            )
+            battery_max_soc_config = pb2_commands.BatteryMaxSocConfigure()
+            battery_max_soc_config.max_soc = max_soc
+            message.commandRequest.battery_max_soc.CopyFrom(battery_max_soc_config)
         else:
+            if not explicit_program:
+                # No program given: configure the program the car is currently running,
+                # so that setting the target does not switch the car to another program.
+                current_car = self.cars.get(vin)
+                selected_program = (
+                    self._get_car_value(current_car.electric, "selectedChargeProgram", "value", 0) if current_car else 0
+                )
+                charge_program = int(selected_program) if selected_program is not None else 0
+            if charge_program not in (0, 2, 3):
+                raise ServiceValidationError(
+                    "CHARGE_PROGRAM_CONFIGURE only supports programs 0 (Default), 2 (Home) and 3 (Work)."
+                )
+
             max_soc = max(max_soc, 50)
             charge_program_config = pb2_commands.ChargeProgramConfigure()
             charge_program_config.max_soc.value = max_soc
             charge_program_config.charge_program = charge_program
             message.commandRequest.charge_program_configure.CopyFrom(charge_program_config)
 
+        LOGGER.info(
+            "Start battery_max_soc_configure to %s for vin %s and program %s",
+            max_soc,
+            loghelper.Mask_VIN(vin),
+            charge_program,
+        )
         await self.execute_car_command(message)
         LOGGER.info("End battery_max_soc_configure for vin %s", loghelper.Mask_VIN(vin))
 
@@ -3243,11 +3436,33 @@ class Client:
                 loghelper.Mask_VIN(vin),
             )
 
+    def _has_explicit_feature(self, vin: str, feature: str) -> bool:
+        """Return True only when the car explicitly advertises feature=True."""
+        current_car = self.cars.get(vin)
+        return bool(current_car and current_car.features.get(feature) is True)
+
+    def _can_move_windows(self, vin: str) -> bool:
+        """Return whether arbitrary window positioning is allowed for vin."""
+        if self.config_entry.options.get(CONF_FT_DISABLE_CAPABILITY_CHECK, False):
+            return True
+        current_car = self.cars.get(vin)
+        return bool(current_car and current_car.can_move_windows())
+
+    def _resolve_window_pin(self, vin: str, pin: str, action: str) -> str | None:
+        """Resolve an explicit or stored security PIN for window commands."""
+        resolved = pin if (pin and pin.strip()) else self.pin
+        if not resolved:
+            LOGGER.warning(
+                "Can't %s the windows - car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
+                action,
+                loghelper.Mask_VIN(vin),
+            )
+            return None
+        return resolved
+
     async def windows_open(self, vin: str, pin: str = ""):
         """Send a window open command to the car."""
         LOGGER.info("Start windows_open for vin %s", loghelper.Mask_VIN(vin))
-
-        _pin: str = None
 
         if not self._is_car_feature_available(vin, "WINDOWS_OPEN"):
             LOGGER.warning(
@@ -3256,20 +3471,11 @@ class Client:
             )
             return
 
-        if pin and pin.strip():
-            _pin = pin
-        else:
-            _pin = self.pin
-
+        _pin = self._resolve_window_pin(vin, pin, "open")
         if not _pin:
-            LOGGER.warning(
-                "Can't open the windows - car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
-                loghelper.Mask_VIN(vin),
-            )
             return
 
         message = client_pb2.ClientMessage()
-
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.windows_open.pin = _pin
@@ -3289,7 +3495,6 @@ class Client:
             return
 
         message = client_pb2.ClientMessage()
-
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
         windows_close = pb2_commands.WindowsClose()
@@ -3297,6 +3502,29 @@ class Client:
 
         await self.execute_car_command(message)
         LOGGER.info("End windows_close for vin %s", loghelper.Mask_VIN(vin))
+
+    async def windows_ventilate(self, vin: str, pin: str = ""):
+        """Send a window ventilate command to the car."""
+        LOGGER.info("Start windows_ventilate for vin %s", loghelper.Mask_VIN(vin))
+
+        if not self._is_car_feature_available(vin, "WINDOWS_VENTILATE"):
+            LOGGER.warning(
+                "Can't ventilate the windows for car %s. Feature not marked as available for this car.",
+                loghelper.Mask_VIN(vin),
+            )
+            return
+
+        _pin = self._resolve_window_pin(vin, pin, "ventilate")
+        if not _pin:
+            return
+
+        message = client_pb2.ClientMessage()
+        message.commandRequest.vin = vin
+        message.commandRequest.request_id = str(uuid.uuid4())
+        message.commandRequest.windows_ventilate.pin = _pin
+
+        await self.execute_car_command(message)
+        LOGGER.info("End windows_ventilate for vin %s", loghelper.Mask_VIN(vin))
 
     async def windows_move(
         self, vin: str, front_left: int, front_right: int, rear_left: int, rear_right: int, pin: str = ""
@@ -3311,19 +3539,11 @@ class Client:
             rear_right,
         )
 
-        if pin and pin.strip():
-            _pin = pin
-        else:
-            _pin = self.pin
-
+        _pin = self._resolve_window_pin(vin, pin, "move")
         if not _pin:
-            LOGGER.warning(
-                "Can't move the windows - car %s. PIN not given. Please set the PIN -> Integration, Options or use the optional parameter of the service.",
-                loghelper.Mask_VIN(vin),
-            )
             return
 
-        if not self._is_car_feature_available(vin, "variableOpenableWindow"):
+        if not self._can_move_windows(vin):
             LOGGER.warning(
                 "Can't move windows for car %s. Feature not availabe for this car.",
                 loghelper.Mask_VIN(vin),
@@ -3331,30 +3551,21 @@ class Client:
             return
 
         message = client_pb2.ClientMessage()
-
         message.commandRequest.vin = vin
         message.commandRequest.request_id = str(uuid.uuid4())
         message.commandRequest.windows_move.pin = _pin
-        if front_left is not None:
-            if front_left == 0:
-                message.commandRequest.windows_move.front_left.SetInParent()
-            else:
-                message.commandRequest.windows_move.front_left.value = front_left
-        if front_right is not None:
-            if front_right == 0:
-                message.commandRequest.windows_move.front_right.SetInParent()
-            else:
-                message.commandRequest.windows_move.front_right.value = front_right
-        if rear_left is not None:
-            if rear_left == 0:
-                message.commandRequest.windows_move.rear_left.SetInParent()
-            else:
-                message.commandRequest.windows_move.rear_left.value = rear_left
-        if rear_right is not None:
-            if rear_right == 0:
-                message.commandRequest.windows_move.rear_right.SetInParent()
-            else:
-                message.commandRequest.windows_move.rear_right.value = rear_right
+        for field_name, pos in (
+            ("front_left", front_left),
+            ("front_right", front_right),
+            ("rear_left", rear_left),
+            ("rear_right", rear_right),
+        ):
+            if pos is not None:
+                field = getattr(message.commandRequest.windows_move, field_name)
+                if pos == 0:
+                    field.SetInParent()
+                else:
+                    field.value = pos
 
         await self.execute_car_command(message)
         LOGGER.info("End windows_move for vin %s", loghelper.Mask_VIN(vin))

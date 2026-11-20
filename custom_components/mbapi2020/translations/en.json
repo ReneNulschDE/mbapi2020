@@ -175,7 +175,7 @@
         },
         "max_soc": {
           "name": "Max Soc",
-          "description": "The maximum value for the state of charge of the HV battery (Value needs to be between 50 and 100 and divisible by ten)"
+          "description": "The maximum value for the state of charge of the HV battery (Value needs to be between 50 (some new cars like 2025 CLA supporting 30) and 100 and divisible by ten)"
         }
       }
     },
@@ -463,6 +463,20 @@
         }
       }
     },
+    "windows_ventilate": {
+      "name": "Windows ventilate",
+      "description": "Ventilate the windows of a car defined by a vin. PIN setup required. See options dialog of the integration.",
+      "fields": {
+        "vin": {
+          "name": "Vin",
+          "description": "Vin/Fin of the car"
+        },
+        "pin": {
+          "name": "Pin",
+          "description": "Security pin, required if not stored in the settings."
+        }
+      }
+    },
     "windows_move": {
       "name": "Windows move",
       "description": "Move the windows of a car defined by a vin to a new position. PIN setup required. See options dialog of the integration.",
@@ -529,7 +543,7 @@
     },
     "charging_break_clocktimer_configure": {
       "name": "Charging Break Clocktimer Configure",
-      "description": "Configure charging breaks (AC only). This will overwrite the complete config for all slots in your car.",
+      "description": "Configure charging breaks (AC only) or charging clock timers. For legacy charging breaks this overwrites all slots.",
       "fields": {
         "vin": {
           "name": "Vin",
@@ -547,6 +561,10 @@
           "name": "End Time (Timer 1)",
           "description": "End time of the charge break window (Timer 1)"
         },
+        "days_timer_1": {
+          "name": "Weekdays (Timer 1)",
+          "description": "Optional weekdays for Timer 1 (CHARGING_CLOCK_TIMER_CONFIGURE)"
+        },
         "status_timer_2": {
           "name": "Status (Timer 2)",
           "description": ""
@@ -558,6 +576,10 @@
         "stoptime_timer_2": {
           "name": "End Time (Timer 2)",
           "description": "End time of the charge break window (Timer 2)"
+        },
+        "days_timer_2": {
+          "name": "Weekdays (Timer 2)",
+          "description": "Optional weekdays for Timer 2 (CHARGING_CLOCK_TIMER_CONFIGURE)"
         },
         "status_timer_3": {
           "name": "Status (Timer 3)",
@@ -571,6 +593,10 @@
           "name": "End Time (Timer 3)",
           "description": "End time of the charge break window (Timer 3)"
         },
+        "days_timer_3": {
+          "name": "Weekdays (Timer 3)",
+          "description": "Optional weekdays for Timer 3 (CHARGING_CLOCK_TIMER_CONFIGURE)"
+        },
         "status_timer_4": {
           "name": "Status (Timer 4)",
           "description": ""
@@ -582,6 +608,58 @@
         "stoptime_timer_4": {
           "name": "End Time (Timer 4)",
           "description": "End time of the charge break window (Timer 4)"
+        },
+        "days_timer_4": {
+          "name": "Weekdays (Timer 4)",
+          "description": "Optional weekdays for Timer 4 (CHARGING_CLOCK_TIMER_CONFIGURE)"
+        },
+        "status_timer_5": {
+          "name": "Status (Timer 5)",
+          "description": ""
+        },
+        "starttime_timer_5": {
+          "name": "Start time (Timer 5)",
+          "description": "Start time of the charge break window (Timer 5)"
+        },
+        "stoptime_timer_5": {
+          "name": "End Time (Timer 5)",
+          "description": "End time of the charge break window (Timer 5)"
+        },
+        "days_timer_5": {
+          "name": "Weekdays (Timer 5)",
+          "description": "Optional weekdays for Timer 5 (CHARGING_CLOCK_TIMER_CONFIGURE)"
+        },
+        "status_timer_6": {
+          "name": "Status (Timer 6)",
+          "description": ""
+        },
+        "starttime_timer_6": {
+          "name": "Start time (Timer 6)",
+          "description": "Start time of the charge break window (Timer 6)"
+        },
+        "stoptime_timer_6": {
+          "name": "End Time (Timer 6)",
+          "description": "End time of the charge break window (Timer 6)"
+        },
+        "days_timer_6": {
+          "name": "Weekdays (Timer 6)",
+          "description": "Optional weekdays for Timer 6 (CHARGING_CLOCK_TIMER_CONFIGURE)"
+        },
+        "status_timer_7": {
+          "name": "Status (Timer 7)",
+          "description": ""
+        },
+        "starttime_timer_7": {
+          "name": "Start time (Timer 7)",
+          "description": "Start time of the charge break window (Timer 7)"
+        },
+        "stoptime_timer_7": {
+          "name": "End Time (Timer 7)",
+          "description": "End time of the charge break window (Timer 7)"
+        },
+        "days_timer_7": {
+          "name": "Weekdays (Timer 7)",
+          "description": "Optional weekdays for Timer 7 (CHARGING_CLOCK_TIMER_CONFIGURE)"
         }
       }
     },
@@ -1011,7 +1089,8 @@
       "options": {
         "notset": "Not set",
         "active": "Active",
-        "inactive": "Inactive"
+        "inactive": "Inactive",
+        "delete": "Delete"
       }
     },
     "temperature_configure": {

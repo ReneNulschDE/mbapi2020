@@ -132,6 +132,7 @@ charge_program_configure:
             - "0"
             - "2"
             - "3"
+          translation_key: "charge_program"
     max_soc:
       description: "The maximum value for the state of charge of the HV battery (Value needs to be between 50 and 100 and divisible by ten)"
       example: "100"
@@ -140,6 +141,8 @@ charge_program_configure:
       selector:
         select:
           options:
+            - "30"
+            - "40"
             - "50"
             - "60"
             - "70"
@@ -209,7 +212,7 @@ hv_battery_start_conditioning:
       selector:
         text:
 
-hv_battery_stop_conditioninge_stop:
+hv_battery_stop_conditioning:
   description: "Stop the HV battery conditioning of a car defined by a vin."
   fields:
     vin:
@@ -427,6 +430,22 @@ windows_close:
       selector:
         text:
 
+windows_ventilate:
+  description: "Ventilate the windows of a car defined by a vin. PIN setup required. See options dialog of the integration."
+  fields:
+    vin:
+      description: "vin of the car"
+      example: "Wxxxxxxxxxxxxxx"
+      required: True
+      selector:
+        text:
+    pin:
+      description: "Security pin"
+      example: "1234"
+      required: False
+      selector:
+        text:
+
 windows_move:
   description: "Move the windows to the defined positions of a car defined by a vin. PIN setup required. See options dialog of the integration."
   fields:
@@ -572,7 +591,7 @@ download_images:
         text:
 
 charging_break_clocktimer_configure:
-  description: "Configure charging breaks (AC only)"
+  description: "Configure charging breaks (AC only) or charging clock timers"
   fields:
     vin:
       description: "vin of the car"
@@ -590,6 +609,7 @@ charging_break_clocktimer_configure:
             - "notset"
             - "active"
             - "inactive"
+            - "delete"
     starttime_timer_1:
       description: "Start time (Timer 1)"
       selector:
@@ -598,6 +618,20 @@ charging_break_clocktimer_configure:
       description: "Stop time (Timer 1)"
       selector:
         time:
+    days_timer_1:
+      description: "(optional) Weekdays Timer 1 applies to (supported with CHARGING_CLOCK_TIMER_CONFIGURE)"
+      selector:
+        select:
+          multiple: True
+          translation_key: "week_profile_configure_days"
+          options:
+            - "monday"
+            - "tuesday"
+            - "wednesday"
+            - "thursday"
+            - "friday"
+            - "saturday"
+            - "sunday"
     status_timer_2:
       description: "Status Timer 2"
       default: "notset"
@@ -608,6 +642,7 @@ charging_break_clocktimer_configure:
             - "notset"
             - "active"
             - "inactive"
+            - "delete"
     starttime_timer_2:
       description: "Start time (Timer 2)"
       selector:
@@ -616,6 +651,20 @@ charging_break_clocktimer_configure:
       description: "Stop time (Timer 2)"
       selector:
         time:
+    days_timer_2:
+      description: "(optional) Weekdays Timer 2 applies to (supported with CHARGING_CLOCK_TIMER_CONFIGURE)"
+      selector:
+        select:
+          multiple: True
+          translation_key: "week_profile_configure_days"
+          options:
+            - "monday"
+            - "tuesday"
+            - "wednesday"
+            - "thursday"
+            - "friday"
+            - "saturday"
+            - "sunday"
     status_timer_3:
       description: "Status Timer 3"
       default: "notset"
@@ -626,6 +675,7 @@ charging_break_clocktimer_configure:
             - "notset"
             - "active"
             - "inactive"
+            - "delete"
     starttime_timer_3:
       description: "Start time (Timer 3)"
       selector:
@@ -634,6 +684,20 @@ charging_break_clocktimer_configure:
       description: "Stop time (Timer 3)"
       selector:
         time:
+    days_timer_3:
+      description: "(optional) Weekdays Timer 3 applies to (supported with CHARGING_CLOCK_TIMER_CONFIGURE)"
+      selector:
+        select:
+          multiple: True
+          translation_key: "week_profile_configure_days"
+          options:
+            - "monday"
+            - "tuesday"
+            - "wednesday"
+            - "thursday"
+            - "friday"
+            - "saturday"
+            - "sunday"
     status_timer_4:
       description: "Status Timer 4"
       default: "notset"
@@ -644,6 +708,7 @@ charging_break_clocktimer_configure:
             - "notset"
             - "active"
             - "inactive"
+            - "delete"
     starttime_timer_4:
       description: "Start time (Timer 4)"
       selector:
@@ -652,6 +717,119 @@ charging_break_clocktimer_configure:
       description: "Stop time (Timer 4)"
       selector:
         time:
+    days_timer_4:
+      description: "(optional) Weekdays Timer 4 applies to (supported with CHARGING_CLOCK_TIMER_CONFIGURE)"
+      selector:
+        select:
+          multiple: True
+          translation_key: "week_profile_configure_days"
+          options:
+            - "monday"
+            - "tuesday"
+            - "wednesday"
+            - "thursday"
+            - "friday"
+            - "saturday"
+            - "sunday"
+    status_timer_5:
+      description: "Status Timer 5 (CHARGING_CLOCK_TIMER_CONFIGURE only)"
+      default: "notset"
+      selector:
+        select:
+          translation_key: "charging_break_clocktimer_configure_action"
+          options:
+            - "notset"
+            - "active"
+            - "inactive"
+            - "delete"
+    starttime_timer_5:
+      description: "Start time (Timer 5)"
+      selector:
+        time:
+    stoptime_timer_5:
+      description: "Stop time (Timer 5)"
+      selector:
+        time:
+    days_timer_5:
+      description: "(optional) Weekdays Timer 5 applies to (supported with CHARGING_CLOCK_TIMER_CONFIGURE)"
+      selector:
+        select:
+          multiple: True
+          translation_key: "week_profile_configure_days"
+          options:
+            - "monday"
+            - "tuesday"
+            - "wednesday"
+            - "thursday"
+            - "friday"
+            - "saturday"
+            - "sunday"
+    status_timer_6:
+      description: "Status Timer 6 (CHARGING_CLOCK_TIMER_CONFIGURE only)"
+      default: "notset"
+      selector:
+        select:
+          translation_key: "charging_break_clocktimer_configure_action"
+          options:
+            - "notset"
+            - "active"
+            - "inactive"
+            - "delete"
+    starttime_timer_6:
+      description: "Start time (Timer 6)"
+      selector:
+        time:
+    stoptime_timer_6:
+      description: "Stop time (Timer 6)"
+      selector:
+        time:
+    days_timer_6:
+      description: "(optional) Weekdays Timer 6 applies to (supported with CHARGING_CLOCK_TIMER_CONFIGURE)"
+      selector:
+        select:
+          multiple: True
+          translation_key: "week_profile_configure_days"
+          options:
+            - "monday"
+            - "tuesday"
+            - "wednesday"
+            - "thursday"
+            - "friday"
+            - "saturday"
+            - "sunday"
+    status_timer_7:
+      description: "Status Timer 7 (CHARGING_CLOCK_TIMER_CONFIGURE only)"
+      default: "notset"
+      selector:
+        select:
+          translation_key: "charging_break_clocktimer_configure_action"
+          options:
+            - "notset"
+            - "active"
+            - "inactive"
+            - "delete"
+    starttime_timer_7:
+      description: "Start time (Timer 7)"
+      selector:
+        time:
+    stoptime_timer_7:
+      description: "Stop time (Timer 7)"
+      selector:
+        time:
+    days_timer_7:
+      description: "(optional) Weekdays Timer 7 applies to (supported with CHARGING_CLOCK_TIMER_CONFIGURE)"
+      selector:
+        select:
+          multiple: True
+          translation_key: "week_profile_configure_days"
+          options:
+            - "monday"
+            - "tuesday"
+            - "wednesday"
+            - "thursday"
+            - "friday"
+            - "saturday"
+            - "sunday"
 
 preconditioning_configure_seats:
   description: "Configure which seats should be preconditioned of a car defined by a vin. Seats left empty keep their current setting."

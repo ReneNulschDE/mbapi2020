@@ -170,6 +170,7 @@ SERVICE_PRECONDITIONING_CONFIGURE = "preconditioning_configure"
 SERVICE_WINDOWS_OPEN = "windows_open"
 SERVICE_WINDOWS_CLOSE = "windows_close"
 SERVICE_WINDOWS_MOVE = "windows_move"
+SERVICE_WINDOWS_VENTILATE = "windows_ventilate"
 SERVICE_DOWNLOAD_IMAGES = "download_images"
 SERVICE_PRECONDITIONING_CONFIGURE_SEATS = "preconditioning_configure_seats"
 SERVICE_TEMPERATURE_CONFIGURE = "temperature_configure"
@@ -230,18 +231,16 @@ SERVICE_WEEK_PROFILE_CONFIGURE_SCHEMA = vol.Schema(
 SERVICE_CHARGING_BREAK_CLOCKTIMER_CONFIGURE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VIN): cv.string,
-        vol.Optional("status_timer_1"): cv.string,
-        vol.Optional("starttime_timer_1"): cv.time_period,
-        vol.Optional("stoptime_timer_1"): cv.time_period,
-        vol.Optional("status_timer_2"): cv.string,
-        vol.Optional("starttime_timer_2"): cv.time_period,
-        vol.Optional("stoptime_timer_2"): cv.time_period,
-        vol.Optional("status_timer_3"): cv.string,
-        vol.Optional("starttime_timer_3"): cv.time_period,
-        vol.Optional("stoptime_timer_3"): cv.time_period,
-        vol.Optional("status_timer_4"): cv.string,
-        vol.Optional("starttime_timer_4"): cv.time_period,
-        vol.Optional("stoptime_timer_4"): cv.time_period,
+        **{
+            key: value
+            for timer_id in range(1, 8)
+            for key, value in (
+                (vol.Optional(f"status_timer_{timer_id}"), cv.string),
+                (vol.Optional(f"starttime_timer_{timer_id}"), cv.time_period),
+                (vol.Optional(f"stoptime_timer_{timer_id}"), cv.time_period),
+                (vol.Optional(f"days_timer_{timer_id}"), vol.All(cv.ensure_list, [vol.In(WEEK_PROFILE_DAYS)])),
+            )
+        },
     }
 )
 SERVICE_PREHEAT_START_SCHEMA = vol.Schema(
@@ -298,7 +297,7 @@ SERVICE_VIN_CHARGE_PROGRAM_SCHEMA = vol.Schema(
         vol.Required("charge_program", default=0): vol.All(vol.Coerce(int), vol.In([0, 2, 3])),
         vol.Optional("max_soc", default=None): vol.Any(
             None,
-            vol.All(vol.Coerce(int), vol.In([50, 60, 70, 80, 90, 100])),
+            vol.All(vol.Coerce(int), vol.In([30, 40, 50, 60, 70, 80, 90, 100])),
         ),
     }
 )
@@ -469,7 +468,7 @@ BinarySensors = {
         "parkbrakestatus",
         "value",
         None,
-        {"preWarningBrakeLiningWear"},
+        {"preWarningBrakeLiningWear", "warningBrakeLiningWear"},
         "mdi:car-brake-parking",
         None,
         False,
@@ -632,9 +631,13 @@ BinarySensors = {
             "precondSeatRearLeft",
             "precondSeatRearRight",
             "temperature_points_frontLeft",
+            "temperature_points_frontLeftActive",
             "temperature_points_frontRight",
+            "temperature_points_frontRightActive",
             "temperature_points_rearLeft",
+            "temperature_points_rearLeftActive",
             "temperature_points_rearRight",
+            "temperature_points_rearRightActive",
         },
         "mdi:car-seat-heater",
         BinarySensorDeviceClass.RUNNING,
@@ -925,6 +928,7 @@ SENSORS = {
             "ecoElectricBatteryTemperature",
             "endofchargetime",
             "endofChargeTimeWeekday",
+            "chargingPredictionMaxSocRange",
             "precond.precondActive",  # DEPRECATED
             "precond.precondNow",  # DEPRECATED
             "precond.precondDuration",  # DEPRECATED
@@ -934,6 +938,22 @@ SENSORS = {
             "electricRatioOverall",
             "electricRatioReset",
         },
+        "mdi:ev-station",
+        SensorDeviceClass.DISTANCE,
+        False,
+        None,
+        SensorStateClass.MEASUREMENT,
+        None,
+        0,
+    ],
+    "chargingpredictionmaxsocrange": [
+        "Predicted max SoC range",
+        UnitOfLength.KILOMETERS,
+        "electric",
+        "chargingPredictionMaxSocRange",
+        "value",
+        None,
+        {},
         "mdi:ev-station",
         SensorDeviceClass.DISTANCE,
         False,
