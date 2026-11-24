@@ -29,12 +29,12 @@ This is an unofficial community project. It is not affiliated with, endorsed by 
 ### Installation
 
 - First: This is not a Home Assistant Add-On. It's a custom component.
-- There are two ways to install. First you can download the folder custom_component and copy it into your Home-Assistant config folder. Second option is to install HACS (Home Assistant Custom Component Store) and select "MercedesME 2020" from the Integrations catalog.
-- [How to install a custom component?](https://www.google.com/search?q=how+to+install+custom+components+home+assistant)
-- [How to install HACS?](https://hacs.xyz/docs/use/)
-- Restart HA after the installation
+- **Home Assistant 2026.11 or newer:** Go to **Settings** > **Marketplace**, search for "MercedesME 2020", open it and select **Install**. The Marketplace is built into Home Assistant and replaces HACS. [How to use the Marketplace?](https://www.home-assistant.io/integrations/marketplace/)
+- **Home Assistant 2026.10 or older:** Install HACS (Home Assistant Community Store) and select "MercedesME 2020" from the Integrations catalog. [How to install HACS?](https://hacs.xyz/docs/use/)
+- **Manual installation:** Download the folder custom_components/mbapi2020 and copy it into the custom_components folder of your Home Assistant config folder. [How to install a custom component?](https://www.google.com/search?q=how+to+install+custom+components+home+assistant)
+- Restart HA after the installation. The Marketplace tells you if a restart is needed.
 - Make sure that you refresh your browser window too
-- Use the "Add Integration" in Home Assistant, Settings, Devices & Services and select "MercedesME 2020".
+- If the setup page does not open on its own, use the "Add Integration" in Home Assistant, Settings, Devices & Services and select "MercedesME 2020".
 - Enter your Mercedes-Benz account credentials (username/password) in the integration setup
   **Important Notes:**
 - consider using a dedicated Mercedes-Benz account for Home Assistant
