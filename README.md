@@ -28,7 +28,6 @@ This is an unofficial community project. It is not affiliated with, endorsed by 
 
 ### Installation
 
-- First: This is not a Home Assistant Add-On. It's a custom component.
 - **Home Assistant 2026.11 or newer:** Go to **Settings** > **Marketplace**, search for "MercedesME 2020", open it and select **Install**. The Marketplace is built into Home Assistant and replaces HACS. [How to use the Marketplace?](https://www.home-assistant.io/integrations/marketplace/)
 - **Home Assistant 2026.10 or older:** Install HACS (Home Assistant Community Store) and select "MercedesME 2020" from the Integrations catalog. [How to install HACS?](https://hacs.xyz/docs/use/)
 - **Manual installation:** Download the folder custom_components/mbapi2020 and copy it into the custom_components folder of your Home Assistant config folder. [How to install a custom component?](https://www.google.com/search?q=how+to+install+custom+components+home+assistant)
