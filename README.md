@@ -35,7 +35,8 @@ This is an unofficial community project. It is not affiliated with, endorsed by 
 - Make sure that you refresh your browser window too
 - If the setup page does not open on its own, use the "Add Integration" in Home Assistant, Settings, Devices & Services and select "MercedesME 2020".
 - Enter your Mercedes-Benz account credentials (username/password) in the integration setup
-  **Important Notes:**
+
+**Important Notes:**
 - consider using a dedicated Mercedes-Benz account for Home Assistant
 - if MFA is enabled on your Mercedes-Benz account, authentication will fail. You must disable MFA or use a separate account without MFA.
 
