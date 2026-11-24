@@ -17,6 +17,15 @@ IMPORTANT:
 - Smart cars data are not available after 2025-01-06
 - Discussions, Feature Requests via [HA-Community Forum](https://community.home-assistant.io/t/mercedes-me-component/41911)
 
+### Disclaimer
+
+This is an unofficial community project. It is not affiliated with, endorsed by or supported by Mercedes-Benz AG or any of its subsidiaries. "Mercedes-Benz" and "Mercedes me" are trademarks of their respective owners.
+
+- The integration relies on an API that is not public and not documented. It can change or stop working at any time.
+- Mercedes-Benz has not reviewed or approved this integration. Whether its use complies with the Mercedes-Benz terms of use is your own responsibility.
+- Do not contact Mercedes-Benz support about this integration. They will not help you with it.
+- The software is provided for educational and research purposes, without warranty of any kind (see [LICENSE](LICENSE)). You use it at your own risk, including the risk of a blocked account.
+
 ### Installation
 
 - First: This is not a Home Assistant Add-On. It's a custom component.
@@ -34,7 +43,7 @@ IMPORTANT:
 
 ### How to Prevent Account Blocking
 
-To reduce the risk of your account being blocked, please follow these recommendations:
+To reduce the risk of your account being blocked, please follow these recommendations (see also the [Disclaimer](#disclaimer)):
 
 1. **Create a separate MB user account for use with this component.**
 2. **Invite the new user to the vehicle:**  
